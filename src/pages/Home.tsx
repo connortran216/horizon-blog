@@ -16,51 +16,22 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { FaBookmark, FaClock } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
+import { getBlogPosts } from '../services/blogStorage';
+import { BlogPost } from '../types/blog';
 
-// Dummy data - This will be replaced with API calls
-const featuredPosts = [
-  {
-    id: 1,
-    title: 'Getting Started with React and TypeScript',
-    excerpt: 'Learn how to set up a new React project with TypeScript and start building modern web applications.',
-    imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60',
-    date: '2024-03-01',
-    author: {
-      name: 'Sarah Chen',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60',
-    },
-    readTime: '5 min read',
-    category: 'TypeScript',
-  },
-  {
-    id: 2,
-    title: 'Building Responsive Layouts with Chakra UI',
-    excerpt: 'Discover how to create beautiful and responsive user interfaces using Chakra UI components.',
-    imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&auto=format&fit=crop&q=60',
-    date: '2024-02-28',
-    author: {
-      name: 'Mike Wilson',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60',
-    },
-    readTime: '7 min read',
-    category: 'Design',
-  },
-  {
-    id: 3,
-    title: 'State Management in React Applications',
-    excerpt: 'Explore different state management solutions for React applications and when to use them.',
-    imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=60',
-    date: '2024-02-27',
-    author: {
-      name: 'Alex Kumar',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60',
-    },
-    readTime: '6 min read',
-    category: 'React',
-  },
-];
+// Default avatar for posts without author avatar
+const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60';
+// Default image for posts without featured image
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60';
 
-const BlogCard = ({ post }: { post: typeof featuredPosts[0] }) => {
+const BlogCard = ({ post }: { post: BlogPost }) => {
+  // Format date to a readable string
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
   return (
     <Box
       as="article"
@@ -73,10 +44,10 @@ const BlogCard = ({ post }: { post: typeof featuredPosts[0] }) => {
       <Flex gap={6} align="start">
         <Stack flex="1" spacing={4}>
           <HStack spacing={3}>
-            <Avatar src={post.author.avatar} size="xs" />
-            <Text fontSize="sm" color="gray.700">{post.author.name}</Text>
+            <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
+            <Text fontSize="sm" color="gray.700">{post.author.username}</Text>
             <Text fontSize="sm" color="gray.500">·</Text>
-            <Text fontSize="sm" color="gray.500">{post.date}</Text>
+            <Text fontSize="sm" color="gray.500">{formatDate(post.createdAt)}</Text>
           </HStack>
           
           <Heading
@@ -97,23 +68,25 @@ const BlogCard = ({ post }: { post: typeof featuredPosts[0] }) => {
             noOfLines={2}
             lineHeight="tall"
           >
-            {post.excerpt}
+            {post.subtitle || ''}
           </Text>
 
           <HStack spacing={4} mt={2}>
-            <Text
-              px={3}
-              py={1}
-              bg="gray.100"
-              color="gray.700"
-              fontSize="sm"
-              rounded="full"
-            >
-              {post.category}
-            </Text>
+            {post.tags && post.tags.length > 0 && (
+              <Text
+                px={3}
+                py={1}
+                bg="gray.100"
+                color="gray.700"
+                fontSize="sm"
+                rounded="full"
+              >
+                {post.tags[0]}
+              </Text>
+            )}
             <HStack spacing={1} color="gray.500">
               <Icon as={FaClock} w={3} h={3} />
-              <Text fontSize="sm">{post.readTime}</Text>
+              <Text fontSize="sm">{post.readingTime || 1} min read</Text>
             </HStack>
             <Icon 
               as={FaBookmark} 
@@ -134,7 +107,7 @@ const BlogCard = ({ post }: { post: typeof featuredPosts[0] }) => {
           flexShrink={0}
         >
           <Image
-            src={post.imageUrl}
+            src={post.featuredImage || DEFAULT_IMAGE}
             alt={post.title}
             w="full"
             h="full"
@@ -147,6 +120,25 @@ const BlogCard = ({ post }: { post: typeof featuredPosts[0] }) => {
 };
 
 const Home = () => {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Load blog posts from local storage
+    const loadBlogPosts = () => {
+      try {
+        const posts = getBlogPosts().filter(post => post.status === 'published');
+        setBlogPosts(posts);
+      } catch (error) {
+        console.error('Error loading blog posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBlogPosts();
+  }, []);
+
   return (
     <Box bg="#faf9f7">
       {/* Hero Section */}
@@ -272,52 +264,75 @@ const Home = () => {
             </Text>
           </HStack>
           
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-            {featuredPosts.slice(0, 2).map((post, index) => (
-              <HStack key={post.id} align="start" spacing={4}>
-                <Text
-                  fontSize="32px"
-                  fontWeight="bold"
-                  color="gray.200"
-                  lineHeight="1"
-                >
-                  {String(index + 1).padStart(2, '0')}
-                </Text>
-                <Stack spacing={2}>
-                  <HStack spacing={2}>
-                    <Avatar src={post.author.avatar} size="xs" />
-                    <Text fontSize="sm">{post.author.name}</Text>
-                  </HStack>
-                  <Heading
-                    as={RouterLink}
-                    to={`/blog/${post.id}`}
-                    fontSize="16px"
+          {isLoading ? (
+            <Text>Loading trending posts...</Text>
+          ) : blogPosts.length > 0 ? (
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+              {blogPosts.slice(0, 2).map((post, index) => (
+                <HStack key={post.id} align="start" spacing={4}>
+                  <Text
+                    fontSize="32px"
                     fontWeight="bold"
-                    color="gray.900"
-                    _hover={{ color: "gray.700" }}
+                    color="gray.200"
+                    lineHeight="1"
                   >
-                    {post.title}
-                  </Heading>
-                  <HStack spacing={2} color="gray.500" fontSize="sm">
-                    <Text>{post.date}</Text>
-                    <Text>·</Text>
-                    <Text>{post.readTime}</Text>
-                  </HStack>
-                </Stack>
-              </HStack>
-            ))}
-          </SimpleGrid>
+                    {String(index + 1).padStart(2, '0')}
+                  </Text>
+                  <Stack spacing={2}>
+                    <HStack spacing={2}>
+                      <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
+                      <Text fontSize="sm">{post.author.username}</Text>
+                    </HStack>
+                    <Heading
+                      as={RouterLink}
+                      to={`/blog/${post.id}`}
+                      fontSize="16px"
+                      fontWeight="bold"
+                      color="gray.900"
+                      _hover={{ color: "gray.700" }}
+                    >
+                      {post.title}
+                    </Heading>
+                    <HStack spacing={2} color="gray.500" fontSize="sm">
+                      <Text>{new Date(post.createdAt).toLocaleDateString()}</Text>
+                      <Text>·</Text>
+                      <Text>{post.readingTime || 1} min read</Text>
+                    </HStack>
+                  </Stack>
+                </HStack>
+              ))}
+            </SimpleGrid>
+          ) : (
+            <Text>No trending posts available. Start writing to see your posts here!</Text>
+          )}
         </Container>
       </Box>
 
       {/* Main Content */}
       <Box bg="white">
         <Container maxW="container.md" py={10}>
-          <Stack spacing={0} divider={<Divider />}>
-            {featuredPosts.map((post) => (
-              <BlogCard key={post.id} post={post} />
-            ))}
-          </Stack>
+          {isLoading ? (
+            <Text>Loading blog posts...</Text>
+          ) : blogPosts.length > 0 ? (
+            <Stack spacing={0} divider={<Divider />}>
+              {blogPosts.map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
+            </Stack>
+          ) : (
+            <Box textAlign="center" py={10}>
+              <Heading size="md" mb={4}>No blog posts available yet</Heading>
+              <Text mb={6}>Be the first to publish a story!</Text>
+              <Button
+                as={RouterLink}
+                to="/editor"
+                colorScheme="teal"
+                size="md"
+              >
+                Start Writing
+              </Button>
+            </Box>
+          )}
         </Container>
       </Box>
     </Box>

@@ -32,11 +32,27 @@ const Login = () => {
       if (username === 'admin' && password === 'admin') {
         login(username);
         toast({
-          title: 'Login successful',
-          description: 'Welcome, Admin!',
-          status: 'success',
+          title: "Login Successful",
+          description: `Welcome, ${username}!`,
+          position: "top",
           duration: 3000,
           isClosable: true,
+          variant: "solid",
+          render: () => (
+            <Box
+              color="white"
+              p={3}
+              bg="black"
+              borderRadius="md"
+              boxShadow="md"
+            >
+              <Box display="flex" alignItems="center" mb={1}>
+                <Box as="span" mr={2}>✓</Box>
+                <Text fontWeight="bold">Login Successful</Text>
+              </Box>
+              <Text>Welcome, {username}!</Text>
+            </Box>
+          ),
         });
         navigate('/');
       } else {

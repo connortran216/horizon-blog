@@ -8,28 +8,35 @@ import {
   SimpleGrid,
   Button,
 } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getUserPosts } from '../services/blogStorage';
+import { BlogPost } from '../types/blog';
 
 const Profile = () => {
   const { username } = useParams();
   const { user } = useAuth();
+  const [userBlogs, setUserBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Temporary mock data for user's blogs
-  const userBlogs = [
-    {
-      id: 1,
-      title: 'Getting Started with React',
-      excerpt: 'Learn the basics of React and start building modern web applications.',
-      date: '2024-03-01',
-    },
-    {
-      id: 2,
-      title: 'Understanding TypeScript',
-      excerpt: 'A comprehensive guide to TypeScript and its features.',
-      date: '2024-02-28',
-    },
-  ];
+  useEffect(() => {
+    if (username) {
+      // Load the user's blog posts
+      const posts = getUserPosts(username);
+      setUserBlogs(posts);
+      setLoading(false);
+    }
+  }, [username]);
+
+  // Format date to a more readable format
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -49,34 +56,42 @@ const Profile = () => {
 
         <Box>
           <Heading size="md" mb={4}>My Articles</Heading>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {userBlogs.map(blog => (
-              <Box
-                key={blog.id}
-                p={6}
-                bg="white"
-                shadow="md"
-                rounded="lg"
-              >
-                <Text fontSize="sm" color="gray.500" mb={2}>
-                  {blog.date}
-                </Text>
-                <Heading size="md" mb={2}>
-                  {blog.title}
-                </Heading>
-                <Text color="gray.600" mb={4}>
-                  {blog.excerpt}
-                </Text>
-                <Button
-                  variant="outline"
-                  color="black"
-                  _hover={{ bg: 'gray.50' }}
+          {loading ? (
+            <Text textAlign="center">Loading articles...</Text>
+          ) : userBlogs.length === 0 ? (
+            <Text textAlign="center">No articles published yet.</Text>
+          ) : (
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              {userBlogs.map((blog) => (
+                <Box
+                  key={blog.id}
+                  p={6}
+                  bg="white"
+                  shadow="md"
+                  rounded="lg"
                 >
-                  Read more
-                </Button>
-              </Box>
-            ))}
-          </SimpleGrid>
+                  <Text fontSize="sm" color="gray.500" mb={2}>
+                    {formatDate(blog.createdAt)}
+                  </Text>
+                  <Heading size="md" mb={2}>
+                    {blog.title}
+                  </Heading>
+                  <Text color="gray.600" mb={4}>
+                    {blog.subtitle || 'No description available'}
+                  </Text>
+                  <Button
+                    variant="outline"
+                    color="black"
+                    _hover={{ bg: 'gray.50' }}
+                    as={RouterLink}
+                    to={`/blog/${blog.id}`}
+                  >
+                    Read more
+                  </Button>
+                </Box>
+              ))}
+            </SimpleGrid>
+          )}
         </Box>
       </VStack>
     </Container>
