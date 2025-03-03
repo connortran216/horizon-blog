@@ -229,10 +229,12 @@ const BlogEditor = () => {
             font-size: 16px;
             caret-color: rgb(5, 5, 5);
             padding: 20px;
+            margin-top: 40px;
             position: relative;
             tab-size: 1;
             outline: 0;
             width: 100%;
+            line-height: 1.5;
           }
           
           .editor-placeholder {
@@ -240,12 +242,14 @@ const BlogEditor = () => {
             overflow: hidden;
             position: absolute;
             text-overflow: ellipsis;
-            top: 20px;
+            top: 60px;
             left: 20px;
             font-size: 16px;
             user-select: none;
             display: inline-block;
             pointer-events: none;
+            z-index: 0;
+            line-height: 1.5;
           }
           
           .editor-paragraph {
