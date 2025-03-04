@@ -5,7 +5,7 @@ const STORAGE_KEY = 'blog_posts';
 const DRAFTS_KEY = 'blog_drafts';
 
 // Function to generate a unique ID
-const generateId = () => {
+export const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 
@@ -165,4 +165,17 @@ export const getDrafts = (): BlogPost[] => {
 export const getUserPosts = (username: string): BlogPost[] => {
   const posts = getBlogPosts();
   return posts.filter(post => post.author.username === username && post.status === 'published');
+};
+
+// Add this export if it doesn't exist
+export const deleteDraft = (draftId: string) => {
+  try {
+    const drafts = JSON.parse(localStorage.getItem('drafts') || '{}');
+    delete drafts[draftId];
+    localStorage.setItem('drafts', JSON.stringify(drafts));
+    return true;
+  } catch (error) {
+    console.error('Error deleting draft:', error);
+    return false;
+  }
 }; 

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { saveBlogPost, saveDraft } from '../services/blogStorage';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { saveBlogPost, saveDraft, updateBlogPost, deleteBlogPost, deleteDraft, generateId } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
 import { css, Global } from '@emotion/react';
-
 // Lexical Editor imports
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -51,6 +50,12 @@ const theme = {
   },
   quote: 'editor-quote',
   link: 'editor-link',
+  text: {
+    bold: 'editor-bold',
+    italic: 'editor-italic',
+    underline: 'editor-underline',
+    strikethrough: 'editor-strikethrough',
+  }
 };
 
 // Editor configuration
@@ -90,10 +95,44 @@ const RichTextPluginWrapper = (props: any) => {
 const BlogEditor = () => {
   const [title, setTitle] = useState('');
   const [editorState, setEditorState] = useState<any>(null);
+  const [draftId, setDraftId] = useState<string>('');
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  
+  const location = useLocation();
+  const blogToEdit = location.state?.blog;
+
+  useEffect(() => {
+    // If we have a blog to edit, set the initial state
+    if (blogToEdit) {
+      setTitle(blogToEdit.title);
+      // Set draft ID only for drafts
+      if (blogToEdit.status === 'draft') {
+        setDraftId(blogToEdit.id);
+      }
+      // If the blocks are stored as a string, parse them
+      if (typeof blogToEdit.blocks === 'string') {
+        try {
+          setEditorState(JSON.parse(blogToEdit.blocks));
+        } catch (e) {
+          console.error('Failed to parse blog content:', e);
+          toast({
+            title: 'Error',
+            description: 'Failed to load blog content',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      } else {
+        setEditorState(blogToEdit.blocks);
+      }
+    } else {
+      // Generate a new draft ID for new posts
+      setDraftId(generateId());
+    }
+  }, [blogToEdit]);
+
   useEffect(() => {
     // Share editor state with Navbar
     if (typeof window !== 'undefined') {
@@ -116,21 +155,24 @@ const BlogEditor = () => {
   const handleEditorChange = (state: any) => {
     setEditorState(state);
     
-    // Auto-save as draft if we have a title
-    if (title.trim()) {
-      saveDraft({
-        id: '',
+    // Auto-save as draft only for new posts or existing drafts
+    if (title.trim() && blogToEdit?.status !== 'published') {
+      const draftPost: BlogPost = {
+        id: draftId,
         title,
         blocks: state,
         author: {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar
         },
-        createdAt: new Date().toISOString(),
+        createdAt: blogToEdit?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: 'draft',
+        status: 'draft' as const,
         readingTime: 1
-      });
+      };
+
+      // Save to drafts storage
+      saveDraft(draftPost);
     }
   };
 
@@ -148,28 +190,42 @@ const BlogEditor = () => {
     }
 
     try {
-      // Create the blog post with serialized content
+      // Create or update the blog post
       const blogPost: BlogPost = {
-        id: '', // Will be generated in storage service
+        id: blogToEdit?.status === 'published' ? blogToEdit.id : draftId,
         title: title.trim(),
         blocks: editorState,
         author: {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar
         },
-        createdAt: new Date().toISOString(),
+        createdAt: blogToEdit?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: 'published',
+        status: 'published' as const,
         readingTime: 1
       };
 
-      // Save the blog post
+      // Save the post
       const savedPost = saveBlogPost(blogPost);
+      
+      if (!savedPost) {
+        throw new Error('Failed to save blog post');
+      }
+
+      // Only attempt to delete draft if draftId exists
+      if (draftId) {
+        try {
+          deleteDraft(draftId);
+        } catch (error) {
+          console.error('Error deleting draft:', error);
+          // Continue execution even if draft deletion fails
+        }
+      }
       
       // Display success message
       toast({
         title: 'Success',
-        description: 'Blog post published successfully',
+        description: `Blog post ${blogToEdit ? 'updated' : 'published'} successfully`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -184,7 +240,7 @@ const BlogEditor = () => {
       // Display error message
       toast({
         title: 'Error',
-        description: 'Failed to publish blog post',
+        description: `Failed to ${blogToEdit ? 'update' : 'publish'} blog post`,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -301,6 +357,22 @@ const BlogEditor = () => {
             color: rgb(33, 111, 219);
             text-decoration: underline;
             cursor: pointer;
+          }
+
+          .editor-underline {
+            text-decoration: underline;
+          }
+
+          .editor-strikethrough {
+            text-decoration: line-through;
+          }
+
+          .editor-bold {
+            font-weight: bold;
+          }
+
+          .editor-italic {
+            font-style: italic;
           }
         `}
       />

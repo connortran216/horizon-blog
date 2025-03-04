@@ -106,7 +106,8 @@ const Blog = () => {
   // Load blog posts from storage
   useEffect(() => {
     const posts = getBlogPosts();
-    setBlogPosts(posts);
+    // Only show published posts
+    setBlogPosts(posts.filter(post => post.status === 'published'));
   }, []);
 
   const filteredPosts = blogPosts.filter((post) => {
