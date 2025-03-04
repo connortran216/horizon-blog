@@ -19,6 +19,7 @@ import { FaBookmark, FaClock } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { getBlogPosts } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
+import { useAuth } from '../context/AuthContext';
 
 // Default avatar for posts without author avatar
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60';
@@ -122,9 +123,9 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
 const Home = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Load blog posts from local storage
     const loadBlogPosts = () => {
       try {
         const posts = getBlogPosts().filter(post => post.status === 'published');
@@ -172,7 +173,7 @@ const Home = () => {
               </Text>
               <Button
                 as={RouterLink}
-                to="/register"
+                to={user ? "/blog" : "/register"}
                 bg="black"
                 color="white"
                 rounded="full"
@@ -185,7 +186,7 @@ const Home = () => {
                 }}
                 width="fit-content"
               >
-                Start reading
+                {user ? "Continue reading" : "Start reading"}
               </Button>
             </Stack>
 
