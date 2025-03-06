@@ -21,7 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserPosts, deleteBlogPost } from '../services/blogStorage';
+import { getUserPosts, getUserDrafts, deleteBlogPost } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
 import { FiMoreVertical } from 'react-icons/fi';
 
@@ -29,14 +29,17 @@ const Profile = () => {
   const { username } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [userBlogs, setUserBlogs] = useState<BlogPost[]>([]);
+  const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([]);
+  const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (username) {
-      // Load the user's blog posts
-      const posts = getUserPosts(username);
-      setUserBlogs(posts);
+      // Load the user's published and draft posts
+      const published = getUserPosts(username).filter(post => post.status === 'published');
+      const drafts = getUserDrafts(username);
+      setPublishedBlogs(published);
+      setDraftBlogs(drafts);
       setLoading(false);
     }
   }, [username]);
@@ -44,14 +47,22 @@ const Profile = () => {
   const handleDelete = (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       deleteBlogPost(blogId);
-      // Refresh the blogs list
-      const posts = getUserPosts(username || '');
-      setUserBlogs(posts);
+      // Refresh the blogs lists
+      if (username) {
+        const published = getUserPosts(username).filter(post => post.status === 'published');
+        const drafts = getUserDrafts(username);
+        setPublishedBlogs(published);
+        setDraftBlogs(drafts);
+      }
     }
   };
 
   const handleEdit = (blogId: string) => {
-    navigate(`/blog/edit/${blogId}`);
+    // Get the blog post to edit
+    const blogToEdit = [...publishedBlogs, ...draftBlogs].find(blog => blog.id === blogId);
+    if (blogToEdit) {
+      navigate(`/blog-editor`, { state: { blog: blogToEdit } });
+    }
   };
 
   // Format date to a more readable format
@@ -62,10 +73,6 @@ const Profile = () => {
       day: 'numeric'
     });
   };
-
-  // Separate published and draft blogs
-  const publishedBlogs = userBlogs.filter(blog => blog.status === 'published');
-  const draftBlogs = userBlogs.filter(blog => blog.status === 'draft');
 
   const BlogGrid = ({ blogs }: { blogs: BlogPost[] }) => (
     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
@@ -136,7 +143,7 @@ const Profile = () => {
           <Heading size="md" mb={4}>My Articles</Heading>
           {loading ? (
             <Text textAlign="center">Loading articles...</Text>
-          ) : userBlogs.length === 0 ? (
+          ) : publishedBlogs.length === 0 && draftBlogs.length === 0 ? (
             <Text textAlign="center">No articles published yet.</Text>
           ) : (
             <Tabs>

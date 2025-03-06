@@ -2,7 +2,6 @@ import { BlogPost } from '../types/blog';
 
 // We'll use localStorage for temporary storage
 const STORAGE_KEY = 'blog_posts';
-const DRAFTS_KEY = 'blog_drafts';
 
 // Function to generate a unique ID
 export const generateId = () => {
@@ -22,7 +21,7 @@ export const saveBlogPost = (blogPost: BlogPost): BlogPost => {
   // Get existing posts
   const existingPosts = getBlogPosts();
   
-  // Add new post to the beginning of the array
+  // Add new post or update existing one
   const updatedPosts = [postToSave, ...existingPosts.filter(post => post.id !== postToSave.id)];
   
   // Save to localStorage
@@ -132,50 +131,14 @@ export const deleteBlogPost = (id: string): boolean => {
   return true;
 };
 
-// Function to save a draft
-export const saveDraft = (draftPost: BlogPost): BlogPost => {
-  // Ensure the draft has an ID
-  const draftToSave: BlogPost = {
-    ...draftPost,
-    id: draftPost.id || generateId(),
-    updatedAt: new Date().toISOString(),
-    status: 'draft',
-    readingTime: calculateReadingTime(draftPost.blocks)
-  };
-
-  // Get existing drafts
-  const existingDrafts = getDrafts();
-  
-  // Add new draft or update existing one
-  const updatedDrafts = [draftToSave, ...existingDrafts.filter(draft => draft.id !== draftToSave.id)];
-  
-  // Save to localStorage
-  localStorage.setItem(DRAFTS_KEY, JSON.stringify(updatedDrafts));
-  
-  return draftToSave;
-};
-
-// Function to get all drafts
-export const getDrafts = (): BlogPost[] => {
-  const drafts = localStorage.getItem(DRAFTS_KEY);
-  return drafts ? JSON.parse(drafts) : [];
-};
-
 // Function to get user's published posts
 export const getUserPosts = (username: string): BlogPost[] => {
   const posts = getBlogPosts();
-  return posts.filter(post => post.author.username === username && post.status === 'published');
+  return posts.filter(post => post.author.username === username);
 };
 
-// Add this export if it doesn't exist
-export const deleteDraft = (draftId: string) => {
-  try {
-    const drafts = JSON.parse(localStorage.getItem('drafts') || '{}');
-    delete drafts[draftId];
-    localStorage.setItem('drafts', JSON.stringify(drafts));
-    return true;
-  } catch (error) {
-    console.error('Error deleting draft:', error);
-    return false;
-  }
+// Function to get user's drafts
+export const getUserDrafts = (username: string): BlogPost[] => {
+  const posts = getBlogPosts();
+  return posts.filter(post => post.author.username === username && post.status === 'draft');
 }; 

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { saveBlogPost, saveDraft, updateBlogPost, deleteBlogPost, deleteDraft, generateId } from '../services/blogStorage';
+import { saveBlogPost, updateBlogPost, deleteBlogPost, generateId } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
 import { css, Global } from '@emotion/react';
 // Lexical Editor imports
@@ -92,10 +92,13 @@ const RichTextPluginWrapper = (props: any) => {
   return <RichTextPlugin {...props} />;
 };
 
+const AUTO_SAVE_DELAY = 2000; // 2 seconds delay for auto-save
+
 const BlogEditor = () => {
   const [title, setTitle] = useState('');
   const [editorState, setEditorState] = useState<any>(null);
-  const [draftId, setDraftId] = useState<string>('');
+  const [blogId, setBlogId] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -106,10 +109,7 @@ const BlogEditor = () => {
     // If we have a blog to edit, set the initial state
     if (blogToEdit) {
       setTitle(blogToEdit.title);
-      // Set draft ID only for drafts
-      if (blogToEdit.status === 'draft') {
-        setDraftId(blogToEdit.id);
-      }
+      setBlogId(blogToEdit.id);
       // If the blocks are stored as a string, parse them
       if (typeof blogToEdit.blocks === 'string') {
         try {
@@ -128,8 +128,8 @@ const BlogEditor = () => {
         setEditorState(blogToEdit.blocks);
       }
     } else {
-      // Generate a new draft ID for new posts
-      setDraftId(generateId());
+      // Generate a new ID for new posts
+      setBlogId(generateId());
     }
   }, [blogToEdit]);
 
@@ -151,29 +151,43 @@ const BlogEditor = () => {
     };
   }, [editorState, title]);
 
+  // Auto-save functionality
+  const autoSave = useCallback(() => {
+    if (!title.trim() || !editorState) return;
+
+    setIsSaving(true);
+    const blogPost: BlogPost = {
+      id: blogId,
+      title: title.trim(),
+      blocks: editorState,
+      author: {
+        username: user?.username || 'Anonymous',
+        avatar: user?.avatar
+      },
+      createdAt: blogToEdit?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'draft' as const,
+      readingTime: 1
+    };
+
+    try {
+      saveBlogPost(blogPost);
+    } catch (error) {
+      console.error('Error auto-saving draft:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [title, editorState, blogId, user, blogToEdit]);
+
+  // Set up auto-save timer
+  useEffect(() => {
+    const timer = setTimeout(autoSave, AUTO_SAVE_DELAY);
+    return () => clearTimeout(timer);
+  }, [autoSave]);
+
   // Handle editor content changes
   const handleEditorChange = (state: any) => {
     setEditorState(state);
-    
-    // Auto-save as draft only for new posts or existing drafts
-    if (title.trim() && blogToEdit?.status !== 'published') {
-      const draftPost: BlogPost = {
-        id: draftId,
-        title,
-        blocks: state,
-        author: {
-          username: user?.username || 'Anonymous',
-          avatar: user?.avatar
-        },
-        createdAt: blogToEdit?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: 'draft' as const,
-        readingTime: 1
-      };
-
-      // Save to drafts storage
-      saveDraft(draftPost);
-    }
   };
 
   // Handle publishing a post
@@ -192,7 +206,7 @@ const BlogEditor = () => {
     try {
       // Create or update the blog post
       const blogPost: BlogPost = {
-        id: blogToEdit?.status === 'published' ? blogToEdit.id : draftId,
+        id: blogId,
         title: title.trim(),
         blocks: editorState,
         author: {
@@ -210,16 +224,6 @@ const BlogEditor = () => {
       
       if (!savedPost) {
         throw new Error('Failed to save blog post');
-      }
-
-      // Only attempt to delete draft if draftId exists
-      if (draftId) {
-        try {
-          deleteDraft(draftId);
-        } catch (error) {
-          console.error('Error deleting draft:', error);
-          // Continue execution even if draft deletion fails
-        }
       }
       
       // Display success message
@@ -381,7 +385,7 @@ const BlogEditor = () => {
         <HStack spacing={3}>
           <Avatar size="sm" src={user?.avatar} name={user?.username} />
           <Text fontSize="sm" color="gray.700">
-            {user?.username || 'Anonymous'} • Draft
+            {user?.username || 'Anonymous'} • {isSaving ? 'Saving...' : 'Draft'}
           </Text>
         </HStack>
 
