@@ -1,25 +1,39 @@
-// Types for rich content blocks
-export type BlockType = 'paragraph' | 'heading-one' | 'heading-two' | 'heading-three' | 'blockquote' | 'bulleted-list' | 'numbered-list';
+/**
+ * @deprecated This file is deprecated. Use the new core types instead:
+ * - Import types from '../core/types/blog.types'
+ *
+ * This file is kept for backward compatibility during migration.
+ */
 
-// Generic content block for flexibility in handling different editor outputs
-export type ContentBlock = any;
+// Re-export new types for backward compatibility
+export type {
+  BlogPost,
+  BlogPostSummary,
+  BlogMetadata,
+  BlogContent,
+  BlogAuthor,
+  BlogStatus,
+  BlockType,
+  LexicalEditorState,
+  LexicalNode,
+  LexicalRoot,
+  CreateBlogPostData,
+  UpdateBlogPostData,
+  BlogSearchOptions,
+  BlogStorageResult,
+} from '../core/types/blog.types';
 
-export interface BlogMetadata {
-  id: string;
-  title: string;
-  subtitle?: string;
-  author: {
-    username: string;
-    avatar?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  readingTime?: number; // Estimated reading time in minutes
-  tags?: string[];
-  status: 'draft' | 'published';
-  featuredImage?: string;
-}
+export type {
+  BaseEntity,
+  User,
+  Author,
+  AppError,
+  ApiResponse,
+  PaginationParams,
+  PaginatedResponse,
+  SearchParams,
+  SortOptions,
+} from '../core/types/common.types';
 
-export interface BlogPost extends BlogMetadata {
-  blocks: any; // Using any to accommodate different formats from the editor
-} 
+// Legacy type aliases for backward compatibility
+export type ContentBlock = any; // @deprecated Use LexicalEditorState instead

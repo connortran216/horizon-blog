@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,9 +11,6 @@ import {
   Button,
   Divider,
   useToast,
-  UnorderedList,
-  OrderedList,
-  ListItem,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { getBlogPostById } from '../services/blogStorage';
@@ -28,25 +25,36 @@ const BlogDetail = () => {
 
   useEffect(() => {
     if (id) {
-      const fetchPost = () => {
-        const foundPost = getBlogPostById(id);
-        
-        if (foundPost) {
-          setPost(foundPost);
-        } else {
+      const fetchPost = async () => {
+        try {
+          const foundPost = await getBlogPostById(id);
+
+          if (foundPost) {
+            setPost(foundPost);
+          } else {
+            toast({
+              title: 'Post not found',
+              description: 'The blog post you are looking for does not exist.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
+            navigate('/blog');
+          }
+        } catch (error) {
           toast({
-            title: 'Post not found',
-            description: 'The blog post you are looking for does not exist.',
+            title: 'Error',
+            description: 'Failed to load blog post.',
             status: 'error',
             duration: 5000,
             isClosable: true,
           });
           navigate('/blog');
+        } finally {
+          setLoading(false);
         }
-        
-        setLoading(false);
       };
-      
+
       fetchPost();
     }
   }, [id, navigate, toast]);
@@ -54,24 +62,35 @@ const BlogDetail = () => {
   // Helper function to get the Lexical editor content
   const getLexicalContent = (post: BlogPost): any => {
     try {
-      console.log('Original post blocks data:', post.blocks);
-      
+      // Check if post has the new content structure
+      if ((post as any).content?.blocks) {
+        const contentBlocks = (post as any).content.blocks;
+        if (typeof contentBlocks === 'string') {
+          return JSON.parse(contentBlocks);
+        }
+        return contentBlocks;
+      }
+
+      // Fallback to old structure for backward compatibility
+      const blocks = (post as any).blocks;
+      console.log('Original post blocks data:', blocks);
+
       // If it's a string, try to parse it
-      if (typeof post.blocks === 'string') {
+      if (typeof blocks === 'string') {
         try {
-          return JSON.parse(post.blocks);
+          return JSON.parse(blocks);
         } catch (e) {
           console.error('Failed to parse blocks string:', e);
           return null;
         }
       }
-      
+
       // If it's already an object, return it
-      if (post.blocks && typeof post.blocks === 'object') {
-        return post.blocks;
+      if (blocks && typeof blocks === 'object') {
+        return blocks;
       }
-      
-      console.log('Could not extract Lexical content from post data:', post.blocks);
+
+      console.log('Could not extract Lexical content from post data:', blocks);
       return null;
     } catch (error) {
       console.error('Error parsing blog content:', error);
@@ -213,4 +232,4 @@ const BlogDetail = () => {
   );
 };
 
-export default BlogDetail; 
+export default BlogDetail;

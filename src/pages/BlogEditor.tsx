@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { saveBlogPost, updateBlogPost, deleteBlogPost, generateId } from '../services/blogStorage';
+import { saveBlogPost, generateId, generateSlug } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
 import { css, Global } from '@emotion/react';
 // Lexical Editor imports
@@ -29,7 +29,7 @@ declare global {
     editorState?: {
       content: any;
       title: string;
-      handlePublish: () => boolean;
+      handlePublish: () => Promise<boolean>;
     };
   }
 }
@@ -110,22 +110,44 @@ const BlogEditor = () => {
     if (blogToEdit) {
       setTitle(blogToEdit.title);
       setBlogId(blogToEdit.id);
-      // If the blocks are stored as a string, parse them
-      if (typeof blogToEdit.blocks === 'string') {
-        try {
-          setEditorState(JSON.parse(blogToEdit.blocks));
-        } catch (e) {
-          console.error('Failed to parse blog content:', e);
-          toast({
-            title: 'Error',
-            description: 'Failed to load blog content',
-            status: 'error',
-            duration: 3000,
-            isClosable: true,
-          });
+      // Handle both new and old content structure
+      if ((blogToEdit as any).content?.blocks) {
+        const contentBlocks = (blogToEdit as any).content.blocks;
+        if (typeof contentBlocks === 'string') {
+          try {
+            setEditorState(JSON.parse(contentBlocks));
+          } catch (e) {
+            console.error('Failed to parse blog content:', e);
+            toast({
+              title: 'Error',
+              description: 'Failed to load blog content',
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            });
+          }
+        } else {
+          setEditorState(contentBlocks);
         }
       } else {
-        setEditorState(blogToEdit.blocks);
+        // Fallback to old structure
+        const blocks = (blogToEdit as any).blocks;
+        if (typeof blocks === 'string') {
+          try {
+            setEditorState(JSON.parse(blocks));
+          } catch (e) {
+            console.error('Failed to parse blog content:', e);
+            toast({
+              title: 'Error',
+              description: 'Failed to load blog content',
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            });
+          }
+        } else {
+          setEditorState(blocks);
+        }
       }
     } else {
       // Generate a new ID for new posts
@@ -152,14 +174,16 @@ const BlogEditor = () => {
   }, [editorState, title]);
 
   // Auto-save functionality
-  const autoSave = useCallback(() => {
+  const autoSave = useCallback(async () => {
     if (!title.trim() || !editorState) return;
 
     setIsSaving(true);
     const blogPost: BlogPost = {
       id: blogId,
       title: title.trim(),
-      blocks: editorState,
+      content: {
+        blocks: editorState
+      },
       author: {
         username: user?.username || 'Anonymous',
         avatar: user?.avatar
@@ -167,11 +191,12 @@ const BlogEditor = () => {
       createdAt: blogToEdit?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: 'draft' as const,
-      readingTime: 1
+      readingTime: 1,
+      slug: blogToEdit?.slug || generateSlug(title.trim())
     };
 
     try {
-      saveBlogPost(blogPost);
+      await saveBlogPost(blogPost);
     } catch (error) {
       console.error('Error auto-saving draft:', error);
     } finally {
@@ -191,7 +216,7 @@ const BlogEditor = () => {
   };
 
   // Handle publishing a post
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!title.trim()) {
       toast({
         title: 'Error',
@@ -208,7 +233,9 @@ const BlogEditor = () => {
       const blogPost: BlogPost = {
         id: blogId,
         title: title.trim(),
-        blocks: editorState,
+        content: {
+          blocks: editorState
+        },
         author: {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar
@@ -216,12 +243,13 @@ const BlogEditor = () => {
         createdAt: blogToEdit?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: 'published' as const,
-        readingTime: 1
+        readingTime: 1,
+        slug: blogToEdit?.slug || generateSlug(title.trim())
       };
 
       // Save the post
-      const savedPost = saveBlogPost(blogPost);
-      
+      const savedPost = await saveBlogPost(blogPost);
+
       if (!savedPost) {
         throw new Error('Failed to save blog post');
       }
@@ -429,4 +457,4 @@ const BlogEditor = () => {
   );
 };
 
-export default BlogEditor; 
+export default BlogEditor;

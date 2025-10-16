@@ -13,7 +13,6 @@ import {
   useColorModeValue,
   Stack,
   Container,
-  Link,
   Avatar,
   useToast,
 } from '@chakra-ui/react';
@@ -31,7 +30,7 @@ declare global {
     editorState?: {
       title: string;
       content: EditorContent;
-      handlePublish: () => boolean;
+      handlePublish: () => Promise<boolean>;
     };
   }
 }
@@ -58,7 +57,6 @@ const Links = [
 
 const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure();
-  const [isLoggedIn] = useState(false); // This will be replaced with actual auth state
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,7 +66,7 @@ const Navbar = () => {
     editor?: any;
     title: string;
     content: EditorContent | null;
-    handlePublish?: () => boolean;
+    handlePublish?: () => Promise<boolean>;
   }>({ title: '', content: null });
 
   // Use effect to access the editor state
@@ -92,11 +90,11 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     // If we have access to the editor's handlePublish function, use it
     if (editorState.handlePublish) {
       console.log("Using editor's handlePublish");
-      const success = editorState.handlePublish();
+      const success = await editorState.handlePublish();
       if (!success) {
         console.log("Publishing was not successful via editor's handlePublish");
       }
@@ -161,20 +159,19 @@ const Navbar = () => {
     try {
       // Save the blog post using our updated storage service
       const blogPost = {
-        id: '',
         title: editorState.title.trim(),
-        blocks: contentToSave,
+        content: {
+          blocks: contentToSave
+        },
         author: {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar
         },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: 'published',
-        readingTime: 1
+        status: 'published' as const,
       };
-      
-      const newPost = saveBlogPost(blogPost);
+
+      const result = await saveBlogPost(blogPost as any);
+      const newPost = result;
 
       toast({
         title: 'Success',
@@ -288,4 +285,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

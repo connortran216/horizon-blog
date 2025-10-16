@@ -36,23 +36,38 @@ const Profile = () => {
   useEffect(() => {
     if (username) {
       // Load the user's published and draft posts
-      const published = getUserPosts(username).filter(post => post.status === 'published');
-      const drafts = getUserDrafts(username);
-      setPublishedBlogs(published);
-      setDraftBlogs(drafts);
-      setLoading(false);
+      const loadUserPosts = async () => {
+        try {
+          const published = await getUserPosts(username);
+          const drafts = await getUserDrafts(username);
+          const publishedPosts = published.filter(post => post.status === 'published');
+          setPublishedBlogs(publishedPosts);
+          setDraftBlogs(drafts);
+        } catch (error) {
+          console.error('Error loading user posts:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadUserPosts();
     }
   }, [username]);
 
-  const handleDelete = (blogId: string) => {
+  const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
-      deleteBlogPost(blogId);
-      // Refresh the blogs lists
-      if (username) {
-        const published = getUserPosts(username).filter(post => post.status === 'published');
-        const drafts = getUserDrafts(username);
-        setPublishedBlogs(published);
-        setDraftBlogs(drafts);
+      try {
+        await deleteBlogPost(blogId);
+        // Refresh the blogs lists
+        if (username) {
+          const published = await getUserPosts(username);
+          const drafts = await getUserDrafts(username);
+          const publishedPosts = published.filter(post => post.status === 'published');
+          setPublishedBlogs(publishedPosts);
+          setDraftBlogs(drafts);
+        }
+      } catch (error) {
+        console.error('Error deleting blog post:', error);
       }
     }
   };
@@ -175,4 +190,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

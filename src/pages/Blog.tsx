@@ -26,16 +26,37 @@ const categories = ['All', 'React', 'TypeScript', 'UI/UX', 'JavaScript'];
 
 const BlogCard = ({ post }: { post: BlogPost }) => {
   // Extract the first paragraph of content for the excerpt
-  const getExcerpt = (blocks: any[]): string => {
-    if (!blocks || blocks.length === 0) return 'No content';
-    
-    // Try to extract text from the first paragraph
-    const firstBlock = blocks[0];
-    if (firstBlock && firstBlock.children && firstBlock.children.length > 0) {
-      return firstBlock.children.map((child: any) => child.text || '').join('');
+  const getExcerpt = (post: BlogPost): string => {
+    try {
+      // Check if post has the new content structure
+      if ((post as any).content?.blocks) {
+        const contentBlocks = (post as any).content.blocks;
+        if (typeof contentBlocks === 'string') {
+          const parsed = JSON.parse(contentBlocks);
+          if (parsed.root?.children?.length > 0) {
+            const firstBlock = parsed.root.children[0];
+            if (firstBlock?.children?.length > 0) {
+              return firstBlock.children.map((child: any) => child.text || '').join('').substring(0, 150) + '...';
+            }
+          }
+        }
+      }
+
+      // Fallback to old structure
+      const blocks = (post as any).blocks;
+      if (!blocks || blocks.length === 0) return 'No content';
+
+      // Try to extract text from the first paragraph
+      const firstBlock = blocks[0];
+      if (firstBlock && firstBlock.children && firstBlock.children.length > 0) {
+        return firstBlock.children.map((child: any) => child.text || '').join('').substring(0, 150) + '...';
+      }
+
+      return 'No content';
+    } catch (error) {
+      console.error('Error extracting excerpt:', error);
+      return 'No content';
     }
-    
-    return 'No content';
   };
 
   return (
@@ -77,7 +98,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           {post.title}
         </Heading>
         <Text color="gray.500" noOfLines={3}>
-          {getExcerpt(post.blocks)}
+          {getExcerpt(post)}
         </Text>
         <Text fontSize="sm" color="gray.500">
           By {post.author.username}
@@ -105,9 +126,18 @@ const Blog = () => {
   
   // Load blog posts from storage
   useEffect(() => {
-    const posts = getBlogPosts();
-    // Only show published posts
-    setBlogPosts(posts.filter(post => post.status === 'published'));
+    const loadPosts = async () => {
+      try {
+        const posts = await getBlogPosts();
+        // Only show published posts
+        setBlogPosts(posts.filter(post => post.status === 'published'));
+      } catch (error) {
+        console.error('Failed to load blog posts:', error);
+        setBlogPosts([]);
+      }
+    };
+
+    loadPosts();
   }, []);
 
   const filteredPosts = blogPosts.filter((post) => {
@@ -167,4 +197,4 @@ const Blog = () => {
   );
 };
 
-export default Blog; 
+export default Blog;

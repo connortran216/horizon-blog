@@ -6,7 +6,6 @@ import {
   Button,
   Stack,
   SimpleGrid,
-  useColorModeValue,
   Image,
   Flex,
   Icon,
@@ -126,10 +125,11 @@ const Home = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    const loadBlogPosts = () => {
+    const loadBlogPosts = async () => {
       try {
-        const posts = getBlogPosts().filter(post => post.status === 'published');
-        setBlogPosts(posts);
+        const posts = await getBlogPosts();
+        const publishedPosts = posts.filter(post => post.status === 'published');
+        setBlogPosts(publishedPosts);
       } catch (error) {
         console.error('Error loading blog posts:', error);
       } finally {
@@ -340,4 +340,4 @@ const Home = () => {
   );
 };
 
-export default Home; 
+export default Home;
