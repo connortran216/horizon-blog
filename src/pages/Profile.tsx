@@ -73,11 +73,8 @@ const Profile = () => {
   };
 
   const handleEdit = (blogId: string) => {
-    // Get the blog post to edit
-    const blogToEdit = [...publishedBlogs, ...draftBlogs].find(blog => blog.id === blogId);
-    if (blogToEdit) {
-      navigate(`/blog-editor`, { state: { blog: blogToEdit } });
-    }
+    // Navigate using URL parameter instead of router state for more reliable draft loading
+    navigate(`/blog-editor?draftId=${blogId}`);
   };
 
   // Format date to a more readable format

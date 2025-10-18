@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { saveBlogPost, generateId, generateSlug } from '../services/blogStorage';
+import { saveBlogPost, generateId, generateSlug, getBlogPostById } from '../services/blogStorage';
 import { BlogPost } from '../types/blog';
 import { css, Global } from '@emotion/react';
 // Lexical Editor imports
@@ -58,8 +58,8 @@ const theme = {
   }
 };
 
-// Editor configuration
-const editorConfig = {
+// Create the base editor configuration
+const editorConfig: any = {
   namespace: 'Blog Editor',
   theme,
   onError(error: Error) {
@@ -80,13 +80,31 @@ const editorConfig = {
   ]
 };
 
+// Create a function to extract content from blog posts
+function getBlogContent(blog: any): string | null {
+  if (!blog) return null;
+
+  // Try content.blocks first (new format)
+  if (blog.content?.blocks) {
+    const blocks = blog.content.blocks;
+    return typeof blocks === 'string' ? blocks : JSON.stringify(blocks);
+  }
+
+  // Fallback to legacy .blocks property
+  if ((blog as any).blocks) {
+    const blocks = (blog as any).blocks;
+    return typeof blocks === 'string' ? blocks : JSON.stringify(blocks);
+  }
+
+  return null;
+}
+
 // Create a function to convert Lexical state to serializable format for storage
 function serializeLexicalState(editorState: any) {
   return JSON.stringify(editorState);
 }
 
 // Create a wrapper component to bypass TypeScript type checking
-// This is a workaround for the ErrorBoundary type issue
 const RichTextPluginWrapper = (props: any) => {
   // @ts-ignore - Ignore the TypeScript error for ErrorBoundary
   return <RichTextPlugin {...props} />;
@@ -95,65 +113,84 @@ const RichTextPluginWrapper = (props: any) => {
 const AUTO_SAVE_DELAY = 2000; // 2 seconds delay for auto-save
 
 const BlogEditor = () => {
-  const [title, setTitle] = useState('');
-  const [editorState, setEditorState] = useState<any>(null);
-  const [blogId, setBlogId] = useState<string>('');
-  const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const location = useLocation();
-  const blogToEdit = location.state?.blog;
 
+  // Parse URL parameters and router state
+  const draftId = new URLSearchParams(location.search).get('draftId');
+  const routerBlog = location.state?.blog;
+
+  // State management
+  const [title, setTitle] = useState('');
+  const [blogId, setBlogId] = useState('');
+  const [editorState, setEditorState] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load draft content synchronously on mount
   useEffect(() => {
-    // If we have a blog to edit, set the initial state
-    if (blogToEdit) {
-      setTitle(blogToEdit.title);
-      setBlogId(blogToEdit.id);
-      // Handle both new and old content structure
-      if ((blogToEdit as any).content?.blocks) {
-        const contentBlocks = (blogToEdit as any).content.blocks;
-        if (typeof contentBlocks === 'string') {
-          try {
-            setEditorState(JSON.parse(contentBlocks));
-          } catch (e) {
-            console.error('Failed to parse blog content:', e);
+    const loadDraft = async () => {
+      setIsLoading(true);
+      try {
+        let blog = routerBlog;
+
+        // Load by ID if URL parameter exists and no router state
+        if (draftId && !blog) {
+          console.log('🔗 Loading draft by ID:', draftId);
+          blog = await getBlogPostById(draftId);
+          if (!blog) {
+            console.error('🚨 Draft not found');
             toast({
               title: 'Error',
-              description: 'Failed to load blog content',
+              description: 'Draft not found',
               status: 'error',
               duration: 3000,
               isClosable: true,
             });
+            setIsLoading(false);
+            return;
           }
-        } else {
-          setEditorState(contentBlocks);
         }
-      } else {
-        // Fallback to old structure
-        const blocks = (blogToEdit as any).blocks;
-        if (typeof blocks === 'string') {
-          try {
-            setEditorState(JSON.parse(blocks));
-          } catch (e) {
-            console.error('Failed to parse blog content:', e);
-            toast({
-              title: 'Error',
-              description: 'Failed to load blog content',
-              status: 'error',
-              duration: 3000,
-              isClosable: true,
-            });
-          }
+
+        // Initialize state from loaded blog
+        if (blog) {
+          console.log('📋 Loading blog:', blog.title);
+          console.log('📝 Content type:', blog.content?.blocks ? 'content.blocks' : 'legacy blocks');
+
+          setTitle(blog.title || '');
+          setBlogId(blog.id || draftId || generateId());
+
+          // Extract content for Lexical initialization
+          const content = getBlogContent(blog);
+          console.log('📄 Content to load:', content);
+          setEditorState(content);
         } else {
-          setEditorState(blocks);
+          // New draft
+          setBlogId(generateId());
+          setEditorState(null);
+          console.log('🆕 Initializing new draft');
         }
+      } catch (error) {
+        console.error('❌ Error loading draft:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load draft',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        setEditorState(null);
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      // Generate a new ID for new posts
-      setBlogId(generateId());
-    }
-  }, [blogToEdit]);
+    };
+
+    loadDraft();
+  }, [draftId, routerBlog, toast]);
+
+
 
   useEffect(() => {
     // Share editor state with Navbar
@@ -178,6 +215,11 @@ const BlogEditor = () => {
     if (!title.trim() || !editorState) return;
 
     setIsSaving(true);
+
+    // Determine creation date and slug for the blog post
+    const createdAt = routerBlog?.createdAt || new Date().toISOString();
+    const slug = routerBlog?.slug || generateSlug(title.trim());
+
     const blogPost: BlogPost = {
       id: blogId,
       title: title.trim(),
@@ -188,11 +230,11 @@ const BlogEditor = () => {
         username: user?.username || 'Anonymous',
         avatar: user?.avatar
       },
-      createdAt: blogToEdit?.createdAt || new Date().toISOString(),
+      createdAt,
       updatedAt: new Date().toISOString(),
       status: 'draft' as const,
       readingTime: 1,
-      slug: blogToEdit?.slug || generateSlug(title.trim())
+      slug
     };
 
     try {
@@ -202,7 +244,7 @@ const BlogEditor = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [title, editorState, blogId, user, blogToEdit]);
+  }, [title, editorState, blogId, user, routerBlog, draftId]);
 
   // Set up auto-save timer
   useEffect(() => {
@@ -240,11 +282,11 @@ const BlogEditor = () => {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar
         },
-        createdAt: blogToEdit?.createdAt || new Date().toISOString(),
+        createdAt: routerBlog?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: 'published' as const,
         readingTime: 1,
-        slug: blogToEdit?.slug || generateSlug(title.trim())
+        slug: routerBlog?.slug || generateSlug(title.trim())
       };
 
       // Save the post
@@ -255,24 +297,26 @@ const BlogEditor = () => {
       }
       
       // Display success message
+      const isEditing = routerBlog || draftId;
       toast({
         title: 'Success',
-        description: `Blog post ${blogToEdit ? 'updated' : 'published'} successfully`,
+        description: `Blog post ${isEditing ? 'updated' : 'published'} successfully`,
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
-      
+
       // Navigate to the blog post
       navigate(`/blog/${savedPost.id}`);
       return true;
     } catch (error) {
       console.error('Error publishing blog post:', error);
-      
+
       // Display error message
+      const isEditing = routerBlog || draftId;
       toast({
         title: 'Error',
-        description: `Failed to ${blogToEdit ? 'update' : 'publish'} blog post`,
+        description: `Failed to ${isEditing ? 'update' : 'publish'} blog post`,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -300,6 +344,15 @@ const BlogEditor = () => {
     return null;
   }
 
+  // Create dynamic editor config that includes content when available
+  const getDynamicEditorConfig = () => {
+    const baseConfig = { ...editorConfig };
+    if (editorState) {
+      baseConfig.editorState = editorState;
+    }
+    return baseConfig;
+  };
+
   return (
     <Container maxW="container.xl" p={5}>
       <Global
@@ -310,7 +363,7 @@ const BlogEditor = () => {
             margin-bottom: 20px;
             position: relative;
           }
-          
+
           .editor-input {
             min-height: 500px;
             resize: none;
@@ -324,7 +377,7 @@ const BlogEditor = () => {
             width: 100%;
             line-height: 1.5;
           }
-          
+
           .editor-placeholder {
             color: #999;
             overflow: hidden;
@@ -339,52 +392,52 @@ const BlogEditor = () => {
             z-index: 0;
             line-height: 1.5;
           }
-          
+
           .editor-paragraph {
             margin: 0 0 15px 0;
             line-height: 1.5;
           }
-          
+
           .editor-heading-h1 {
             font-size: 24px;
             font-weight: bold;
             margin: 20px 0 10px 0;
           }
-          
+
           .editor-heading-h2 {
             font-size: 20px;
             font-weight: bold;
             margin: 15px 0 10px 0;
           }
-          
+
           .editor-heading-h3 {
             font-size: 18px;
             font-weight: bold;
             margin: 10px 0 5px 0;
           }
-          
+
           .editor-quote {
             border-left: 4px solid #ccc;
             padding-left: 16px;
             margin: 15px 0;
             color: #555;
           }
-          
+
           .editor-list-ol {
             padding-left: 20px;
             margin: 15px 0;
           }
-          
+
           .editor-list-ul {
             padding-left: 20px;
             margin: 15px 0;
             list-style-type: disc;
           }
-          
+
           .editor-listitem {
             margin: 6px 0;
           }
-          
+
           .editor-link {
             color: rgb(33, 111, 219);
             text-decoration: underline;
@@ -428,20 +481,23 @@ const BlogEditor = () => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        
-        <Box 
+
+        <Box
           border="1px"
           borderColor="gray.200"
           borderRadius="md"
           minH="500px"
           bg="white"
         >
-          <LexicalComposer initialConfig={editorConfig}>
+          <LexicalComposer
+            key={`${draftId || 'new'}-${isLoading ? 'loading' : 'loaded'}`}  // Force remount when loading completes
+            initialConfig={getDynamicEditorConfig()}
+          >
             <div className="editor-container">
               <ToolbarPlugin />
               <RichTextPluginWrapper
                 contentEditable={<ContentEditable className="editor-input" />}
-                placeholder={<div className="editor-placeholder">Tell your story...</div>}
+                placeholder={<div className="editor-placeholder">{isLoading ? 'Loading draft content...' : 'Tell your story...'}</div>}
               />
               <HistoryPlugin />
               <AutoFocusPlugin />
