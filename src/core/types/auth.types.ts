@@ -9,7 +9,7 @@ export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
 
 // Login credentials
 export interface LoginCredentials {
-  username: string;
+  email: string;
   password: string;
 }
 

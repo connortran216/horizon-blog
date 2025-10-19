@@ -13,18 +13,20 @@ import {
   Link,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    name: '', // This will be username
     email: '',
     password: '',
     confirmPassword: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  const navigate = useNavigate();
+  const { register, isLoading } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -68,12 +70,14 @@ const Register = () => {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // This will be replaced with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await register({
+        username: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+
       toast({
         title: 'Registration successful',
         description: 'Welcome to Horizon!',
@@ -81,9 +85,8 @@ const Register = () => {
         duration: 3000,
         isClosable: true,
       });
-      
-      // Redirect to login page after successful registration
-      // This will be handled by authentication state management
+
+      navigate('/');
     } catch (error) {
       toast({
         title: 'Registration failed',
@@ -92,8 +95,6 @@ const Register = () => {
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -181,4 +182,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

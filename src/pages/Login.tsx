@@ -16,48 +16,41 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
     try {
-      // Temporary admin user check for testing
-      if (username === 'admin' && password === 'admin') {
-        login(username);
-        toast({
-          title: "Login Successful",
-          description: `Welcome, ${username}!`,
-          position: "top",
-          duration: 3000,
-          isClosable: true,
-          variant: "solid",
-          render: () => (
-            <Box
-              color="white"
-              p={3}
-              bg="black"
-              borderRadius="md"
-              boxShadow="md"
-            >
-              <Box display="flex" alignItems="center" mb={1}>
-                <Box as="span" mr={2}>✓</Box>
-                <Text fontWeight="bold">Login Successful</Text>
-              </Box>
-              <Text>Welcome, {username}!</Text>
+      await login(email, password);
+      toast({
+        title: "Login Successful",
+        description: `Welcome back!`,
+        position: "top",
+        duration: 3000,
+        isClosable: true,
+        variant: "solid",
+        render: () => (
+          <Box
+            color="white"
+            p={3}
+            bg="black"
+            borderRadius="md"
+            boxShadow="md"
+          >
+            <Box display="flex" alignItems="center" mb={1}>
+              <Box as="span" mr={2}>✓</Box>
+              <Text fontWeight="bold">Login Successful</Text>
             </Box>
-          ),
-        });
-        navigate('/');
-      } else {
-        throw new Error('Invalid credentials');
-      }
+            <Text>Welcome back!</Text>
+          </Box>
+        ),
+      });
+      navigate('/');
     } catch (error) {
       toast({
         title: 'Login failed',
@@ -66,8 +59,6 @@ const Login = () => {
         duration: 3000,
         isClosable: true,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -94,11 +85,12 @@ const Login = () => {
           <form onSubmit={handleSubmit}>
             <Stack spacing="6">
               <FormControl isRequired>
-                <FormLabel htmlFor="username">Username</FormLabel>
+                <FormLabel htmlFor="email">Email</FormLabel>
                 <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </FormControl>
 
@@ -133,4 +125,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

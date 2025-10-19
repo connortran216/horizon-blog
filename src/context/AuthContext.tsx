@@ -1,47 +1,73 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-
-interface User {
-  username: string;
-  avatar?: string;
-}
+import { User } from '../core/types/common.types';
+import { authService } from '../core/services/auth.service';
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: { username: string; email: string; password: string; confirmPassword: string }) => Promise<void>;
   logout: () => void;
+  isLoading: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load user from localStorage on initial render
+  // Load user from auth service on initial render if JWT cookie exists
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Since JWT is in httpOnly cookie, we can't check it directly
+    // User state is managed in memory, will need to re-login on page refresh
+    // In future, could add /auth/me endpoint to check cookie validity
   }, []);
 
-  const login = (username: string) => {
-    const newUser = {
-      username,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60',
-    };
-    // Save user to localStorage
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setUser(newUser);
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const loggedInUser = await authService.login({ email, password });
+      setUser(loggedInUser);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+      throw err; // Re-throw for component handling
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (data: { username: string; email: string; password: string; confirmPassword: string }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const registeredUser = await authService.register(data);
+      setUser(registeredUser);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+      throw err; // Re-throw for component handling
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
-    // Remove user from localStorage
-    localStorage.removeItem('user');
+    authService.logout();
     setUser(null);
+    setError(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      register,
+      logout,
+      isLoading,
+      error
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -53,4 +79,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

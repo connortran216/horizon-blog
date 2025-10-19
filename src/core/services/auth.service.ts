@@ -5,48 +5,64 @@ import {
   AuthError,
   InvalidCredentialsError,
   UserAlreadyExistsError,
-  AUTH_STORAGE_KEYS,
-  IAuthService
+  IAuthService,
+  AUTH_STORAGE_KEYS
 } from '../types/auth.types';
+import { apiService } from './api.service';
+
+/**
+ * API user response interface
+ */
+interface ApiUserResponse {
+  id: number;
+  email: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AuthResponse {
+  token: string;
+  data: ApiUserResponse;
+  message: string;
+}
 
 /**
  * Authentication service implementation
- * Handles user authentication, registration, and session management
+ * Handles user authentication with JWT and httpOnly cookies
  */
 export class AuthService implements IAuthService {
-  private readonly STORAGE_KEYS = AUTH_STORAGE_KEYS;
-
   /**
    * Authenticate user with credentials
    */
   async login(credentials: LoginCredentials): Promise<User> {
     try {
       // Validate input
-      if (!credentials.username || !credentials.password) {
+      if (!credentials.email || !credentials.password) {
         throw new InvalidCredentialsError();
       }
 
-      // For demo purposes, accept admin/admin as valid credentials
-      if (credentials.username === 'admin' && credentials.password === 'admin') {
-        const user: User = {
-          username: 'admin',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60',
-        };
+      // Perform API login
+      const response: AuthResponse = await apiService.post('/auth/login', credentials);
 
-        this.saveUserToStorage(user);
-        return user;
-      }
+      // Store the JWT token
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token);
 
-      // In a real application, this would make an API call
-      // For now, simulate API validation
-      throw new InvalidCredentialsError();
-    } catch (error) {
+      // Transform API user to FE format
+      const user = this.transformApiUserToUser(response.data);
+      return user;
+    } catch (error: any) {
       if (error instanceof AuthError) {
         throw error;
       }
 
+      // Handle API errors
+      if (error.status === 401) {
+        throw new InvalidCredentialsError();
+      }
+
       throw new AuthError(
-        'Login failed. Please try again.',
+        error.message || 'Login failed. Please try again.',
         'LOGIN_FAILED'
       );
     }
@@ -60,36 +76,31 @@ export class AuthService implements IAuthService {
       // Validate input
       this.validateRegistrationData(data);
 
-      // Check if user already exists
-      const existingUsers = this.getStoredUsers();
-      const userExists = existingUsers.some(user => user.username === data.username);
-
-      if (userExists) {
-        throw new UserAlreadyExistsError(data.username);
-      }
-
-      // Create new user
-      const newUser: User = {
-        username: data.username,
+      // Prepare registration data for API
+      const registrationData = {
+        name: data.username,  // API expects 'name', FE uses 'username'
         email: data.email,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.username}`,
+        password: data.password,
       };
 
-      // Save user
-      existingUsers.push(newUser);
-      this.saveUsersToStorage(existingUsers);
+      // Perform API registration
+      const response: AuthResponse = await apiService.post('/users', registrationData);
 
-      // Auto-login after registration
-      this.saveUserToStorage(newUser);
-
-      return newUser;
-    } catch (error) {
+      // Transform API user to FE format
+      const user = this.transformApiUserToUser(response.data);
+      return user;
+    } catch (error: any) {
       if (error instanceof AuthError) {
         throw error;
       }
 
+      // Handle API errors
+      if (error.status === 409) {
+        throw new UserAlreadyExistsError(data.email);
+      }
+
       throw new AuthError(
-        'Registration failed. Please try again.',
+        error.message || 'Registration failed. Please try again.',
         'REGISTRATION_FAILED'
       );
     }
@@ -99,65 +110,44 @@ export class AuthService implements IAuthService {
    * Logout user and clear session
    */
   async logout(): Promise<void> {
-    try {
-      this.clearUserFromStorage();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Don't throw error on logout - just clear storage
-      this.clearUserFromStorage();
-    }
+    // Clear stored token
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+
+    // With httpOnly cookies, no logout needed client-side
+    // BE might have /auth/logout endpoint, but not implemented yet
   }
 
   /**
    * Get current authenticated user
+   * Not implemented - user state managed by AuthContext
    */
   async getCurrentUser(): Promise<User | null> {
-    try {
-      return this.getUserFromStorage();
-    } catch (error) {
-      console.error('Error getting current user:', error);
-      return null;
-    }
+    return null;
   }
 
   /**
    * Refresh user session/token
+   * Not implemented - BE needs to add refresh endpoint
    */
   async refreshToken(): Promise<User | null> {
-    try {
-      // In a real application, this would refresh the JWT token
-      // For now, just return the current user if available
-      return this.getUserFromStorage();
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      return null;
-    }
+    return null;
   }
 
   /**
    * Check if user is currently authenticated
+   * Not implemented - determined by AuthContext state
    */
   async isAuthenticated(): Promise<boolean> {
-    try {
-      const user = await this.getCurrentUser();
-      return user !== null;
-    } catch (error) {
-      return false;
-    }
+    return false;
   }
 
-  /**
-   * Get user by username (for profile pages, etc.)
-   */
-  async getUserByUsername(username: string): Promise<User | null> {
-    try {
-      const users = this.getStoredUsers();
-      return users.find(user => user.username === username) || null;
-    } catch (error) {
-      console.error('Error getting user by username:', error);
-      return null;
-    }
-  }
+  // /**
+  //  * Get user by username (for profile pages, etc.)
+  //  * Not implemented - could call GET /users endpoint
+  //  */
+  // async getUserByUsername(username: string): Promise<User | null> {
+  //   return null;
+  // }
 
   // Private helper methods
 
@@ -196,58 +186,12 @@ export class AuthService implements IAuthService {
     return emailRegex.test(email);
   }
 
-  private saveUserToStorage(user: User): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(user));
-    } catch (error) {
-      throw new AuthError(
-        'Failed to save user session',
-        'STORAGE_ERROR'
-      );
-    }
-  }
-
-  private getUserFromStorage(): User | null {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEYS.USER);
-      return stored ? JSON.parse(stored) : null;
-    } catch (error) {
-      console.error('Failed to parse stored user:', error);
-      return null;
-    }
-  }
-
-  private clearUserFromStorage(): void {
-    try {
-      localStorage.removeItem(this.STORAGE_KEYS.USER);
-      localStorage.removeItem(this.STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(this.STORAGE_KEYS.REFRESH_TOKEN);
-    } catch (error) {
-      console.error('Failed to clear user storage:', error);
-    }
-  }
-
-  private getStoredUsers(): User[] {
-    try {
-      // In a real application, users would be stored server-side
-      // For demo purposes, we'll use localStorage
-      const stored = localStorage.getItem('horizon_blog_demo_users');
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Failed to parse stored users:', error);
-      return [];
-    }
-  }
-
-  private saveUsersToStorage(users: User[]): void {
-    try {
-      localStorage.setItem('horizon_blog_demo_users', JSON.stringify(users));
-    } catch (error) {
-      throw new AuthError(
-        'Failed to save users',
-        'STORAGE_ERROR'
-      );
-    }
+  private transformApiUserToUser(apiUser: ApiUserResponse): User {
+    return {
+      username: apiUser.name,  // API name -> FE username
+      email: apiUser.email,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`, // Default avatar
+    };
   }
 }
 
