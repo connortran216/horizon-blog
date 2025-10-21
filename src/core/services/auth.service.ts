@@ -29,7 +29,7 @@ interface AuthResponse {
 
 /**
  * Authentication service implementation
- * Handles user authentication with JWT and httpOnly cookies
+ * Handles user authentication with JWT tokens and Authorization headers
  */
 export class AuthService implements IAuthService {
   /**
@@ -86,6 +86,9 @@ export class AuthService implements IAuthService {
       // Perform API registration
       const response: AuthResponse = await apiService.post('/users', registrationData);
 
+      // Store the JWT token
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token);
+
       // Transform API user to FE format
       const user = this.transformApiUserToUser(response.data);
       return user;
@@ -113,16 +116,20 @@ export class AuthService implements IAuthService {
     // Clear stored token
     localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
 
-    // With httpOnly cookies, no logout needed client-side
-    // BE might have /auth/logout endpoint, but not implemented yet
+    // Client-side logout complete
+    // Backend may have /auth/logout endpoint but not required for JWT + localStorage approach
   }
 
   /**
    * Get current authenticated user
-   * Not implemented - user state managed by AuthContext
    */
   async getCurrentUser(): Promise<User | null> {
-    return null;
+    try {
+      const response: ApiUserResponse = await apiService.get('/auth/me');
+      return this.transformApiUserToUser(response);
+    } catch (error) {
+      return null;
+    }
   }
 
   /**

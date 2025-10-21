@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User } from '../core/types/common.types';
 import { authService } from '../core/services/auth.service';
+import { AUTH_STORAGE_KEYS } from '../core/types/auth.types';
 
 interface AuthContextType {
   user: User | null;
@@ -15,14 +16,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load user from auth service on initial render if JWT cookie exists
+  // Restore user session on app initialization
   useEffect(() => {
-    // Since JWT is in httpOnly cookie, we can't check it directly
-    // User state is managed in memory, will need to re-login on page refresh
-    // In future, could add /auth/me endpoint to check cookie validity
+    const restoreSession = async () => {
+      try {
+        const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
+        if (!token) return;
+
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          // Token invalid, clear it
+          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+        }
+      } catch (err) {
+        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+      } finally {
+        setIsLoading(false); // Always runs, even with early return
+      }
+    };
+
+    restoreSession();
+  }, []);
+
+  // Listen for unauthorized events from API service
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      setError('Session expired. Please log in again.');
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
   const login = async (email: string, password: string) => {

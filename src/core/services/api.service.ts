@@ -1,11 +1,18 @@
 /**
  * API Service - Handles HTTP requests with automatic JWT authentication
- * Uses httpOnly cookies for secure JWT storage
+ * Uses localStorage JWT tokens with Authorization headers
  */
 
-interface ApiError {
-  message: string;
-  status: number;
+import { AUTH_STORAGE_KEYS } from '../types/auth.types';
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
 }
 
 export class ApiService {
@@ -14,6 +21,22 @@ export class ApiService {
   constructor() {
     // Get base URL from environment or default to localhost:8080
     this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  }
+
+  /**
+   * Get headers with optional Authorization token
+   */
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
   }
 
   /**
@@ -27,10 +50,10 @@ export class ApiService {
 
     const response = await fetch(url.toString(), {
       method: 'GET',
-      credentials: 'include', // Include cookies in cross-origin requests
+      headers: this.getHeaders(),
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   /**
@@ -39,14 +62,11 @@ export class ApiService {
   async post<T>(endpoint: string, data?: any): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-      credentials: 'include', // Include cookies
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   /**
@@ -55,14 +75,11 @@ export class ApiService {
   async put<T>(endpoint: string, data?: any): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-      credentials: 'include',
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   /**
@@ -71,10 +88,10 @@ export class ApiService {
   async delete<T>(endpoint: string): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'DELETE',
-      credentials: 'include',
+      headers: this.getHeaders(),
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   /**
@@ -83,20 +100,17 @@ export class ApiService {
   async patch<T>(endpoint: string, data?: any): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-      credentials: 'include',
     });
 
-    return this.handleResponse<T>(response);
+    return this.handleResponse<T>(response, endpoint);
   }
 
   /**
    * Handle API response and errors
    */
-  private async handleResponse<T>(response: Response): Promise<T> {
+  private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}`;
 
@@ -108,15 +122,23 @@ export class ApiService {
         errorMessage = response.statusText || errorMessage;
       }
 
-      const error: ApiError = {
-        message: errorMessage,
-        status: response.status,
-      };
+      const error = new ApiError(errorMessage, response.status);
 
-      // Handle authentication errors
+      // Handle authentication errors ONLY for protected endpoints
       if (response.status === 401) {
-        // JWT expired or invalid, trigger logout
-        // This will be handled by the auth context
+        // Don't redirect if this is a login/register attempt (wrong credentials)
+        const isAuthEndpoint = endpoint.includes('/auth/login') ||
+                               endpoint.includes('/users');
+
+        if (!isAuthEndpoint) {
+          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+
+          // Only redirect if not already on login page
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login';
+          }
+        }
       }
 
       throw error;
