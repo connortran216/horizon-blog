@@ -1,4 +1,5 @@
 import { BlogPost, BlogPostSummary, BlogSearchOptions, BlogStorageResult } from '../types/blog.types';
+import { apiService } from './api.service';
 
 /**
  * Storage service interface for data persistence operations
@@ -15,6 +16,7 @@ export interface IStorageService {
   // User-specific blog operations
   getUserBlogPosts(username: string, options?: BlogSearchOptions): Promise<BlogStorageResult<BlogPostSummary[]>>;
   getUserDrafts(username: string): Promise<BlogStorageResult<BlogPostSummary[]>>;
+  getCurrentUserPosts(status?: 'draft' | 'published', page?: number, limit?: number): Promise<BlogStorageResult<BlogPostSummary[]>>;
 
   // Utility methods
   generateId(): string;
@@ -183,22 +185,40 @@ export class LocalStorageService implements IStorageService {
    */
   async deleteBlogPost(id: string): Promise<BlogStorageResult<boolean>> {
     try {
-      const posts = this.getStoredPosts();
-      const filteredPosts = posts.filter(p => p.id !== id);
+      // Try to delete from backend API first
+      try {
+        await apiService.delete<{ message: string }>(`/posts/${id}`);
 
-      if (filteredPosts.length === posts.length) {
+        // Also remove from localStorage cache if API succeeds
+        const posts = this.getStoredPosts();
+        const filteredPosts = posts.filter(p => p.id !== id);
+        this.savePosts(filteredPosts);
+
         return {
-          success: false,
-          error: 'Blog post not found',
+          success: true,
+          data: true,
+        };
+      } catch (apiError) {
+        console.warn('Failed to delete from backend API, falling back to localStorage:', apiError);
+
+        // Fallback to localStorage if API fails
+        const posts = this.getStoredPosts();
+        const filteredPosts = posts.filter(p => p.id !== id);
+
+        if (filteredPosts.length === posts.length) {
+          return {
+            success: false,
+            error: 'Blog post not found',
+          };
+        }
+
+        this.savePosts(filteredPosts);
+
+        return {
+          success: true,
+          data: true,
         };
       }
-
-      this.savePosts(filteredPosts);
-
-      return {
-        success: true,
-        data: true,
-      };
     } catch (error) {
       return {
         success: false,
@@ -212,21 +232,41 @@ export class LocalStorageService implements IStorageService {
    */
   async getUserBlogPosts(username: string, options?: BlogSearchOptions): Promise<BlogStorageResult<BlogPostSummary[]>> {
     try {
-      const posts = this.getStoredPosts();
-      const userPosts = posts.filter(p => p.author.username === username);
+      // Try to fetch from backend API first
+      try {
+        const params: Record<string, any> = { author: username };
 
-      let filteredPosts = userPosts;
+        // Add pagination parameters if provided
+        if (options?.limit) params.limit = options.limit;
+        if (options?.offset) params.offset = options.offset;
+        if (options?.status) params.status = options.status;
 
-      if (options) {
-        filteredPosts = this.applyFilters(userPosts, options);
-        filteredPosts = this.applySorting(filteredPosts, options);
-        filteredPosts = this.applyPagination(filteredPosts, options);
+        const response = await apiService.get<{ data: BlogPostSummary[] }>('/posts', params);
+
+        return {
+          success: true,
+          data: response.data || [],
+        };
+      } catch (apiError) {
+        console.warn('Failed to fetch from backend API, falling back to localStorage:', apiError);
+
+        // Fallback to localStorage if API fails
+        const posts = this.getStoredPosts();
+        const userPosts = posts.filter(p => p.author.username === username);
+
+        let filteredPosts = userPosts;
+
+        if (options) {
+          filteredPosts = this.applyFilters(userPosts, options);
+          filteredPosts = this.applySorting(filteredPosts, options);
+          filteredPosts = this.applyPagination(filteredPosts, options);
+        }
+
+        return {
+          success: true,
+          data: filteredPosts,
+        };
       }
-
-      return {
-        success: true,
-        data: filteredPosts,
-      };
     } catch (error) {
       return {
         success: false,
@@ -240,17 +280,63 @@ export class LocalStorageService implements IStorageService {
    */
   async getUserDrafts(username: string): Promise<BlogStorageResult<BlogPostSummary[]>> {
     try {
-      const posts = this.getStoredPosts();
-      const drafts = posts.filter(p => p.author.username === username && p.status === 'draft');
+      // Try to fetch from backend API first
+      try {
+        const params = {
+          author: username,
+          status: 'draft'
+        };
 
-      return {
-        success: true,
-        data: drafts,
-      };
+        const response = await apiService.get<{ data: BlogPostSummary[] }>('/posts', params);
+
+        return {
+          success: true,
+          data: response.data || [],
+        };
+      } catch (apiError) {
+        console.warn('Failed to fetch drafts from backend API, falling back to localStorage:', apiError);
+
+        // Fallback to localStorage if API fails
+        const posts = this.getStoredPosts();
+        const drafts = posts.filter(p => p.author.username === username && p.status === 'draft');
+
+        return {
+          success: true,
+          data: drafts,
+        };
+      }
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to retrieve user drafts',
+      };
+    }
+  }
+
+  /**
+   * Get current authenticated user's posts (using /users/me/posts endpoint)
+   */
+  async getCurrentUserPosts(status?: 'draft' | 'published', page: number = 1, limit: number = 10): Promise<BlogStorageResult<BlogPostSummary[]>> {
+    try {
+      const params: Record<string, any> = {
+        page,
+        limit
+      };
+
+      if (status) {
+        params.status = status;
+      }
+
+      const response = await apiService.get<{ data: BlogPostSummary[] }>('/users/me/posts', params);
+
+      return {
+        success: true,
+        data: response.data || [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to retrieve current user posts',
       };
     }
   }

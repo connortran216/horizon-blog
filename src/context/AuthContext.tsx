@@ -21,22 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Restore user session on app initialization
   useEffect(() => {
-    const restoreSession = async () => {
+    const restoreSession = () => {
       try {
         const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-        if (!token) return;
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
 
-        const currentUser = await authService.getCurrentUser();
+        // Decode JWT token client-side (no API call needed)
+        const currentUser = authService.decodeToken(token);
         if (currentUser) {
           setUser(currentUser);
         } else {
-          // Token invalid, clear it
+          // Token invalid or expired, clear it
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         }
       } catch (err) {
+        console.error('Failed to restore session:', err);
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
       } finally {
-        setIsLoading(false); // Always runs, even with early return
+        setIsLoading(false);
       }
     };
 

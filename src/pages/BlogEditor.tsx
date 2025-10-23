@@ -1,116 +1,24 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text } from '@chakra-ui/react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text, Tag, TagLabel, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { saveBlogPost, generateId, generateSlug, getBlogPostById } from '../services/blogStorage';
-import { BlogPost } from '../types/blog';
-import { css, Global } from '@emotion/react';
-// Lexical Editor imports
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
-import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { TableNode, TableCellNode, TableRowNode } from '@lexical/table';
-import { ListNode, ListItemNode } from '@lexical/list';
-import { CodeNode, CodeHighlightNode } from '@lexical/code';
-import { AutoLinkNode, LinkNode } from '@lexical/link';
-import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
-import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
-import { TRANSFORMERS } from '@lexical/markdown';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import ToolbarPlugin from '../components/editor/ToolbarPlugin';
+import MilkdownEditor from '../components/editor/MilkdownEditor';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import { apiService } from '../core/services/api.service';
 
 // Declare global interface for window object
 declare global {
   interface Window {
     editorState?: {
-      content: any;
+      content_markdown: string;
       title: string;
       handlePublish: () => Promise<boolean>;
     };
   }
 }
 
-// Define the Lexical editor theme
-const theme = {
-  // Theme styling goes here
-  paragraph: 'editor-paragraph',
-  heading: {
-    h1: 'editor-heading-h1',
-    h2: 'editor-heading-h2',
-    h3: 'editor-heading-h3',
-  },
-  list: {
-    ul: 'editor-list-ul',
-    ol: 'editor-list-ol',
-    listitem: 'editor-listitem',
-  },
-  quote: 'editor-quote',
-  link: 'editor-link',
-  text: {
-    bold: 'editor-bold',
-    italic: 'editor-italic',
-    underline: 'editor-underline',
-    strikethrough: 'editor-strikethrough',
-  }
-};
-
-// Create the base editor configuration
-const editorConfig: any = {
-  namespace: 'Blog Editor',
-  theme,
-  onError(error: Error) {
-    console.error('Lexical Editor Error:', error);
-  },
-  nodes: [
-    HeadingNode,
-    QuoteNode,
-    ListNode,
-    ListItemNode,
-    CodeNode,
-    CodeHighlightNode,
-    TableNode,
-    TableCellNode,
-    TableRowNode,
-    AutoLinkNode,
-    LinkNode
-  ]
-};
-
-// Create a function to extract content from blog posts
-function getBlogContent(blog: any): string | null {
-  if (!blog) return null;
-
-  // Try content.blocks first (new format)
-  if (blog.content?.blocks) {
-    const blocks = blog.content.blocks;
-    return typeof blocks === 'string' ? blocks : JSON.stringify(blocks);
-  }
-
-  // Fallback to legacy .blocks property
-  if ((blog as any).blocks) {
-    const blocks = (blog as any).blocks;
-    return typeof blocks === 'string' ? blocks : JSON.stringify(blocks);
-  }
-
-  return null;
-}
-
-// Create a function to convert Lexical state to serializable format for storage
-function serializeLexicalState(editorState: any) {
-  return JSON.stringify(editorState);
-}
-
-// Create a wrapper component to bypass TypeScript type checking
-const RichTextPluginWrapper = (props: any) => {
-  // @ts-ignore - Ignore the TypeScript error for ErrorBoundary
-  return <RichTextPlugin {...props} />;
-};
-
-const AUTO_SAVE_DELAY = 2000; // 2 seconds delay for auto-save
+const AUTO_SAVE_DELAY = 5000; // 5 seconds delay for backend auto-save
+const LOCAL_SAVE_DELAY = 1000; // 1 second for localStorage backup
 
 const BlogEditor = () => {
   const { user } = useAuth();
@@ -119,32 +27,46 @@ const BlogEditor = () => {
   const location = useLocation();
 
   // Parse URL parameters and router state
-  const draftId = new URLSearchParams(location.search).get('draftId');
-  const routerBlog = location.state?.blog;
+  const postIdParam = new URLSearchParams(location.search).get('id');
+  const routerPost = location.state?.blog;
 
   // State management
   const [title, setTitle] = useState('');
-  const [blogId, setBlogId] = useState('');
-  const [editorState, setEditorState] = useState<any>(null);
+  const [postId, setPostId] = useState<number | null>(null);
+  const [contentMarkdown, setContentMarkdown] = useState('');
+  const [contentJSON, setContentJSON] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
-  // Load draft content synchronously on mount
+  // Refs for auto-save timers and initial content tracking
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialContentSet = useRef<boolean>(false);
+  const editorInitialContent = useRef<string>('');
+
+  // Load post content on mount
   useEffect(() => {
-    const loadDraft = async () => {
+    console.log('🚀 BlogEditor mounted with postIdParam:', postIdParam, 'routerPost:', routerPost?.id);
+
+    const loadPost = async () => {
       setIsLoading(true);
       try {
-        let blog = routerBlog;
+        let post = routerPost;
 
         // Load by ID if URL parameter exists and no router state
-        if (draftId && !blog) {
-          console.log('🔗 Loading draft by ID:', draftId);
-          blog = await getBlogPostById(draftId);
-          if (!blog) {
-            console.error('🚨 Draft not found');
+        if (postIdParam && !post) {
+          console.log('🔗 Loading post by ID:', postIdParam);
+          const response = await apiService.get<{ data: any }>(`/posts/${postIdParam}`);
+          post = response.data;
+
+          if (!post) {
+            console.error('❌ Post not found for ID:', postIdParam);
             toast({
               title: 'Error',
-              description: 'Draft not found',
+              description: 'Post not found',
               status: 'error',
               duration: 3000,
               isClosable: true,
@@ -154,49 +76,50 @@ const BlogEditor = () => {
           }
         }
 
-        // Initialize state from loaded blog
-        if (blog) {
-          console.log('📋 Loading blog:', blog.title);
-          console.log('📝 Content type:', blog.content?.blocks ? 'content.blocks' : 'legacy blocks');
-
-          setTitle(blog.title || '');
-          setBlogId(blog.id || draftId || generateId());
-
-          // Extract content for Lexical initialization
-          const content = getBlogContent(blog);
-          console.log('📄 Content to load:', content);
-          setEditorState(content);
+        // Initialize state from loaded post
+        if (post) {
+          console.log('📋 Loading post:', post.title, 'with content length:', post.content_markdown?.length || 0);
+          setTitle(post.title || '');
+          setPostId(post.id);
+          setContentMarkdown(post.content_markdown || '');
+          setContentJSON(post.content_json || '');
+          // Load tags if available
+          if (post.tags && Array.isArray(post.tags)) {
+            const tagNames = post.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name);
+            setTags(tagNames);
+          }
+          // Set initial content for editor (only once)
+          editorInitialContent.current = post.content_markdown || '';
+          console.log('✅ Post loaded successfully, initialContentSet:', true);
         } else {
-          // New draft
-          setBlogId(generateId());
-          setEditorState(null);
-          console.log('🆕 Initializing new draft');
+          // New post
+          console.log('🆕 Initializing new post');
+          editorInitialContent.current = '';
         }
+        initialContentSet.current = true;
       } catch (error) {
-        console.error('❌ Error loading draft:', error);
+        console.error('❌ Error loading post:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load draft',
+          description: 'Failed to load post',
           status: 'error',
           duration: 3000,
           isClosable: true,
         });
-        setEditorState(null);
       } finally {
+        console.log('✅ Loading complete, isLoading set to false');
         setIsLoading(false);
       }
     };
 
-    loadDraft();
-  }, [draftId, routerBlog, toast]);
+    loadPost();
+  }, [postIdParam, routerPost, toast]);
 
-
-
+  // Share editor state with Navbar
   useEffect(() => {
-    // Share editor state with Navbar
     if (typeof window !== 'undefined') {
       window.editorState = {
-        content: editorState,
+        content_markdown: contentMarkdown,
         title: title,
         handlePublish: handlePublish
       };
@@ -208,54 +131,92 @@ const BlogEditor = () => {
         window.editorState = undefined;
       }
     };
-  }, [editorState, title]);
+  }, [contentMarkdown, contentJSON, title]);
 
-  // Auto-save functionality
-  const autoSave = useCallback(async () => {
-    if (!title.trim() || !editorState) return;
-
-    setIsSaving(true);
-
-    // Determine creation date and slug for the blog post
-    const createdAt = routerBlog?.createdAt || new Date().toISOString();
-    const slug = routerBlog?.slug || generateSlug(title.trim());
-
-    const blogPost: BlogPost = {
-      id: blogId,
-      title: title.trim(),
-      content: {
-        blocks: editorState
-      },
-      author: {
-        username: user?.username || 'Anonymous',
-        avatar: user?.avatar
-      },
-      createdAt,
-      updatedAt: new Date().toISOString(),
-      status: 'draft' as const,
-      readingTime: 1,
-      slug
-    };
+  // Local storage backup (1 second debounce)
+  const saveToLocalStorage = useCallback(() => {
+    if (!title.trim() || !contentMarkdown) return;
 
     try {
-      await saveBlogPost(blogPost);
+      localStorage.setItem('blog_draft_backup', JSON.stringify({
+        title,
+        contentMarkdown,
+        contentJSON,
+        timestamp: new Date().toISOString()
+      }));
     } catch (error) {
-      console.error('Error auto-saving draft:', error);
+      console.error('Error saving to localStorage:', error);
+    }
+  }, [title, contentMarkdown, contentJSON]);
+
+  // Backend auto-save (5 second debounce)
+  const autoSave = useCallback(async () => {
+    if (!title.trim() || !contentMarkdown) return;
+
+    setSaveStatus('saving');
+    setIsSaving(true);
+
+    try {
+      const postData = {
+        title: title.trim(),
+        content_markdown: contentMarkdown,
+        content_json: contentJSON || '{}',
+        status: 'draft',
+        tag_names: tags
+      };
+
+      let response;
+      if (postId) {
+        // Update existing post
+        response = await apiService.patch<{ data: any }>(`/posts/${postId}`, postData);
+      } else {
+        // Create new post
+        response = await apiService.post<{ data: any }>('/posts', postData);
+        if (response.data?.id) {
+          setPostId(response.data.id);
+        }
+      }
+
+      setSaveStatus('saved');
+      console.log('✅ Auto-saved to backend');
+    } catch (error) {
+      console.error('Error auto-saving to backend:', error);
+      setSaveStatus('error');
+      // Don't show toast for auto-save errors to avoid interrupting user
     } finally {
       setIsSaving(false);
     }
-  }, [title, editorState, blogId, user, routerBlog, draftId]);
+  }, [title, contentMarkdown, contentJSON, postId, tags]);
 
-  // Set up auto-save timer
+  // Set up auto-save timers
   useEffect(() => {
-    const timer = setTimeout(autoSave, AUTO_SAVE_DELAY);
-    return () => clearTimeout(timer);
-  }, [autoSave]);
+    // Clear existing timers
+    if (localSaveTimer.current) {
+      clearTimeout(localSaveTimer.current);
+    }
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
 
-  // Handle editor content changes
-  const handleEditorChange = (state: any) => {
-    setEditorState(state);
-  };
+    // Set new timers
+    localSaveTimer.current = setTimeout(saveToLocalStorage, LOCAL_SAVE_DELAY);
+    autoSaveTimer.current = setTimeout(autoSave, AUTO_SAVE_DELAY);
+
+    return () => {
+      if (localSaveTimer.current) {
+        clearTimeout(localSaveTimer.current);
+      }
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, [saveToLocalStorage, autoSave]);
+
+  // Handle editor content changes - memoized to prevent unnecessary re-renders
+  const handleEditorChange = useCallback((markdown: string, prosemirrorJSON: string) => {
+    setContentMarkdown(markdown);
+    setContentJSON(prosemirrorJSON);
+  }, []); // Empty deps - this function never needs to change
 
   // Handle publishing a post
   const handlePublish = async () => {
@@ -270,37 +231,48 @@ const BlogEditor = () => {
       return false;
     }
 
+    if (!contentMarkdown.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please add content to your blog post',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return false;
+    }
+
     try {
-      // Create or update the blog post
-      const blogPost: BlogPost = {
-        id: blogId,
+      const postData = {
         title: title.trim(),
-        content: {
-          blocks: editorState
-        },
-        author: {
-          username: user?.username || 'Anonymous',
-          avatar: user?.avatar
-        },
-        createdAt: routerBlog?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: 'published' as const,
-        readingTime: 1,
-        slug: routerBlog?.slug || generateSlug(title.trim())
+        content_markdown: contentMarkdown,
+        content_json: contentJSON || '{}',
+        status: 'published',
+        tag_names: tags
       };
 
-      // Save the post
-      const savedPost = await saveBlogPost(blogPost);
+      let response;
+      if (postId) {
+        // Update existing post
+        response = await apiService.put<{ data: any }>(`/posts/${postId}`, postData);
+      } else {
+        // Create new post
+        response = await apiService.post<{ data: any }>('/posts', postData);
+      }
+
+      const savedPost = response.data;
 
       if (!savedPost) {
         throw new Error('Failed to save blog post');
       }
-      
+
+      // Clear localStorage backup
+      localStorage.removeItem('blog_draft_backup');
+
       // Display success message
-      const isEditing = routerBlog || draftId;
       toast({
         title: 'Success',
-        description: `Blog post ${isEditing ? 'updated' : 'published'} successfully`,
+        description: `Blog post ${postId ? 'updated' : 'published'} successfully`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -309,167 +281,67 @@ const BlogEditor = () => {
       // Navigate to the blog post
       navigate(`/blog/${savedPost.id}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error publishing blog post:', error);
 
       // Display error message
-      const isEditing = routerBlog || draftId;
       toast({
         title: 'Error',
-        description: `Failed to ${isEditing ? 'update' : 'publish'} blog post`,
+        description: error.message || `Failed to ${postId ? 'update' : 'publish'} blog post`,
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
-      
+
       return false;
     }
   };
 
-  // Component to capture editor changes
-  function OnChangeComponent() {
-    const [editor] = useLexicalComposerContext();
-    
-    useEffect(() => {
-      // Subscribe to editor changes
-      return editor.registerUpdateListener(({ editorState }) => {
-        editorState.read(() => {
-          // Serialize the editor state to JSON
-          const serializedState = serializeLexicalState(editorState);
-          handleEditorChange(serializedState);
-        });
-      });
-    }, [editor]);
-    
-    return null;
-  }
+  // Save status text
+  const getSaveStatusText = () => {
+    if (isSaving || saveStatus === 'saving') return 'Saving...';
+    if (saveStatus === 'error') return 'Save failed';
+    if (postId) return 'Draft saved';
+    return 'Draft';
+  };
 
-  // Create dynamic editor config that includes content when available
-  const getDynamicEditorConfig = () => {
-    const baseConfig = { ...editorConfig };
-    if (editorState) {
-      baseConfig.editorState = editorState;
+  // Handle tag addition
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase();
+      if (!tags.includes(newTag)) {
+        setTags([...tags, newTag]);
+      }
+      setTagInput('');
     }
-    return baseConfig;
+  };
+
+  // Handle tag removal
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   return (
     <Container maxW="container.xl" p={5}>
-      <Global
-        styles={css`
-          .editor-container {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            position: relative;
-          }
-
-          .editor-input {
-            min-height: 500px;
-            resize: none;
-            font-size: 16px;
-            caret-color: rgb(5, 5, 5);
-            padding: 20px;
-            margin-top: 40px;
-            position: relative;
-            tab-size: 1;
-            outline: 0;
-            width: 100%;
-            line-height: 1.5;
-          }
-
-          .editor-placeholder {
-            color: #999;
-            overflow: hidden;
-            position: absolute;
-            text-overflow: ellipsis;
-            top: 60px;
-            left: 20px;
-            font-size: 16px;
-            user-select: none;
-            display: inline-block;
-            pointer-events: none;
-            z-index: 0;
-            line-height: 1.5;
-          }
-
-          .editor-paragraph {
-            margin: 0 0 15px 0;
-            line-height: 1.5;
-          }
-
-          .editor-heading-h1 {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0 10px 0;
-          }
-
-          .editor-heading-h2 {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-          }
-
-          .editor-heading-h3 {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 10px 0 5px 0;
-          }
-
-          .editor-quote {
-            border-left: 4px solid #ccc;
-            padding-left: 16px;
-            margin: 15px 0;
-            color: #555;
-          }
-
-          .editor-list-ol {
-            padding-left: 20px;
-            margin: 15px 0;
-          }
-
-          .editor-list-ul {
-            padding-left: 20px;
-            margin: 15px 0;
-            list-style-type: disc;
-          }
-
-          .editor-listitem {
-            margin: 6px 0;
-          }
-
-          .editor-link {
-            color: rgb(33, 111, 219);
-            text-decoration: underline;
-            cursor: pointer;
-          }
-
-          .editor-underline {
-            text-decoration: underline;
-          }
-
-          .editor-strikethrough {
-            text-decoration: line-through;
-          }
-
-          .editor-bold {
-            font-weight: bold;
-          }
-
-          .editor-italic {
-            font-style: italic;
-          }
-        `}
-      />
       <VStack spacing={6} align="stretch">
-        {/* Author Info */}
-        <HStack spacing={3}>
-          <Avatar size="sm" src={user?.avatar} name={user?.username} />
-          <Text fontSize="sm" color="gray.700">
-            {user?.username || 'Anonymous'} • {isSaving ? 'Saving...' : 'Draft'}
+        {/* Author Info and Save Status */}
+        <HStack spacing={3} justify="space-between">
+          <HStack spacing={3}>
+            <Avatar size="sm" src={user?.avatar} name={user?.username} />
+            <Text fontSize="sm" color="gray.700">
+              {user?.username || 'Anonymous'}
+            </Text>
+          </HStack>
+          <Text
+            fontSize="sm"
+            color={saveStatus === 'error' ? 'red.500' : saveStatus === 'saving' ? 'blue.500' : 'green.500'}
+          >
+            {getSaveStatusText()}
           </Text>
         </HStack>
 
+        {/* Title Input */}
         <Input
           placeholder="Blog Title"
           size="lg"
@@ -480,34 +352,56 @@ const BlogEditor = () => {
           _hover={{ border: 'none' }}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          isDisabled={isLoading}
         />
 
-        <Box
-          border="1px"
-          borderColor="gray.200"
-          borderRadius="md"
-          minH="500px"
-          bg="white"
-        >
-          <LexicalComposer
-            key={`${draftId || 'new'}-${isLoading ? 'loading' : 'loaded'}`}  // Force remount when loading completes
-            initialConfig={getDynamicEditorConfig()}
-          >
-            <div className="editor-container">
-              <ToolbarPlugin />
-              <RichTextPluginWrapper
-                contentEditable={<ContentEditable className="editor-input" />}
-                placeholder={<div className="editor-placeholder">{isLoading ? 'Loading draft content...' : 'Tell your story...'}</div>}
-              />
-              <HistoryPlugin />
-              <AutoFocusPlugin />
-              <ListPlugin />
-              <LinkPlugin />
-              <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-              <OnChangeComponent />
-            </div>
-          </LexicalComposer>
+        {/* Tags Input */}
+        <Box>
+          <Input
+            placeholder="Add tags (press Enter)"
+            size="sm"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleAddTag}
+            isDisabled={isLoading}
+          />
+          <Wrap mt={2} spacing={2}>
+            {tags.map((tag) => (
+              <WrapItem key={tag}>
+                <Tag size="md" colorScheme="blue" borderRadius="full">
+                  <TagLabel>{tag}</TagLabel>
+                  <TagCloseButton onClick={() => handleRemoveTag(tag)} />
+                </Tag>
+              </WrapItem>
+            ))}
+          </Wrap>
         </Box>
+
+        {/* Milkdown Editor */}
+        {!isLoading && initialContentSet.current && (
+          <ErrorBoundary>
+            <MilkdownEditor
+              initialContent={editorInitialContent.current}
+              onChange={handleEditorChange}
+              placeholder="Start writing your blog post..."
+            />
+          </ErrorBoundary>
+        )}
+
+        {isLoading && (
+          <Box
+            border="1px"
+            borderColor="gray.200"
+            borderRadius="md"
+            minH="500px"
+            bg="white"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Text color="gray.500">Loading editor...</Text>
+          </Box>
+        )}
       </VStack>
     </Container>
   );

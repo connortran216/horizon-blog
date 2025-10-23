@@ -52,7 +52,8 @@ export interface BlogMetadata {
 
 // Blog content interface
 export interface BlogContent {
-  blocks: LexicalEditorState;
+  content_markdown: string;
+  content_json: string;
 }
 
 // Blog author interface (extends base Author)
@@ -64,12 +65,12 @@ export interface BlogAuthor extends Author {
 // Complete blog post interface
 export interface BlogPost extends BaseEntity, BlogMetadata {
   author: BlogAuthor;
-  content: BlogContent;
+  content_markdown: string;
+  content_json: string;
   slug: string;
   viewCount?: number;
   likeCount?: number;
-  // For backward compatibility with existing code
-  blocks?: LexicalEditorState;
+  user_id?: number;
 }
 
 // Blog post creation data (for new posts)
@@ -102,4 +103,39 @@ export interface BlogSearchOptions {
   sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
+}
+
+// Backend API Response Types (matching api-docs.json)
+export interface ListPostsResponse {
+  data: BlogPost[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+export interface PostResponse {
+  data: BlogPost;
+  message: string;
+}
+
+export interface CreatePostRequest {
+  title: string;
+  content_json: string;
+  content_markdown: string;
+  status?: 'draft' | 'published';
+  tag_names?: string[];
+}
+
+export interface UpdatePostRequest {
+  title: string;
+  content_json: string;
+  content_markdown: string;
+  status: 'draft' | 'published';
+}
+
+export interface PatchPostRequest {
+  title?: string;
+  content_json?: string;
+  content_markdown?: string;
+  status?: 'draft' | 'published';
 }

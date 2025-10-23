@@ -11,6 +11,7 @@ export interface BaseEntity {
 
 // User profile information
 export interface User {
+  id: number;
   username: string;
   avatar?: string;
   email?: string;

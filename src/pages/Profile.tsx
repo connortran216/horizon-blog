@@ -21,9 +21,17 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserPosts, getUserDrafts, deleteBlogPost } from '../services/blogStorage';
-import { BlogPost } from '../types/blog';
+import { storageService } from '../core/services/storage.service';
 import { FiMoreVertical } from 'react-icons/fi';
+
+// Local BlogPost type that matches the old format
+interface BlogPost {
+  id: string;
+  title: string;
+  subtitle?: string;
+  createdAt: string;
+  status: string;
+}
 
 const Profile = () => {
   const { username } = useParams();
@@ -34,37 +42,74 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (username) {
-      // Load the user's published and draft posts
-      const loadUserPosts = async () => {
-        try {
-          const published = await getUserPosts(username);
-          const drafts = await getUserDrafts(username);
-          const publishedPosts = published.filter(post => post.status === 'published');
-          setPublishedBlogs(publishedPosts);
-          setDraftBlogs(drafts);
-        } catch (error) {
-          console.error('Error loading user posts:', error);
-        } finally {
-          setLoading(false);
+    // Load the current user's posts using /users/me/posts endpoint
+    const loadUserPosts = async () => {
+      try {
+        // Fetch published posts
+        const publishedResult = await storageService.getCurrentUserPosts('published');
+        if (publishedResult.success && publishedResult.data) {
+          const mappedPublished = publishedResult.data.map((post: any) => ({
+            id: String(post.id),
+            title: post.title,
+            subtitle: post.subtitle || post.excerpt,
+            createdAt: post.createdAt || post.created_at,
+            status: post.status
+          }));
+          setPublishedBlogs(mappedPublished);
         }
-      };
 
-      loadUserPosts();
-    }
-  }, [username]);
+        // Fetch draft posts
+        const draftsResult = await storageService.getCurrentUserPosts('draft');
+        if (draftsResult.success && draftsResult.data) {
+          const mappedDrafts = draftsResult.data.map((post: any) => ({
+            id: String(post.id),
+            title: post.title,
+            subtitle: post.subtitle || post.excerpt,
+            createdAt: post.createdAt || post.created_at,
+            status: post.status
+          }));
+          setDraftBlogs(mappedDrafts);
+        }
+      } catch (error) {
+        console.error('Error loading user posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserPosts();
+  }, []);
 
   const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        await deleteBlogPost(blogId);
-        // Refresh the blogs lists
-        if (username) {
-          const published = await getUserPosts(username);
-          const drafts = await getUserDrafts(username);
-          const publishedPosts = published.filter(post => post.status === 'published');
-          setPublishedBlogs(publishedPosts);
-          setDraftBlogs(drafts);
+        const result = await storageService.deleteBlogPost(blogId);
+
+        if (result.success) {
+          // Refresh the blogs lists
+          const publishedResult = await storageService.getCurrentUserPosts('published');
+          if (publishedResult.success && publishedResult.data) {
+            const mappedPublished = publishedResult.data.map((post: any) => ({
+              id: String(post.id),
+              title: post.title,
+              subtitle: post.subtitle || post.excerpt,
+              createdAt: post.createdAt || post.created_at,
+              status: post.status
+            }));
+            setPublishedBlogs(mappedPublished);
+          }
+
+          const draftsResult = await storageService.getCurrentUserPosts('draft');
+          if (draftsResult.success && draftsResult.data) {
+            const mappedDrafts = draftsResult.data.map((post: any) => ({
+              id: String(post.id),
+              title: post.title,
+              subtitle: post.subtitle || post.excerpt,
+              createdAt: post.createdAt || post.created_at,
+              status: post.status
+            }));
+            setDraftBlogs(mappedDrafts);
+          }
         }
       } catch (error) {
         console.error('Error deleting blog post:', error);

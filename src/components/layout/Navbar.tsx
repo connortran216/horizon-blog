@@ -21,15 +21,12 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { saveBlogPost } from '../../services/blogStorage';
 
-// Use a simpler definition for editor content that matches the Lexical editor format
-type EditorContent = any; // Use any for flexibility
-
 // Declare global interface for window object
 declare global {
   interface Window {
     editorState?: {
       title: string;
-      content: EditorContent;
+      content_markdown: string;
       handlePublish: () => Promise<boolean>;
     };
   }
@@ -63,11 +60,10 @@ const Navbar = () => {
   const isEditorPage = location.pathname === '/blog-editor';
   const toast = useToast();
   const [editorState, setEditorState] = useState<{
-    editor?: any;
     title: string;
-    content: EditorContent | null;
+    content_markdown: string;
     handlePublish?: () => Promise<boolean>;
-  }>({ title: '', content: null });
+  }>({ title: '', content_markdown: '' });
 
   // Use effect to access the editor state
   useEffect(() => {
@@ -103,8 +99,8 @@ const Navbar = () => {
 
     console.log("Fallback publishing in Navbar");
     console.log("Title:", editorState.title);
-    console.log("Content:", editorState.content);
-    
+    console.log("Content:", editorState.content_markdown);
+
     // Just require title for publishing
     if (!editorState.title?.trim()) {
       toast({
@@ -118,7 +114,7 @@ const Navbar = () => {
     }
 
     // Prepare content for saving
-    let contentToSave = editorState.content;
+    let contentToSave = editorState.content_markdown;
     
     // If we don't have content, create minimal fallback
     if (!contentToSave) {

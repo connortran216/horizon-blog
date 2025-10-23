@@ -9,6 +9,7 @@ import {
   AUTH_STORAGE_KEYS
 } from '../types/auth.types';
 import { apiService } from './api.service';
+import { jwtDecode } from 'jwt-decode';
 
 /**
  * API user response interface
@@ -25,6 +26,16 @@ interface AuthResponse {
   token: string;
   data: ApiUserResponse;
   message: string;
+}
+
+/**
+ * JWT token payload interface
+ */
+interface JWTPayload {
+  user_id: number;
+  email: string;
+  name: string;
+  exp: number;
 }
 
 /**
@@ -121,13 +132,28 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * Get current authenticated user
+   * Decode JWT token to get user information
+   * No API call needed - decode client-side
    */
-  async getCurrentUser(): Promise<User | null> {
+  decodeToken(token: string): User | null {
     try {
-      const response: ApiUserResponse = await apiService.get('/auth/me');
-      return this.transformApiUserToUser(response);
+      const decoded = jwtDecode<JWTPayload>(token);
+
+      // Check if token is expired
+      const now = Date.now() / 1000;
+      if (decoded.exp < now) {
+        return null;
+      }
+
+      // Transform JWT payload to User
+      return {
+        id: decoded.user_id,
+        username: decoded.name,
+        email: decoded.email,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${decoded.name}`
+      };
     } catch (error) {
+      console.error('Failed to decode JWT token:', error);
       return null;
     }
   }
@@ -195,6 +221,7 @@ export class AuthService implements IAuthService {
 
   private transformApiUserToUser(apiUser: ApiUserResponse): User {
     return {
+      id: apiUser.id,
       username: apiUser.name,  // API name -> FE username
       email: apiUser.email,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`, // Default avatar
