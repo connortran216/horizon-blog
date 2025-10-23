@@ -215,7 +215,23 @@ const BlogEditor = () => {
   // Handle editor content changes - memoized to prevent unnecessary re-renders
   const handleEditorChange = useCallback((markdown: string, prosemirrorJSON: string) => {
     setContentMarkdown(markdown);
-    setContentJSON(prosemirrorJSON);
+
+    // Validate and store ProseMirror JSON
+    try {
+      // Validate that it's proper JSON
+      const parsed = JSON.parse(prosemirrorJSON);
+
+      // Validate it has the expected ProseMirror structure
+      if (parsed && typeof parsed === 'object') {
+        setContentJSON(prosemirrorJSON);
+      } else {
+        console.warn('⚠️ Invalid ProseMirror JSON structure, using fallback');
+        setContentJSON('{}');
+      }
+    } catch (error) {
+      console.error('❌ Failed to parse ProseMirror JSON:', error);
+      setContentJSON('{}');
+    }
   }, []); // Empty deps - this function never needs to change
 
   // Handle publishing a post

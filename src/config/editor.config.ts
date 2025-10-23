@@ -170,6 +170,24 @@ export const EDITOR_CONFIG = {
     link: 'Mod-k',
     toggleMode: 'Mod-Shift-e', // Toggle between edit and view mode
   },
+
+  /**
+   * DEBUG SETTINGS
+   * Optional debugging and development tools
+   */
+  debug: {
+    // Log editor lifecycle events (creation, updates, mode changes)
+    logLifecycle: false,
+
+    // Log performance metrics (re-renders, conversion times)
+    logPerformance: false,
+
+    // Show ProseMirror document structure in console
+    logDocumentStructure: false,
+
+    // Enable React DevTools profiling
+    enableProfiling: false,
+  },
 };
 
 /**

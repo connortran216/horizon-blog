@@ -14,7 +14,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Box, Button, HStack, Tooltip, Text, VStack } from '@chakra-ui/react';
 import { ViewIcon, EditIcon, WarningIcon } from '@chakra-ui/icons';
-import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core';
+import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx, serializerCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
@@ -41,14 +41,13 @@ type EditorMode = 'edit' | 'view';
 const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> = ({
   initialContent = '',
   onChange,
-  placeholder = EDITOR_CONFIG.ui.placeholder,
   mode,
 }) => {
   const [currentMarkdown, setCurrentMarkdown] = useState(initialContent);
   const [editorError, setEditorError] = useState<string | null>(null);
   const scrollPositionRef = useRef<number>(0);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<any>(null);
+  const editorInstanceRef = useRef<Editor | null>(null);
 
   // Preserve scroll position when switching modes
   useEffect(() => {
@@ -67,12 +66,21 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
     }
   }, [mode]);
 
+  // Memoize onChange callback to maintain referential stability
+  const stableOnChange = useCallback((markdown: string, json: string) => {
+    if (onChange) {
+      onChange(markdown, json);
+    }
+  }, [onChange]);
+
   // Configure Milkdown editor
-  useEditor((root) => {
-    console.log('🔧 Creating Milkdown editor with initial content:', initialContent?.substring(0, 50));
+  const { get } = useEditor((root) => {
+    if (EDITOR_CONFIG.debug?.logLifecycle) {
+      console.log('🔧 Creating Milkdown editor with initial content:', initialContent?.substring(0, 50));
+    }
 
     try {
-      return Editor.make()
+      let editor = Editor.make()
         .config((ctx) => {
           ctx.set(rootCtx, root);
 
@@ -103,39 +111,125 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
             if (markdown !== prevMarkdown) {
               setCurrentMarkdown(markdown);
-              if (onChange) {
-                // Extract ProseMirror JSON from the editor state
-                try {
-                  const editorView = ctx.get(rootCtx)?.querySelector('.milkdown');
-                  const pmView = (editorRef.current as any)?._view;
+              // Extract ProseMirror JSON from the editor state using proper context API
+              try {
+                const view = ctx.get(editorViewCtx);
 
-                  let prosemirrorJSON = '{}';
-                  if (pmView?.state?.doc) {
-                    prosemirrorJSON = JSON.stringify(pmView.state.doc.toJSON());
+                let prosemirrorJSON = '{}';
+                if (view?.state?.doc) {
+                  // Properly extract the ProseMirror document as JSON
+                  prosemirrorJSON = JSON.stringify(view.state.doc.toJSON());
+
+                  if (EDITOR_CONFIG.debug?.logLifecycle) {
+                    console.log('📝 ProseMirror JSON extracted:', {
+                      markdown: markdown.substring(0, 50) + '...',
+                      jsonSize: prosemirrorJSON.length,
+                      nodeCount: view.state.doc.childCount
+                    });
                   }
-
-                  onChange(markdown, prosemirrorJSON);
-                } catch (error) {
-                  console.error('Error extracting ProseMirror JSON:', error);
-                  // Fallback: send markdown with empty JSON
-                  onChange(markdown, '{}');
                 }
+
+                stableOnChange(markdown, prosemirrorJSON);
+              } catch (error) {
+                console.error('❌ Error extracting ProseMirror JSON:', error);
+                // Fallback: send markdown with empty JSON
+                stableOnChange(markdown, '{}');
               }
             }
           });
         })
         .config(nord)
         .use(commonmark)
-        .use(EDITOR_CONFIG.features.gfm ? gfm : [])
-        .use(EDITOR_CONFIG.features.history ? history : [])
-        .use(EDITOR_CONFIG.features.clipboard ? clipboard : [])
-        .use(EDITOR_CONFIG.features.codeBlockHighlighting ? prism : [])
         .use(listener);
+
+      // Apply optional plugins based on config (already memoized)
+      if (EDITOR_CONFIG.features.gfm) {
+        editor = editor.use(gfm);
+      }
+      if (EDITOR_CONFIG.features.history) {
+        editor = editor.use(history);
+      }
+      if (EDITOR_CONFIG.features.clipboard) {
+        editor = editor.use(clipboard);
+      }
+      if (EDITOR_CONFIG.features.codeBlockHighlighting) {
+        editor = editor.use(prism);
+      }
+
+      // Store the editor instance for programmatic access
+      editorInstanceRef.current = editor;
+
+      if (EDITOR_CONFIG.debug?.logLifecycle) {
+        console.log('✅ Milkdown editor instance created and stored');
+      }
+
+      return editor;
     } catch (error: any) {
       console.error('❌ Error setting up Milkdown editor:', error);
       setEditorError(error.message || 'Failed to setup editor');
     }
-  }, [initialContent]);
+  }, [initialContent, stableOnChange]);
+
+  // Update editor editable state when mode changes
+  useEffect(() => {
+    const editor = get();
+    if (editor) {
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewOptionsCtx);
+        ctx.set(editorViewOptionsCtx, {
+          ...view,
+          editable: () => mode === 'edit',
+        });
+      });
+    }
+  }, [mode, get]);
+
+  // Programmatic editor control methods (available for future use)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _getEditorContent = useCallback(() => {
+    const editor = editorInstanceRef.current;
+    if (!editor) return { markdown: '', json: '{}' };
+
+    try {
+      let markdown = '';
+      let json = '{}';
+
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const serializer = ctx.get(serializerCtx);
+
+        if (view?.state?.doc) {
+          // Get markdown using the serializer
+          markdown = serializer(view.state.doc);
+          // Get ProseMirror JSON
+          json = JSON.stringify(view.state.doc.toJSON());
+        }
+      });
+
+      return { markdown, json };
+    } catch (error) {
+      console.error('Error getting editor content:', error);
+      return { markdown: currentMarkdown, json: '{}' };
+    }
+  }, [currentMarkdown]);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _setEditorContent = useCallback((content: string) => {
+    const editor = editorInstanceRef.current;
+    if (!editor) return;
+
+    try {
+      editor.action((ctx) => {
+        ctx.set(defaultValueCtx, content);
+      });
+
+      if (EDITOR_CONFIG.debug?.logLifecycle) {
+        console.log('📝 Editor content updated programmatically');
+      }
+    } catch (error) {
+      console.error('Error setting editor content:', error);
+    }
+  }, []);
 
   // Show error if editor failed to initialize
   if (editorError) {
