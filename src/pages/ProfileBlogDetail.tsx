@@ -11,9 +11,11 @@ import {
   Button,
   Divider,
   useToast,
+  Badge,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { apiService } from '../core/services/api.service';
+import { useAuth } from '../context/AuthContext';
 import MilkdownReader from '../components/reader/MilkdownReader';
 
 interface BlogPost {
@@ -31,10 +33,11 @@ interface BlogPost {
   };
 }
 
-const BlogDetail = () => {
-  const { id } = useParams<{ id: string }>();
+const ProfileBlogDetail = () => {
+  const { username, id } = useParams<{ username: string; id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +49,18 @@ const BlogDetail = () => {
           const foundPost = response.data;
 
           if (foundPost) {
+            // Check if the post belongs to the profile being viewed
+            if (foundPost.user?.name !== username) {
+              toast({
+                title: 'Access Denied',
+                description: 'This post does not belong to this user.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+              });
+              navigate(`/profile/${username}`);
+              return;
+            }
             setPost(foundPost);
           } else {
             toast({
@@ -55,7 +70,7 @@ const BlogDetail = () => {
               duration: 5000,
               isClosable: true,
             });
-            navigate('/blog');
+            navigate(`/profile/${username}`);
           }
         } catch (error: any) {
           console.error('Error fetching post:', error);
@@ -66,7 +81,7 @@ const BlogDetail = () => {
             duration: 5000,
             isClosable: true,
           });
-          navigate('/blog');
+          navigate(`/profile/${username}`);
         } finally {
           setLoading(false);
         }
@@ -74,7 +89,7 @@ const BlogDetail = () => {
 
       fetchPost();
     }
-  }, [id, navigate, toast]);
+  }, [id, username, navigate, toast]);
 
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {
@@ -85,6 +100,9 @@ const BlogDetail = () => {
     // Use MilkdownReader for read-only display
     return <MilkdownReader content={post.content_markdown} />;
   };
+
+  // Check if current user is viewing their own profile
+  const isOwnProfile = user && username === user.name;
 
   if (loading) {
     return (
@@ -108,25 +126,40 @@ const BlogDetail = () => {
         leftIcon={<ArrowBackIcon />}
         variant="ghost"
         mb={6}
-        onClick={() => navigate('/blog')}
+        onClick={() => navigate(`/profile/${username}`)}
       >
-        Back to Blog
+        Back to Profile
       </Button>
 
       <VStack spacing={6} align="stretch">
-        <Heading as="h1" size="2xl">{post.title}</Heading>
+        <HStack justify="space-between" align="start">
+          <Heading as="h1" size="2xl">{post.title}</Heading>
+          {post.status === 'draft' && (
+            <Badge colorScheme="yellow" fontSize="md" px={3} py={1}>
+              Draft
+            </Badge>
+          )}
+        </HStack>
 
         <HStack spacing={4}>
           <Avatar size="md" name={post.user?.name || 'Anonymous'} />
           <Box>
             <Text fontWeight="bold">{post.user?.name || 'Anonymous'}</Text>
             <Text fontSize="sm" color="gray.500">
-              Published on {new Date(post.created_at).toLocaleDateString()}
+              {post.status === 'published' ? 'Published' : 'Created'} on{' '}
+              {new Date(post.created_at).toLocaleDateString()}
               {post.created_at !== post.updated_at &&
                 ` • Updated on ${new Date(post.updated_at).toLocaleDateString()}`}
             </Text>
           </Box>
         </HStack>
+
+        {isOwnProfile && (
+          <Text fontSize="sm" color="gray.600" fontStyle="italic">
+            This is a read-only view. To edit this post, go back to your profile and use the
+            Edit option from the menu.
+          </Text>
+        )}
 
         <Divider my={4} />
 
@@ -136,4 +169,4 @@ const BlogDetail = () => {
   );
 };
 
-export default BlogDetail;
+export default ProfileBlogDetail;

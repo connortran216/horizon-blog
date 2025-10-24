@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import BlogEditor from './pages/BlogEditor';
 import Profile from './pages/Profile';
 import BlogDetail from './pages/BlogDetail';
+import ProfileBlogDetail from './pages/ProfileBlogDetail';
 
 const Routes = () => {
   return (
@@ -21,6 +22,7 @@ const Routes = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/blog-editor" element={<BlogEditor />} />
       <Route path="/profile/:username" element={<Profile />} />
+      <Route path="/profile/:username/blog/:id" element={<ProfileBlogDetail />} />
     </RouterRoutes>
   );
 };

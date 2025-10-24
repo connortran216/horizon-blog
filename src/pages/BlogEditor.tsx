@@ -29,6 +29,7 @@ const BlogEditor = () => {
   // Parse URL parameters and router state
   const postIdParam = new URLSearchParams(location.search).get('id');
   const routerPost = location.state?.blog;
+  const authorizedEdit = location.state?.authorizedEdit || false;
 
   // State management
   const [title, setTitle] = useState('');
@@ -74,6 +75,34 @@ const BlogEditor = () => {
             setIsLoading(false);
             return;
           }
+
+          // Access Control: Check if user is owner and has authorization
+          if (!user || post.user_id !== user.id) {
+            console.error('❌ Unauthorized access attempt to edit post:', postIdParam);
+            toast({
+              title: 'Access Denied',
+              description: 'You do not have permission to edit this post. Only the post owner can edit from their profile.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
+            navigate(`/blog/${postIdParam}`);
+            return;
+          }
+
+          // Check if access is authorized (coming from Profile page)
+          if (!authorizedEdit) {
+            console.error('❌ Unauthorized direct access to editor:', postIdParam);
+            toast({
+              title: 'Access Denied',
+              description: 'Please use the Edit option from your profile to edit your posts.',
+              status: 'warning',
+              duration: 5000,
+              isClosable: true,
+            });
+            navigate(`/blog/${postIdParam}`);
+            return;
+          }
         }
 
         // Initialize state from loaded post
@@ -113,7 +142,7 @@ const BlogEditor = () => {
     };
 
     loadPost();
-  }, [postIdParam, routerPost, toast]);
+  }, [postIdParam, routerPost, toast, user, authorizedEdit, navigate]);
 
   // Share editor state with Navbar
   useEffect(() => {

@@ -118,8 +118,10 @@ const Profile = () => {
   };
 
   const handleEdit = (blogId: string) => {
-    // Navigate using URL parameter instead of router state for more reliable draft loading
-    navigate(`/blog-editor?draftId=${blogId}`);
+    // Navigate with state to indicate authorized edit from profile
+    navigate(`/blog-editor?id=${blogId}`, {
+      state: { fromProfile: true, authorizedEdit: true }
+    });
   };
 
   // Format date to a more readable format
@@ -171,7 +173,7 @@ const Profile = () => {
             color="black"
             _hover={{ bg: 'gray.50' }}
             as={RouterLink}
-            to={`/blog/${blog.id}`}
+            to={`/profile/${username}/blog/${blog.id}`}
           >
             Read more
           </Button>
