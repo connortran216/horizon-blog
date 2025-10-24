@@ -193,6 +193,11 @@ const Profile = () => {
 
   const profileText = useColorModeValue('gray.600', 'text.secondary');
 
+  // Tab color mode values
+  const tabColor = useColorModeValue('gray.600', 'text.secondary');
+  const tabSelectedColor = useColorModeValue('black', 'accent.primary');
+  const tabBorderColor = useColorModeValue('black', 'accent.primary');
+
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
@@ -218,8 +223,24 @@ const Profile = () => {
           ) : (
             <Tabs>
               <TabList>
-                <Tab>Published Blogs</Tab>
-                <Tab>Draft Blogs</Tab>
+                <Tab
+                  color={tabColor}
+                  _selected={{
+                    color: tabSelectedColor,
+                    borderColor: tabBorderColor
+                  }}
+                >
+                  Published Blogs
+                </Tab>
+                <Tab
+                  color={tabColor}
+                  _selected={{
+                    color: tabSelectedColor,
+                    borderColor: tabBorderColor
+                  }}
+                >
+                  Draft Blogs
+                </Tab>
               </TabList>
               <TabPanels>
                 <TabPanel>

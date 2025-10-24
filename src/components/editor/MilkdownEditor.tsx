@@ -443,6 +443,11 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
+  // Tab color mode values to match theme
+  const tabColor = useColorModeValue('gray.600', 'text.secondary');
+  const tabSelectedColor = useColorModeValue('black', 'accent.primary');
+  const tabBorderColor = useColorModeValue('black', 'accent.primary');
+
   // Color mode values for raw editor
   const rawEditorBg = useColorModeValue('white', 'bg.secondary');
   const rawEditorBorderColor = useColorModeValue('gray.200', 'border.default');
@@ -529,8 +534,24 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
       {!readOnly && EDITOR_CONFIG.behavior.toggleMode === 'global' && (
         <Tabs index={tabIndex} onChange={handleTabChange} mb={4}>
           <TabList>
-            <Tab>Editor</Tab>
-            <Tab>Preview</Tab>
+            <Tab
+              color={tabColor}
+              _selected={{
+                color: tabSelectedColor,
+                borderColor: tabBorderColor
+              }}
+            >
+              Editor
+            </Tab>
+            <Tab
+              color={tabColor}
+              _selected={{
+                color: tabSelectedColor,
+                borderColor: tabBorderColor
+              }}
+            >
+              Preview
+            </Tab>
           </TabList>
         </Tabs>
       )}
