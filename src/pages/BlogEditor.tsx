@@ -426,7 +426,7 @@ const BlogEditor = () => {
         {!isLoading && initialContentSet.current && (
           <ErrorBoundary>
             <MilkdownEditor
-              initialContent={editorInitialContent.current}
+              initialContent={contentMarkdown}
               onChange={handleEditorChange}
               placeholder="Start writing your blog post..."
             />

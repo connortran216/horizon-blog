@@ -167,7 +167,16 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
       console.error('❌ Error setting up Milkdown editor:', error);
       setEditorError(error.message || 'Failed to setup editor');
     }
-  }, [initialContent, stableOnChange]);
+    // Note: Intentionally NOT including initialContent in deps to prevent recreation
+    // The editor is created once with initial content, then updates via listener
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stableOnChange]);
+
+  // Note: We intentionally don't have a useEffect to update editor content from props
+  // because that would cause the editorView context error. Instead, we rely on:
+  // 1. Key-based remounting (via milkdownKey in parent component)
+  // 2. Initial content being set correctly on mount
+  // This approach avoids trying to update a potentially uninitialized editor
 
   // Update editor editable state when mode changes
   useEffect(() => {
@@ -412,10 +421,25 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
-  // Update markdown content when initialContent changes
+  // Track what content Preview tab has loaded to prevent unnecessary syncs
+  const lastSyncedContent = useRef<string>(initialContent);
+  // Track if we're switching tabs (to trigger sync) vs just typing (don't sync)
+  const isTabSwitching = useRef<boolean>(false);
+  // Stable key for MilkdownProvider to prevent recreation on every render
+  const milkdownKey = useRef<number>(0);
+
+  // Controlled sync: Only update when switching TO Preview tab and content differs
   useEffect(() => {
-    setMarkdownContent(initialContent);
-  }, [initialContent]);
+    // Only sync if we're switching tabs AND content is different from what Preview has
+    if (isTabSwitching.current && initialContent !== lastSyncedContent.current) {
+      setMarkdownContent(initialContent);
+      lastSyncedContent.current = initialContent;
+      // Increment key to force Preview remount with fresh content
+      milkdownKey.current += 1;
+    }
+    // Reset the tab switching flag
+    isTabSwitching.current = false;
+  }, [initialContent, mode]);
 
   // Sync line numbers scroll with textarea scroll
   const handleTextareaScroll = useCallback(() => {
@@ -427,6 +451,8 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   // Handle tab change
   const handleTabChange = useCallback((index: number) => {
     if (readOnly) return;
+    // Mark that we're switching tabs so sync logic knows to update
+    isTabSwitching.current = true;
     setTabIndex(index);
     setMode(index === 0 ? 'edit' : 'view');
   }, [readOnly]);
@@ -436,7 +462,12 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
     const newContent = e.target.value;
     setMarkdownContent(newContent);
 
-    // Call parent onChange with markdown and empty JSON for now
+    // Note: Raw editor sends empty ProseMirror JSON since it doesn't have a
+    // Milkdown instance. The JSON will be properly generated when switching to
+    // Preview tab or when the post is saved. This is acceptable because:
+    // 1. The markdown content is the source of truth
+    // 2. ProseMirror JSON can be regenerated from markdown at any time
+    // 3. Maintaining a hidden parser would add unnecessary complexity
     if (onChange) {
       onChange(newContent, '{}');
     }
@@ -450,6 +481,8 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
       const isMod = e.metaKey || e.ctrlKey;
       if (isMod && e.shiftKey && e.key === 'e') {
         e.preventDefault();
+        // Mark that we're switching tabs
+        isTabSwitching.current = true;
         const newIndex = tabIndex === 0 ? 1 : 0;
         setTabIndex(newIndex);
         setMode(newIndex === 0 ? 'edit' : 'view');
@@ -538,7 +571,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
 
       {/* Preview Tab: Rendered Markdown */}
       {(mode === 'view' || readOnly) && (
-        <MilkdownProvider>
+        <MilkdownProvider key={milkdownKey.current}>
           <MilkdownEditorInner {...props} initialContent={markdownContent} mode="view" />
         </MilkdownProvider>
       )}
