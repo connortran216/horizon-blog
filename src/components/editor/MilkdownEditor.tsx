@@ -12,9 +12,9 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Box, Button, HStack, Tooltip, Text, VStack } from '@chakra-ui/react';
-import { ViewIcon, EditIcon, WarningIcon } from '@chakra-ui/icons';
-import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx, serializerCtx } from '@milkdown/core';
+import { Box, Tabs, TabList, Tab, Text, VStack, HStack } from '@chakra-ui/react';
+import { WarningIcon } from '@chakra-ui/icons';
+import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { gfm } from '@milkdown/preset-gfm';
 import { listener, listenerCtx } from '@milkdown/plugin-listener';
@@ -43,7 +43,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
   onChange,
   mode,
 }) => {
-  const [currentMarkdown, setCurrentMarkdown] = useState(initialContent);
   const [editorError, setEditorError] = useState<string | null>(null);
   const scrollPositionRef = useRef<number>(0);
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -84,9 +83,10 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
         .config((ctx) => {
           ctx.set(rootCtx, root);
 
-          // Make editor editable based on mode
+          // Start editor in editable state - the useEffect will handle mode toggling
+          // This avoids stale closure issues with the mode variable
           ctx.set(editorViewOptionsCtx, {
-            editable: () => mode === 'edit',
+            editable: () => true,
             attributes: {
               class: 'milkdown-editor-content',
               spellcheck: 'true',
@@ -110,7 +110,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           // Listen to markdown changes
           ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
             if (markdown !== prevMarkdown) {
-              setCurrentMarkdown(markdown);
               // Extract ProseMirror JSON from the editor state using proper context API
               try {
                 const view = ctx.get(editorViewCtx);
@@ -175,61 +174,26 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
     const editor = get();
     if (editor) {
       editor.action((ctx) => {
-        const view = ctx.get(editorViewOptionsCtx);
+        // Get the ProseMirror view instance (not options!)
+        const view = ctx.get(editorViewCtx);
+        const currentOptions = ctx.get(editorViewOptionsCtx);
+
+        // Update the editable option
         ctx.set(editorViewOptionsCtx, {
-          ...view,
+          ...currentOptions,
           editable: () => mode === 'edit',
         });
+
+        // CRITICAL: Force ProseMirror to reapply the editable state
+        view.updateState(view.state);
+
+        if (EDITOR_CONFIG.debug?.logLifecycle) {
+          console.log(`🔄 Editor mode changed to: ${mode}`);
+        }
       });
     }
   }, [mode, get]);
 
-  // Programmatic editor control methods (available for future use)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _getEditorContent = useCallback(() => {
-    const editor = editorInstanceRef.current;
-    if (!editor) return { markdown: '', json: '{}' };
-
-    try {
-      let markdown = '';
-      let json = '{}';
-
-      editor.action((ctx) => {
-        const view = ctx.get(editorViewCtx);
-        const serializer = ctx.get(serializerCtx);
-
-        if (view?.state?.doc) {
-          // Get markdown using the serializer
-          markdown = serializer(view.state.doc);
-          // Get ProseMirror JSON
-          json = JSON.stringify(view.state.doc.toJSON());
-        }
-      });
-
-      return { markdown, json };
-    } catch (error) {
-      console.error('Error getting editor content:', error);
-      return { markdown: currentMarkdown, json: '{}' };
-    }
-  }, [currentMarkdown]);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _setEditorContent = useCallback((content: string) => {
-    const editor = editorInstanceRef.current;
-    if (!editor) return;
-
-    try {
-      editor.action((ctx) => {
-        ctx.set(defaultValueCtx, content);
-      });
-
-      if (EDITOR_CONFIG.debug?.logLifecycle) {
-        console.log('📝 Editor content updated programmatically');
-      }
-    } catch (error) {
-      console.error('Error setting editor content:', error);
-    }
-  }, []);
 
   // Show error if editor failed to initialize
   if (editorError) {
@@ -265,15 +229,15 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
       sx={{
         '.milkdown': {
           minHeight: `${EDITOR_CONFIG.ui.minHeight}px`,
-          padding: '1rem',
-          border: '1px solid',
-          borderColor: mode === 'view' ? 'gray.100' : 'gray.200',
+          padding: mode === 'view' ? '2rem' : '1rem',
+          border: mode === 'view' ? 'none' : '1px solid',
+          borderColor: mode === 'view' ? 'transparent' : 'gray.200',
           borderRadius: 'md',
-          backgroundColor: mode === 'view' ? 'gray.50' : 'white',
+          backgroundColor: mode === 'view' ? 'transparent' : 'white',
           fontFamily: 'inherit',
 
           '&:focus-within': {
-            borderColor: mode === 'edit' ? 'blue.400' : 'gray.100',
+            borderColor: mode === 'edit' ? 'blue.400' : 'transparent',
             boxShadow: mode === 'edit' ? '0 0 0 1px var(--chakra-colors-blue-400)' : 'none',
           },
         },
@@ -281,34 +245,39 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
         '.milkdown-editor-content': {
           outline: 'none',
           minHeight: `${EDITOR_CONFIG.ui.minHeight - 50}px`,
+          fontSize: mode === 'view' ? '1.1rem' : '1rem',
+          maxWidth: mode === 'view' ? '100%' : 'none',
 
           // Typography
           'p': {
-            marginBottom: '1em',
-            lineHeight: '1.7',
+            marginBottom: mode === 'view' ? '1.2em' : '1em',
+            lineHeight: mode === 'view' ? '1.8' : '1.7',
           },
 
           // Headings
           'h1': {
-            fontSize: '2.5em',
+            fontSize: mode === 'view' ? '2.8em' : '2.5em',
             fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
+            marginTop: mode === 'view' ? '0.8em' : '0.5em',
+            marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.2',
+            color: mode === 'view' ? 'gray.900' : 'inherit',
           },
           'h2': {
-            fontSize: '2em',
+            fontSize: mode === 'view' ? '2.2em' : '2em',
             fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
+            marginTop: mode === 'view' ? '0.8em' : '0.5em',
+            marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.3',
+            color: mode === 'view' ? 'gray.800' : 'inherit',
           },
           'h3': {
-            fontSize: '1.5em',
+            fontSize: mode === 'view' ? '1.7em' : '1.5em',
             fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
+            marginTop: mode === 'view' ? '0.8em' : '0.5em',
+            marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.4',
+            color: mode === 'view' ? 'gray.800' : 'inherit',
           },
           'h4': {
             fontSize: '1.25em',
@@ -438,10 +407,13 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   const { readOnly = false } = props;
   const [mode, setMode] = useState<EditorMode>(readOnly ? 'view' : 'edit');
+  const [tabIndex, setTabIndex] = useState(readOnly ? 1 : 0);
 
-  const toggleMode = useCallback(() => {
-    if (readOnly) return; // Don't allow toggling in read-only mode
-    setMode((prev) => (prev === 'edit' ? 'view' : 'edit'));
+  // Handle tab change
+  const handleTabChange = useCallback((index: number) => {
+    if (readOnly) return;
+    setTabIndex(index);
+    setMode(index === 0 ? 'edit' : 'view');
   }, [readOnly]);
 
   // Handle keyboard shortcut for toggling mode
@@ -452,34 +424,30 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
       const isMod = e.metaKey || e.ctrlKey;
       if (isMod && e.shiftKey && e.key === 'e') {
         e.preventDefault();
-        toggleMode();
+        const newIndex = tabIndex === 0 ? 1 : 0;
+        setTabIndex(newIndex);
+        setMode(newIndex === 0 ? 'edit' : 'view');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleMode, readOnly]);
+  }, [tabIndex, readOnly]);
 
   return (
     <MilkdownProvider>
       <Box>
-        {/* Mode Toggle Button - only show if not in read-only mode */}
+        {/* Tabs for Edit/Preview - only show if not in read-only mode */}
         {!readOnly && EDITOR_CONFIG.behavior.toggleMode === 'global' && (
-          <HStack mb={2} justify="flex-end">
-            <Tooltip label={`Switch to ${mode === 'edit' ? 'View' : 'Edit'} Mode (⌘⇧E)`}>
-              <Button
-                size="sm"
-                leftIcon={mode === 'edit' ? <ViewIcon /> : <EditIcon />}
-                onClick={toggleMode}
-                colorScheme={mode === 'edit' ? 'blue' : 'green'}
-                variant="outline"
-              >
-                {mode === 'edit' ? 'Preview' : 'Edit'}
-              </Button>
-            </Tooltip>
-          </HStack>
+          <Tabs index={tabIndex} onChange={handleTabChange} mb={4}>
+            <TabList>
+              <Tab>Editor</Tab>
+              <Tab>Preview</Tab>
+            </TabList>
+          </Tabs>
         )}
 
+        {/* Single editor instance that updates based on mode */}
         <MilkdownEditorInner {...props} mode={mode} />
       </Box>
     </MilkdownProvider>
