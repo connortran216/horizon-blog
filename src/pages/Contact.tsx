@@ -14,6 +14,7 @@ import {
   SimpleGrid,
   Icon,
   VStack,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
 
@@ -97,12 +98,19 @@ const Contact = () => {
     }
   };
 
+  const headerText = useColorModeValue('gray.600', 'text.secondary');
+  const cardBg = useColorModeValue('white', 'bg.secondary');
+  const iconColor = useColorModeValue('black', 'accent.primary');
+  const infoText = useColorModeValue('gray.600', 'text.secondary');
+  const buttonBg = useColorModeValue('black', 'accent.primary');
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+
   return (
     <Container maxW="container.xl" py={8}>
       <Stack spacing={8}>
         <Box textAlign="center">
           <Heading>Contact Us</Heading>
-          <Text mt={4} color="gray.600">
+          <Text mt={4} color={headerText}>
             Have questions? We'd love to hear from you.
           </Text>
         </Box>
@@ -112,17 +120,17 @@ const Contact = () => {
             <VStack
               key={index}
               p={5}
-              bg="white"
+              bg={cardBg}
               rounded="lg"
               shadow="md"
               spacing={4}
               align="center"
             >
-              <Icon as={info.icon} w={10} h={10} color="black" />
+              <Icon as={info.icon} w={10} h={10} color={iconColor} />
               <Text fontWeight="bold" fontSize="lg">
                 {info.title}
               </Text>
-              <Text color="gray.600" textAlign="center">
+              <Text color={infoText} textAlign="center">
                 {info.content}
               </Text>
             </VStack>
@@ -131,7 +139,7 @@ const Contact = () => {
 
         <Box
           p={8}
-          bg="white"
+          bg={cardBg}
           rounded="lg"
           shadow="md"
         >
@@ -179,10 +187,10 @@ const Contact = () => {
 
               <Button
                 type="submit"
-                bg="black"
+                bg={buttonBg}
                 color="white"
                 _hover={{
-                  bg: "gray.800"
+                  bg: buttonHoverBg
                 }}
                 isLoading={isLoading}
               >

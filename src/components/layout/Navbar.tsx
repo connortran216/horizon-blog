@@ -11,12 +11,13 @@ import {
   MenuItem,
   useDisclosure,
   useColorModeValue,
+  useColorMode,
   Stack,
   Container,
   Avatar,
   useToast,
 } from '@chakra-ui/react';
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { saveBlogPost } from '../../services/blogStorage';
@@ -55,6 +56,7 @@ const Links = [
 const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure();
   const { user, logout } = useAuth();
+  const { colorMode, toggleColorMode } = useColorMode();
   const navigate = useNavigate();
   const location = useLocation();
   const isEditorPage = location.pathname === '/blog-editor';
@@ -64,6 +66,10 @@ const Navbar = () => {
     content_markdown: string;
     handlePublish?: () => Promise<boolean>;
   }>({ title: '', content_markdown: '' });
+
+  // Color mode values for Write button
+  const writeBtnColor = useColorModeValue('black', 'text.primary');
+  const writeBtnHoverBg = useColorModeValue('gray.100', 'bg.tertiary');
 
   // Use effect to access the editor state
   useEffect(() => {
@@ -190,7 +196,7 @@ const Navbar = () => {
   };
 
   return (
-    <Box bg={useColorModeValue('white', 'gray.800')} px={4} boxShadow="sm">
+    <Box bg="bg.secondary" px={4} boxShadow="sm" borderBottom="1px" borderColor="border.subtle">
       <Container maxW="container.xl">
         <Flex h={16} alignItems="center" justifyContent="space-between">
           <IconButton
@@ -221,7 +227,10 @@ const Navbar = () => {
                 to="/blog-editor"
                 leftIcon={<Box as="span" fontSize="xl">✍️</Box>}
                 variant="ghost"
-                color="black"
+                color={writeBtnColor}
+                _hover={{
+                  bg: writeBtnHoverBg
+                }}
               >
                 Write
               </Button>
@@ -243,6 +252,9 @@ const Navbar = () => {
                 <MenuList>
                   <MenuItem as={RouterLink} to={`/profile/${user.username}`}>
                     Profile
+                  </MenuItem>
+                  <MenuItem onClick={toggleColorMode} icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}>
+                    {colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>
                     Sign out

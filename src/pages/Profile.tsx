@@ -17,6 +17,7 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -133,54 +134,64 @@ const Profile = () => {
     });
   };
 
-  const BlogGrid = ({ blogs }: { blogs: BlogPost[] }) => (
-    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-      {blogs.map((blog) => (
-        <Box
-          key={blog.id}
-          p={6}
-          bg="white"
-          shadow="md"
-          rounded="lg"
-          position="relative"
-        >
-          <Menu>
-            <MenuButton
-              as={IconButton}
-              icon={<FiMoreVertical />}
-              variant="ghost"
-              position="absolute"
-              top={2}
-              right={2}
-              aria-label="Options"
-            />
-            <MenuList>
-              <MenuItem onClick={() => handleEdit(blog.id)}>Edit Blog</MenuItem>
-              <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">Delete Blog</MenuItem>
-            </MenuList>
-          </Menu>
-          <Text fontSize="sm" color="gray.500" mb={2}>
-            {formatDate(blog.createdAt)}
-          </Text>
-          <Heading size="md" mb={2}>
-            {blog.title}
-          </Heading>
-          <Text color="gray.600" mb={4}>
-            {blog.subtitle || 'No description available'}
-          </Text>
-          <Button
-            variant="outline"
-            color="black"
-            _hover={{ bg: 'gray.50' }}
-            as={RouterLink}
-            to={`/profile/${username}/blog/${blog.id}`}
+  const BlogGrid = ({ blogs }: { blogs: BlogPost[] }) => {
+    const cardBg = useColorModeValue('white', 'bg.secondary');
+    const dateMeta = useColorModeValue('gray.500', 'text.tertiary');
+    const bodyText = useColorModeValue('gray.600', 'text.secondary');
+    const buttonColor = useColorModeValue('black', 'accent.primary');
+    const buttonHoverBg = useColorModeValue('gray.50', 'bg.tertiary');
+
+    return (
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        {blogs.map((blog) => (
+          <Box
+            key={blog.id}
+            p={6}
+            bg={cardBg}
+            shadow="md"
+            rounded="lg"
+            position="relative"
           >
-            Read more
-          </Button>
-        </Box>
-      ))}
-    </SimpleGrid>
-  );
+            <Menu>
+              <MenuButton
+                as={IconButton}
+                icon={<FiMoreVertical />}
+                variant="ghost"
+                position="absolute"
+                top={2}
+                right={2}
+                aria-label="Options"
+              />
+              <MenuList>
+                <MenuItem onClick={() => handleEdit(blog.id)}>Edit Blog</MenuItem>
+                <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">Delete Blog</MenuItem>
+              </MenuList>
+            </Menu>
+            <Text fontSize="sm" color={dateMeta} mb={2}>
+              {formatDate(blog.createdAt)}
+            </Text>
+            <Heading size="md" mb={2}>
+              {blog.title}
+            </Heading>
+            <Text color={bodyText} mb={4}>
+              {blog.subtitle || 'No description available'}
+            </Text>
+            <Button
+              variant="outline"
+              color={buttonColor}
+              _hover={{ bg: buttonHoverBg }}
+              as={RouterLink}
+              to={`/profile/${username}/blog/${blog.id}`}
+            >
+              Read more
+            </Button>
+          </Box>
+        ))}
+      </SimpleGrid>
+    );
+  };
+
+  const profileText = useColorModeValue('gray.600', 'text.secondary');
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -193,7 +204,7 @@ const Profile = () => {
             mb={4}
           />
           <Heading size="lg">{username}</Heading>
-          <Text color="gray.600" mt={2}>
+          <Text color={profileText} mt={2}>
             Passionate developer sharing insights about web development
           </Text>
         </Box>

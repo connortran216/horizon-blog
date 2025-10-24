@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useCallback, useRef } from 'react';
-import { Box, Text, VStack, HStack } from '@chakra-ui/react';
+import { Box, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
 import { WarningIcon } from '@chakra-ui/icons';
 import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
@@ -35,6 +35,23 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
 }) => {
   const [editorError, setEditorError] = useState<string | null>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // Color mode values for styling
+  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)');
+  const errorBorderColor = useColorModeValue('orange.200', 'orange.700');
+  const errorTextColor = useColorModeValue('orange.600', 'orange.300');
+  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary');
+  const headingH1Color = useColorModeValue('gray.900', 'text.primary');
+  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary');
+  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary');
+  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock');
+  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default');
+  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary');
+  const linkColor = useColorModeValue('blue.500', 'link.default');
+  const linkHoverColor = useColorModeValue('blue.600', 'link.hover');
+  const hrBorderColor = useColorModeValue('gray.300', 'border.default');
+  const tableBorderColor = useColorModeValue('gray.300', 'border.default');
+  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary');
 
   // Configure Milkdown editor in read-only mode
   useEditor((root) => {
@@ -98,19 +115,19 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
       <Box
         p={6}
         border="1px"
-        borderColor="orange.200"
+        borderColor={errorBorderColor}
         borderRadius="md"
-        bg="orange.50"
+        bg={errorBg}
       >
         <VStack spacing={4} align="stretch">
           <HStack>
             <WarningIcon color="orange.500" />
-            <Text fontWeight="bold" color="orange.700">
+            <Text fontWeight="bold" color={errorTextColor}>
               Content Display Error
             </Text>
           </HStack>
-          <Text color="orange.600">{editorError}</Text>
-          <Text fontSize="sm" color="gray.600">
+          <Text color={errorTextColor}>{editorError}</Text>
+          <Text fontSize="sm" color={errorHelpTextColor}>
             Please try refreshing the page. If the problem persists, contact support.
           </Text>
         </VStack>
@@ -153,7 +170,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             marginTop: '0.8em',
             marginBottom: '0.6em',
             lineHeight: '1.2',
-            color: 'gray.900',
+            color: headingH1Color,
           },
           'h2': {
             fontSize: '2.2em',
@@ -161,7 +178,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             marginTop: '0.8em',
             marginBottom: '0.6em',
             lineHeight: '1.3',
-            color: 'gray.800',
+            color: headingH2H3Color,
           },
           'h3': {
             fontSize: '1.7em',
@@ -169,7 +186,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             marginTop: '0.8em',
             marginBottom: '0.6em',
             lineHeight: '1.4',
-            color: 'gray.800',
+            color: headingH2H3Color,
           },
           'h4': {
             fontSize: '1.25em',
@@ -201,14 +218,14 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
 
           // Code
           'code': {
-            backgroundColor: 'gray.100',
+            backgroundColor: inlineCodeBg,
             padding: '0.2em 0.4em',
             borderRadius: 'sm',
             fontSize: '0.9em',
             fontFamily: 'monospace',
           },
           'pre': {
-            backgroundColor: 'gray.900',
+            backgroundColor: preCodeBg,
             color: 'white',
             padding: '1em',
             borderRadius: 'md',
@@ -225,21 +242,21 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           // Blockquote
           'blockquote': {
             borderLeft: '4px solid',
-            borderColor: 'gray.300',
+            borderColor: blockquoteBorderColor,
             paddingLeft: '1em',
             marginLeft: '0',
             marginBottom: '1em',
             fontStyle: 'italic',
-            color: 'gray.600',
+            color: blockquoteTextColor,
           },
 
           // Links
           'a': {
-            color: 'blue.500',
+            color: linkColor,
             textDecoration: 'underline',
             cursor: 'pointer',
             '&:hover': {
-              color: 'blue.600',
+              color: linkHoverColor,
             },
           },
 
@@ -247,7 +264,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           'hr': {
             border: 'none',
             borderTop: '2px solid',
-            borderColor: 'gray.300',
+            borderColor: hrBorderColor,
             marginTop: '2em',
             marginBottom: '2em',
           },
@@ -260,12 +277,12 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
           'th, td': {
             border: '1px solid',
-            borderColor: 'gray.300',
+            borderColor: tableBorderColor,
             padding: '0.5em',
             textAlign: 'left',
           },
           'th': {
-            backgroundColor: 'gray.100',
+            backgroundColor: tableHeaderBg,
             fontWeight: 'bold',
           },
 

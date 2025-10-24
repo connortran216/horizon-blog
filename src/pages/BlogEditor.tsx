@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text, Tag, TagLabel, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react';
+import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text, Tag, TagLabel, TagCloseButton, Wrap, WrapItem, useColorModeValue } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MilkdownEditor from '../components/editor/MilkdownEditor';
@@ -25,6 +25,14 @@ const BlogEditor = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const location = useLocation();
+
+  // Color mode values
+  const textPrimary = useColorModeValue('gray.900', 'text.primary');
+  const textSecondary = useColorModeValue('gray.600', 'text.secondary');
+  const textTertiary = useColorModeValue('gray.500', 'text.tertiary');
+  const textAuthor = useColorModeValue('gray.700', 'text.secondary');
+  const bgPrimary = useColorModeValue('white', 'bg.secondary');
+  const borderColor = useColorModeValue('gray.200', 'border.subtle');
 
   // Parse URL parameters and router state
   const postIdParam = new URLSearchParams(location.search).get('id');
@@ -374,7 +382,7 @@ const BlogEditor = () => {
         <HStack spacing={3} justify="space-between">
           <HStack spacing={3}>
             <Avatar size="sm" src={user?.avatar} name={user?.username} />
-            <Text fontSize="sm" color="gray.700">
+            <Text fontSize="sm" color={textAuthor}>
               {user?.username || 'Anonymous'}
             </Text>
           </HStack>
@@ -436,15 +444,15 @@ const BlogEditor = () => {
         {isLoading && (
           <Box
             border="1px"
-            borderColor="gray.200"
+            borderColor={borderColor}
             borderRadius="md"
             minH="500px"
-            bg="white"
+            bg={bgPrimary}
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
-            <Text color="gray.500">Loading editor...</Text>
+            <Text color={textTertiary}>Loading editor...</Text>
           </Box>
         )}
       </VStack>

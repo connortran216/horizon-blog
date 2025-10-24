@@ -11,6 +11,7 @@ import {
   Button,
   Divider,
   useToast,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { apiService } from '../core/services/api.service';
@@ -79,17 +80,23 @@ const BlogDetail = () => {
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {
     if (!post || !post.content_markdown) {
-      return <Text>No content available</Text>;
+      return <Text color={useColorModeValue('gray.600', 'text.secondary')}>No content available</Text>;
     }
 
     // Use MilkdownReader for read-only display
     return <MilkdownReader content={post.content_markdown} />;
   };
 
+  const loadingTextColor = useColorModeValue('gray.600', 'text.secondary');
+  const headingColor = useColorModeValue('gray.900', 'text.primary');
+  const authorNameColor = useColorModeValue('gray.900', 'text.primary');
+  const dateColor = useColorModeValue('gray.500', 'text.tertiary');
+  const dividerColor = useColorModeValue('gray.200', 'border.subtle');
+
   if (loading) {
     return (
       <Container maxW="container.md" py={10}>
-        <Text>Loading...</Text>
+        <Text color={loadingTextColor}>Loading...</Text>
       </Container>
     );
   }
@@ -97,7 +104,7 @@ const BlogDetail = () => {
   if (!post) {
     return (
       <Container maxW="container.md" py={10}>
-        <Text>Post not found</Text>
+        <Text color={loadingTextColor}>Post not found</Text>
       </Container>
     );
   }
@@ -114,13 +121,13 @@ const BlogDetail = () => {
       </Button>
 
       <VStack spacing={6} align="stretch">
-        <Heading as="h1" size="2xl">{post.title}</Heading>
+        <Heading as="h1" size="2xl" color={headingColor}>{post.title}</Heading>
 
         <HStack spacing={4}>
           <Avatar size="md" name={post.user?.name || 'Anonymous'} />
           <Box>
-            <Text fontWeight="bold">{post.user?.name || 'Anonymous'}</Text>
-            <Text fontSize="sm" color="gray.500">
+            <Text fontWeight="bold" color={authorNameColor}>{post.user?.name || 'Anonymous'}</Text>
+            <Text fontSize="sm" color={dateColor}>
               Published on {new Date(post.created_at).toLocaleDateString()}
               {post.created_at !== post.updated_at &&
                 ` • Updated on ${new Date(post.updated_at).toLocaleDateString()}`}
@@ -128,7 +135,7 @@ const BlogDetail = () => {
           </Box>
         </HStack>
 
-        <Divider my={4} />
+        <Divider my={4} borderColor={dividerColor} />
 
         {renderContent()}
       </VStack>

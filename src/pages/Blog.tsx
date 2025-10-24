@@ -61,15 +61,24 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
     return Math.max(1, Math.ceil(words / 200));
   };
 
+  const cardBg = useColorModeValue('white', 'bg.secondary');
+  const readingTimeColor = useColorModeValue('gray.500', 'text.secondary');
+  const excerptColor = useColorModeValue('gray.600', 'text.secondary');
+  const metaColor = useColorModeValue('gray.500', 'text.tertiary');
+  const buttonBg = useColorModeValue('black', 'accent.primary');
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+
   return (
     <Box
       maxW="100%"
-      bg={useColorModeValue('white', 'gray.800')}
+      bg={cardBg}
       boxShadow="xl"
       rounded="md"
       overflow="hidden"
       transition="transform 0.2s"
       _hover={{ transform: 'translateY(-4px)' }}
+      borderWidth="1px"
+      borderColor={useColorModeValue('gray.200', 'border.subtle')}
     >
       <Box
         height="200px"
@@ -89,33 +98,33 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>
             {post.status}
           </Tag>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color={readingTimeColor}>
             {getReadingTime(post.content_markdown)} min read
           </Text>
         </HStack>
-        <Heading size="md" noOfLines={2}>
+        <Heading size="md" noOfLines={2} color={useColorModeValue('gray.900', 'text.primary')}>
           {post.title}
         </Heading>
-        <Text color="gray.600" noOfLines={3}>
+        <Text color={excerptColor} noOfLines={3}>
           {getExcerpt(post.content_markdown)}
         </Text>
         <HStack spacing={2} align="center">
           <Avatar size="xs" name={post.user?.name || 'Anonymous'} />
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color={metaColor}>
             {post.user?.name || 'Anonymous'}
           </Text>
-          <Text fontSize="sm" color="gray.400">
+          <Text fontSize="sm" color={metaColor}>
             •
           </Text>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color={metaColor}>
             {new Date(post.created_at).toLocaleDateString()}
           </Text>
         </HStack>
         <Button
-          bg="black"
+          bg={buttonBg}
           color="white"
           _hover={{
-            bg: 'gray.800'
+            bg: buttonHoverBg
           }}
           as={RouterLink}
           to={`/blog/${post.id}`}
@@ -171,19 +180,27 @@ const Blog = () => {
     return matchesSearch;
   });
 
+  const headingColor = useColorModeValue('gray.900', 'text.primary');
+  const subtitleColor = useColorModeValue('gray.600', 'text.secondary');
+  const searchIconColor = useColorModeValue('gray.300', 'text.tertiary');
+  const loadingTextColor = useColorModeValue('gray.500', 'text.secondary');
+  const paginationButtonBg = useColorModeValue('black', 'accent.primary');
+  const paginationButtonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+  const paginationTextColor = useColorModeValue('gray.700', 'text.primary');
+
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8}>
         <Box textAlign="center">
-          <Heading>Blog Posts</Heading>
-          <Text mt={4} color="gray.600">
+          <Heading color={headingColor}>Blog Posts</Heading>
+          <Text mt={4} color={subtitleColor}>
             Explore our latest articles and tutorials
           </Text>
         </Box>
 
         <InputGroup maxW="600px">
           <InputLeftElement pointerEvents="none">
-            <SearchIcon color="gray.300" />
+            <SearchIcon color={searchIconColor} />
           </InputLeftElement>
           <Input
             placeholder="Search posts..."
@@ -193,7 +210,7 @@ const Blog = () => {
         </InputGroup>
 
         {loading && (
-          <Text textAlign="center" color="gray.500">
+          <Text textAlign="center" color={loadingTextColor}>
             Loading posts...
           </Text>
         )}
@@ -207,7 +224,7 @@ const Blog = () => {
         )}
 
         {!loading && filteredPosts.length === 0 && (
-          <Text textAlign="center" color="gray.500">
+          <Text textAlign="center" color={loadingTextColor}>
             {searchQuery ? 'No posts found matching your search.' : 'No posts available yet.'}
           </Text>
         )}
@@ -217,21 +234,21 @@ const Blog = () => {
             <Button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               isDisabled={page === 1}
-              bg="black"
+              bg={paginationButtonBg}
               color="white"
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: paginationButtonHoverBg }}
             >
               Previous
             </Button>
-            <Text>
+            <Text color={paginationTextColor}>
               Page {page} of {totalPages} ({total} total posts)
             </Text>
             <Button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               isDisabled={page === totalPages}
-              bg="black"
+              bg={paginationButtonBg}
               color="white"
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: paginationButtonHoverBg }}
             >
               Next
             </Button>

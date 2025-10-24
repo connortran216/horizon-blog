@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Box, Tabs, TabList, Tab, Text, VStack, HStack } from '@chakra-ui/react';
+import { Box, Tabs, TabList, Tab, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
 import { WarningIcon } from '@chakra-ui/icons';
 import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx } from '@milkdown/core';
 import { commonmark } from '@milkdown/preset-commonmark';
@@ -204,31 +204,53 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
   }, [mode, get]);
 
 
+  // Color mode values for error box
+  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)');
+  const errorBorderColor = useColorModeValue('orange.200', 'orange.700');
+  const errorTextColor = useColorModeValue('orange.600', 'orange.300');
+  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary');
+
   // Show error if editor failed to initialize
   if (editorError) {
     return (
       <Box
         p={6}
         border="1px"
-        borderColor="orange.200"
+        borderColor={errorBorderColor}
         borderRadius="md"
-        bg="orange.50"
+        bg={errorBg}
       >
         <VStack spacing={4} align="stretch">
           <HStack>
             <WarningIcon color="orange.500" />
-            <Text fontWeight="bold" color="orange.700">
+            <Text fontWeight="bold" color={errorTextColor}>
               Editor Initialization Error
             </Text>
           </HStack>
-          <Text color="orange.600">{editorError}</Text>
-          <Text fontSize="sm" color="gray.600">
+          <Text color={errorTextColor}>{editorError}</Text>
+          <Text fontSize="sm" color={errorHelpTextColor}>
             Please try refreshing the page. If the problem persists, contact support.
           </Text>
         </VStack>
       </Box>
     );
   }
+
+  // Color mode values for editor styling
+  const editorBg = useColorModeValue('white', 'bg.secondary');
+  const editorBorderColor = useColorModeValue('gray.200', 'border.default');
+  const editorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary');
+  const headingH1Color = useColorModeValue('gray.900', 'text.primary');
+  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary');
+  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary');
+  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock');
+  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default');
+  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary');
+  const linkColor = useColorModeValue('blue.500', 'link.default');
+  const linkHoverColor = useColorModeValue('blue.600', 'link.hover');
+  const hrBorderColor = useColorModeValue('gray.300', 'border.default');
+  const tableBorderColor = useColorModeValue('gray.300', 'border.default');
+  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary');
 
   // Render Milkdown editor (both edit and view modes)
   return (
@@ -240,14 +262,14 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           minHeight: `${EDITOR_CONFIG.ui.minHeight}px`,
           padding: mode === 'view' ? '2rem' : '1rem',
           border: mode === 'view' ? 'none' : '1px solid',
-          borderColor: mode === 'view' ? 'transparent' : 'gray.200',
+          borderColor: mode === 'view' ? 'transparent' : editorBorderColor,
           borderRadius: 'md',
-          backgroundColor: mode === 'view' ? 'transparent' : 'white',
+          backgroundColor: mode === 'view' ? 'transparent' : editorBg,
           fontFamily: 'inherit',
 
           '&:focus-within': {
-            borderColor: mode === 'edit' ? 'blue.400' : 'transparent',
-            boxShadow: mode === 'edit' ? '0 0 0 1px var(--chakra-colors-blue-400)' : 'none',
+            borderColor: mode === 'edit' ? editorFocusBorderColor : 'transparent',
+            boxShadow: mode === 'edit' ? `0 0 0 1px ${editorFocusBorderColor}` : 'none',
           },
         },
 
@@ -270,7 +292,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
             marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.2',
-            color: mode === 'view' ? 'gray.900' : 'inherit',
+            color: mode === 'view' ? headingH1Color : 'inherit',
           },
           'h2': {
             fontSize: mode === 'view' ? '2.2em' : '2em',
@@ -278,7 +300,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
             marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.3',
-            color: mode === 'view' ? 'gray.800' : 'inherit',
+            color: mode === 'view' ? headingH2H3Color : 'inherit',
           },
           'h3': {
             fontSize: mode === 'view' ? '1.7em' : '1.5em',
@@ -286,7 +308,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
             marginBottom: mode === 'view' ? '0.6em' : '0.5em',
             lineHeight: '1.4',
-            color: mode === 'view' ? 'gray.800' : 'inherit',
+            color: mode === 'view' ? headingH2H3Color : 'inherit',
           },
           'h4': {
             fontSize: '1.25em',
@@ -318,14 +340,14 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 
           // Code
           'code': {
-            backgroundColor: 'gray.100',
+            backgroundColor: inlineCodeBg,
             padding: '0.2em 0.4em',
             borderRadius: 'sm',
             fontSize: '0.9em',
             fontFamily: 'monospace',
           },
           'pre': {
-            backgroundColor: 'gray.900',
+            backgroundColor: preCodeBg,
             color: 'white',
             padding: '1em',
             borderRadius: 'md',
@@ -342,20 +364,20 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           // Blockquote
           'blockquote': {
             borderLeft: '4px solid',
-            borderColor: 'gray.300',
+            borderColor: blockquoteBorderColor,
             paddingLeft: '1em',
             marginLeft: '0',
             marginBottom: '1em',
             fontStyle: 'italic',
-            color: 'gray.600',
+            color: blockquoteTextColor,
           },
 
           // Links
           'a': {
-            color: 'blue.500',
+            color: linkColor,
             textDecoration: 'underline',
             '&:hover': {
-              color: 'blue.600',
+              color: linkHoverColor,
             },
           },
 
@@ -363,7 +385,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           'hr': {
             border: 'none',
             borderTop: '2px solid',
-            borderColor: 'gray.300',
+            borderColor: hrBorderColor,
             marginTop: '2em',
             marginBottom: '2em',
           },
@@ -376,12 +398,12 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
           'th, td': {
             border: '1px solid',
-            borderColor: 'gray.300',
+            borderColor: tableBorderColor,
             padding: '0.5em',
             textAlign: 'left',
           },
           'th': {
-            backgroundColor: 'gray.100',
+            backgroundColor: tableHeaderBg,
             fontWeight: 'bold',
           },
 
@@ -420,6 +442,14 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   const [markdownContent, setMarkdownContent] = useState(initialContent);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+
+  // Color mode values for raw editor
+  const rawEditorBg = useColorModeValue('white', 'bg.secondary');
+  const rawEditorBorderColor = useColorModeValue('gray.200', 'border.default');
+  const rawEditorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary');
+  const lineNumbersBg = useColorModeValue('gray.50', 'obsidian.dark.bgTertiary');
+  const lineNumbersBorderColor = useColorModeValue('gray.200', 'border.subtle');
+  const lineNumbersColor = useColorModeValue('gray.500', 'text.tertiary');
 
   // Track what content Preview tab has loaded to prevent unnecessary syncs
   const lastSyncedContent = useRef<string>(initialContent);
@@ -510,9 +540,9 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
         <Box
           position="relative"
           border="1px solid"
-          borderColor="gray.200"
+          borderColor={rawEditorBorderColor}
           borderRadius="md"
-          bg="white"
+          bg={rawEditorBg}
           minHeight={`${EDITOR_CONFIG.ui.minHeight}px`}
         >
           <Box
@@ -534,9 +564,10 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
               fontSize: '14px',
               lineHeight: '1.6',
               background: 'transparent',
+              color: 'inherit',
               '&:focus': {
-                borderColor: 'blue.400',
-                boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)',
+                borderColor: rawEditorFocusBorderColor,
+                boxShadow: `0 0 0 1px ${rawEditorFocusBorderColor}`,
               },
             }}
           />
@@ -548,14 +579,14 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
             left="0"
             width="3rem"
             height="100%"
-            bg="gray.50"
+            bg={lineNumbersBg}
             borderRight="1px solid"
-            borderColor="gray.200"
+            borderColor={lineNumbersBorderColor}
             padding="1rem 0.5rem"
             fontFamily="Monaco, Menlo, monospace"
             fontSize="14px"
             lineHeight="1.6"
-            color="gray.500"
+            color={lineNumbersColor}
             userSelect="none"
             pointerEvents="none"
             overflow="hidden"

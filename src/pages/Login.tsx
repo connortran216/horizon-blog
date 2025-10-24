@@ -11,6 +11,7 @@ import {
   useToast,
   Heading,
   Link,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +22,14 @@ const Login = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
+
+  // Dark mode color values
+  const headingColor = useColorModeValue('gray.900', 'text.primary');
+  const textColor = useColorModeValue('gray.600', 'text.secondary');
+  const linkColor = useColorModeValue('black', 'link.default');
+  const buttonBg = useColorModeValue('black', 'accent.primary');
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+  const toastBg = useColorModeValue('black', 'bg.elevated');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +47,7 @@ const Login = () => {
           <Box
             color="white"
             p={3}
-            bg="black"
+            bg={toastBg}
             borderRadius="md"
             boxShadow="md"
           >
@@ -66,10 +75,10 @@ const Login = () => {
     <Container maxW="lg" py={{ base: '12', md: '24' }}>
       <Stack spacing="8">
         <Stack spacing="6" textAlign="center">
-          <Heading>Log in to your account</Heading>
-          <Text color="gray.500">
+          <Heading color={headingColor}>Log in to your account</Heading>
+          <Text color={textColor}>
             Don't have an account?{' '}
-            <Link as={RouterLink} to="/register" color="black">
+            <Link as={RouterLink} to="/register" color={linkColor}>
               Sign up
             </Link>
           </Text>
@@ -106,10 +115,10 @@ const Login = () => {
 
               <Button
                 type="submit"
-                bg="black"
+                bg={buttonBg}
                 color="white"
                 _hover={{
-                  bg: "gray.800"
+                  bg: buttonHoverBg
                 }}
                 size="lg"
                 fontSize="md"

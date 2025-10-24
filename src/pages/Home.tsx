@@ -12,6 +12,7 @@ import {
   Avatar,
   HStack,
   Divider,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { FaBookmark, FaClock } from 'react-icons/fa';
@@ -32,6 +33,18 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const borderColor = useColorModeValue('gray.200', 'border.subtle');
+  const authorColor = useColorModeValue('gray.700', 'text.secondary');
+  const dateColor = useColorModeValue('gray.500', 'text.tertiary');
+  const titleColor = useColorModeValue('gray.900', 'text.primary');
+  const titleHoverColor = useColorModeValue('gray.700', 'text.secondary');
+  const subtitleColor = useColorModeValue('gray.600', 'text.secondary');
+  const tagBg = useColorModeValue('gray.100', 'bg.tertiary');
+  const tagColor = useColorModeValue('gray.700', 'text.secondary');
+  const iconColor = useColorModeValue('gray.500', 'text.tertiary');
+  const bookmarkColor = useColorModeValue('gray.400', 'text.tertiary');
+  const bookmarkHoverColor = useColorModeValue('gray.600', 'text.secondary');
+
   return (
     <Box
       as="article"
@@ -39,31 +52,31 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       py={8}
       _hover={{ cursor: 'pointer' }}
       borderBottom="1px"
-      borderColor="gray.200"
+      borderColor={borderColor}
     >
       <Flex gap={6} align="start">
         <Stack flex="1" spacing={4}>
           <HStack spacing={3}>
             <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
-            <Text fontSize="sm" color="gray.700">{post.author.username}</Text>
-            <Text fontSize="sm" color="gray.500">·</Text>
-            <Text fontSize="sm" color="gray.500">{formatDate(post.createdAt)}</Text>
+            <Text fontSize="sm" color={authorColor}>{post.author.username}</Text>
+            <Text fontSize="sm" color={dateColor}>·</Text>
+            <Text fontSize="sm" color={dateColor}>{formatDate(post.createdAt)}</Text>
           </HStack>
-          
+
           <Heading
             as={RouterLink}
             to={`/blog/${post.id}`}
             fontSize="24px"
             fontFamily="gt-super, Georgia, serif"
             fontWeight="bold"
-            color="gray.900"
-            _hover={{ color: "gray.700" }}
+            color={titleColor}
+            _hover={{ color: titleHoverColor }}
           >
             {post.title}
           </Heading>
-          
-          <Text 
-            color="gray.600" 
+
+          <Text
+            color={subtitleColor}
             fontSize="16px"
             noOfLines={2}
             lineHeight="tall"
@@ -76,33 +89,33 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
               <Text
                 px={3}
                 py={1}
-                bg="gray.100"
-                color="gray.700"
+                bg={tagBg}
+                color={tagColor}
                 fontSize="sm"
                 rounded="full"
               >
                 {post.tags[0]}
               </Text>
             )}
-            <HStack spacing={1} color="gray.500">
+            <HStack spacing={1} color={iconColor}>
               <Icon as={FaClock} w={3} h={3} />
               <Text fontSize="sm">{post.readingTime || 1} min read</Text>
             </HStack>
-            <Icon 
-              as={FaBookmark} 
-              w={4} 
-              h={4} 
-              color="gray.400"
-              _hover={{ color: "gray.600" }}
-              ml="auto" 
+            <Icon
+              as={FaBookmark}
+              w={4}
+              h={4}
+              color={bookmarkColor}
+              _hover={{ color: bookmarkHoverColor }}
+              ml="auto"
             />
           </HStack>
         </Stack>
 
-        <Box 
-          w="200px" 
-          h="134px" 
-          rounded="md" 
+        <Box
+          w="200px"
+          h="134px"
+          rounded="md"
           overflow="hidden"
           flexShrink={0}
         >
@@ -124,6 +137,21 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
+  // Color mode values
+  const pageBg = useColorModeValue('#faf9f7', 'bg.page');
+  const heroBg = useColorModeValue('#faf9f7', 'bg.page');
+  const borderColor = useColorModeValue('gray.200', 'border.subtle');
+  const headingColor = useColorModeValue('gray.900', 'text.primary');
+  const textColor = useColorModeValue('gray.600', 'text.secondary');
+  const sectionBg = useColorModeValue('white', 'bg.secondary');
+  const shapeColor = useColorModeValue('black', 'obsidian.accent.primary');
+  const accentColor = useColorModeValue('#1a8917', 'obsidian.accent.secondary');
+
+  // Trending section specific colors
+  const trendingNumberColor = useColorModeValue('gray.200', 'border.default');
+  const trendingTitleHoverColor = useColorModeValue('gray.700', 'text.secondary');
+  const trendingMetaColor = useColorModeValue('gray.500', 'text.tertiary');
+
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
@@ -141,9 +169,9 @@ const Home = () => {
   }, []);
 
   return (
-    <Box bg="#faf9f7">
+    <Box bg={pageBg}>
       {/* Hero Section */}
-      <Box borderBottom="1px" borderColor="gray.200" bg="#faf9f7" position="relative" overflow="hidden">
+      <Box borderBottom="1px" borderColor={borderColor} bg={heroBg} position="relative" overflow="hidden">
         <Container maxW="container.xl" py={{ base: 20, md: 28 }}>
           <Flex 
             direction={{ base: 'column', md: 'row' }}
@@ -157,7 +185,7 @@ const Home = () => {
                 fontFamily="gt-super, Georgia, serif"
                 fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
                 fontWeight="400"
-                color="gray.900"
+                color={headingColor}
                 lineHeight="1.1"
                 letterSpacing="-0.05em"
               >
@@ -165,7 +193,7 @@ const Home = () => {
               </Heading>
               <Text
                 fontSize={{ base: 'lg', md: 'xl' }}
-                color="gray.600"
+                color={textColor}
                 maxW="400px"
                 lineHeight="tall"
               >
@@ -174,7 +202,7 @@ const Home = () => {
               <Button
                 as={RouterLink}
                 to={user ? "/blog" : "/register"}
-                bg="black"
+                bg={useColorModeValue('black', 'accent.primary')}
                 color="white"
                 rounded="full"
                 px={8}
@@ -182,7 +210,7 @@ const Home = () => {
                 fontSize="md"
                 fontWeight="normal"
                 _hover={{
-                  bg: 'gray.800',
+                  bg: useColorModeValue('gray.800', 'accent.hover'),
                 }}
                 width="fit-content"
               >
@@ -211,7 +239,7 @@ const Home = () => {
                   right="100px"
                   width="150px"
                   height="150px"
-                  bg="black"
+                  bg={shapeColor}
                   borderRadius="full"
                   opacity="0.8"
                 />
@@ -221,7 +249,7 @@ const Home = () => {
                   right="200px"
                   width="100px"
                   height="100px"
-                  bg="black"
+                  bg={shapeColor}
                   transform="rotate(45deg)"
                   opacity="0.6"
                 />
@@ -231,7 +259,7 @@ const Home = () => {
                   right="300px"
                   width="80px"
                   height="80px"
-                  bg="black"
+                  bg={shapeColor}
                   borderRadius="full"
                   opacity="0.4"
                 />
@@ -244,7 +272,7 @@ const Home = () => {
                     right={`${Math.random() * 400}px`}
                     width="4px"
                     height="4px"
-                    bg="#1a8917"
+                    bg={accentColor}
                     borderRadius="full"
                     opacity="0.3"
                   />
@@ -256,11 +284,11 @@ const Home = () => {
       </Box>
 
       {/* Trending Section */}
-      <Box py={10} borderBottom="1px" borderColor="gray.200" bg="white">
+      <Box py={10} borderBottom="1px" borderColor={borderColor} bg={sectionBg}>
         <Container maxW="container.md">
           <HStack spacing={2} mb={6}>
-            <Icon as={FaBookmark} w={4} h={4} color="gray.900" />
-            <Text fontWeight="bold" color="gray.900">
+            <Icon as={FaBookmark} w={4} h={4} color={headingColor} />
+            <Text fontWeight="bold" color={headingColor}>
               Trending on Horizon
             </Text>
           </HStack>
@@ -274,7 +302,7 @@ const Home = () => {
                   <Text
                     fontSize="32px"
                     fontWeight="bold"
-                    color="gray.200"
+                    color={trendingNumberColor}
                     lineHeight="1"
                   >
                     {String(index + 1).padStart(2, '0')}
@@ -282,19 +310,19 @@ const Home = () => {
                   <Stack spacing={2}>
                     <HStack spacing={2}>
                       <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
-                      <Text fontSize="sm">{post.author.username}</Text>
+                      <Text fontSize="sm" color={textColor}>{post.author.username}</Text>
                     </HStack>
                     <Heading
                       as={RouterLink}
                       to={`/blog/${post.id}`}
                       fontSize="16px"
                       fontWeight="bold"
-                      color="gray.900"
-                      _hover={{ color: "gray.700" }}
+                      color={headingColor}
+                      _hover={{ color: trendingTitleHoverColor }}
                     >
                       {post.title}
                     </Heading>
-                    <HStack spacing={2} color="gray.500" fontSize="sm">
+                    <HStack spacing={2} color={trendingMetaColor} fontSize="sm">
                       <Text>{new Date(post.createdAt).toLocaleDateString()}</Text>
                       <Text>·</Text>
                       <Text>{post.readingTime || 1} min read</Text>
@@ -310,7 +338,7 @@ const Home = () => {
       </Box>
 
       {/* Main Content */}
-      <Box bg="white">
+      <Box bg={sectionBg}>
         <Container maxW="container.md" py={10}>
           {isLoading ? (
             <Text>Loading blog posts...</Text>

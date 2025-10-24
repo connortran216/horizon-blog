@@ -12,6 +12,7 @@ import {
   Heading,
   Link,
   FormErrorMessage,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +28,13 @@ const Register = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const { register, isLoading } = useAuth();
+
+  // Dark mode color values
+  const headingColor = useColorModeValue('gray.900', 'text.primary');
+  const textColor = useColorModeValue('gray.600', 'text.secondary');
+  const linkColor = useColorModeValue('black', 'link.default');
+  const buttonBg = useColorModeValue('black', 'accent.primary');
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -102,10 +110,10 @@ const Register = () => {
     <Container maxW="lg" py={{ base: '12', md: '24' }}>
       <Stack spacing="8">
         <Stack spacing="6" textAlign="center">
-          <Heading>Create an account</Heading>
-          <Text color="gray.500">
+          <Heading color={headingColor}>Create an account</Heading>
+          <Text color={textColor}>
             Already have an account?{' '}
-            <Link as={RouterLink} to="/login" color="black">
+            <Link as={RouterLink} to="/login" color={linkColor}>
               Login here
             </Link>
           </Text>
@@ -165,10 +173,10 @@ const Register = () => {
 
               <Button
                 type="submit"
-                bg="black"
+                bg={buttonBg}
                 color="white"
                 _hover={{
-                  bg: "gray.800"
+                  bg: buttonHoverBg
                 }}
                 isLoading={isLoading}
               >

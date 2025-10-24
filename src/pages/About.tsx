@@ -9,6 +9,7 @@ import {
   HStack,
   Icon,
   Divider,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
 
@@ -59,13 +60,20 @@ const teamMembers: TeamMember[] = [
 ];
 
 const About = () => {
+  const missionText = useColorModeValue('gray.600', 'text.secondary');
+  const valueHeading = useColorModeValue('black', 'text.primary');
+  const cardBg = useColorModeValue('white', 'bg.secondary');
+  const roleText = useColorModeValue('black', 'accent.primary');
+  const bioText = useColorModeValue('gray.600', 'text.secondary');
+  const iconHoverColor = useColorModeValue('gray.800', 'accent.hover');
+
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={12}>
         {/* Mission Section */}
         <Box textAlign="center">
           <Heading mb={4}>Our Mission</Heading>
-          <Text fontSize="lg" color="gray.600" maxW="2xl" mx="auto">
+          <Text fontSize="lg" color={missionText} maxW="2xl" mx="auto">
             We are dedicated to providing high-quality content about web development,
             programming, and technology. Our goal is to help developers stay
             up-to-date with the latest trends and best practices while building a
@@ -80,21 +88,21 @@ const About = () => {
           <Heading textAlign="center" mb={8}>Our Values</Heading>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
             <VStack>
-              <Heading size="md" color="black">Quality</Heading>
+              <Heading size="md" color={valueHeading}>Quality</Heading>
               <Text textAlign="center">
                 We strive to deliver the highest quality content and maintain
                 rigorous standards in our writing.
               </Text>
             </VStack>
             <VStack>
-              <Heading size="md" color="black">Community</Heading>
+              <Heading size="md" color={valueHeading}>Community</Heading>
               <Text textAlign="center">
                 We believe in fostering a supportive and inclusive community
                 for developers of all skill levels.
               </Text>
             </VStack>
             <VStack>
-              <Heading size="md" color="black">Innovation</Heading>
+              <Heading size="md" color={valueHeading}>Innovation</Heading>
               <Text textAlign="center">
                 We stay at the forefront of technology and share cutting-edge
                 insights with our readers.
@@ -113,7 +121,7 @@ const About = () => {
               <VStack
                 key={index}
                 p={6}
-                bg="white"
+                bg={cardBg}
                 rounded="lg"
                 shadow="md"
                 spacing={4}
@@ -127,10 +135,10 @@ const About = () => {
                   objectFit="cover"
                 />
                 <Heading size="md">{member.name}</Heading>
-                <Text color="black" fontWeight="bold">
+                <Text color={roleText} fontWeight="bold">
                   {member.role}
                 </Text>
-                <Text textAlign="center" color="gray.600">
+                <Text textAlign="center" color={bioText}>
                   {member.bio}
                 </Text>
                 <HStack spacing={4}>
@@ -140,7 +148,7 @@ const About = () => {
                       w={6}
                       h={6}
                       cursor="pointer"
-                      _hover={{ color: 'gray.800' }}
+                      _hover={{ color: iconHoverColor }}
                       onClick={() => window.open(member.social.github, '_blank')}
                     />
                   )}
@@ -150,7 +158,7 @@ const About = () => {
                       w={6}
                       h={6}
                       cursor="pointer"
-                      _hover={{ color: 'gray.800' }}
+                      _hover={{ color: iconHoverColor }}
                       onClick={() => window.open(member.social.twitter, '_blank')}
                     />
                   )}
@@ -160,7 +168,7 @@ const About = () => {
                       w={6}
                       h={6}
                       cursor="pointer"
-                      _hover={{ color: 'gray.800' }}
+                      _hover={{ color: iconHoverColor }}
                       onClick={() => window.open(member.social.linkedin, '_blank')}
                     />
                   )}
