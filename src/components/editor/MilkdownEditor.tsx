@@ -405,9 +405,24 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 };
 
 const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
-  const { readOnly = false } = props;
+  const { readOnly = false, initialContent = '', onChange } = props;
   const [mode, setMode] = useState<EditorMode>(readOnly ? 'view' : 'edit');
   const [tabIndex, setTabIndex] = useState(readOnly ? 1 : 0);
+  const [markdownContent, setMarkdownContent] = useState(initialContent);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+
+  // Update markdown content when initialContent changes
+  useEffect(() => {
+    setMarkdownContent(initialContent);
+  }, [initialContent]);
+
+  // Sync line numbers scroll with textarea scroll
+  const handleTextareaScroll = useCallback(() => {
+    if (textareaRef.current && lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  }, []);
 
   // Handle tab change
   const handleTabChange = useCallback((index: number) => {
@@ -416,9 +431,20 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
     setMode(index === 0 ? 'edit' : 'view');
   }, [readOnly]);
 
+  // Handle raw markdown changes in Editor tab
+  const handleMarkdownChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setMarkdownContent(newContent);
+
+    // Call parent onChange with markdown and empty JSON for now
+    if (onChange) {
+      onChange(newContent, '{}');
+    }
+  }, [onChange]);
+
   // Handle keyboard shortcut for toggling mode
   useEffect(() => {
-    if (readOnly) return; // Don't register shortcut in read-only mode
+    if (readOnly) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMod = e.metaKey || e.ctrlKey;
@@ -435,22 +461,88 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   }, [tabIndex, readOnly]);
 
   return (
-    <MilkdownProvider>
-      <Box>
-        {/* Tabs for Edit/Preview - only show if not in read-only mode */}
-        {!readOnly && EDITOR_CONFIG.behavior.toggleMode === 'global' && (
-          <Tabs index={tabIndex} onChange={handleTabChange} mb={4}>
-            <TabList>
-              <Tab>Editor</Tab>
-              <Tab>Preview</Tab>
-            </TabList>
-          </Tabs>
-        )}
+    <Box>
+      {/* Tabs for Edit/Preview - only show if not in read-only mode */}
+      {!readOnly && EDITOR_CONFIG.behavior.toggleMode === 'global' && (
+        <Tabs index={tabIndex} onChange={handleTabChange} mb={4}>
+          <TabList>
+            <Tab>Editor</Tab>
+            <Tab>Preview</Tab>
+          </TabList>
+        </Tabs>
+      )}
 
-        {/* Single editor instance that updates based on mode */}
-        <MilkdownEditorInner {...props} mode={mode} />
-      </Box>
-    </MilkdownProvider>
+      {/* Editor Tab: Raw Markdown with Line Numbers */}
+      {mode === 'edit' && !readOnly && (
+        <Box
+          position="relative"
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="md"
+          bg="white"
+          minHeight={`${EDITOR_CONFIG.ui.minHeight}px`}
+        >
+          <Box
+            as="textarea"
+            ref={textareaRef}
+            value={markdownContent}
+            onChange={handleMarkdownChange}
+            onScroll={handleTextareaScroll}
+            placeholder={props.placeholder || 'Start writing in markdown...'}
+            sx={{
+              width: '100%',
+              minHeight: `${EDITOR_CONFIG.ui.minHeight}px`,
+              padding: '1rem',
+              paddingLeft: '3.5rem', // Space for line numbers
+              border: 'none',
+              outline: 'none',
+              resize: 'vertical',
+              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+              fontSize: '14px',
+              lineHeight: '1.6',
+              background: 'transparent',
+              '&:focus': {
+                borderColor: 'blue.400',
+                boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)',
+              },
+            }}
+          />
+          {/* Line Numbers */}
+          <Box
+            ref={lineNumbersRef}
+            position="absolute"
+            top="0"
+            left="0"
+            width="3rem"
+            height="100%"
+            bg="gray.50"
+            borderRight="1px solid"
+            borderColor="gray.200"
+            padding="1rem 0.5rem"
+            fontFamily="Monaco, Menlo, monospace"
+            fontSize="14px"
+            lineHeight="1.6"
+            color="gray.500"
+            userSelect="none"
+            pointerEvents="none"
+            overflow="hidden"
+          >
+            {markdownContent.split('\n').map((_, i) => (
+              <Box key={i} textAlign="right">
+                {i + 1}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Preview Tab: Rendered Markdown */}
+      {(mode === 'view' || readOnly) && (
+        <MilkdownProvider>
+          <MilkdownEditorInner {...props} initialContent={markdownContent} mode="view" />
+        </MilkdownProvider>
+      )}
+    </Box>
   );
 });
 
