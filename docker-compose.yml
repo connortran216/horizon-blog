@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=${BE_HOST}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
