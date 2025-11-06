@@ -4,6 +4,7 @@
  */
 
 import { AUTH_STORAGE_KEYS } from '../types/auth.types';
+import { getRuntimeConfig } from '../../config/runtime';
 
 export class ApiError extends Error {
   constructor(
@@ -19,8 +20,8 @@ export class ApiService {
   private baseUrl: string;
 
   constructor() {
-    // Get base URL from environment or default to localhost:8080
-    this.baseUrl = import.meta.env.BE_HOST || 'http://localhost:8080';
+    // Get base URL from runtime configuration
+    this.baseUrl = getRuntimeConfig().beHost;
   }
 
   /**
@@ -128,7 +129,7 @@ export class ApiService {
       if (response.status === 401) {
         // Don't redirect if this is a login/register attempt (wrong credentials)
         const isAuthEndpoint = endpoint.includes('/auth/login') ||
-                               endpoint.includes('/users');
+          endpoint.includes('/users');
 
         if (!isAuthEndpoint) {
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
