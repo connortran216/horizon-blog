@@ -10,5 +10,6 @@ export default defineConfig({
   },
   preview: {
     allowedHosts: ["blog.connortran.io.vn"]
-  }
+  },
+  envDir: '.'
 });
