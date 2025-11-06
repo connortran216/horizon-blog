@@ -12,6 +12,6 @@ export const getRuntimeConfig = () => {
   return {
     beHost: isLocalhost
       ? 'http://localhost:8080'
-      : 'https://blog.connortran.io.vn'
+      : 'https://blog-api.connortran.io.vn'
   };
 };
