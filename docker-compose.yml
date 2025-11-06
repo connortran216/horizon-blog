@@ -3,13 +3,15 @@ version: '3.8'
 services:
   frontend:
     build: .
+    container_name: horizon-blog-fe
     ports:
       - "3000:3000"
     environment:
       - BE_HOST=${BE_HOST}
     networks:
-      - app-network
+      - horizon-blog
 
 networks:
-  app-network:
+  horizon-blog:
     driver: bridge
+    name: horizon-blog
