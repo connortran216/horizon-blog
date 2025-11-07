@@ -9,6 +9,7 @@ export * from './types/blog.types';
 export * from './types/auth.types';
 
 // Services
+export * from './services/api.service';
 export * from './services/storage.service';
 export * from './services/auth.service';
 

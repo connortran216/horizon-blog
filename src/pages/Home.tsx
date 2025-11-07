@@ -17,8 +17,8 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { FaBookmark, FaClock } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { getBlogPosts } from '../services/blogStorage';
-import { BlogPost } from '../types/blog';
+import { storageService } from '../core';
+import { BlogPost } from '../core';
 import { useAuth } from '../context/AuthContext';
 
 // Default avatar for posts without author avatar
@@ -155,9 +155,19 @@ const Home = () => {
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
-        const posts = await getBlogPosts();
-        const publishedPosts = posts.filter(post => post.status === 'published');
-        setBlogPosts(publishedPosts);
+        const result = await storageService.getBlogPosts({ status: 'published' });
+        if (result.success && result.data) {
+          // Convert BlogPostSummary[] to BlogPost[] for compatibility
+          const posts = result.data.map(summary => ({
+            ...summary,
+            content_markdown: '',
+            content_json: '{}',
+            user_id: 0,
+          }));
+          setBlogPosts(posts);
+        } else {
+          console.error('Failed to load blog posts:', result.error);
+        }
       } catch (error) {
         console.error('Error loading blog posts:', error);
       } finally {

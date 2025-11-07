@@ -9,7 +9,7 @@
  * - Clean, distraction-free UI
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Box, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
 import { WarningIcon } from '@chakra-ui/icons';
 import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core';
@@ -26,12 +26,10 @@ import '@milkdown/theme-nord/style.css';
 
 interface MilkdownReaderProps {
   content?: string;
-  placeholder?: string;
 }
 
 const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
   content = '',
-  placeholder = 'No content available',
 }) => {
   const [editorError, setEditorError] = useState<string | null>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);

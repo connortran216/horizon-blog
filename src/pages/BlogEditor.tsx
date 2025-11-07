@@ -3,8 +3,7 @@ import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text, Tag, Tag
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MilkdownEditor from '../components/editor/MilkdownEditor';
-import ErrorBoundary from '../components/common/ErrorBoundary';
-import { apiService } from '../core/services/api.service';
+import { ErrorBoundary, apiService } from '../core';
 
 // Declare global interface for window object
 declare global {
@@ -26,9 +25,7 @@ const BlogEditor = () => {
   const toast = useToast();
   const location = useLocation();
 
-  // Color mode values
-  const textPrimary = useColorModeValue('gray.900', 'text.primary');
-  const textSecondary = useColorModeValue('gray.600', 'text.secondary');
+  // Color mode values`
   const textTertiary = useColorModeValue('gray.500', 'text.tertiary');
   const textAuthor = useColorModeValue('gray.700', 'text.secondary');
   const bgPrimary = useColorModeValue('white', 'bg.secondary');

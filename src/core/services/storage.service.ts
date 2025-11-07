@@ -382,9 +382,7 @@ export class LocalStorageService implements IStorageService {
       const query = options.query.toLowerCase();
       filtered = filtered.filter(post =>
         post.title.toLowerCase().includes(query) ||
-        post.content.blocks.root.children.some((node: any) =>
-          node.text?.toLowerCase().includes(query)
-        )
+        post.content_markdown.toLowerCase().includes(query)
       );
     }
 

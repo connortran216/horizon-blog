@@ -167,6 +167,18 @@ export class AuthService implements IAuthService {
   }
 
   /**
+   * Get current authenticated user from stored token
+   */
+  async getCurrentUser(): Promise<User | null> {
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
+    if (!token) {
+      return null;
+    }
+
+    return this.decodeToken(token);
+  }
+
+  /**
    * Check if user is currently authenticated
    * Not implemented - determined by AuthContext state
    */

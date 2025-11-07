@@ -102,7 +102,7 @@ const ProfileBlogDetail = () => {
   };
 
   // Check if current user is viewing their own profile
-  const isOwnProfile = user && username === user.name;
+  const isOwnProfile = user && username === user.username;
 
   if (loading) {
     return (

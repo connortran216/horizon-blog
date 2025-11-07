@@ -20,7 +20,7 @@ import {
 import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { saveBlogPost } from '../../services/blogStorage';
+import { storageService } from '../../core';
 
 // Declare global interface for window object
 declare global {
@@ -172,18 +172,22 @@ const Navbar = () => {
         status: 'published' as const,
       };
 
-      const result = await saveBlogPost(blogPost as any);
-      const newPost = result;
+      const result = await storageService.saveBlogPost(blogPost as any);
+      if (result.success && result.data) {
+        const newPost = result.data;
 
-      toast({
-        title: 'Success',
-        description: 'Your story has been published.',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      
-      navigate(`/blog/${newPost.id}`);
+        toast({
+          title: 'Success',
+          description: 'Your story has been published.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+
+        navigate(`/blog/${newPost.id}`);
+      } else {
+        throw new Error(result.error || 'Failed to save blog post');
+      }
     } catch (error) {
       toast({
         title: 'Error',
