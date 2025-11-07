@@ -1,10 +1,10 @@
 /**
- * API Service - Handles HTTP requests with automatic JWT authentication
- * Uses localStorage JWT tokens with Authorization headers
+ * API Service - Handles HTTP requests
+ * Authentication logic is handled by AuthInterceptor
  */
 
-import { AUTH_STORAGE_KEYS } from '../types/auth.types';
 import { getRuntimeConfig } from '../../config/runtime';
+import { authInterceptor } from './auth.interceptor';
 
 export class ApiError extends Error {
   constructor(
@@ -28,16 +28,7 @@ export class ApiService {
    * Get headers with optional Authorization token
    */
   private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
+    return authInterceptor.getHeaders();
   }
 
   /**
@@ -125,22 +116,8 @@ export class ApiService {
 
       const error = new ApiError(errorMessage, response.status);
 
-      // Handle authentication errors ONLY for protected endpoints
-      if (response.status === 401) {
-        // Don't redirect if this is a login/register attempt (wrong credentials)
-        const isAuthEndpoint = endpoint.includes('/auth/login') ||
-          endpoint.includes('/users');
-
-        if (!isAuthEndpoint) {
-          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-
-          // Only redirect if not already on login page
-          if (!window.location.pathname.startsWith('/login')) {
-            window.location.href = '/login';
-          }
-        }
-      }
+      // Handle authentication errors using interceptor
+      authInterceptor.handleAuthError(response.status, endpoint);
 
       throw error;
     }
