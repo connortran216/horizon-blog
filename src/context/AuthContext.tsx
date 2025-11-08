@@ -1,21 +1,13 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User } from '../core/types/common.types';
 import { authService } from '../core/services/auth.service';
-import { AUTH_STORAGE_KEYS } from '../core/types/auth.types';
+import { AUTH_STORAGE_KEYS, AuthContextValue, AuthStatus, LoginCredentials, RegisterData } from '../core/types/auth.types';
 
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: { username: string; email: string; password: string; confirmPassword: string }) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
-  error: string | null;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
         if (!token) {
+          setStatus('unauthenticated');
           setIsLoading(false);
           return;
         }
@@ -33,13 +26,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const currentUser = authService.decodeToken(token);
         if (currentUser) {
           setUser(currentUser);
+          setStatus('authenticated');
         } else {
           // Token invalid or expired, clear it
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+          setStatus('unauthenticated');
         }
       } catch (err) {
         console.error('Failed to restore session:', err);
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+        setStatus('unauthenticated');
       } finally {
         setIsLoading(false);
       }
@@ -52,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
+      setStatus('unauthenticated');
       setError('Session expired. Please log in again.');
     };
 
@@ -59,28 +56,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);
+    setStatus('loading');
     setError(null);
     try {
-      const loggedInUser = await authService.login({ email, password });
+      const loggedInUser = await authService.login(credentials);
       setUser(loggedInUser);
+      setStatus('authenticated');
     } catch (err: any) {
       setError(err.message || 'Login failed');
+      setStatus('unauthenticated');
       throw err; // Re-throw for component handling
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (data: { username: string; email: string; password: string; confirmPassword: string }) => {
+  const register = async (data: RegisterData) => {
     setIsLoading(true);
+    setStatus('loading');
     setError(null);
     try {
       const registeredUser = await authService.register(data);
       setUser(registeredUser);
+      setStatus('authenticated');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
+      setStatus('unauthenticated');
       throw err; // Re-throw for component handling
     } finally {
       setIsLoading(false);
@@ -91,16 +94,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.logout();
     setUser(null);
     setError(null);
+    setStatus('unauthenticated');
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   return (
     <AuthContext.Provider value={{
       user,
+      status,
+      isLoading,
+      error,
       login,
       register,
       logout,
-      isLoading,
-      error
+      clearError
     }}>
       {children}
     </AuthContext.Provider>
