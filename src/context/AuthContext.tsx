@@ -117,14 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Ensure useAuth is a stable function reference for HMR
-const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-export { useAuth };
-export default useAuth;
+}
