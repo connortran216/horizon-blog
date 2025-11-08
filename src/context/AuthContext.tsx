@@ -7,7 +7,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [status, setStatus] = useState<AuthStatus>('loading');
+  const [status, setStatus] = useState<AuthStatus>(AuthStatus.LOADING);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
         if (!token) {
-          setStatus('unauthenticated');
+          setStatus(AuthStatus.UNAUTHENTICATED);
           setIsLoading(false);
           return;
         }
@@ -26,16 +26,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const currentUser = authService.decodeToken(token);
         if (currentUser) {
           setUser(currentUser);
-          setStatus('authenticated');
+          setStatus(AuthStatus.AUTHENTICATED);
         } else {
           // Token invalid or expired, clear it
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-          setStatus('unauthenticated');
+          setStatus(AuthStatus.UNAUTHENTICATED);
         }
       } catch (err) {
         console.error('Failed to restore session:', err);
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-        setStatus('unauthenticated');
+        setStatus(AuthStatus.UNAUTHENTICATED);
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
-      setStatus('unauthenticated');
+      setStatus(AuthStatus.UNAUTHENTICATED);
       setError('Session expired. Please log in again.');
     };
 
@@ -58,15 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);
-    setStatus('loading');
+    setStatus(AuthStatus.LOADING);
     setError(null);
     try {
       const loggedInUser = await authService.login(credentials);
       setUser(loggedInUser);
-      setStatus('authenticated');
+      setStatus(AuthStatus.AUTHENTICATED);
     } catch (err: any) {
       setError(err.message || 'Login failed');
-      setStatus('unauthenticated');
+      setStatus(AuthStatus.UNAUTHENTICATED);
       throw err; // Re-throw for component handling
     } finally {
       setIsLoading(false);
@@ -75,15 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     setIsLoading(true);
-    setStatus('loading');
+    setStatus(AuthStatus.LOADING);
     setError(null);
     try {
       const registeredUser = await authService.register(data);
       setUser(registeredUser);
-      setStatus('authenticated');
+      setStatus(AuthStatus.AUTHENTICATED);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
-      setStatus('unauthenticated');
+      setStatus(AuthStatus.UNAUTHENTICATED);
       throw err; // Re-throw for component handling
     } finally {
       setIsLoading(false);
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.logout();
     setUser(null);
     setError(null);
-    setStatus('unauthenticated');
+    setStatus(AuthStatus.UNAUTHENTICATED);
   };
 
   const clearError = () => {

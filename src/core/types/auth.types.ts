@@ -5,7 +5,13 @@ import { User } from './common.types';
  */
 
 // Authentication status
-export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';
+export enum AuthStatus {
+  AUTHENTICATED = 'authenticated',
+  UNAUTHENTICATED = 'unauthenticated',
+  LOADING = 'loading',
+}
+
+export type AuthStatusType = AuthStatus;
 
 // Login credentials
 export interface LoginCredentials {
