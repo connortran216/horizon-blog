@@ -20,7 +20,7 @@ import {
 import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { storageService } from '../../core';
+import { blogRepository } from '../../core/repositories/blog.repository';
 
 // Declare global interface for window object
 declare global {
@@ -172,7 +172,7 @@ const Navbar = () => {
         status: 'published' as const,
       };
 
-      const result = await storageService.saveBlogPost(blogPost as any);
+      const result = await blogRepository.createPost(blogPost as any);
       if (result.success && result.data) {
         const newPost = result.data;
 

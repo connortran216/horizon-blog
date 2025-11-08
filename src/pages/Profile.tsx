@@ -22,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { storageService } from '../core/services/storage.service';
+import { blogRepository } from '../core/repositories/blog.repository';
 import { FiMoreVertical } from 'react-icons/fi';
 
 // Local BlogPost type that matches the old format
@@ -47,7 +47,7 @@ const Profile = () => {
     const loadUserPosts = async () => {
       try {
         // Fetch published posts
-        const publishedResult = await storageService.getCurrentUserPosts('published');
+        const publishedResult = await blogRepository.getCurrentUserPosts('published');
         if (publishedResult.success && publishedResult.data) {
           const mappedPublished = publishedResult.data.map((post: any) => ({
             id: String(post.id),
@@ -60,7 +60,7 @@ const Profile = () => {
         }
 
         // Fetch draft posts
-        const draftsResult = await storageService.getCurrentUserPosts('draft');
+        const draftsResult = await blogRepository.getCurrentUserPosts('draft');
         if (draftsResult.success && draftsResult.data) {
           const mappedDrafts = draftsResult.data.map((post: any) => ({
             id: String(post.id),
@@ -84,11 +84,11 @@ const Profile = () => {
   const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        const result = await storageService.deleteBlogPost(blogId);
+        const result = await blogRepository.deletePost(blogId);
 
         if (result.success) {
           // Refresh the blogs lists
-          const publishedResult = await storageService.getCurrentUserPosts('published');
+          const publishedResult = await blogRepository.getCurrentUserPosts('published');
           if (publishedResult.success && publishedResult.data) {
             const mappedPublished = publishedResult.data.map((post: any) => ({
               id: String(post.id),
@@ -100,7 +100,7 @@ const Profile = () => {
             setPublishedBlogs(mappedPublished);
           }
 
-          const draftsResult = await storageService.getCurrentUserPosts('draft');
+          const draftsResult = await blogRepository.getCurrentUserPosts('draft');
           if (draftsResult.success && draftsResult.data) {
             const mappedDrafts = draftsResult.data.map((post: any) => ({
               id: String(post.id),
