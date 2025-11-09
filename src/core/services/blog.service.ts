@@ -1,11 +1,14 @@
 /**
  * Blog Service - Handles blog business logic operations
  * Follows Single Responsibility Principle by focusing on blog-specific business rules
+ * Uses Repository Pattern through DI for data access
  */
 
-import { IBlogService, BlogServiceConfig, ApiBlogPost, ApiListPostsResponse } from '../types/blog-service.types';
+import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types';
 import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types';
-import { apiService } from './api.service';
+import { IBlogRepository } from '../types/blog-repository.types';
+import { getBlogRepository } from '../di/container';
+import { RepositoryResult } from '../types/blog-repository.types';
 
 /**
  * Default configuration for blog service
@@ -18,12 +21,15 @@ const DEFAULT_CONFIG: BlogServiceConfig = {
 /**
  * Blog service implementation
  * Handles business logic for blog operations
+ * Delegates data access to repository through DI
  */
 export class BlogService implements IBlogService {
   private config: BlogServiceConfig;
+  private repository: IBlogRepository;
 
-  constructor(config: Partial<BlogServiceConfig> = {}) {
+  constructor(config: Partial<BlogServiceConfig> = {}, repository?: IBlogRepository) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.repository = repository || getBlogRepository();
   }
 
   /**
@@ -86,18 +92,12 @@ export class BlogService implements IBlogService {
 
   /**
    * Get published blog posts with optional filtering
+   * Delegates to repository for data access
    */
   async getPublishedPosts(options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
     try {
-      const params: Record<string, any> = {
-        status: 'published',
-        ...options,
-      };
-
-      const response = await apiService.get<ApiListPostsResponse>('/posts', params);
-
-      // Transform API response to business objects
-      return response.data.map(post => this.formatPostForDisplay(post));
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getPublishedPosts(options);
+      return result.success && result.data ? result.data : [];
     } catch (error) {
       console.error('Failed to fetch published posts:', error);
       return [];
@@ -106,11 +106,12 @@ export class BlogService implements IBlogService {
 
   /**
    * Get blog post by ID
+   * Delegates to repository for data access
    */
   async getPostById(id: string): Promise<BlogPost | null> {
     try {
-      const response = await apiService.get<{ data: BlogPost }>(`/posts/${id}`);
-      return response.data;
+      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id);
+      return result.success && result.data ? result.data : null;
     } catch (error) {
       console.error(`Failed to fetch post ${id}:`, error);
       return null;
@@ -119,19 +120,114 @@ export class BlogService implements IBlogService {
 
   /**
    * Search blog posts by query
+   * Delegates to repository for data access
    */
-  async searchPosts(query: string): Promise<BlogPostSummary[]> {
+  async searchPosts(query: string, options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
     try {
-      const response = await apiService.get<{
-        data: ApiBlogPost[];
-      }>('/posts/search', { q: query });
-
-      return response.data
-        .filter(post => post.status === 'published')
-        .map(post => this.formatPostForDisplay(post));
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.searchPosts(query, options);
+      return result.success && result.data ? result.data : [];
     } catch (error) {
       console.error(`Failed to search posts with query "${query}":`, error);
       return [];
+    }
+  }
+
+  /**
+   * Get user posts
+   * Delegates to repository for data access
+   */
+  async getUserPosts(username: string, options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
+    try {
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getUserPosts(username, options);
+      return result.success && result.data ? result.data : [];
+    } catch (error) {
+      console.error(`Failed to fetch user posts for ${username}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get current user posts
+   * Delegates to repository for data access
+   */
+  async getCurrentUserPosts(status?: 'draft' | 'published', page?: number, limit?: number): Promise<BlogPostSummary[]> {
+    try {
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getCurrentUserPosts(status, page, limit);
+      return result.success && result.data ? result.data : [];
+    } catch (error) {
+      console.error('Failed to fetch current user posts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Create new blog post
+   * Delegates to repository for data access
+   */
+  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogPost | null> {
+    try {
+      const result: RepositoryResult<BlogPost> = await this.repository.createPost(post);
+      return result.success && result.data ? result.data : null;
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update blog post
+   * Delegates to repository for data access
+   */
+  async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost | null> {
+    try {
+      const result: RepositoryResult<BlogPost> = await this.repository.updatePost(id, updates);
+      return result.success && result.data ? result.data : null;
+    } catch (error) {
+      console.error(`Failed to update post ${id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Delete blog post
+   * Delegates to repository for data access
+   */
+  async deletePost(id: string): Promise<boolean> {
+    try {
+      const result: RepositoryResult<boolean> = await this.repository.deletePost(id);
+      return result.success && result.data ? true : false;
+    } catch (error) {
+      console.error(`Failed to delete post ${id}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get blog post by ID with enriched data
+   * Combines repository data with business logic formatting
+   */
+  async getPostByIdEnriched(id: string): Promise<BlogPost | null> {
+    try {
+      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id);
+      if (!result.success || !result.data) {
+        return null;
+      }
+
+      const post = result.data;
+      
+      // Apply business logic enrichment
+      const enrichedPost: BlogPost = {
+        ...post,
+        // Ensure excerpt is generated for display
+        excerpt: post.excerpt || this.generateExcerpt(post.content_markdown),
+        // Ensure reading time is calculated
+        readingTime: post.readingTime || this.calculateReadingTime(post.content_markdown),
+      };
+
+      return enrichedPost;
+    } catch (error) {
+      console.error(`Failed to fetch enriched post ${id}:`, error);
+      return null;
     }
   }
 }

@@ -9,6 +9,8 @@ import { IBlogRepository } from '../types/blog-repository.types';
 import { ApiBlogRepository } from '../repositories/blog.repository';
 import { IAuthService } from '../types/auth.types';
 import { authService } from '../services/auth.service';
+import { IBlogService } from '../types/blog-service.types';
+import { blogService } from '../services/blog.service';
 
 /**
  * Service factory function type
@@ -114,6 +116,9 @@ export class DIContainer {
     
     // Register auth service
     this.register('IAuthService', () => authService);
+    
+    // Register blog service
+    this.register('IBlogService', () => blogService);
   }
 }
 
@@ -139,6 +144,7 @@ export function Inject(token: string | symbol) {
 export const SERVICE_TOKENS = {
   BLOG_REPOSITORY: 'IBlogRepository' as const,
   AUTH_SERVICE: 'IAuthService' as const,
+  BLOG_SERVICE: 'IBlogService' as const,
 } as const;
 
 /**
@@ -146,9 +152,11 @@ export const SERVICE_TOKENS = {
  */
 export const getBlogRepository = (): IBlogRepository => container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY);
 export const getAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE);
+export const getBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE);
 
 /**
  * Factory functions for service creation
  */
 export const createBlogRepository = (): IBlogRepository => container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY);
 export const createAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE);
+export const createBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE);

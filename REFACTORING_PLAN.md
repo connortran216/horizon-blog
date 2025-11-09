@@ -75,6 +75,19 @@ This document outlines a comprehensive refactoring plan to implement SOLID princ
 - Update service instantiation to use container
 - Maintain backward compatibility
 
+### Task 1.6: Complete Repository Pattern Integration
+**Scope**: Service layer refactoring
+**Breaking Changes**: None
+**Files**: `src/core/services/blog.service.ts`, `src/core/di/container.ts`
+
+- Update BlogService to use DI container for blogRepository
+- Delegate data access operations to repository
+- Keep business logic (excerpt generation, reading time) in service
+- Add repository methods for search, user posts, drafts
+- Register blog service in DI container
+- Update components to use service through DI if needed
+- Test: All existing functionality works with new architecture
+
 ---
 
 ## Phase 2: Production Infrastructure
