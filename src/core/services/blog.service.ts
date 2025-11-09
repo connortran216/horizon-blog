@@ -232,5 +232,5 @@ export class BlogService implements IBlogService {
   }
 }
 
-// Export singleton instance
-export const blogService = new BlogService();
+// Export singleton instance factory to avoid circular dependency
+export const createBlogServiceInstance = (): BlogService => new BlogService();

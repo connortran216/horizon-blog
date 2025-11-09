@@ -10,7 +10,7 @@ import { ApiBlogRepository } from '../repositories/blog.repository';
 import { IAuthService } from '../types/auth.types';
 import { authService } from '../services/auth.service';
 import { IBlogService } from '../types/blog-service.types';
-import { blogService } from '../services/blog.service';
+import { createBlogServiceInstance } from '../services/blog.service';
 
 /**
  * Service factory function type
@@ -118,7 +118,7 @@ export class DIContainer {
     this.register('IAuthService', () => authService);
     
     // Register blog service
-    this.register('IBlogService', () => blogService);
+    this.register('IBlogService', () => createBlogServiceInstance());
   }
 }
 
