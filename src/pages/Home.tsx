@@ -17,7 +17,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { FaBookmark, FaClock } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
-import { blogRepository } from '../core/repositories/blog.repository';
+import { getBlogRepository } from '../core/di/container';
 import { BlogPost } from '../core';
 import { useAuth } from '../context/AuthContext';
 
@@ -155,7 +155,7 @@ const Home = () => {
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
-        const result = await blogRepository.getPublishedPosts({ limit: 10 });
+        const result = await getBlogRepository().getPublishedPosts({ limit: 10 });
         if (result.success && result.data) {
           // Convert BlogPostSummary[] to BlogPost[] for compatibility
           const posts = result.data.map((summary: any) => ({

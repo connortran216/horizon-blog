@@ -12,6 +12,9 @@ export * from './types/auth.types';
 export * from './services/api.service';
 export * from './services/auth.service';
 
+// DI Container
+export * from './di/container';
+
 // Utils
 export * from './utils/blog.utils';
 export * from './utils/error.utils';
