@@ -1,46 +1,58 @@
-# Personal Blog
+# Horizon Blog
 
-A modern, beginner-friendly blog website built with React, TypeScript, and Chakra UI. Perfect for learning TypeScript and modern frontend development with hands-on experience in building responsive web applications.
+A modern, feature-rich blog website built with React, TypeScript, and Chakra UI. Features a sophisticated architecture with dependency injection, repository patterns, and comprehensive documentation. Perfect for learning advanced TypeScript patterns, React development, and modern frontend architecture.
 
-## 🎯 Learning Focus
+## 🎯 Project Focus
 
-This project is designed for **frontend newbies** learning:
-- **TypeScript fundamentals** - Type safety, interfaces, and modern JavaScript
-- **React concepts** - Components, hooks, state management, and props
-- **Modern frontend architecture** - Component structure, routing, and best practices
-- **UI/UX with Chakra UI** - Responsive design and accessible components
+This project demonstrates **advanced frontend development** with:
+- **Advanced TypeScript** - Strict typing, interfaces, generics, and architectural patterns
+- **React Architecture** - Context API, custom hooks, component composition, and performance optimization
+- **Modern Frontend Patterns** - Repository pattern, dependency injection, error boundaries, and SOLID principles
+- **Professional UI/UX** - Accessible design with Chakra UI, responsive layouts, and smooth interactions
+- **Production-Ready Code** - Comprehensive error handling, logging, testing strategies, and refactoring plans
 
 ## Features
 
-- 📱 **Responsive Design** - Works seamlessly on desktop and mobile
-- 🎨 **Modern UI** - Clean interface built with Chakra UI components
-- 📝 **Rich Text Editor** - Lexical-based editor with formatting options
-- 🔍 **Search & Filter** - Find posts quickly with search functionality
-- 👥 **Authentication System** - Login/Register with form validation
-- 📬 **Contact Form** - Get in touch with site visitors
-- 🎯 **SEO Optimized** - Built with search engines in mind
+- 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
+- 🎨 **Modern UI** - Clean, accessible interface built with Chakra UI components
+- 📝 **Rich Text Editor** - Milkdown editor (React wrapper around Lexical) with Markdown support
+- 🔍 **Search & Filter** - Advanced search functionality with filters and sorting
+- 👥 **Authentication System** - JWT-based auth with login/register and session management
+- 📬 **Contact Form** - Contact form with validation and error handling
+- 🎯 **SEO Optimized** - Built with search engine optimization in mind
+- 🏗️ **Production Architecture** - SOLID principles, DI container, repository pattern
+- 🧪 **Comprehensive Documentation** - Workflow documentation, refactoring plans, and technical guides
 
 ## Tech Stack
 
 **Core Technologies:**
-- **React 18** - Modern React with hooks and concurrent features
-- **TypeScript** - Type-safe JavaScript for better development experience
-- **Chakra UI** - Accessible component library for beautiful interfaces
-- **React Router DOM** - Client-side routing
+- **React 18** - Modern React with hooks, concurrent features, and performance optimization
+- **TypeScript 5** - Strict type checking with advanced patterns and architectural types
+- **Chakra UI 2** - Accessible component library with theme customization
+- **React Router DOM 6** - Client-side routing with nested routes and navigation
 
 **Rich Text Editing:**
-- **Lexical Editor** - Extensible rich text editor by Facebook
-  - `@lexical/react` - Core React integration
-  - `@lexical/rich-text` - Rich text capabilities
-  - `@lexical/markdown` - Markdown support
-  - `@lexical/list` - List formatting
-  - `@lexical/table` - Table support
-  - `@lexical/code` - Code highlighting
-  - `@lexical/link` - Link handling
+- **Milkdown Editor** - React wrapper around Lexical for rich text editing
+  - `@milkdown/core` - Core editor functionality
+  - `@milkdown/preset-commonmark` - Common markdown features
+  - `@milkdown/preset-gfm` - GitHub Flavored Markdown support
+  - `@milkdown/react` - React integration
+  - `@milkdown/theme-nord` - Code syntax highlighting theme
+  - `@milkdown/plugin-history` - Undo/redo functionality
+  - `@milkdown/plugin-clipboard` - Copy/paste support
+  - `@milkdown/plugin-prism` - Code syntax highlighting
 
 **Additional Libraries:**
-- **React Icons** - Popular icon library
 - **Framer Motion** - Animation library for smooth transitions
+- **React Icons** - Popular icon library
+- **React Markdown** - Markdown rendering with extensions
+- **jwt-decode** - JWT token decoding and validation
+- **Prism.js & Highlight.js** - Code syntax highlighting
+
+**Development Tools:**
+- **Vite 6** - Fast build tool and development server
+- **ESLint** - Code linting with TypeScript support
+- **TypeScript Compiler** - Strict type checking and compilation
 
 ## Prerequisites
 
@@ -48,13 +60,14 @@ Before you begin, ensure you have:
 - **Node.js (v18 or higher)** - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js) or **yarn**
 - **Modern web browser** - Chrome, Firefox, Safari, or Edge
+- **Basic TypeScript knowledge** - Recommended for optimal learning experience
 
 ## 🚀 Quick Start
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd personal-blog
+git clone git@github.com:connortran216/horizon-blog.git
+cd horizon-blog
 ```
 
 ### 2. Install Dependencies
@@ -70,105 +83,184 @@ npm run dev
 ### 4. Open Your Browser
 Visit `http://localhost:5173` to see your blog!
 
-**Need help?** Check the troubleshooting section below if you encounter issues.
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
 
 ## 📚 Learning Path
 
-New to TypeScript or React? Follow this structured learning path:
+This project is designed for **intermediate to advanced developers** learning modern frontend architecture:
 
 ### **Phase 1: Foundation (Week 1-2)**
-- **Understand the codebase structure** - Review `src/` folder organization
-- **Learn TypeScript basics** - Study type definitions in `src/core/types/`
-- **Component architecture** - Examine how pages and components are structured
-- **State management** - Look at context usage in `src/context/`
+- **Understand the codebase structure** - Review `src/` folder organization and architectural patterns
+- **Learn advanced TypeScript** - Study interfaces in `src/core/types/`, dependency injection patterns
+- **Component architecture** - Examine page components, layout components, and custom hooks
+- **State management** - Study context usage in `src/context/AuthContext.tsx` and custom hooks
 
 ### **Phase 2: Core Features (Week 3-4)**
-- **Authentication system** - Study `src/pages/Login.tsx`, `src/pages/Register.tsx`, and `src/context/AuthContext.tsx`
-- **Blog functionality** - Understand CRUD operations in `src/pages/Blog.tsx` and `src/services/blogStorage.ts`
-- **Rich text editing** - Learn Lexical editor in `src/components/editor/ToolbarPlugin.tsx`
-- **Component architecture** - Study layout components in `src/components/layout/`
+- **Authentication system** - Study JWT implementation in `src/core/services/auth.service.ts`
+- **Service layer architecture** - Understand repository pattern in `src/core/repositories/`
+- **Rich text editing** - Learn Milkdown editor integration in `src/components/editor/`
+- **Error handling** - Study error boundaries and centralized error management
 
 ### **Phase 3: Advanced Topics (Week 5-6)**
-- **API integration** - Plan backend connectivity (currently uses localStorage)
-- **Error handling** - Study error boundaries in `src/core/components/ErrorBoundary.tsx`
-- **TypeScript patterns** - Learn from type definitions in `src/core/types/`
-- **State management** - Understand context patterns and prop drilling
+- **API integration** - Study `src/core/services/api.service.ts` and HTTP client patterns
+- **Dependency injection** - Understand DI container in `src/core/di/container.ts`
+- **TypeScript patterns** - Learn from comprehensive type definitions in `src/core/types/`
+- **Performance optimization** - Study lazy loading, error boundaries, and optimization patterns
 
-## 🛠 TypeScript Best Practices
+### **Phase 4: Production Readiness (Week 7-8)**
+- **SOLID principles** - Review refactoring plan in `REFACTORING_PLAN.md`
+- **Testing strategies** - Study testing approach and test patterns
+- **Production deployment** - Review Docker setup and build optimization
+- **Monitoring and logging** - Study error tracking and performance monitoring
 
-### **Type Definitions**
-```typescript
-// ✅ Good: Clear interface
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-// ✅ Good: Optional properties
-interface BlogPost {
-  id: number;
-  title: string;
-  content?: string; // Optional
-  published: boolean;
-}
-```
-
-### **Component Props**
-```typescript
-// ✅ Good: Proper typing
-interface NavbarProps {
-  isAuthenticated: boolean;
-  userName?: string;
-  onLogout: () => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({
-  isAuthenticated,
-  userName,
-  onLogout
-}) => {
-  // Component logic here
-};
-```
-
-## 🏗 Project Architecture
+## 🏗️ Project Architecture
 
 ### **Core Concepts**
-- **`src/core/`** - Shared business logic, types, utilities, and services
-- **`src/components/`** - Reusable UI components (layout, editor)
-- **`src/pages/`** - Route-level components (all main pages)
-- **`src/services/`** - Data storage and API management
-- **`src/context/`** - React context for global state (authentication)
-- **`src/types/`** - Additional TypeScript type definitions
+The project follows SOLID principles and modern architecture patterns:
 
-### **File Organization**
+- **`src/core/`** - Core business logic, types, utilities, and services
+  - **`components/`** - Shared components (ErrorBoundary)
+  - **`di/`** - Dependency injection container
+  - **`repositories/`** - Data access layer with repository pattern
+  - **`services/`** - Business logic services (auth, blog, API)
+  - **`types/`** - Comprehensive TypeScript definitions
+  - **`utils/`** - Helper functions and utilities
+
+- **`src/components/`** - Reusable UI components
+  - **`editor/`** - Milkdown editor components and plugins
+  - **`layout/`** - Layout components (Navbar, Footer, Layout)
+
+- **`src/pages/`** - Route-level components
+  - **9 main pages** - Home, Blog listing, Blog detail, Editor, About, Contact, Login, Register, Profile
+
+- **`src/context/`** - React context for global state
+  - **AuthContext** - Authentication state management
+
+- **`src/hooks/`** - Custom React hooks (to be added)
+
+- **`src/config/`** - Configuration and environment setup
+
+### **Current File Organization**
 ```
 src/
-├── core/              # Business logic layer
+├── core/              # Core business logic and architecture
 │   ├── components/    # Shared components (ErrorBoundary)
-│   ├── services/      # Core services (auth, storage)
-│   ├── types/         # TypeScript definitions
-│   └── utils/         # Helper functions
-├── components/        # Feature-specific components
-│   ├── layout/        # Layout components (Navbar, Footer)
-│   └── editor/        # Editor components (ToolbarPlugin)
-├── pages/             # Page components (9 pages total)
-│   ├── Home.tsx       # Landing page
-│   ├── Blog.tsx       # Blog listing with search
-│   ├── BlogDetail.tsx # Individual blog post view
-│   ├── BlogEditor.tsx # Rich text editor interface
-│   ├── About.tsx      # About page
-│   ├── Contact.tsx    # Contact form
-│   ├── Login.tsx      # User login
-│   ├── Register.tsx   # User registration
-│   └── Profile.tsx    # User profile page
-├── context/           # Global state management
-│   └── AuthContext.tsx # Authentication context
-├── services/          # Data management
-│   └── blogStorage.ts # Blog data storage service
-└── types/             # Additional type definitions
-    └── blog.ts        # Blog-specific types
+│   ├── di/           # Dependency injection container
+│   ├── repositories/ # Data access layer (repository pattern)
+│   ├── services/     # Business logic services
+│   │   ├── api.service.ts        # HTTP client with auth
+│   │   ├── auth.service.ts       # Authentication logic
+│   │   ├── blog.service.ts       # Blog business logic
+│   │   ├── auth.interceptor.ts   # JWT token handling
+│   │   └── storage.service.ts    # Data storage abstraction
+│   ├── types/        # TypeScript type definitions
+│   │   ├── auth.types.ts         # Authentication types
+│   │   ├── blog.types.ts         # Blog post types
+│   │   ├── blog-repository.types.ts # Repository interfaces
+│   │   ├── blog-service.types.ts # Service interfaces
+│   │   └── common.types.ts       # Common utility types
+│   ├── utils/        # Utility functions
+│   │   ├── blog.utils.ts         # Blog-related helpers
+│   │   └── error.utils.ts        # Error handling utilities
+│   └── index.ts      # Core exports
+├── components/       # UI components organized by feature
+│   ├── editor/       # Milkdown editor components
+│   │   ├── MilkdownEditor.tsx    # Main editor component
+│   │   └── plugins/              # Editor plugins
+│   │       ├── hashtagPlugin.ts  # Hashtag functionality
+│   │       └── wikiLinkPlugin.ts # Wiki link functionality
+│   └── layout/       # Layout components
+│       ├── Layout.tsx            # Main layout wrapper
+│       ├── Navbar.tsx            # Navigation component
+│       └── Footer.tsx            # Footer component
+├── context/          # React context providers
+│   └── AuthContext.tsx           # Authentication context
+├── pages/            # Route-level page components
+│   ├── Home.tsx              # Landing page
+│   ├── Blog.tsx              # Blog listing with search
+│   ├── BlogDetail.tsx        # Individual blog post view
+│   ├── BlogEditor.tsx        # Rich text editor interface
+│   ├── About.tsx             # About page
+│   ├── Contact.tsx           # Contact form
+│   ├── Login.tsx             # User login
+│   ├── Register.tsx          # User registration
+│   ├── Profile.tsx           # User profile page
+│   └── ProfileBlogDetail.tsx # Profile blog detail view
+├── config/           # Configuration files
+│   ├── editor.config.ts      # Editor configuration
+│   └── runtime.ts            # Runtime configuration
+├── theme/            # Chakra UI theme customization
+│   └── index.ts              # Theme configuration
+├── App.tsx           # Main application component
+├── Routes.tsx        # Route configuration
+├── main.tsx          # Application entry point
+└── index.css         # Global styles
+```
+
+## 🛠 Advanced TypeScript Patterns
+
+### **Service Interface Pattern**
+```typescript
+// ✅ Good: Clear service interface
+export interface IBlogService {
+  createPost(data: CreateBlogPostRequest): Promise<BlogPost>;
+  updatePost(id: string, data: UpdateBlogPostRequest): Promise<BlogPost>;
+  getPost(id: string): Promise<BlogPost | null>;
+  searchPosts(query: string): Promise<BlogPost[]>;
+}
+
+// ✅ Good: Dependency injection support
+export class BlogService implements IBlogService {
+  constructor(
+    private blogRepository: IBlogRepository,
+    private logger: ILogger
+  ) {}
+}
+```
+
+### **Repository Pattern**
+```typescript
+// ✅ Good: Abstract data access
+export interface IBlogRepository {
+  save(post: BlogPost): Promise<BlogPost>;
+  findById(id: string): Promise<BlogPost | null>;
+  findByAuthor(authorId: string): Promise<BlogPost[]>;
+  search(query: string): Promise<BlogPost[]>;
+}
+
+// ✅ Good: Multiple implementations
+export class LocalStorageBlogRepository implements IBlogRepository { ... }
+export class APIBlogRepository implements IBlogRepository { ... }
+```
+
+### **Error Handling Pattern**
+```typescript
+// ✅ Good: Specific error types
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public code: AuthErrorCode,
+    public statusCode: number
+  ) {
+    super(message);
+  }
+}
+
+// ✅ Good: Centralized error handling
+export class ErrorService {
+  handle(error: Error): void {
+    if (error instanceof AuthError) {
+      this.handleAuthError(error);
+    } else if (error instanceof BlogError) {
+      this.handleBlogError(error);
+    }
+  }
+}
 ```
 
 ## 🔧 Troubleshooting
@@ -177,8 +269,9 @@ src/
 
 **❌ `npm install` fails**
 ```bash
-# Clear npm cache and try again
+# Clear npm cache and reinstall
 npm cache clean --force
+rm -rf node_modules package-lock.json
 npm install
 ```
 
@@ -188,9 +281,10 @@ npm install
 npm run type-check
 
 # Common fixes:
-# 1. Check import paths are correct
-# 2. Verify interface definitions
-# 3. Ensure all required props are passed
+# 1. Check import paths and relative imports
+# 2. Verify interface implementations
+# 3. Ensure all required properties are provided
+# 4. Check generic type constraints
 ```
 
 **❌ Port 5173 already in use**
@@ -201,162 +295,150 @@ npx kill-port 5173
 npm run dev -- --port 3000
 ```
 
-**❌ Chakra UI components not styling**
-- Ensure ChakraProvider wraps your App component
-- Check if CSS imports are correct in `main.tsx`
+**❌ Milkdown editor not loading**
+- Ensure all @milkdown packages are properly installed
+- Check editor configuration in `src/config/editor.config.ts`
+- Verify CSS imports for editor themes
 
-## 🗺 Roadmap & Enhancement Plan
+**❌ Authentication issues**
+- Check localStorage for `horizon_blog_token`
+- Verify JWT token format and expiration
+- Review AuthContext state management
 
-### **Phase 1: Core Improvements (Next 2-3 months)**
-- [ ] **Enhanced Type Safety**
-  - Add strict TypeScript configuration
-  - Implement comprehensive error types
-  - Add API response typing
-  - Create custom hooks with proper typing
+## 🗺 Development Roadmap
 
-- [ ] **Performance Optimization**
-  - Implement code splitting for routes
-  - Add lazy loading for components
-  - Optimize bundle size analysis
-  - Add React.memo for expensive components
+The project has a comprehensive refactoring plan documented in `REFACTORING_PLAN.md` that covers:
 
-- [ ] **Testing Strategy**
-  - Unit tests for utilities and services
-  - Component testing with React Testing Library
-  - Integration tests for user flows
-  - E2E testing setup with Playwright
+### **Phase 1: SOLID Principles Implementation**
+- [ ] Extract authentication interceptor
+- [ ] Create blog service layer
+- [ ] Refactor AuthContext interfaces
+- [ ] Complete repository pattern integration
+- [ ] Implement dependency injection container
 
-### **Phase 2: Feature Enhancements (3-6 months)**
-- [ ] **Advanced Editor Features**
-  - Image upload and media management
-  - Table support in Lexical editor
-  - Code syntax highlighting
-  - Collaborative editing capabilities
+### **Phase 2: Production Infrastructure**
+- [ ] Setup testing framework (Jest + React Testing Library)
+- [ ] Implement centralized error handling
+- [ ] Add structured logging
+- [ ] Fix Docker build process
+- [ ] Implement input validation
 
-- [ ] **User Experience**
-  - Dark/light theme toggle
-  - PWA (Progressive Web App) features
-  - Offline reading support
-  - Advanced search with filters
+### **Phase 3: Performance & Security**
+- [ ] Create custom data fetching hooks
+- [ ] Implement error boundaries
+- [ ] Add caching layer
+- [ ] Implement lazy loading
+- [ ] Add loading states & skeletons
 
-- [ ] **Content Management**
-  - Post categories and tags
-  - Comment system implementation
-  - Draft/publish workflow
-  - Content versioning
+### **Phase 4: Advanced Features**
+- [ ] Add rate limiting considerations
+- [ ] Implement environment variable management
+- [ ] Add Content Security Policy
+- [ ] Integrate error tracking (Sentry)
+- [ ] Add analytics integration
 
-### **Phase 3: Advanced Features (6-12 months)**
-- [ ] **Backend Integration**
-  - RESTful API development
-  - Database design and implementation
-  - Authentication with JWT
-  - Real-time updates with WebSocket
+### **Phase 5: Code Quality & Documentation**
+- [ ] Add code quality tools (Prettier, Husky)
+- [ ] Implement comprehensive testing (80%+ coverage)
+- [ ] Update API documentation
+- [ ] Add component documentation (Storybook)
+- [ ] Create Architecture Decision Records
 
-- [ ] **Analytics & SEO**
-  - Google Analytics integration
-  - Sitemap generation
-  - Meta tag management
-  - Social media sharing
+## 📖 Documentation
 
-- [ ] **Deployment & DevOps**
-  - CI/CD pipeline setup
-  - Production build optimization
-  - Docker containerization
-  - Cloud deployment (Vercel/Netlify)
+This project includes comprehensive documentation:
 
-### **Learning Milestones**
-- **Month 1-2**: Master TypeScript interfaces and React patterns
-- **Month 3-4**: Implement complex features with proper typing
-- **Month 5-6**: Build and deploy full-stack application
-- **Month 7-8**: Performance optimization and testing
-- **Month 9-12**: Advanced React patterns and architecture
+- **[REFACTORING_PLAN.md](./REFACTORING_PLAN.md)** - Detailed refactoring plan following SOLID principles
+- **[WORKFLOW_DOCUMENTATION.md](./WORKFLOW_DOCUMENTATION.md)** - Complete workflow documentation with mermaid diagrams
+- **[api-docs.json](./api-docs.json)** - API documentation for backend integration
+- **Inline documentation** - Comprehensive JSDoc comments throughout the codebase
 
-## Project Structure
+## 🏗️ Architecture Principles
 
-```
-src/
-├── components/        # Reusable UI components
-│   ├── layout/        # Layout components
-│   │   ├── Navbar.tsx # Navigation bar
-│   │   └── Footer.tsx # Footer component
-│   └── editor/        # Editor components
-│       └── ToolbarPlugin.tsx # Lexical editor toolbar
-├── pages/             # Page components (9 total)
-│   ├── Home.tsx       # Landing page
-│   ├── Blog.tsx       # Blog listing with search
-│   ├── BlogDetail.tsx # Individual blog post display
-│   ├── BlogEditor.tsx # Rich text editor interface
-│   ├── About.tsx      # About page
-│   ├── Contact.tsx    # Contact form
-│   ├── Login.tsx      # User authentication
-│   ├── Register.tsx   # User registration
-│   └── Profile.tsx    # User profile page
-├── core/              # Business logic layer
-│   ├── components/    # Shared components
-│   │   └── ErrorBoundary.tsx # Error handling
-│   ├── services/      # Core services
-│   │   ├── auth.service.ts   # Authentication logic
-│   │   └── storage.service.ts # Data storage
-│   ├── types/         # TypeScript definitions
-│   │   ├── auth.types.ts     # Auth-related types
-│   │   ├── blog.types.ts     # Blog-related types
-│   │   └── common.types.ts   # Common types
-│   ├── utils/         # Utility functions
-│   │   ├── blog.utils.ts     # Blog helpers
-│   │   └── error.utils.ts    # Error handling utils
-│   └── index.ts       # Core exports
-├── context/           # Global state management
-│   └── AuthContext.tsx # Authentication context
-├── services/          # Data management services
-│   └── blogStorage.ts # Blog data operations
-├── types/             # Additional type definitions
-│   └── blog.ts        # Blog-specific types
-├── App.tsx           # Main application component
-├── Routes.tsx        # Route configuration
-└── main.tsx          # Application entry point
-```
+### **SOLID Principles**
+- **Single Responsibility**: Each class/function has one clear purpose
+- **Open/Closed**: Open for extension, closed for modification
+- **Liskov Substitution**: Subtypes can be substituted for their base types
+- **Interface Segregation**: Clients shouldn't depend on interfaces they don't use
+- **Dependency Inversion**: Depend on abstractions, not concrete implementations
 
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
+### **Design Patterns Used**
+- **Repository Pattern** - Abstract data access
+- **Dependency Injection** - Manage service dependencies
+- **Factory Pattern** - Create service instances
+- **Observer Pattern** - React context and event handling
+- **Strategy Pattern** - Different storage implementations
 
 ## Backend Integration
 
-This frontend is designed to work with a Django backend (to be implemented). Currently, it uses dummy data that will be replaced with actual API calls. The following endpoints will be required:
+This frontend is designed to work with a backend API. The project includes:
 
-- `/api/auth/login` - User login
-- `/api/auth/register` - User registration
-- `/api/posts` - CRUD operations for blog posts
-- `/api/contact` - Contact form submission
+- **API Service Layer** - Centralized HTTP client in `src/core/services/api.service.ts`
+- **Authentication Interceptor** - JWT token management
+- **Repository Pattern** - Abstract data access for easy backend switching
+- **Type Safety** - Comprehensive TypeScript interfaces for API communication
 
-## Blog Editor
-The blog uses [Lexical](https://lexical.dev/) as its rich text editor. Lexical is a powerful, extensible text editor framework developed by Facebook that provides a modern, flexible, and accessible editing experience.
+### **Required Backend Endpoints**
 
-### Editor Features
+**Authentication:**
+- `POST /auth/login` - User login
+- `POST /users` - User registration
+- `GET /auth/me` - Get current user
+
+**Blog Posts:**
+- `GET /posts` - List posts with filters
+- `GET /posts/{id}` - Get single post
+- `POST /posts` - Create new post
+- `PUT /posts/{id}` - Update post
+- `DELETE /posts/{id}` - Delete post
+
+**User Management:**
+- `GET /users/{id}` - Get user profile
+- `GET /users/{id}/posts` - Get user's posts
+
+See `WORKFLOW_DOCUMENTATION.md` for detailed API specifications.
+
+## Rich Text Editor
+
+The project uses **Milkdown** as its rich text editor, which is a React wrapper around Lexical. Milkdown provides:
+
+### **Editor Features**
 - Rich text formatting (bold, italic, underline, strikethrough)
 - Headings (H1, H2, H3)
 - Lists (ordered and unordered)
 - Blockquotes
+- Code blocks with syntax highlighting
+- Tables (planned)
+- Links and images (planned)
 - Markdown shortcuts
 - History (undo/redo)
+- Auto-save functionality
+- Custom plugins for hashtags and wiki links
 
-### Implementation
-The editor integration is implemented in the following files:
-- `src/pages/BlogEditor.tsx` - Main editor component
-- `src/components/editor/ToolbarPlugin.tsx` - Toolbar with formatting options
-- `src/pages/BlogDetail.tsx` - Renders the saved Lexical content
+### **Implementation Details**
+The editor is implemented in:
+- `src/components/editor/MilkdownEditor.tsx` - Main editor component
+- `src/config/editor.config.ts` - Editor configuration
+- `src/components/editor/plugins/` - Custom editor plugins
+- `src/pages/BlogEditor.tsx` - Blog editor page
+- `src/pages/BlogDetail.tsx` - Blog reader component
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow the coding standards and add TypeScript types
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+### **Contribution Guidelines**
+- Follow the existing TypeScript patterns and interfaces
+- Add proper error handling for all new features
+- Include JSDoc comments for public APIs
+- Ensure all components are accessible
+- Test your changes thoroughly
+- Update documentation as needed
 
 ## License
 
@@ -366,4 +448,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Chakra UI](https://chakra-ui.com/) for the component library
 - [React Icons](https://react-icons.github.io/react-icons/) for the icons
+- [Milkdown](https://milkdown.dev/) for the rich text editor
 - [React Markdown](https://github.com/remarkjs/react-markdown) for markdown rendering
+- [Vite](https://vitejs.dev/) for the build tool
+- [TypeScript](https://www.typescriptlang.org/) for type safety
+
+---
+
+**Note**: This project is actively maintained and includes comprehensive documentation for developers who want to learn modern frontend development patterns, advanced TypeScript usage, and production-ready React applications.
