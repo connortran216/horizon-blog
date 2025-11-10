@@ -1,0 +1,137 @@
+name: CI + CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Run TypeScript type check
+      run: npx tsc --noEmit
+
+  build:
+    name: Build
+    runs-on: self-hosted
+    needs: lint
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: horizon-blog-build
+        path: dist/
+
+  security:
+    name: Security Scan
+    runs-on: self-hosted
+    needs: lint
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run security audit
+      run: npm audit --audit-level=moderate
+
+    - name: Check for outdated packages
+      run: npm outdated --depth=0
+
+  docker:
+    name: Docker Build & Deploy
+    runs-on: self-hosted
+    needs: [build, security]
+    # Only deploy on push to main (not develop, not PRs)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: horizon-blog-build
+        path: dist/
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        load: true
+        tags: horizon-blog:latest
+
+    - name: Test Docker image
+      run: |
+        docker run --rm -d --name test-horizon-blog -p 5173:5173 horizon-blog:latest
+        sleep 10
+        curl -f http://localhost:5173 || (docker logs test-horizon-blog && exit 1)
+        docker stop test-horizon-blog
+
+    - name: Push Docker Image
+      run: |
+        docker tag horizon-blog:latest ${{ secrets.DOCKERHUB_USERNAME }}/horizon-blog:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/horizon-blog:latest
+
+    - name: Deploy to private server via Watch Tower
+      run: |
+        curl -X POST "http://${{ secrets.WATCHTOWER_IP }}:8099/v1/update" \
+          -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+          --fail --silent --show-error
+
+    - name: Success
+      run: echo "Deployed to https://blog.connortran.io.vn"

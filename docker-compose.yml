@@ -3,6 +3,7 @@ version: '3.8'
 services:
   frontend:
     build: .
+    image: connortran216/horizon-blog:latest
     container_name: horizon-blog-fe
     ports:
       - "3000:3000"

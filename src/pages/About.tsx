@@ -27,36 +27,23 @@ interface TeamMember {
 
 const teamMembers: TeamMember[] = [
   {
-    name: 'John Doe',
+    name: 'Connor Tran',
     role: 'Founder & Lead Developer',
     bio: 'Passionate about web development and creating meaningful content.',
     image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60',
     social: {
-      github: 'https://github.com',
-      twitter: 'https://twitter.com',
-      linkedin: 'https://linkedin.com',
+      github: 'https://github.com/connortran216',
+      // twitter: 'https://twitter.com',
+      linkedin: 'https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/',
     },
   },
-  {
-    name: 'Jane Smith',
-    role: 'Content Strategist',
-    bio: 'Expert in creating engaging content and building online communities.',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60',
-    social: {
-      twitter: 'https://twitter.com',
-      linkedin: 'https://linkedin.com',
-    },
-  },
-  {
-    name: 'Mike Johnson',
-    role: 'Technical Writer',
-    bio: 'Specializes in making complex technical concepts easy to understand.',
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=60',
-    social: {
-      github: 'https://github.com',
-      linkedin: 'https://linkedin.com',
-    },
-  },
+  // {
+  //   name: 'You are next <3',
+  //   role: 'Frontend Engineer',
+  //   bio: 'Passionate about web development',
+  //   image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60',
+  //   social: {},
+  // },
 ];
 
 const About = () => {
@@ -116,7 +103,7 @@ const About = () => {
         {/* Team Section */}
         <Box width="100%">
           <Heading textAlign="center" mb={8}>Our Team</Heading>
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
+          <SimpleGrid columns={{ base: 1, md: 1 }} justifyItems="center" spacing={10}>
             {teamMembers.map((member, index) => (
               <VStack
                 key={index}
