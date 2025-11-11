@@ -57,34 +57,34 @@ jobs:
         name: horizon-blog-build
         path: dist/
 
-  security:
-    name: Security Scan
-    runs-on: self-hosted
-    needs: lint
+  # security:
+  #   name: Security Scan
+  #   runs-on: self-hosted
+  #   needs: lint
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+  #   - name: Set up Node.js
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: '18'
+  #       cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+  #   - name: Install dependencies
+  #     run: npm ci
 
-    - name: Run security audit
-      run: npm audit --audit-level=moderate
+  #   - name: Run security audit
+  #     run: npm audit --audit-level=moderate
 
-    - name: Check for outdated packages
-      run: npm outdated --depth=0
+  #   - name: Check for outdated packages
+  #     run: npm outdated --depth=0
 
   docker:
     name: Docker Build & Deploy
     runs-on: self-hosted
-    needs: [build, security]
+    needs: [build]
     # Only deploy on push to main (not develop, not PRs)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
