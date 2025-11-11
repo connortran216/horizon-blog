@@ -68,9 +68,9 @@ jobs:
 
   #   - name: Set up Node.js
   #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
+  #   with:
+  #     node-version: '18'
+  #     cache: 'npm'
 
   #   - name: Install dependencies
   #     run: npm ci
@@ -117,9 +117,9 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm -d --name test-horizon-blog -p 5173:5173 horizon-blog:latest
+        docker run --rm -d --name test-horizon-blog -p 3000:3000 horizon-blog:latest
         sleep 10
-        curl -f http://localhost:5173 || (docker logs test-horizon-blog && exit 1)
+        curl -f http://localhost:3000 || (docker logs test-horizon-blog && exit 1)
         docker stop test-horizon-blog
 
     - name: Push Docker Image
