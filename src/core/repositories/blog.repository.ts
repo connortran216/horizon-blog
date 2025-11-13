@@ -382,12 +382,14 @@ export class ApiBlogRepository implements IBlogRepository {
       const params: Record<string, unknown> = { page, limit }
       if (status) params.status = status
 
-      const response = await apiService.get<{ data: BlogPostSummary[] }>('/users/me/posts', params)
+      const response = await apiService.get<{ data: ApiBlogPost[] }>('/users/me/posts', params)
+
+      const posts = response.data?.map((post) => this.transformPostForDisplay(post)) || []
 
       // Cache the result
-      this.setCache(cacheKey, response.data)
+      this.setCache(cacheKey, posts)
 
-      return { success: true, data: response.data || [] }
+      return { success: true, data: posts }
     } catch (error: unknown) {
       console.error('Failed to fetch current user posts:', error)
       return {
