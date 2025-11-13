@@ -1,46 +1,53 @@
-import { defineConfig } from "eslint/config";
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
-import prettierPlugin from "eslint-plugin-prettier";
-import prettierConfig from "eslint-config-prettier";
+import js from '@eslint/js';
+import globals from 'globals';
 
-export default defineConfig([
+export default [
+  // Recommended base configuration
+  js.configs.recommended,
+  
   {
-    files: ["**/*.{ts,tsx}"],
+    // Files to lint
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    
+    // Language options
     languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: "./tsconfig.json", // Important for type-aware linting
-        ecmaFeatures: {
-          jsx: true,
-        },
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
       },
     },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-      react: reactPlugin,
-      "react-hooks": reactHooksPlugin,
-      prettier: prettierPlugin,
-    },
-    extends: [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:react/recommended",
-      "plugin:react-hooks/recommended",
-      prettierConfig, // Disables conflicting rules
-      "plugin:prettier/recommended",
-    ],
+    
+    // Rules
     rules: {
-      // Add or override specific rules here
-      "prettier/prettier": "error",
-    },
-    settings: {
-      react: {
-        version: "detect", // Automatically detect React version
-      },
+      // Possible Problems
+      'no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_', 
+      }],
+      'no-console': 'off',
+      
+      // Suggestions
+      'prefer-const': 'warn',
+      'no-var': 'error',
+      
+      // Layout & Formatting
+      'indent': ['error', 2],
+      'quotes': ['error', 'single'],
+      'semi': ['error', 'always'],
+      'comma-dangle': ['error', 'always-multiline'],
     },
   },
-  // Add configurations for other file types or specific overrides if needed
-]);
+  
+  {
+    // Ignore patterns
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'build/',
+      '*.min.js',
+    ],
+  },
+];
