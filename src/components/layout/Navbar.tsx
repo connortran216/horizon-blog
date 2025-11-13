@@ -159,12 +159,21 @@ const Navbar = () => {
     console.log('Content to save:', contentToSave)
 
     try {
+      // Generate slug from title
+      const slug = editorState.title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+
       // Save the blog post using our updated storage service
       const blogPost = {
         title: editorState.title.trim(),
-        content: {
-          blocks: contentToSave,
-        },
+        content_markdown: editorState.content_markdown,
+        content_json: contentToSave,
+        slug,
         author: {
           username: user?.username || 'Anonymous',
           avatar: user?.avatar,
@@ -172,7 +181,7 @@ const Navbar = () => {
         status: 'published' as const,
       }
 
-      const result = await getBlogRepository().createPost(blogPost as any)
+      const result = await getBlogRepository().createPost(blogPost)
       if (result.success && result.data) {
         const newPost = result.data
 
@@ -188,7 +197,8 @@ const Navbar = () => {
       } else {
         throw new Error(result.error || 'Failed to save blog post')
       }
-    } catch (error) {
+     
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to publish your story. Please try again.',

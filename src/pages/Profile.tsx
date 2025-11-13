@@ -49,11 +49,11 @@ const Profile = () => {
         // Fetch published posts
         const publishedResult = await getBlogRepository().getCurrentUserPosts('published')
         if (publishedResult.success && publishedResult.data) {
-          const mappedPublished = publishedResult.data.map((post: any) => ({
+          const mappedPublished = publishedResult.data.map((post) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
-            createdAt: post.createdAt || post.created_at,
+            createdAt: post.createdAt,
             status: post.status,
           }))
           setPublishedBlogs(mappedPublished)
@@ -62,11 +62,11 @@ const Profile = () => {
         // Fetch draft posts
         const draftsResult = await getBlogRepository().getCurrentUserPosts('draft')
         if (draftsResult.success && draftsResult.data) {
-          const mappedDrafts = draftsResult.data.map((post: any) => ({
+          const mappedDrafts = draftsResult.data.map((post) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
-            createdAt: post.createdAt || post.created_at,
+            createdAt: post.createdAt,
             status: post.status,
           }))
           setDraftBlogs(mappedDrafts)
@@ -90,11 +90,11 @@ const Profile = () => {
           // Refresh the blogs lists
           const publishedResult = await getBlogRepository().getCurrentUserPosts('published')
           if (publishedResult.success && publishedResult.data) {
-            const mappedPublished = publishedResult.data.map((post: any) => ({
+            const mappedPublished = publishedResult.data.map((post) => ({
               id: String(post.id),
               title: post.title,
               subtitle: post.subtitle || post.excerpt,
-              createdAt: post.createdAt || post.created_at,
+              createdAt: post.createdAt,
               status: post.status,
             }))
             setPublishedBlogs(mappedPublished)
@@ -102,11 +102,11 @@ const Profile = () => {
 
           const draftsResult = await getBlogRepository().getCurrentUserPosts('draft')
           if (draftsResult.success && draftsResult.data) {
-            const mappedDrafts = draftsResult.data.map((post: any) => ({
+            const mappedDrafts = draftsResult.data.map((post) => ({
               id: String(post.id),
               title: post.title,
               subtitle: post.subtitle || post.excerpt,
-              createdAt: post.createdAt || post.created_at,
+              createdAt: post.createdAt,
               status: post.status,
             }))
             setDraftBlogs(mappedDrafts)

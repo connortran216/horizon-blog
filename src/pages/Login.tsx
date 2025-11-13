@@ -56,7 +56,8 @@ const Login = () => {
         ),
       })
       navigate('/')
-    } catch (error) {
+     
+    } catch {
       toast({
         title: 'Login failed',
         description: 'Please check your credentials and try again.',

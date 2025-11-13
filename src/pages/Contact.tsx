@@ -83,7 +83,8 @@ const Contact = () => {
         subject: '',
         message: '',
       })
-    } catch (error) {
+     
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to send message. Please try again.',

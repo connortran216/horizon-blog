@@ -85,7 +85,7 @@ const BlogEditor = () => {
         // Load by ID if URL parameter exists and no router state
         if (postIdParam && !post) {
           console.log('🔗 Loading post by ID:', postIdParam)
-          const response = await apiService.get<{ data: any }>(`/posts/${postIdParam}`)
+          const response = await apiService.get<{ data: unknown }>(`/posts/${postIdParam}`)
           post = response.data
 
           if (!post) {
@@ -145,7 +145,7 @@ const BlogEditor = () => {
           setContentJSON(post.content_json || '')
           // Load tags if available
           if (post.tags && Array.isArray(post.tags)) {
-            const tagNames = post.tags.map((tag: any) => (typeof tag === 'string' ? tag : tag.name))
+            const tagNames = post.tags.map((tag: unknown) => (typeof tag === 'string' ? tag : (tag as { name: string }).name))
             setTags(tagNames)
           }
           // Set initial content for editor (only once)
@@ -231,10 +231,10 @@ const BlogEditor = () => {
       let response
       if (postId) {
         // Update existing post
-        response = await apiService.patch<{ data: any }>(`/posts/${postId}`, postData)
+        response = await apiService.patch<{ data: unknown }>(`/posts/${postId}`, postData)
       } else {
         // Create new post
-        response = await apiService.post<{ data: any }>('/posts', postData)
+        response = await apiService.post<{ data: unknown }>('/posts', postData)
         if (response.data?.id) {
           setPostId(response.data.id)
         }
@@ -333,13 +333,13 @@ const BlogEditor = () => {
       let response
       if (postId) {
         // Update existing post
-        response = await apiService.put<{ data: any }>(`/posts/${postId}`, postData)
+        response = await apiService.put<{ data: unknown }>(`/posts/${postId}`, postData)
       } else {
         // Create new post
-        response = await apiService.post<{ data: any }>('/posts', postData)
+        response = await apiService.post<{ data: unknown }>('/posts', postData)
       }
 
-      const savedPost = response.data
+      const savedPost = response.data as { id: number }
 
       if (!savedPost) {
         throw new Error('Failed to save blog post')
@@ -360,13 +360,13 @@ const BlogEditor = () => {
       // Navigate to the blog post
       navigate(`/blog/${savedPost.id}`)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error publishing blog post:', error)
 
       // Display error message
       toast({
         title: 'Error',
-        description: error.message || `Failed to ${postId ? 'update' : 'publish'} blog post`,
+        description: error instanceof Error ? error.message : `Failed to ${postId ? 'update' : 'publish'} blog post`,
         status: 'error',
         duration: 3000,
         isClosable: true,

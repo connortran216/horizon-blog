@@ -62,17 +62,17 @@ export class AuthService implements IAuthService {
       // Transform API user to FE format
       const user = this.transformApiUserToUser(response.data)
       return user
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AuthError) {
         throw error
       }
 
       // Handle API errors
-      if (error.status === 401) {
+      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 401) {
         throw new InvalidCredentialsError()
       }
 
-      throw new AuthError(error.message || 'Login failed. Please try again.', 'LOGIN_FAILED')
+      throw new AuthError(error instanceof Error ? error.message : 'Login failed. Please try again.', 'LOGIN_FAILED')
     }
   }
 
@@ -100,18 +100,18 @@ export class AuthService implements IAuthService {
       // Transform API user to FE format
       const user = this.transformApiUserToUser(response.data)
       return user
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AuthError) {
         throw error
       }
 
       // Handle API errors
-      if (error.status === 409) {
+      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 409) {
         throw new UserAlreadyExistsError(data.email)
       }
 
       throw new AuthError(
-        error.message || 'Registration failed. Please try again.',
+        error instanceof Error ? error.message : 'Registration failed. Please try again.',
         'REGISTRATION_FAILED',
       )
     }

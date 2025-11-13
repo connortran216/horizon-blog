@@ -34,10 +34,10 @@ export class ApiService {
   /**
    * Generic GET request
    */
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
     const url = new URL(endpoint, this.baseUrl)
     if (params) {
-      Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]))
+      Object.keys(params).forEach((key) => url.searchParams.append(key, String(params[key])))
     }
 
     const response = await fetch(url.toString(), {
@@ -51,7 +51,7 @@ export class ApiService {
   /**
    * Generic POST request
    */
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -64,7 +64,7 @@ export class ApiService {
   /**
    * Generic PUT request
    */
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PUT',
       headers: this.getHeaders(),
@@ -89,7 +89,7 @@ export class ApiService {
   /**
    * PATCH request
    */
-  async patch<T>(endpoint: string, data?: any): Promise<T> {
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PATCH',
       headers: this.getHeaders(),
@@ -109,7 +109,8 @@ export class ApiService {
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage
-      } catch (e) {
+       
+      } catch {
         // Response is not JSON, use status text
         errorMessage = response.statusText || errorMessage
       }

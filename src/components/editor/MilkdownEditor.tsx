@@ -176,13 +176,13 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
         }
 
         return editor
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Error setting up Milkdown editor:', error)
-        setEditorError(error.message || 'Failed to setup editor')
+        const errorMessage = error instanceof Error ? error.message : 'Failed to setup editor'
+        setEditorError(errorMessage)
       }
       // Note: Intentionally NOT including initialContent in deps to prevent recreation
       // The editor is created once with initial content, then updates via listener
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [stableOnChange],
   )

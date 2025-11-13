@@ -100,9 +100,10 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
         }
 
         return editor
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Error setting up Milkdown reader:', error)
-        setEditorError(error.message || 'Failed to setup reader')
+        const errorMessage = error instanceof Error ? error.message : 'Failed to setup reader'
+        setEditorError(errorMessage)
       }
     },
     [content],

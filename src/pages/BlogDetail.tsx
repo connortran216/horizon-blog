@@ -58,11 +58,11 @@ const BlogDetail = () => {
             })
             navigate('/blog')
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error fetching post:', error)
           toast({
             title: 'Error',
-            description: error.message || 'Failed to load blog post.',
+            description: error instanceof Error ? error.message : 'Failed to load blog post.',
             status: 'error',
             duration: 5000,
             isClosable: true,

@@ -40,7 +40,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
     if (!markdown) return 'No content'
 
     // Remove markdown syntax (simple approach)
-    let plainText = markdown
+    const plainText = markdown
       .replace(/#{1,6}\s+/g, '') // Remove headings
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic

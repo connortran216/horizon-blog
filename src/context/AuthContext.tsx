@@ -70,8 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const loggedInUser = await authService.login(credentials)
       setUser(loggedInUser)
       setStatus(AuthStatus.AUTHENTICATED)
-    } catch (err: any) {
-      setError(err.message || 'Login failed')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed'
+      setError(errorMessage)
       setStatus(AuthStatus.UNAUTHENTICATED)
       throw err // Re-throw for component handling
     } finally {
@@ -87,8 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const registeredUser = await authService.register(data)
       setUser(registeredUser)
       setStatus(AuthStatus.AUTHENTICATED)
-    } catch (err: any) {
-      setError(err.message || 'Registration failed')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed'
+      setError(errorMessage)
       setStatus(AuthStatus.UNAUTHENTICATED)
       throw err // Re-throw for component handling
     } finally {

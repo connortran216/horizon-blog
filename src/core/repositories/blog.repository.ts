@@ -10,7 +10,7 @@ import {
   RepositoryConfig,
   RepositoryCacheConfig,
 } from '../types/blog-repository.types'
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types'
+import { BlogPost, BlogPostSummary, BlogSearchOptions, BlogStatus } from '../types/blog.types'
 import { ApiBlogPost, ApiListPostsResponse } from '../types/blog-service.types'
 import { apiService } from '../services/api.service'
 
@@ -34,7 +34,7 @@ const DEFAULT_CONFIG: RepositoryConfig = {
  * Provides data access layer with caching, retry logic, and error handling
  */
 export class ApiBlogRepository implements IBlogRepository {
-  private cache: Map<string, { data: any; timestamp: number }> = new Map()
+  private cache: Map<string, { data: unknown; timestamp: number }> = new Map()
   private config: RepositoryConfig
   private lastUpdate: Date = new Date()
 
@@ -49,14 +49,14 @@ export class ApiBlogRepository implements IBlogRepository {
   /**
    * Generate cache key for operations
    */
-  private generateCacheKey(operation: string, params?: any): string {
+  private generateCacheKey(operation: string, params?: unknown): string {
     return `${operation}_${JSON.stringify(params || {})}`
   }
 
   /**
    * Get data from cache if valid
    */
-  private getFromCache(key: string): any | null {
+  private getFromCache(key: string): unknown | null {
     const cached = this.cache.get(key)
     if (!cached) return null
 
@@ -72,7 +72,7 @@ export class ApiBlogRepository implements IBlogRepository {
   /**
    * Set data in cache
    */
-  private setCache(key: string, data: any): void {
+  private setCache(key: string, data: unknown): void {
     if (!this.config.cache?.enabled) return
 
     // Evict oldest entries if cache is full
@@ -118,7 +118,7 @@ export class ApiBlogRepository implements IBlogRepository {
       updatedAt: post.updated_at,
       readingTime: this.calculateReadingTime(post.content_markdown),
       tags: [],
-      status: post.status as any,
+      status: post.status as BlogStatus,
       slug: post.id.toString(),
     }
   }
@@ -134,7 +134,7 @@ export class ApiBlogRepository implements IBlogRepository {
   /**
    * Transform business object to API format
    */
-  private transformToApiPost(post: any): any {
+  private transformToApiPost(post: unknown): unknown {
     // For now, return as-is since the API accepts the same format
     return post
   }
@@ -145,7 +145,7 @@ export class ApiBlogRepository implements IBlogRepository {
   private generateExcerpt(content: string, maxLength: number = 150): string {
     if (!content) return 'No content'
 
-    let plainText = content
+    const plainText = content
       .replace(/#{1,6}\s+/g, '') // Remove headings
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic
@@ -178,12 +178,12 @@ export class ApiBlogRepository implements IBlogRepository {
       const cacheKey = this.generateCacheKey('published', options)
 
       // Check cache first
-      const cached = this.getFromCache(cacheKey)
+      const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
       if (cached) {
         return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = {
+      const params: Record<string, unknown> = {
         status: 'published',
         ...options,
       }
@@ -209,11 +209,11 @@ export class ApiBlogRepository implements IBlogRepository {
           hasPrev: response.page > 1,
         },
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to fetch published posts:', error)
       return {
         success: false,
-        error: error.message || 'Failed to fetch published posts',
+        error: error instanceof Error ? error.message : 'Failed to fetch published posts',
       }
     }
   }
@@ -226,7 +226,7 @@ export class ApiBlogRepository implements IBlogRepository {
       const cacheKey = `post_${id}`
 
       // Check cache first
-      const cached = this.getFromCache(cacheKey)
+      const cached = this.getFromCache(cacheKey) as BlogPost | null
       if (cached) {
         return { success: true, data: cached }
       }
@@ -242,11 +242,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.lastUpdate = new Date()
 
       return { success: true, data: post }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to fetch post ${id}:`, error)
       return {
         success: false,
-        error: error.message || 'Failed to fetch blog post',
+        error: error instanceof Error ? error.message : 'Failed to fetch blog post',
       }
     }
   }
@@ -267,11 +267,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.clearRelatedCaches()
 
       return { success: true, data: response.data }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create post:', error)
       return {
         success: false,
-        error: error.message || 'Failed to create blog post',
+        error: error instanceof Error ? error.message : 'Failed to create blog post',
       }
     }
   }
@@ -282,7 +282,7 @@ export class ApiBlogRepository implements IBlogRepository {
   async updatePost(id: string, updates: Partial<BlogPost>): Promise<RepositoryResult<BlogPost>> {
     try {
       // Transform updates to API format
-      const apiUpdates = this.transformToApiPost(updates as any)
+      const apiUpdates = this.transformToApiPost(updates)
 
       const response = await apiService.put<{ data: BlogPost }>(`/posts/${id}`, apiUpdates)
 
@@ -291,11 +291,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.removeFromCache(`post_${id}`)
 
       return { success: true, data: response.data }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to update post ${id}:`, error)
       return {
         success: false,
-        error: error.message || 'Failed to update blog post',
+        error: error instanceof Error ? error.message : 'Failed to update blog post',
       }
     }
   }
@@ -312,11 +312,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.removeFromCache(`post_${id}`)
 
       return { success: true, data: true }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to delete post ${id}:`, error)
       return {
         success: false,
-        error: error.message || 'Failed to delete blog post',
+        error: error instanceof Error ? error.message : 'Failed to delete blog post',
       }
     }
   }
@@ -332,12 +332,12 @@ export class ApiBlogRepository implements IBlogRepository {
       const cacheKey = this.generateCacheKey('user', { ...options, author: username })
 
       // Check cache first
-      const cached = this.getFromCache(cacheKey)
+      const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
       if (cached) {
         return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { author: username, ...options }
+      const params: Record<string, unknown> = { author: username, ...options }
       const response = await apiService.get<ApiListPostsResponse>('/posts', params)
 
       const posts = response.data.map((post) => this.transformPostForDisplay(post))
@@ -346,11 +346,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.setCache(cacheKey, posts)
 
       return { success: true, data: posts }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to fetch user posts for ${username}:`, error)
       return {
         success: false,
-        error: error.message || 'Failed to retrieve user blog posts',
+        error: error instanceof Error ? error.message : 'Failed to retrieve user blog posts',
       }
     }
   }
@@ -374,12 +374,12 @@ export class ApiBlogRepository implements IBlogRepository {
       const cacheKey = this.generateCacheKey('current-user', { status, page, limit })
 
       // Check cache first
-      const cached = this.getFromCache(cacheKey)
+      const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
       if (cached) {
         return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { page, limit }
+      const params: Record<string, unknown> = { page, limit }
       if (status) params.status = status
 
       const response = await apiService.get<{ data: BlogPostSummary[] }>('/users/me/posts', params)
@@ -388,11 +388,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.setCache(cacheKey, response.data)
 
       return { success: true, data: response.data || [] }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to fetch current user posts:', error)
       return {
         success: false,
-        error: error.message || 'Failed to retrieve current user posts',
+        error: error instanceof Error ? error.message : 'Failed to retrieve current user posts',
       }
     }
   }
@@ -408,12 +408,12 @@ export class ApiBlogRepository implements IBlogRepository {
       const cacheKey = this.generateCacheKey('search', { query, ...options })
 
       // Check cache first
-      const cached = this.getFromCache(cacheKey)
+      const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
       if (cached) {
         return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { q: query, ...options }
+      const params: Record<string, unknown> = { q: query, ...options }
       const response = await apiService.get<{ data: ApiBlogPost[] }>('/posts/search', params)
 
       const posts = response.data
@@ -424,11 +424,11 @@ export class ApiBlogRepository implements IBlogRepository {
       this.setCache(cacheKey, posts)
 
       return { success: true, data: posts }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to search posts with query "${query}":`, error)
       return {
         success: false,
-        error: error.message || 'Failed to search blog posts',
+        error: error instanceof Error ? error.message : 'Failed to search blog posts',
       }
     }
   }

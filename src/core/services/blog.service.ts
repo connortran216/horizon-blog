@@ -5,7 +5,7 @@
  */
 
 import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types'
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types'
+import { BlogPost, BlogPostSummary, BlogSearchOptions, BlogStatus } from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
 import { getBlogRepository } from '../di/container'
 import { RepositoryResult } from '../types/blog-repository.types'
@@ -42,7 +42,7 @@ export class BlogService implements IBlogService {
     const length = maxLength || this.config.defaultExcerptLength
 
     // Remove markdown syntax (simple approach)
-    let plainText = content
+    const plainText = content
       .replace(/#{1,6}\s+/g, '') // Remove headings
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic
@@ -83,7 +83,7 @@ export class BlogService implements IBlogService {
       updatedAt: post.updated_at,
       readingTime: this.calculateReadingTime(post.content_markdown),
       tags: [], // API doesn't provide tags in list view
-      status: post.status as any,
+      status: post.status as BlogStatus,
       slug: post.id.toString(),
     }
   }

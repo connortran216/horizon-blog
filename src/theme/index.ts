@@ -354,7 +354,7 @@ const theme = extendTheme({
   fontSizes,
   lineHeights,
   styles: {
-    global: (props: any) => ({
+    global: (props: { colorMode: 'light' | 'dark' }) => ({
       body: {
         bg: props.colorMode === 'dark' ? 'obsidian.dark.bg' : 'obsidian.light.bg',
         color: props.colorMode === 'dark' ? 'obsidian.text.primary' : 'obsidian.text.lightPrimary',

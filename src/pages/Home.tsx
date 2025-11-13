@@ -148,7 +148,7 @@ const Home = () => {
         const result = await getBlogRepository().getPublishedPosts({ limit: 10 })
         if (result.success && result.data) {
           // Convert BlogPostSummary[] to BlogPost[] for compatibility
-          const posts = result.data.map((summary: any) => ({
+          const posts = result.data.map((summary) => ({
             ...summary,
             content_markdown: '',
             content_json: '{}',

@@ -31,6 +31,7 @@ interface ServiceRegistration<T> {
  * Manages service instantiation and dependency resolution
  */
 export class DIContainer {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private services: Map<string | symbol, ServiceRegistration<any>> = new Map()
   private resolving: Set<string | symbol> = new Set()
 
@@ -129,6 +130,7 @@ export const container = new DIContainer()
  * Decorator for automatic dependency injection
  */
 export function Inject(token: string | symbol) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (target: any, propertyKey: string | symbol) {
     Object.defineProperty(target, propertyKey, {
       get: () => container.resolve(token),

@@ -91,23 +91,22 @@ export interface UpdateBlogPostData extends Partial<Omit<BlogPost, keyof BaseEnt
 }
 
 // Blog post summary (for listings)
-export interface BlogPostSummary
-  extends Pick<
-    BlogPost,
-    | 'id'
-    | 'title'
-    | 'subtitle'
-    | 'excerpt'
-    | 'author'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'readingTime'
-    | 'tags'
-    | 'status'
-    | 'slug'
-    | 'viewCount'
-    | 'likeCount'
-  > {}
+export type BlogPostSummary = Pick<
+  BlogPost,
+  | 'id'
+  | 'title'
+  | 'subtitle'
+  | 'excerpt'
+  | 'author'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'readingTime'
+  | 'tags'
+  | 'status'
+  | 'slug'
+  | 'viewCount'
+  | 'likeCount'
+>
 
 // Blog storage operations result
 export interface BlogStorageResult<T> {
