@@ -197,7 +197,6 @@ const Navbar = () => {
       } else {
         throw new Error(result.error || 'Failed to save blog post')
       }
-     
     } catch {
       toast({
         title: 'Error',

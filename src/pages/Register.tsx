@@ -95,7 +95,6 @@ const Register = () => {
       })
 
       navigate('/')
-     
     } catch {
       toast({
         title: 'Registration failed',

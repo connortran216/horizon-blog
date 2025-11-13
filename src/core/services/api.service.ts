@@ -109,7 +109,6 @@ export class ApiService {
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage
-       
       } catch {
         // Response is not JSON, use status text
         errorMessage = response.statusText || errorMessage

@@ -68,11 +68,18 @@ export class AuthService implements IAuthService {
       }
 
       // Handle API errors
-      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 401) {
+      if (
+        error instanceof Error &&
+        'status' in error &&
+        (error as { status: number }).status === 401
+      ) {
         throw new InvalidCredentialsError()
       }
 
-      throw new AuthError(error instanceof Error ? error.message : 'Login failed. Please try again.', 'LOGIN_FAILED')
+      throw new AuthError(
+        error instanceof Error ? error.message : 'Login failed. Please try again.',
+        'LOGIN_FAILED',
+      )
     }
   }
 
@@ -106,7 +113,11 @@ export class AuthService implements IAuthService {
       }
 
       // Handle API errors
-      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 409) {
+      if (
+        error instanceof Error &&
+        'status' in error &&
+        (error as { status: number }).status === 409
+      ) {
         throw new UserAlreadyExistsError(data.email)
       }
 

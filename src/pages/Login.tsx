@@ -56,7 +56,6 @@ const Login = () => {
         ),
       })
       navigate('/')
-     
     } catch {
       toast({
         title: 'Login failed',

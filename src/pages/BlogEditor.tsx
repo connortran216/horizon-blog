@@ -145,7 +145,9 @@ const BlogEditor = () => {
           setContentJSON(post.content_json || '')
           // Load tags if available
           if (post.tags && Array.isArray(post.tags)) {
-            const tagNames = post.tags.map((tag: unknown) => (typeof tag === 'string' ? tag : (tag as { name: string }).name))
+            const tagNames = post.tags.map((tag: unknown) =>
+              typeof tag === 'string' ? tag : (tag as { name: string }).name,
+            )
             setTags(tagNames)
           }
           // Set initial content for editor (only once)
@@ -366,7 +368,10 @@ const BlogEditor = () => {
       // Display error message
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : `Failed to ${postId ? 'update' : 'publish'} blog post`,
+        description:
+          error instanceof Error
+            ? error.message
+            : `Failed to ${postId ? 'update' : 'publish'} blog post`,
         status: 'error',
         duration: 3000,
         isClosable: true,
