@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'
 import {
   Box,
   Button,
@@ -12,54 +12,50 @@ import {
   Heading,
   Link,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+} from '@chakra-ui/react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const toast = useToast();
-  const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const toast = useToast()
+  const navigate = useNavigate()
+  const { login, isLoading } = useAuth()
 
   // Dark mode color values
-  const headingColor = useColorModeValue('gray.900', 'text.primary');
-  const textColor = useColorModeValue('gray.600', 'text.secondary');
-  const linkColor = useColorModeValue('black', 'link.default');
-  const buttonBg = useColorModeValue('black', 'accent.primary');
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
-  const toastBg = useColorModeValue('black', 'bg.elevated');
+  const headingColor = useColorModeValue('gray.900', 'text.primary')
+  const textColor = useColorModeValue('gray.600', 'text.secondary')
+  const linkColor = useColorModeValue('black', 'link.default')
+  const buttonBg = useColorModeValue('black', 'accent.primary')
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
+  const toastBg = useColorModeValue('black', 'bg.elevated')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
-      await login({ email, password });
+      await login({ email, password })
       toast({
-        title: "Login Successful",
+        title: 'Login Successful',
         description: `Welcome back!`,
-        position: "top",
+        position: 'top',
         duration: 3000,
         isClosable: true,
-        variant: "solid",
+        variant: 'solid',
         render: () => (
-          <Box
-            color="white"
-            p={3}
-            bg={toastBg}
-            borderRadius="md"
-            boxShadow="md"
-          >
+          <Box color="white" p={3} bg={toastBg} borderRadius="md" boxShadow="md">
             <Box display="flex" alignItems="center" mb={1}>
-              <Box as="span" mr={2}>✓</Box>
+              <Box as="span" mr={2}>
+                ✓
+              </Box>
               <Text fontWeight="bold">Login Successful</Text>
             </Box>
             <Text>Welcome back!</Text>
           </Box>
         ),
-      });
-      navigate('/');
+      })
+      navigate('/')
     } catch (error) {
       toast({
         title: 'Login failed',
@@ -67,9 +63,9 @@ const Login = () => {
         status: 'error',
         duration: 3000,
         isClosable: true,
-      });
+      })
     }
-  };
+  }
 
   return (
     <Container maxW="lg" py={{ base: '12', md: '24' }}>
@@ -118,7 +114,7 @@ const Login = () => {
                 bg={buttonBg}
                 color="white"
                 _hover={{
-                  bg: buttonHoverBg
+                  bg: buttonHoverBg,
                 }}
                 size="lg"
                 fontSize="md"
@@ -131,7 +127,7 @@ const Login = () => {
         </Box>
       </Stack>
     </Container>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

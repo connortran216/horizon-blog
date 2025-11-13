@@ -18,140 +18,133 @@ import {
   MenuItem,
   IconButton,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { getBlogRepository } from '../core/di/container';
-import { FiMoreVertical } from 'react-icons/fi';
+} from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { getBlogRepository } from '../core/di/container'
+import { FiMoreVertical } from 'react-icons/fi'
 
 // Local BlogPost type that matches the old format
 interface BlogPost {
-  id: string;
-  title: string;
-  subtitle?: string;
-  createdAt: string;
-  status: string;
+  id: string
+  title: string
+  subtitle?: string
+  createdAt: string
+  status: string
 }
 
 const Profile = () => {
-  const { username } = useParams();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([]);
-  const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { username } = useParams()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([])
+  const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Load the current user's posts using /users/me/posts endpoint
     const loadUserPosts = async () => {
       try {
         // Fetch published posts
-        const publishedResult = await getBlogRepository().getCurrentUserPosts('published');
+        const publishedResult = await getBlogRepository().getCurrentUserPosts('published')
         if (publishedResult.success && publishedResult.data) {
           const mappedPublished = publishedResult.data.map((post: any) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt || post.created_at,
-            status: post.status
-          }));
-          setPublishedBlogs(mappedPublished);
+            status: post.status,
+          }))
+          setPublishedBlogs(mappedPublished)
         }
 
         // Fetch draft posts
-        const draftsResult = await getBlogRepository().getCurrentUserPosts('draft');
+        const draftsResult = await getBlogRepository().getCurrentUserPosts('draft')
         if (draftsResult.success && draftsResult.data) {
           const mappedDrafts = draftsResult.data.map((post: any) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt || post.created_at,
-            status: post.status
-          }));
-          setDraftBlogs(mappedDrafts);
+            status: post.status,
+          }))
+          setDraftBlogs(mappedDrafts)
         }
       } catch (error) {
-        console.error('Error loading user posts:', error);
+        console.error('Error loading user posts:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadUserPosts();
-  }, []);
+    loadUserPosts()
+  }, [])
 
   const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        const result = await getBlogRepository().deletePost(blogId);
+        const result = await getBlogRepository().deletePost(blogId)
 
         if (result.success) {
           // Refresh the blogs lists
-          const publishedResult = await getBlogRepository().getCurrentUserPosts('published');
+          const publishedResult = await getBlogRepository().getCurrentUserPosts('published')
           if (publishedResult.success && publishedResult.data) {
             const mappedPublished = publishedResult.data.map((post: any) => ({
               id: String(post.id),
               title: post.title,
               subtitle: post.subtitle || post.excerpt,
               createdAt: post.createdAt || post.created_at,
-              status: post.status
-            }));
-            setPublishedBlogs(mappedPublished);
+              status: post.status,
+            }))
+            setPublishedBlogs(mappedPublished)
           }
 
-          const draftsResult = await getBlogRepository().getCurrentUserPosts('draft');
+          const draftsResult = await getBlogRepository().getCurrentUserPosts('draft')
           if (draftsResult.success && draftsResult.data) {
             const mappedDrafts = draftsResult.data.map((post: any) => ({
               id: String(post.id),
               title: post.title,
               subtitle: post.subtitle || post.excerpt,
               createdAt: post.createdAt || post.created_at,
-              status: post.status
-            }));
-            setDraftBlogs(mappedDrafts);
+              status: post.status,
+            }))
+            setDraftBlogs(mappedDrafts)
           }
         }
       } catch (error) {
-        console.error('Error deleting blog post:', error);
+        console.error('Error deleting blog post:', error)
       }
     }
-  };
+  }
 
   const handleEdit = (blogId: string) => {
     // Navigate with state to indicate authorized edit from profile
     navigate(`/blog-editor?id=${blogId}`, {
-      state: { fromProfile: true, authorizedEdit: true }
-    });
-  };
+      state: { fromProfile: true, authorizedEdit: true },
+    })
+  }
 
   // Format date to a more readable format
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    });
-  };
+      day: 'numeric',
+    })
+  }
 
   const BlogGrid = ({ blogs }: { blogs: BlogPost[] }) => {
-    const cardBg = useColorModeValue('white', 'bg.secondary');
-    const dateMeta = useColorModeValue('gray.500', 'text.tertiary');
-    const bodyText = useColorModeValue('gray.600', 'text.secondary');
-    const buttonColor = useColorModeValue('black', 'accent.primary');
-    const buttonHoverBg = useColorModeValue('gray.50', 'bg.tertiary');
+    const cardBg = useColorModeValue('white', 'bg.secondary')
+    const dateMeta = useColorModeValue('gray.500', 'text.tertiary')
+    const bodyText = useColorModeValue('gray.600', 'text.secondary')
+    const buttonColor = useColorModeValue('black', 'accent.primary')
+    const buttonHoverBg = useColorModeValue('gray.50', 'bg.tertiary')
 
     return (
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         {blogs.map((blog) => (
-          <Box
-            key={blog.id}
-            p={6}
-            bg={cardBg}
-            shadow="md"
-            rounded="lg"
-            position="relative"
-          >
+          <Box key={blog.id} p={6} bg={cardBg} shadow="md" rounded="lg" position="relative">
             <Menu>
               <MenuButton
                 as={IconButton}
@@ -164,7 +157,9 @@ const Profile = () => {
               />
               <MenuList>
                 <MenuItem onClick={() => handleEdit(blog.id)}>Edit Blog</MenuItem>
-                <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">Delete Blog</MenuItem>
+                <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">
+                  Delete Blog
+                </MenuItem>
               </MenuList>
             </Menu>
             <Text fontSize="sm" color={dateMeta} mb={2}>
@@ -188,26 +183,21 @@ const Profile = () => {
           </Box>
         ))}
       </SimpleGrid>
-    );
-  };
+    )
+  }
 
-  const profileText = useColorModeValue('gray.600', 'text.secondary');
+  const profileText = useColorModeValue('gray.600', 'text.secondary')
 
   // Tab color mode values
-  const tabColor = useColorModeValue('gray.600', 'text.secondary');
-  const tabSelectedColor = useColorModeValue('black', 'accent.primary');
-  const tabBorderColor = useColorModeValue('black', 'accent.primary');
+  const tabColor = useColorModeValue('gray.600', 'text.secondary')
+  const tabSelectedColor = useColorModeValue('black', 'accent.primary')
+  const tabBorderColor = useColorModeValue('black', 'accent.primary')
 
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
         <Box textAlign="center">
-          <Avatar
-            size="2xl"
-            src={user?.avatar}
-            name={username}
-            mb={4}
-          />
+          <Avatar size="2xl" src={user?.avatar} name={username} mb={4} />
           <Heading size="lg">{username}</Heading>
           <Text color={profileText} mt={2}>
             Passionate developer sharing insights about web development
@@ -215,7 +205,9 @@ const Profile = () => {
         </Box>
 
         <Box>
-          <Heading size="md" mb={4}>My Articles</Heading>
+          <Heading size="md" mb={4}>
+            My Articles
+          </Heading>
           {loading ? (
             <Text textAlign="center">Loading articles...</Text>
           ) : publishedBlogs.length === 0 && draftBlogs.length === 0 ? (
@@ -227,7 +219,7 @@ const Profile = () => {
                   color={tabColor}
                   _selected={{
                     color: tabSelectedColor,
-                    borderColor: tabBorderColor
+                    borderColor: tabBorderColor,
                   }}
                 >
                   Published Blogs
@@ -236,7 +228,7 @@ const Profile = () => {
                   color={tabColor}
                   _selected={{
                     color: tabSelectedColor,
-                    borderColor: tabBorderColor
+                    borderColor: tabBorderColor,
                   }}
                 >
                   Draft Blogs
@@ -263,7 +255,7 @@ const Profile = () => {
         </Box>
       </VStack>
     </Container>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile

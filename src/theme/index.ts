@@ -8,63 +8,63 @@
  * - Excellent readability and contrast
  */
 
-import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
+import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
 // Color mode configuration
 const config: ThemeConfig = {
   initialColorMode: 'light',
   useSystemColorMode: false, // We'll manage this manually with localStorage
-};
+}
 
 // Obsidian-inspired color palette
 const colors = {
   obsidian: {
     // Dark mode backgrounds
     dark: {
-      bg: '#1e1e1e',           // Main background
-      bgSecondary: '#252525',  // Secondary background (sidebar, cards)
-      bgTertiary: '#2d2d2d',   // Tertiary background (hover states)
-      bgElevated: '#333333',   // Elevated elements (modals, popovers)
-      border: '#3a3a3a',       // Borders
+      bg: '#1e1e1e', // Main background
+      bgSecondary: '#252525', // Secondary background (sidebar, cards)
+      bgTertiary: '#2d2d2d', // Tertiary background (hover states)
+      bgElevated: '#333333', // Elevated elements (modals, popovers)
+      border: '#3a3a3a', // Borders
       borderSubtle: '#2a2a2a', // Subtle borders
     },
 
     // Light mode backgrounds
     light: {
-      bg: '#ffffff',           // Main background
-      bgSecondary: '#f8f9fa',  // Secondary background
-      bgTertiary: '#f0f1f3',   // Tertiary background
-      bgElevated: '#ffffff',   // Elevated elements
-      border: '#e2e4e9',       // Borders
+      bg: '#ffffff', // Main background
+      bgSecondary: '#f8f9fa', // Secondary background
+      bgTertiary: '#f0f1f3', // Tertiary background
+      bgElevated: '#ffffff', // Elevated elements
+      border: '#e2e4e9', // Borders
       borderSubtle: '#ebedf0', // Subtle borders
     },
 
     // Text colors
     text: {
-      primary: '#dcddde',      // Primary text (dark mode)
-      secondary: '#b9bbbe',    // Secondary text (dark mode)
-      tertiary: '#8e9297',     // Tertiary text (dark mode)
+      primary: '#dcddde', // Primary text (dark mode)
+      secondary: '#b9bbbe', // Secondary text (dark mode)
+      tertiary: '#8e9297', // Tertiary text (dark mode)
 
-      lightPrimary: '#2c3e50',     // Primary text (light mode)
-      lightSecondary: '#5a6c7d',   // Secondary text (light mode)
-      lightTertiary: '#8896a4',    // Tertiary text (light mode)
+      lightPrimary: '#2c3e50', // Primary text (light mode)
+      lightSecondary: '#5a6c7d', // Secondary text (light mode)
+      lightTertiary: '#8896a4', // Tertiary text (light mode)
     },
 
     // Accent colors (Obsidian purple/blue)
     accent: {
-      primary: '#8b7fc7',      // Main accent
-      secondary: '#7aa2f7',    // Secondary accent (blue)
-      hover: '#9d8fd9',        // Hover state
-      active: '#7a6eb5',       // Active state
+      primary: '#8b7fc7', // Main accent
+      secondary: '#7aa2f7', // Secondary accent (blue)
+      hover: '#9d8fd9', // Hover state
+      active: '#7a6eb5', // Active state
     },
 
     // Semantic colors
-    link: '#5b9cf6',           // Link color
-    linkHover: '#74aff7',      // Link hover
-    codeBlock: '#0d1117',      // Code block background
-    selection: '#3d4451',      // Text selection
+    link: '#5b9cf6', // Link color
+    linkHover: '#74aff7', // Link hover
+    codeBlock: '#0d1117', // Code block background
+    selection: '#3d4451', // Text selection
   },
-};
+}
 
 // Semantic tokens that switch based on color mode
 const semanticTokens = {
@@ -131,7 +131,7 @@ const semanticTokens = {
       _dark: 'obsidian.linkHover',
     },
   },
-};
+}
 
 // Component style overrides for Obsidian feel
 const components = {
@@ -280,7 +280,7 @@ const components = {
       },
     },
   },
-};
+}
 
 // Softer shadows for Obsidian feel
 const shadows = {
@@ -292,7 +292,7 @@ const shadows = {
   '2xl': '0 16px 32px 0 rgba(0, 0, 0, 0.4)',
   outline: '0 0 0 3px rgba(139, 127, 199, 0.4)', // Purple outline
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.2)',
-};
+}
 
 // Border radius for smoother appearance
 const radii = {
@@ -305,14 +305,14 @@ const radii = {
   '2xl': '1.5rem',
   '3xl': '2rem',
   full: '9999px',
-};
+}
 
 // Typography enhancements
 const fonts = {
   heading: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   body: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   mono: '"Monaco", "Menlo", "Ubuntu Mono", monospace',
-};
+}
 
 // Font sizes
 const fontSizes = {
@@ -329,7 +329,7 @@ const fontSizes = {
   '7xl': '4.5rem',
   '8xl': '6rem',
   '9xl': '8rem',
-};
+}
 
 // Line heights for readability
 const lineHeights = {
@@ -340,7 +340,7 @@ const lineHeights = {
   base: 1.5,
   tall: 1.625,
   taller: 2,
-};
+}
 
 // Create and export the theme
 const theme = extendTheme({
@@ -361,6 +361,6 @@ const theme = extendTheme({
       },
     }),
   },
-});
+})
 
-export default theme;
+export default theme

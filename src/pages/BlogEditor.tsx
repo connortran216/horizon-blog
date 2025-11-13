@@ -1,153 +1,179 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Container, Input, VStack, useToast, Avatar, HStack, Text, Tag, TagLabel, TagCloseButton, Wrap, WrapItem, useColorModeValue } from '@chakra-ui/react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-import MilkdownEditor from '../components/editor/MilkdownEditor';
-import { ErrorBoundary, apiService } from '../core';
+import { useEffect, useState, useCallback, useRef } from 'react'
+import {
+  Box,
+  Container,
+  Input,
+  VStack,
+  useToast,
+  Avatar,
+  HStack,
+  Text,
+  Tag,
+  TagLabel,
+  TagCloseButton,
+  Wrap,
+  WrapItem,
+  useColorModeValue,
+} from '@chakra-ui/react'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate, useLocation } from 'react-router-dom'
+import MilkdownEditor from '../components/editor/MilkdownEditor'
+import { ErrorBoundary, apiService } from '../core'
 
 // Declare global interface for window object
 declare global {
   interface Window {
     editorState?: {
-      content_markdown: string;
-      title: string;
-      handlePublish: () => Promise<boolean>;
-    };
+      content_markdown: string
+      title: string
+      handlePublish: () => Promise<boolean>
+    }
   }
 }
 
-const AUTO_SAVE_DELAY = 5000; // 5 seconds delay for backend auto-save
-const LOCAL_SAVE_DELAY = 1000; // 1 second for localStorage backup
+const AUTO_SAVE_DELAY = 5000 // 5 seconds delay for backend auto-save
+const LOCAL_SAVE_DELAY = 1000 // 1 second for localStorage backup
 
 const BlogEditor = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const toast = useToast();
-  const location = useLocation();
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const toast = useToast()
+  const location = useLocation()
 
   // Color mode values`
-  const textTertiary = useColorModeValue('gray.500', 'text.tertiary');
-  const textAuthor = useColorModeValue('gray.700', 'text.secondary');
-  const bgPrimary = useColorModeValue('white', 'bg.secondary');
-  const borderColor = useColorModeValue('gray.200', 'border.subtle');
+  const textTertiary = useColorModeValue('gray.500', 'text.tertiary')
+  const textAuthor = useColorModeValue('gray.700', 'text.secondary')
+  const bgPrimary = useColorModeValue('white', 'bg.secondary')
+  const borderColor = useColorModeValue('gray.200', 'border.subtle')
 
   // Parse URL parameters and router state
-  const postIdParam = new URLSearchParams(location.search).get('id');
-  const routerPost = location.state?.blog;
-  const authorizedEdit = location.state?.authorizedEdit || false;
+  const postIdParam = new URLSearchParams(location.search).get('id')
+  const routerPost = location.state?.blog
+  const authorizedEdit = location.state?.authorizedEdit || false
 
   // State management
-  const [title, setTitle] = useState('');
-  const [postId, setPostId] = useState<number | null>(null);
-  const [contentMarkdown, setContentMarkdown] = useState('');
-  const [contentJSON, setContentJSON] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const [title, setTitle] = useState('')
+  const [postId, setPostId] = useState<number | null>(null)
+  const [contentMarkdown, setContentMarkdown] = useState('')
+  const [contentJSON, setContentJSON] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
 
   // Refs for auto-save timers and initial content tracking
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialContentSet = useRef<boolean>(false);
-  const editorInitialContent = useRef<string>('');
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const initialContentSet = useRef<boolean>(false)
+  const editorInitialContent = useRef<string>('')
 
   // Load post content on mount
   useEffect(() => {
-    console.log('🚀 BlogEditor mounted with postIdParam:', postIdParam, 'routerPost:', routerPost?.id);
+    console.log(
+      '🚀 BlogEditor mounted with postIdParam:',
+      postIdParam,
+      'routerPost:',
+      routerPost?.id,
+    )
 
     const loadPost = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        let post = routerPost;
+        let post = routerPost
 
         // Load by ID if URL parameter exists and no router state
         if (postIdParam && !post) {
-          console.log('🔗 Loading post by ID:', postIdParam);
-          const response = await apiService.get<{ data: any }>(`/posts/${postIdParam}`);
-          post = response.data;
+          console.log('🔗 Loading post by ID:', postIdParam)
+          const response = await apiService.get<{ data: any }>(`/posts/${postIdParam}`)
+          post = response.data
 
           if (!post) {
-            console.error('❌ Post not found for ID:', postIdParam);
+            console.error('❌ Post not found for ID:', postIdParam)
             toast({
               title: 'Error',
               description: 'Post not found',
               status: 'error',
               duration: 3000,
               isClosable: true,
-            });
-            setIsLoading(false);
-            return;
+            })
+            setIsLoading(false)
+            return
           }
 
           // Access Control: Check if user is owner and has authorization
           if (!user || post.user_id !== user.id) {
-            console.error('❌ Unauthorized access attempt to edit post:', postIdParam);
+            console.error('❌ Unauthorized access attempt to edit post:', postIdParam)
             toast({
               title: 'Access Denied',
-              description: 'You do not have permission to edit this post. Only the post owner can edit from their profile.',
+              description:
+                'You do not have permission to edit this post. Only the post owner can edit from their profile.',
               status: 'error',
               duration: 5000,
               isClosable: true,
-            });
-            navigate(`/blog/${postIdParam}`);
-            return;
+            })
+            navigate(`/blog/${postIdParam}`)
+            return
           }
 
           // Check if access is authorized (coming from Profile page)
           if (!authorizedEdit) {
-            console.error('❌ Unauthorized direct access to editor:', postIdParam);
+            console.error('❌ Unauthorized direct access to editor:', postIdParam)
             toast({
               title: 'Access Denied',
               description: 'Please use the Edit option from your profile to edit your posts.',
               status: 'warning',
               duration: 5000,
               isClosable: true,
-            });
-            navigate(`/blog/${postIdParam}`);
-            return;
+            })
+            navigate(`/blog/${postIdParam}`)
+            return
           }
         }
 
         // Initialize state from loaded post
         if (post) {
-          console.log('📋 Loading post:', post.title, 'with content length:', post.content_markdown?.length || 0);
-          setTitle(post.title || '');
-          setPostId(post.id);
-          setContentMarkdown(post.content_markdown || '');
-          setContentJSON(post.content_json || '');
+          console.log(
+            '📋 Loading post:',
+            post.title,
+            'with content length:',
+            post.content_markdown?.length || 0,
+          )
+          setTitle(post.title || '')
+          setPostId(post.id)
+          setContentMarkdown(post.content_markdown || '')
+          setContentJSON(post.content_json || '')
           // Load tags if available
           if (post.tags && Array.isArray(post.tags)) {
-            const tagNames = post.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name);
-            setTags(tagNames);
+            const tagNames = post.tags.map((tag: any) => (typeof tag === 'string' ? tag : tag.name))
+            setTags(tagNames)
           }
           // Set initial content for editor (only once)
-          editorInitialContent.current = post.content_markdown || '';
-          console.log('✅ Post loaded successfully, initialContentSet:', true);
+          editorInitialContent.current = post.content_markdown || ''
+          console.log('✅ Post loaded successfully, initialContentSet:', true)
         } else {
           // New post
-          console.log('🆕 Initializing new post');
-          editorInitialContent.current = '';
+          console.log('🆕 Initializing new post')
+          editorInitialContent.current = ''
         }
-        initialContentSet.current = true;
+        initialContentSet.current = true
       } catch (error) {
-        console.error('❌ Error loading post:', error);
+        console.error('❌ Error loading post:', error)
         toast({
           title: 'Error',
           description: 'Failed to load post',
           status: 'error',
           duration: 3000,
           isClosable: true,
-        });
+        })
       } finally {
-        console.log('✅ Loading complete, isLoading set to false');
-        setIsLoading(false);
+        console.log('✅ Loading complete, isLoading set to false')
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadPost();
-  }, [postIdParam, routerPost, toast, user, authorizedEdit, navigate]);
+    loadPost()
+  }, [postIdParam, routerPost, toast, user, authorizedEdit, navigate])
 
   // Share editor state with Navbar
   useEffect(() => {
@@ -155,40 +181,43 @@ const BlogEditor = () => {
       window.editorState = {
         content_markdown: contentMarkdown,
         title: title,
-        handlePublish: handlePublish
-      };
+        handlePublish: handlePublish,
+      }
     }
 
     return () => {
       // Clean up global state
       if (typeof window !== 'undefined') {
-        window.editorState = undefined;
+        window.editorState = undefined
       }
-    };
-  }, [contentMarkdown, contentJSON, title]);
+    }
+  }, [contentMarkdown, contentJSON, title])
 
   // Local storage backup (1 second debounce)
   const saveToLocalStorage = useCallback(() => {
-    if (!title.trim() || !contentMarkdown) return;
+    if (!title.trim() || !contentMarkdown) return
 
     try {
-      localStorage.setItem('blog_draft_backup', JSON.stringify({
-        title,
-        contentMarkdown,
-        contentJSON,
-        timestamp: new Date().toISOString()
-      }));
+      localStorage.setItem(
+        'blog_draft_backup',
+        JSON.stringify({
+          title,
+          contentMarkdown,
+          contentJSON,
+          timestamp: new Date().toISOString(),
+        }),
+      )
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error('Error saving to localStorage:', error)
     }
-  }, [title, contentMarkdown, contentJSON]);
+  }, [title, contentMarkdown, contentJSON])
 
   // Backend auto-save (5 second debounce)
   const autoSave = useCallback(async () => {
-    if (!title.trim() || !contentMarkdown) return;
+    if (!title.trim() || !contentMarkdown) return
 
-    setSaveStatus('saving');
-    setIsSaving(true);
+    setSaveStatus('saving')
+    setIsSaving(true)
 
     try {
       const postData = {
@@ -196,77 +225,77 @@ const BlogEditor = () => {
         content_markdown: contentMarkdown,
         content_json: contentJSON || '{}',
         status: 'draft',
-        tag_names: tags
-      };
+        tag_names: tags,
+      }
 
-      let response;
+      let response
       if (postId) {
         // Update existing post
-        response = await apiService.patch<{ data: any }>(`/posts/${postId}`, postData);
+        response = await apiService.patch<{ data: any }>(`/posts/${postId}`, postData)
       } else {
         // Create new post
-        response = await apiService.post<{ data: any }>('/posts', postData);
+        response = await apiService.post<{ data: any }>('/posts', postData)
         if (response.data?.id) {
-          setPostId(response.data.id);
+          setPostId(response.data.id)
         }
       }
 
-      setSaveStatus('saved');
-      console.log('✅ Auto-saved to backend');
+      setSaveStatus('saved')
+      console.log('✅ Auto-saved to backend')
     } catch (error) {
-      console.error('Error auto-saving to backend:', error);
-      setSaveStatus('error');
+      console.error('Error auto-saving to backend:', error)
+      setSaveStatus('error')
       // Don't show toast for auto-save errors to avoid interrupting user
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  }, [title, contentMarkdown, contentJSON, postId, tags]);
+  }, [title, contentMarkdown, contentJSON, postId, tags])
 
   // Set up auto-save timers
   useEffect(() => {
     // Clear existing timers
     if (localSaveTimer.current) {
-      clearTimeout(localSaveTimer.current);
+      clearTimeout(localSaveTimer.current)
     }
     if (autoSaveTimer.current) {
-      clearTimeout(autoSaveTimer.current);
+      clearTimeout(autoSaveTimer.current)
     }
 
     // Set new timers
-    localSaveTimer.current = setTimeout(saveToLocalStorage, LOCAL_SAVE_DELAY);
-    autoSaveTimer.current = setTimeout(autoSave, AUTO_SAVE_DELAY);
+    localSaveTimer.current = setTimeout(saveToLocalStorage, LOCAL_SAVE_DELAY)
+    autoSaveTimer.current = setTimeout(autoSave, AUTO_SAVE_DELAY)
 
     return () => {
       if (localSaveTimer.current) {
-        clearTimeout(localSaveTimer.current);
+        clearTimeout(localSaveTimer.current)
       }
       if (autoSaveTimer.current) {
-        clearTimeout(autoSaveTimer.current);
+        clearTimeout(autoSaveTimer.current)
       }
-    };
-  }, [saveToLocalStorage, autoSave]);
+    }
+  }, [saveToLocalStorage, autoSave])
 
   // Handle editor content changes - memoized to prevent unnecessary re-renders
   const handleEditorChange = useCallback((markdown: string, prosemirrorJSON: string) => {
-    setContentMarkdown(markdown);
+    setContentMarkdown(markdown)
 
     // Validate and store ProseMirror JSON
     try {
       // Validate that it's proper JSON
-      const parsed = JSON.parse(prosemirrorJSON);
+      const parsed = JSON.parse(prosemirrorJSON)
 
       // Validate it has the expected ProseMirror structure
       if (parsed && typeof parsed === 'object') {
-        setContentJSON(prosemirrorJSON);
+        setContentJSON(prosemirrorJSON)
       } else {
-        console.warn('⚠️ Invalid ProseMirror JSON structure, using fallback');
-        setContentJSON('{}');
+        console.warn('⚠️ Invalid ProseMirror JSON structure, using fallback')
+        setContentJSON('{}')
       }
     } catch (error) {
-      console.error('❌ Failed to parse ProseMirror JSON:', error);
-      setContentJSON('{}');
+      console.error('❌ Failed to parse ProseMirror JSON:', error)
+      setContentJSON('{}')
     }
-  }, []); // Empty deps - this function never needs to change
+  }, []) // Empty deps - this function never needs to change
 
   // Handle publishing a post
   const handlePublish = async () => {
@@ -277,8 +306,8 @@ const BlogEditor = () => {
         status: 'error',
         duration: 3000,
         isClosable: true,
-      });
-      return false;
+      })
+      return false
     }
 
     if (!contentMarkdown.trim()) {
@@ -288,8 +317,8 @@ const BlogEditor = () => {
         status: 'error',
         duration: 3000,
         isClosable: true,
-      });
-      return false;
+      })
+      return false
     }
 
     try {
@@ -298,26 +327,26 @@ const BlogEditor = () => {
         content_markdown: contentMarkdown,
         content_json: contentJSON || '{}',
         status: 'published',
-        tag_names: tags
-      };
-
-      let response;
-      if (postId) {
-        // Update existing post
-        response = await apiService.put<{ data: any }>(`/posts/${postId}`, postData);
-      } else {
-        // Create new post
-        response = await apiService.post<{ data: any }>('/posts', postData);
+        tag_names: tags,
       }
 
-      const savedPost = response.data;
+      let response
+      if (postId) {
+        // Update existing post
+        response = await apiService.put<{ data: any }>(`/posts/${postId}`, postData)
+      } else {
+        // Create new post
+        response = await apiService.post<{ data: any }>('/posts', postData)
+      }
+
+      const savedPost = response.data
 
       if (!savedPost) {
-        throw new Error('Failed to save blog post');
+        throw new Error('Failed to save blog post')
       }
 
       // Clear localStorage backup
-      localStorage.removeItem('blog_draft_backup');
+      localStorage.removeItem('blog_draft_backup')
 
       // Display success message
       toast({
@@ -326,13 +355,13 @@ const BlogEditor = () => {
         status: 'success',
         duration: 3000,
         isClosable: true,
-      });
+      })
 
       // Navigate to the blog post
-      navigate(`/blog/${savedPost.id}`);
-      return true;
+      navigate(`/blog/${savedPost.id}`)
+      return true
     } catch (error: any) {
-      console.error('Error publishing blog post:', error);
+      console.error('Error publishing blog post:', error)
 
       // Display error message
       toast({
@@ -341,36 +370,36 @@ const BlogEditor = () => {
         status: 'error',
         duration: 3000,
         isClosable: true,
-      });
+      })
 
-      return false;
+      return false
     }
-  };
+  }
 
   // Save status text
   const getSaveStatusText = () => {
-    if (isSaving || saveStatus === 'saving') return 'Saving...';
-    if (saveStatus === 'error') return 'Save failed';
-    if (postId) return 'Draft saved';
-    return 'Draft';
-  };
+    if (isSaving || saveStatus === 'saving') return 'Saving...'
+    if (saveStatus === 'error') return 'Save failed'
+    if (postId) return 'Draft saved'
+    return 'Draft'
+  }
 
   // Handle tag addition
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
-      e.preventDefault();
-      const newTag = tagInput.trim().toLowerCase();
+      e.preventDefault()
+      const newTag = tagInput.trim().toLowerCase()
       if (!tags.includes(newTag)) {
-        setTags([...tags, newTag]);
+        setTags([...tags, newTag])
       }
-      setTagInput('');
+      setTagInput('')
     }
-  };
+  }
 
   // Handle tag removal
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+    setTags(tags.filter((tag) => tag !== tagToRemove))
+  }
 
   return (
     <Container maxW="container.xl" p={5}>
@@ -385,7 +414,13 @@ const BlogEditor = () => {
           </HStack>
           <Text
             fontSize="sm"
-            color={saveStatus === 'error' ? 'red.500' : saveStatus === 'saving' ? 'blue.500' : 'green.500'}
+            color={
+              saveStatus === 'error'
+                ? 'red.500'
+                : saveStatus === 'saving'
+                  ? 'blue.500'
+                  : 'green.500'
+            }
           >
             {getSaveStatusText()}
           </Text>
@@ -454,7 +489,7 @@ const BlogEditor = () => {
         )}
       </VStack>
     </Container>
-  );
-};
+  )
+}
 
-export default BlogEditor;
+export default BlogEditor

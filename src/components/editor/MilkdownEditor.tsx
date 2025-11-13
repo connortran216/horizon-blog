@@ -11,166 +11,181 @@
  * - Centralized configuration from editor.config.ts
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Box, Tabs, TabList, Tab, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
-import { WarningIcon } from '@chakra-ui/icons';
-import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx } from '@milkdown/core';
-import { commonmark } from '@milkdown/preset-commonmark';
-import { gfm } from '@milkdown/preset-gfm';
-import { listener, listenerCtx } from '@milkdown/plugin-listener';
-import { history } from '@milkdown/plugin-history';
-import { clipboard } from '@milkdown/plugin-clipboard';
-import { prism, prismConfig } from '@milkdown/plugin-prism';
-import { nord } from '@milkdown/theme-nord';
-import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
-import { EDITOR_CONFIG } from '../../config/editor.config';
+import React, { useState, useCallback, useEffect, useRef } from 'react'
+import { Box, Tabs, TabList, Tab, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react'
+import { WarningIcon } from '@chakra-ui/icons'
+import {
+  Editor,
+  rootCtx,
+  defaultValueCtx,
+  editorViewOptionsCtx,
+  editorViewCtx,
+} from '@milkdown/core'
+import { commonmark } from '@milkdown/preset-commonmark'
+import { gfm } from '@milkdown/preset-gfm'
+import { listener, listenerCtx } from '@milkdown/plugin-listener'
+import { history } from '@milkdown/plugin-history'
+import { clipboard } from '@milkdown/plugin-clipboard'
+import { prism, prismConfig } from '@milkdown/plugin-prism'
+import { nord } from '@milkdown/theme-nord'
+import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
+import { EDITOR_CONFIG } from '../../config/editor.config'
 
 // Import Prism themes
-import 'prismjs/themes/prism-okaidia.css';
-import '@milkdown/theme-nord/style.css';
+import 'prismjs/themes/prism-okaidia.css'
+import '@milkdown/theme-nord/style.css'
 
 interface MilkdownEditorProps {
-  initialContent?: string;
-  onChange?: (markdown: string, prosemirrorJSON: string) => void;
-  placeholder?: string;
-  readOnly?: boolean; // If true, starts in view mode and hides toggle button
+  initialContent?: string
+  onChange?: (markdown: string, prosemirrorJSON: string) => void
+  placeholder?: string
+  readOnly?: boolean // If true, starts in view mode and hides toggle button
 }
 
-type EditorMode = 'edit' | 'view';
+type EditorMode = 'edit' | 'view'
 
 const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> = ({
   initialContent = '',
   onChange,
   mode,
 }) => {
-  const [editorError, setEditorError] = useState<string | null>(null);
-  const scrollPositionRef = useRef<number>(0);
-  const editorContainerRef = useRef<HTMLDivElement>(null);
-  const editorInstanceRef = useRef<Editor | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null)
+  const scrollPositionRef = useRef<number>(0)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
+  const editorInstanceRef = useRef<Editor | null>(null)
 
   // Preserve scroll position when switching modes
   useEffect(() => {
     if (EDITOR_CONFIG.behavior.preservePosition && editorContainerRef.current) {
       if (mode === 'view') {
         // Save scroll position when entering view mode
-        scrollPositionRef.current = editorContainerRef.current.scrollTop;
+        scrollPositionRef.current = editorContainerRef.current.scrollTop
       } else {
         // Restore scroll position when entering edit mode
         setTimeout(() => {
           if (editorContainerRef.current) {
-            editorContainerRef.current.scrollTop = scrollPositionRef.current;
+            editorContainerRef.current.scrollTop = scrollPositionRef.current
           }
-        }, 100);
+        }, 100)
       }
     }
-  }, [mode]);
+  }, [mode])
 
   // Memoize onChange callback to maintain referential stability
-  const stableOnChange = useCallback((markdown: string, json: string) => {
-    if (onChange) {
-      onChange(markdown, json);
-    }
-  }, [onChange]);
+  const stableOnChange = useCallback(
+    (markdown: string, json: string) => {
+      if (onChange) {
+        onChange(markdown, json)
+      }
+    },
+    [onChange],
+  )
 
   // Configure Milkdown editor
-  const { get } = useEditor((root) => {
-    if (EDITOR_CONFIG.debug?.logLifecycle) {
-      console.log('🔧 Creating Milkdown editor with initial content:', initialContent?.substring(0, 50));
-    }
-
-    try {
-      let editor = Editor.make()
-        .config((ctx) => {
-          ctx.set(rootCtx, root);
-
-          // Start editor in editable state - the useEffect will handle mode toggling
-          // This avoids stale closure issues with the mode variable
-          ctx.set(editorViewOptionsCtx, {
-            editable: () => true,
-            attributes: {
-              class: 'milkdown-editor-content',
-              spellcheck: 'true',
-            },
-          });
-
-          // Set initial content
-          if (initialContent) {
-            ctx.set(defaultValueCtx, initialContent);
-          }
-
-          // Configure Prism for code syntax highlighting
-          if (EDITOR_CONFIG.features.codeBlockHighlighting) {
-            ctx.set(prismConfig.key, {
-              configureRefractor: () => {
-                // Prism languages are loaded automatically
-              },
-            });
-          }
-
-          // Listen to markdown changes
-          ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
-            if (markdown !== prevMarkdown) {
-              // Extract ProseMirror JSON from the editor state using proper context API
-              try {
-                const view = ctx.get(editorViewCtx);
-
-                let prosemirrorJSON = '{}';
-                if (view?.state?.doc) {
-                  // Properly extract the ProseMirror document as JSON
-                  prosemirrorJSON = JSON.stringify(view.state.doc.toJSON());
-
-                  if (EDITOR_CONFIG.debug?.logLifecycle) {
-                    console.log('📝 ProseMirror JSON extracted:', {
-                      markdown: markdown.substring(0, 50) + '...',
-                      jsonSize: prosemirrorJSON.length,
-                      nodeCount: view.state.doc.childCount
-                    });
-                  }
-                }
-
-                stableOnChange(markdown, prosemirrorJSON);
-              } catch (error) {
-                console.error('❌ Error extracting ProseMirror JSON:', error);
-                // Fallback: send markdown with empty JSON
-                stableOnChange(markdown, '{}');
-              }
-            }
-          });
-        })
-        .config(nord)
-        .use(commonmark)
-        .use(listener);
-
-      // Apply optional plugins based on config (already memoized)
-      if (EDITOR_CONFIG.features.gfm) {
-        editor = editor.use(gfm);
-      }
-      if (EDITOR_CONFIG.features.history) {
-        editor = editor.use(history);
-      }
-      if (EDITOR_CONFIG.features.clipboard) {
-        editor = editor.use(clipboard);
-      }
-      if (EDITOR_CONFIG.features.codeBlockHighlighting) {
-        editor = editor.use(prism);
-      }
-
-      // Store the editor instance for programmatic access
-      editorInstanceRef.current = editor;
-
+  const { get } = useEditor(
+    (root) => {
       if (EDITOR_CONFIG.debug?.logLifecycle) {
-        console.log('✅ Milkdown editor instance created and stored');
+        console.log(
+          '🔧 Creating Milkdown editor with initial content:',
+          initialContent?.substring(0, 50),
+        )
       }
 
-      return editor;
-    } catch (error: any) {
-      console.error('❌ Error setting up Milkdown editor:', error);
-      setEditorError(error.message || 'Failed to setup editor');
-    }
-    // Note: Intentionally NOT including initialContent in deps to prevent recreation
-    // The editor is created once with initial content, then updates via listener
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stableOnChange]);
+      try {
+        let editor = Editor.make()
+          .config((ctx) => {
+            ctx.set(rootCtx, root)
+
+            // Start editor in editable state - the useEffect will handle mode toggling
+            // This avoids stale closure issues with the mode variable
+            ctx.set(editorViewOptionsCtx, {
+              editable: () => true,
+              attributes: {
+                class: 'milkdown-editor-content',
+                spellcheck: 'true',
+              },
+            })
+
+            // Set initial content
+            if (initialContent) {
+              ctx.set(defaultValueCtx, initialContent)
+            }
+
+            // Configure Prism for code syntax highlighting
+            if (EDITOR_CONFIG.features.codeBlockHighlighting) {
+              ctx.set(prismConfig.key, {
+                configureRefractor: () => {
+                  // Prism languages are loaded automatically
+                },
+              })
+            }
+
+            // Listen to markdown changes
+            ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
+              if (markdown !== prevMarkdown) {
+                // Extract ProseMirror JSON from the editor state using proper context API
+                try {
+                  const view = ctx.get(editorViewCtx)
+
+                  let prosemirrorJSON = '{}'
+                  if (view?.state?.doc) {
+                    // Properly extract the ProseMirror document as JSON
+                    prosemirrorJSON = JSON.stringify(view.state.doc.toJSON())
+
+                    if (EDITOR_CONFIG.debug?.logLifecycle) {
+                      console.log('📝 ProseMirror JSON extracted:', {
+                        markdown: markdown.substring(0, 50) + '...',
+                        jsonSize: prosemirrorJSON.length,
+                        nodeCount: view.state.doc.childCount,
+                      })
+                    }
+                  }
+
+                  stableOnChange(markdown, prosemirrorJSON)
+                } catch (error) {
+                  console.error('❌ Error extracting ProseMirror JSON:', error)
+                  // Fallback: send markdown with empty JSON
+                  stableOnChange(markdown, '{}')
+                }
+              }
+            })
+          })
+          .config(nord)
+          .use(commonmark)
+          .use(listener)
+
+        // Apply optional plugins based on config (already memoized)
+        if (EDITOR_CONFIG.features.gfm) {
+          editor = editor.use(gfm)
+        }
+        if (EDITOR_CONFIG.features.history) {
+          editor = editor.use(history)
+        }
+        if (EDITOR_CONFIG.features.clipboard) {
+          editor = editor.use(clipboard)
+        }
+        if (EDITOR_CONFIG.features.codeBlockHighlighting) {
+          editor = editor.use(prism)
+        }
+
+        // Store the editor instance for programmatic access
+        editorInstanceRef.current = editor
+
+        if (EDITOR_CONFIG.debug?.logLifecycle) {
+          console.log('✅ Milkdown editor instance created and stored')
+        }
+
+        return editor
+      } catch (error: any) {
+        console.error('❌ Error setting up Milkdown editor:', error)
+        setEditorError(error.message || 'Failed to setup editor')
+      }
+      // Note: Intentionally NOT including initialContent in deps to prevent recreation
+      // The editor is created once with initial content, then updates via listener
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [stableOnChange],
+  )
 
   // Note: We intentionally don't have a useEffect to update editor content from props
   // because that would cause the editorView context error. Instead, we rely on:
@@ -180,46 +195,39 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 
   // Update editor editable state when mode changes
   useEffect(() => {
-    const editor = get();
+    const editor = get()
     if (editor) {
       editor.action((ctx) => {
         // Get the ProseMirror view instance (not options!)
-        const view = ctx.get(editorViewCtx);
-        const currentOptions = ctx.get(editorViewOptionsCtx);
+        const view = ctx.get(editorViewCtx)
+        const currentOptions = ctx.get(editorViewOptionsCtx)
 
         // Update the editable option
         ctx.set(editorViewOptionsCtx, {
           ...currentOptions,
           editable: () => mode === 'edit',
-        });
+        })
 
         // CRITICAL: Force ProseMirror to reapply the editable state
-        view.updateState(view.state);
+        view.updateState(view.state)
 
         if (EDITOR_CONFIG.debug?.logLifecycle) {
-          console.log(`🔄 Editor mode changed to: ${mode}`);
+          console.log(`🔄 Editor mode changed to: ${mode}`)
         }
-      });
+      })
     }
-  }, [mode, get]);
-
+  }, [mode, get])
 
   // Color mode values for error box
-  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)');
-  const errorBorderColor = useColorModeValue('orange.200', 'orange.700');
-  const errorTextColor = useColorModeValue('orange.600', 'orange.300');
-  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary');
+  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)')
+  const errorBorderColor = useColorModeValue('orange.200', 'orange.700')
+  const errorTextColor = useColorModeValue('orange.600', 'orange.300')
+  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary')
 
   // Show error if editor failed to initialize
   if (editorError) {
     return (
-      <Box
-        p={6}
-        border="1px"
-        borderColor={errorBorderColor}
-        borderRadius="md"
-        bg={errorBg}
-      >
+      <Box p={6} border="1px" borderColor={errorBorderColor} borderRadius="md" bg={errorBg}>
         <VStack spacing={4} align="stretch">
           <HStack>
             <WarningIcon color="orange.500" />
@@ -233,24 +241,24 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           </Text>
         </VStack>
       </Box>
-    );
+    )
   }
 
   // Color mode values for editor styling
-  const editorBg = useColorModeValue('white', 'bg.secondary');
-  const editorBorderColor = useColorModeValue('gray.200', 'border.default');
-  const editorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary');
-  const headingH1Color = useColorModeValue('gray.900', 'text.primary');
-  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary');
-  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary');
-  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock');
-  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default');
-  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary');
-  const linkColor = useColorModeValue('blue.500', 'link.default');
-  const linkHoverColor = useColorModeValue('blue.600', 'link.hover');
-  const hrBorderColor = useColorModeValue('gray.300', 'border.default');
-  const tableBorderColor = useColorModeValue('gray.300', 'border.default');
-  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary');
+  const editorBg = useColorModeValue('white', 'bg.secondary')
+  const editorBorderColor = useColorModeValue('gray.200', 'border.default')
+  const editorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary')
+  const headingH1Color = useColorModeValue('gray.900', 'text.primary')
+  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary')
+  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary')
+  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock')
+  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default')
+  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary')
+  const linkColor = useColorModeValue('blue.500', 'link.default')
+  const linkHoverColor = useColorModeValue('blue.600', 'link.hover')
+  const hrBorderColor = useColorModeValue('gray.300', 'border.default')
+  const tableBorderColor = useColorModeValue('gray.300', 'border.default')
+  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary')
 
   // Render Milkdown editor (both edit and view modes)
   return (
@@ -280,13 +288,13 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           maxWidth: mode === 'view' ? '100%' : 'none',
 
           // Typography
-          'p': {
+          p: {
             marginBottom: mode === 'view' ? '1.2em' : '1em',
             lineHeight: mode === 'view' ? '1.8' : '1.7',
           },
 
           // Headings
-          'h1': {
+          h1: {
             fontSize: mode === 'view' ? '2.8em' : '2.5em',
             fontWeight: 'bold',
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
@@ -294,7 +302,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             lineHeight: '1.2',
             color: mode === 'view' ? headingH1Color : 'inherit',
           },
-          'h2': {
+          h2: {
             fontSize: mode === 'view' ? '2.2em' : '2em',
             fontWeight: 'bold',
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
@@ -302,7 +310,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             lineHeight: '1.3',
             color: mode === 'view' ? headingH2H3Color : 'inherit',
           },
-          'h3': {
+          h3: {
             fontSize: mode === 'view' ? '1.7em' : '1.5em',
             fontWeight: 'bold',
             marginTop: mode === 'view' ? '0.8em' : '0.5em',
@@ -310,19 +318,19 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             lineHeight: '1.4',
             color: mode === 'view' ? headingH2H3Color : 'inherit',
           },
-          'h4': {
+          h4: {
             fontSize: '1.25em',
             fontWeight: 'bold',
             marginTop: '0.5em',
             marginBottom: '0.5em',
           },
-          'h5': {
+          h5: {
             fontSize: '1.1em',
             fontWeight: 'bold',
             marginTop: '0.5em',
             marginBottom: '0.5em',
           },
-          'h6': {
+          h6: {
             fontSize: '1em',
             fontWeight: 'bold',
             marginTop: '0.5em',
@@ -334,19 +342,19 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             paddingLeft: '2em',
             marginBottom: '1em',
           },
-          'li': {
+          li: {
             marginBottom: '0.5em',
           },
 
           // Code
-          'code': {
+          code: {
             backgroundColor: inlineCodeBg,
             padding: '0.2em 0.4em',
             borderRadius: 'sm',
             fontSize: '0.9em',
             fontFamily: 'monospace',
           },
-          'pre': {
+          pre: {
             backgroundColor: preCodeBg,
             color: 'white',
             padding: '1em',
@@ -354,7 +362,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             marginBottom: '1em',
             overflow: 'auto',
 
-            'code': {
+            code: {
               backgroundColor: 'transparent',
               padding: '0',
               color: 'inherit',
@@ -362,7 +370,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
 
           // Blockquote
-          'blockquote': {
+          blockquote: {
             borderLeft: '4px solid',
             borderColor: blockquoteBorderColor,
             paddingLeft: '1em',
@@ -373,7 +381,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
 
           // Links
-          'a': {
+          a: {
             color: linkColor,
             textDecoration: 'underline',
             '&:hover': {
@@ -382,7 +390,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
 
           // Horizontal rule
-          'hr': {
+          hr: {
             border: 'none',
             borderTop: '2px solid',
             borderColor: hrBorderColor,
@@ -391,7 +399,7 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
 
           // Tables
-          'table': {
+          table: {
             borderCollapse: 'collapse',
             width: '100%',
             marginBottom: '1em',
@@ -402,13 +410,13 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
             padding: '0.5em',
             textAlign: 'left',
           },
-          'th': {
+          th: {
             backgroundColor: tableHeaderBg,
             fontWeight: 'bold',
           },
 
           // Images
-          'img': {
+          img: {
             maxWidth: '100%',
             height: 'auto',
             borderRadius: 'md',
@@ -416,10 +424,10 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
           },
 
           // Strong and emphasis
-          'strong': {
+          strong: {
             fontWeight: 'bold',
           },
-          'em': {
+          em: {
             fontStyle: 'italic',
           },
 
@@ -432,101 +440,107 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
     >
       <Milkdown />
     </Box>
-  );
-};
+  )
+}
 
 const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
-  const { readOnly = false, initialContent = '', onChange } = props;
-  const [mode, setMode] = useState<EditorMode>(readOnly ? 'view' : 'edit');
-  const [tabIndex, setTabIndex] = useState(readOnly ? 1 : 0);
-  const [markdownContent, setMarkdownContent] = useState(initialContent);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const { readOnly = false, initialContent = '', onChange } = props
+  const [mode, setMode] = useState<EditorMode>(readOnly ? 'view' : 'edit')
+  const [tabIndex, setTabIndex] = useState(readOnly ? 1 : 0)
+  const [markdownContent, setMarkdownContent] = useState(initialContent)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const lineNumbersRef = useRef<HTMLDivElement>(null)
 
   // Tab color mode values to match theme
-  const tabColor = useColorModeValue('gray.600', 'text.secondary');
-  const tabSelectedColor = useColorModeValue('black', 'accent.primary');
-  const tabBorderColor = useColorModeValue('black', 'accent.primary');
+  const tabColor = useColorModeValue('gray.600', 'text.secondary')
+  const tabSelectedColor = useColorModeValue('black', 'accent.primary')
+  const tabBorderColor = useColorModeValue('black', 'accent.primary')
 
   // Color mode values for raw editor
-  const rawEditorBg = useColorModeValue('white', 'bg.secondary');
-  const rawEditorBorderColor = useColorModeValue('gray.200', 'border.default');
-  const rawEditorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary');
-  const lineNumbersBg = useColorModeValue('gray.50', 'obsidian.dark.bgTertiary');
-  const lineNumbersBorderColor = useColorModeValue('gray.200', 'border.subtle');
-  const lineNumbersColor = useColorModeValue('gray.500', 'text.tertiary');
+  const rawEditorBg = useColorModeValue('white', 'bg.secondary')
+  const rawEditorBorderColor = useColorModeValue('gray.200', 'border.default')
+  const rawEditorFocusBorderColor = useColorModeValue('blue.400', 'accent.primary')
+  const lineNumbersBg = useColorModeValue('gray.50', 'obsidian.dark.bgTertiary')
+  const lineNumbersBorderColor = useColorModeValue('gray.200', 'border.subtle')
+  const lineNumbersColor = useColorModeValue('gray.500', 'text.tertiary')
 
   // Track what content Preview tab has loaded to prevent unnecessary syncs
-  const lastSyncedContent = useRef<string>(initialContent);
+  const lastSyncedContent = useRef<string>(initialContent)
   // Track if we're switching tabs (to trigger sync) vs just typing (don't sync)
-  const isTabSwitching = useRef<boolean>(false);
+  const isTabSwitching = useRef<boolean>(false)
   // Stable key for MilkdownProvider to prevent recreation on every render
-  const milkdownKey = useRef<number>(0);
+  const milkdownKey = useRef<number>(0)
 
   // Controlled sync: Only update when switching TO Preview tab and content differs
   useEffect(() => {
     // Only sync if we're switching tabs AND content is different from what Preview has
     if (isTabSwitching.current && initialContent !== lastSyncedContent.current) {
-      setMarkdownContent(initialContent);
-      lastSyncedContent.current = initialContent;
+      setMarkdownContent(initialContent)
+      lastSyncedContent.current = initialContent
       // Increment key to force Preview remount with fresh content
-      milkdownKey.current += 1;
+      milkdownKey.current += 1
     }
     // Reset the tab switching flag
-    isTabSwitching.current = false;
-  }, [initialContent, mode]);
+    isTabSwitching.current = false
+  }, [initialContent, mode])
 
   // Sync line numbers scroll with textarea scroll
   const handleTextareaScroll = useCallback(() => {
     if (textareaRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop
     }
-  }, []);
+  }, [])
 
   // Handle tab change
-  const handleTabChange = useCallback((index: number) => {
-    if (readOnly) return;
-    // Mark that we're switching tabs so sync logic knows to update
-    isTabSwitching.current = true;
-    setTabIndex(index);
-    setMode(index === 0 ? 'edit' : 'view');
-  }, [readOnly]);
+  const handleTabChange = useCallback(
+    (index: number) => {
+      if (readOnly) return
+      // Mark that we're switching tabs so sync logic knows to update
+      isTabSwitching.current = true
+      setTabIndex(index)
+      setMode(index === 0 ? 'edit' : 'view')
+    },
+    [readOnly],
+  )
 
   // Handle raw markdown changes in Editor tab
-  const handleMarkdownChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    setMarkdownContent(newContent);
+  const handleMarkdownChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newContent = e.target.value
+      setMarkdownContent(newContent)
 
-    // Note: Raw editor sends empty ProseMirror JSON since it doesn't have a
-    // Milkdown instance. The JSON will be properly generated when switching to
-    // Preview tab or when the post is saved. This is acceptable because:
-    // 1. The markdown content is the source of truth
-    // 2. ProseMirror JSON can be regenerated from markdown at any time
-    // 3. Maintaining a hidden parser would add unnecessary complexity
-    if (onChange) {
-      onChange(newContent, '{}');
-    }
-  }, [onChange]);
+      // Note: Raw editor sends empty ProseMirror JSON since it doesn't have a
+      // Milkdown instance. The JSON will be properly generated when switching to
+      // Preview tab or when the post is saved. This is acceptable because:
+      // 1. The markdown content is the source of truth
+      // 2. ProseMirror JSON can be regenerated from markdown at any time
+      // 3. Maintaining a hidden parser would add unnecessary complexity
+      if (onChange) {
+        onChange(newContent, '{}')
+      }
+    },
+    [onChange],
+  )
 
   // Handle keyboard shortcut for toggling mode
   useEffect(() => {
-    if (readOnly) return;
+    if (readOnly) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isMod = e.metaKey || e.ctrlKey;
+      const isMod = e.metaKey || e.ctrlKey
       if (isMod && e.shiftKey && e.key === 'e') {
-        e.preventDefault();
+        e.preventDefault()
         // Mark that we're switching tabs
-        isTabSwitching.current = true;
-        const newIndex = tabIndex === 0 ? 1 : 0;
-        setTabIndex(newIndex);
-        setMode(newIndex === 0 ? 'edit' : 'view');
+        isTabSwitching.current = true
+        const newIndex = tabIndex === 0 ? 1 : 0
+        setTabIndex(newIndex)
+        setMode(newIndex === 0 ? 'edit' : 'view')
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabIndex, readOnly]);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [tabIndex, readOnly])
 
   return (
     <Box>
@@ -538,7 +552,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
               color={tabColor}
               _selected={{
                 color: tabSelectedColor,
-                borderColor: tabBorderColor
+                borderColor: tabBorderColor,
               }}
             >
               Editor
@@ -547,7 +561,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
               color={tabColor}
               _selected={{
                 color: tabSelectedColor,
-                borderColor: tabBorderColor
+                borderColor: tabBorderColor,
               }}
             >
               Preview
@@ -628,9 +642,9 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
         </MilkdownProvider>
       )}
     </Box>
-  );
-});
+  )
+})
 
-MilkdownEditor.displayName = 'MilkdownEditor';
+MilkdownEditor.displayName = 'MilkdownEditor'
 
-export default MilkdownEditor;
+export default MilkdownEditor

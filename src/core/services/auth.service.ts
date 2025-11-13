@@ -1,4 +1,4 @@
-import { User } from '../types/common.types';
+import { User } from '../types/common.types'
 import {
   LoginCredentials,
   RegisterData,
@@ -6,36 +6,36 @@ import {
   InvalidCredentialsError,
   UserAlreadyExistsError,
   IAuthService,
-  AUTH_STORAGE_KEYS
-} from '../types/auth.types';
-import { apiService } from './api.service';
-import { jwtDecode } from 'jwt-decode';
+  AUTH_STORAGE_KEYS,
+} from '../types/auth.types'
+import { apiService } from './api.service'
+import { jwtDecode } from 'jwt-decode'
 
 /**
  * API user response interface
  */
 interface ApiUserResponse {
-  id: number;
-  email: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
+  id: number
+  email: string
+  name: string
+  created_at: string
+  updated_at: string
 }
 
 interface AuthResponse {
-  token: string;
-  data: ApiUserResponse;
-  message: string;
+  token: string
+  data: ApiUserResponse
+  message: string
 }
 
 /**
  * JWT token payload interface
  */
 interface JWTPayload {
-  user_id: number;
-  email: string;
-  name: string;
-  exp: number;
+  user_id: number
+  email: string
+  name: string
+  exp: number
 }
 
 /**
@@ -50,32 +50,29 @@ export class AuthService implements IAuthService {
     try {
       // Validate input
       if (!credentials.email || !credentials.password) {
-        throw new InvalidCredentialsError();
+        throw new InvalidCredentialsError()
       }
 
       // Perform API login
-      const response: AuthResponse = await apiService.post('/auth/login', credentials);
+      const response: AuthResponse = await apiService.post('/auth/login', credentials)
 
       // Store the JWT token
-      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token);
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token)
 
       // Transform API user to FE format
-      const user = this.transformApiUserToUser(response.data);
-      return user;
+      const user = this.transformApiUserToUser(response.data)
+      return user
     } catch (error: any) {
       if (error instanceof AuthError) {
-        throw error;
+        throw error
       }
 
       // Handle API errors
       if (error.status === 401) {
-        throw new InvalidCredentialsError();
+        throw new InvalidCredentialsError()
       }
 
-      throw new AuthError(
-        error.message || 'Login failed. Please try again.',
-        'LOGIN_FAILED'
-      );
+      throw new AuthError(error.message || 'Login failed. Please try again.', 'LOGIN_FAILED')
     }
   }
 
@@ -85,38 +82,38 @@ export class AuthService implements IAuthService {
   async register(data: RegisterData): Promise<User> {
     try {
       // Validate input
-      this.validateRegistrationData(data);
+      this.validateRegistrationData(data)
 
       // Prepare registration data for API
       const registrationData = {
-        name: data.username,  // API expects 'name', FE uses 'username'
+        name: data.username, // API expects 'name', FE uses 'username'
         email: data.email,
         password: data.password,
-      };
+      }
 
       // Perform API registration
-      const response: AuthResponse = await apiService.post('/users', registrationData);
+      const response: AuthResponse = await apiService.post('/users', registrationData)
 
       // Store the JWT token
-      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token);
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token)
 
       // Transform API user to FE format
-      const user = this.transformApiUserToUser(response.data);
-      return user;
+      const user = this.transformApiUserToUser(response.data)
+      return user
     } catch (error: any) {
       if (error instanceof AuthError) {
-        throw error;
+        throw error
       }
 
       // Handle API errors
       if (error.status === 409) {
-        throw new UserAlreadyExistsError(data.email);
+        throw new UserAlreadyExistsError(data.email)
       }
 
       throw new AuthError(
         error.message || 'Registration failed. Please try again.',
-        'REGISTRATION_FAILED'
-      );
+        'REGISTRATION_FAILED',
+      )
     }
   }
 
@@ -125,7 +122,7 @@ export class AuthService implements IAuthService {
    */
   async logout(): Promise<void> {
     // Clear stored token
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
 
     // Client-side logout complete
     // Backend may have /auth/logout endpoint but not required for JWT + localStorage approach
@@ -137,12 +134,12 @@ export class AuthService implements IAuthService {
    */
   decodeToken(token: string): User | null {
     try {
-      const decoded = jwtDecode<JWTPayload>(token);
+      const decoded = jwtDecode<JWTPayload>(token)
 
       // Check if token is expired
-      const now = Date.now() / 1000;
+      const now = Date.now() / 1000
       if (decoded.exp < now) {
-        return null;
+        return null
       }
 
       // Transform JWT payload to User
@@ -150,11 +147,11 @@ export class AuthService implements IAuthService {
         id: decoded.user_id,
         username: decoded.name,
         email: decoded.email,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${decoded.name}`
-      };
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${decoded.name}`,
+      }
     } catch (error) {
-      console.error('Failed to decode JWT token:', error);
-      return null;
+      console.error('Failed to decode JWT token:', error)
+      return null
     }
   }
 
@@ -163,19 +160,19 @@ export class AuthService implements IAuthService {
    * Not implemented - BE needs to add refresh endpoint
    */
   async refreshToken(): Promise<User | null> {
-    return null;
+    return null
   }
 
   /**
    * Get current authenticated user from stored token
    */
   async getCurrentUser(): Promise<User | null> {
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
     if (!token) {
-      return null;
+      return null
     }
 
-    return this.decodeToken(token);
+    return this.decodeToken(token)
   }
 
   /**
@@ -183,7 +180,7 @@ export class AuthService implements IAuthService {
    * Not implemented - determined by AuthContext state
    */
   async isAuthenticated(): Promise<boolean> {
-    return false;
+    return false
   }
 
   // /**
@@ -198,48 +195,36 @@ export class AuthService implements IAuthService {
 
   private validateRegistrationData(data: RegisterData): void {
     if (!data.username || data.username.length < 3) {
-      throw new AuthError(
-        'Username must be at least 3 characters long',
-        'INVALID_USERNAME'
-      );
+      throw new AuthError('Username must be at least 3 characters long', 'INVALID_USERNAME')
     }
 
     if (!data.email || !this.isValidEmail(data.email)) {
-      throw new AuthError(
-        'Please enter a valid email address',
-        'INVALID_EMAIL'
-      );
+      throw new AuthError('Please enter a valid email address', 'INVALID_EMAIL')
     }
 
     if (!data.password || data.password.length < 6) {
-      throw new AuthError(
-        'Password must be at least 6 characters long',
-        'INVALID_PASSWORD'
-      );
+      throw new AuthError('Password must be at least 6 characters long', 'INVALID_PASSWORD')
     }
 
     if (data.password !== data.confirmPassword) {
-      throw new AuthError(
-        'Passwords do not match',
-        'PASSWORD_MISMATCH'
-      );
+      throw new AuthError('Passwords do not match', 'PASSWORD_MISMATCH')
     }
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
   }
 
   private transformApiUserToUser(apiUser: ApiUserResponse): User {
     return {
       id: apiUser.id,
-      username: apiUser.name,  // API name -> FE username
+      username: apiUser.name, // API name -> FE username
       email: apiUser.email,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`, // Default avatar
-    };
+    }
   }
 }
 
 // Export singleton instance
-export const authService = new AuthService();
+export const authService = new AuthService()

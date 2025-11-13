@@ -13,37 +13,39 @@ import {
   HStack,
   Divider,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
-import { FaBookmark, FaClock } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
-import { getBlogRepository } from '../core/di/container';
-import { BlogPost } from '../core';
-import { useAuth } from '../context/AuthContext';
+} from '@chakra-ui/react'
+import { Link as RouterLink } from 'react-router-dom'
+import { FaBookmark, FaClock } from 'react-icons/fa'
+import { useEffect, useState } from 'react'
+import { getBlogRepository } from '../core/di/container'
+import { BlogPost } from '../core'
+import { useAuth } from '../context/AuthContext'
 
 // Default avatar for posts without author avatar
-const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60';
+const DEFAULT_AVATAR =
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
 // Default image for posts without featured image
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60';
+const DEFAULT_IMAGE =
+  'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60'
 
 const BlogCard = ({ post }: { post: BlogPost }) => {
   // Format date to a readable string
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  };
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  }
 
-  const borderColor = useColorModeValue('gray.200', 'border.subtle');
-  const authorColor = useColorModeValue('gray.700', 'text.secondary');
-  const dateColor = useColorModeValue('gray.500', 'text.tertiary');
-  const titleColor = useColorModeValue('gray.900', 'text.primary');
-  const titleHoverColor = useColorModeValue('gray.700', 'text.secondary');
-  const subtitleColor = useColorModeValue('gray.600', 'text.secondary');
-  const tagBg = useColorModeValue('gray.100', 'bg.tertiary');
-  const tagColor = useColorModeValue('gray.700', 'text.secondary');
-  const iconColor = useColorModeValue('gray.500', 'text.tertiary');
-  const bookmarkColor = useColorModeValue('gray.400', 'text.tertiary');
-  const bookmarkHoverColor = useColorModeValue('gray.600', 'text.secondary');
+  const borderColor = useColorModeValue('gray.200', 'border.subtle')
+  const authorColor = useColorModeValue('gray.700', 'text.secondary')
+  const dateColor = useColorModeValue('gray.500', 'text.tertiary')
+  const titleColor = useColorModeValue('gray.900', 'text.primary')
+  const titleHoverColor = useColorModeValue('gray.700', 'text.secondary')
+  const subtitleColor = useColorModeValue('gray.600', 'text.secondary')
+  const tagBg = useColorModeValue('gray.100', 'bg.tertiary')
+  const tagColor = useColorModeValue('gray.700', 'text.secondary')
+  const iconColor = useColorModeValue('gray.500', 'text.tertiary')
+  const bookmarkColor = useColorModeValue('gray.400', 'text.tertiary')
+  const bookmarkHoverColor = useColorModeValue('gray.600', 'text.secondary')
 
   return (
     <Box
@@ -58,9 +60,15 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
         <Stack flex="1" spacing={4}>
           <HStack spacing={3}>
             <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
-            <Text fontSize="sm" color={authorColor}>{post.author.username}</Text>
-            <Text fontSize="sm" color={dateColor}>·</Text>
-            <Text fontSize="sm" color={dateColor}>{formatDate(post.createdAt)}</Text>
+            <Text fontSize="sm" color={authorColor}>
+              {post.author.username}
+            </Text>
+            <Text fontSize="sm" color={dateColor}>
+              ·
+            </Text>
+            <Text fontSize="sm" color={dateColor}>
+              {formatDate(post.createdAt)}
+            </Text>
           </HStack>
 
           <Heading
@@ -75,25 +83,13 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
             {post.title}
           </Heading>
 
-          <Text
-            color={subtitleColor}
-            fontSize="16px"
-            noOfLines={2}
-            lineHeight="tall"
-          >
+          <Text color={subtitleColor} fontSize="16px" noOfLines={2} lineHeight="tall">
             {post.subtitle || ''}
           </Text>
 
           <HStack spacing={4} mt={2}>
             {post.tags && post.tags.length > 0 && (
-              <Text
-                px={3}
-                py={1}
-                bg={tagBg}
-                color={tagColor}
-                fontSize="sm"
-                rounded="full"
-              >
+              <Text px={3} py={1} bg={tagBg} color={tagColor} fontSize="sm" rounded="full">
                 {post.tags[0]}
               </Text>
             )}
@@ -112,13 +108,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           </HStack>
         </Stack>
 
-        <Box
-          w="200px"
-          h="134px"
-          rounded="md"
-          overflow="hidden"
-          flexShrink={0}
-        >
+        <Box w="200px" h="134px" rounded="md" overflow="hidden" flexShrink={0}>
           <Image
             src={post.featuredImage || DEFAULT_IMAGE}
             alt={post.title}
@@ -129,33 +119,33 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
         </Box>
       </Flex>
     </Box>
-  );
-};
+  )
+}
 
 const Home = () => {
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
 
   // Color mode values
-  const pageBg = useColorModeValue('#faf9f7', 'bg.page');
-  const heroBg = useColorModeValue('#faf9f7', 'bg.page');
-  const borderColor = useColorModeValue('gray.200', 'border.subtle');
-  const headingColor = useColorModeValue('gray.900', 'text.primary');
-  const textColor = useColorModeValue('gray.600', 'text.secondary');
-  const sectionBg = useColorModeValue('white', 'bg.secondary');
-  const shapeColor = useColorModeValue('black', 'obsidian.accent.primary');
-  const accentColor = useColorModeValue('#1a8917', 'obsidian.accent.secondary');
+  const pageBg = useColorModeValue('#faf9f7', 'bg.page')
+  const heroBg = useColorModeValue('#faf9f7', 'bg.page')
+  const borderColor = useColorModeValue('gray.200', 'border.subtle')
+  const headingColor = useColorModeValue('gray.900', 'text.primary')
+  const textColor = useColorModeValue('gray.600', 'text.secondary')
+  const sectionBg = useColorModeValue('white', 'bg.secondary')
+  const shapeColor = useColorModeValue('black', 'obsidian.accent.primary')
+  const accentColor = useColorModeValue('#1a8917', 'obsidian.accent.secondary')
 
   // Trending section specific colors
-  const trendingNumberColor = useColorModeValue('gray.200', 'border.default');
-  const trendingTitleHoverColor = useColorModeValue('gray.700', 'text.secondary');
-  const trendingMetaColor = useColorModeValue('gray.500', 'text.tertiary');
+  const trendingNumberColor = useColorModeValue('gray.200', 'border.default')
+  const trendingTitleHoverColor = useColorModeValue('gray.700', 'text.secondary')
+  const trendingMetaColor = useColorModeValue('gray.500', 'text.tertiary')
 
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
-        const result = await getBlogRepository().getPublishedPosts({ limit: 10 });
+        const result = await getBlogRepository().getPublishedPosts({ limit: 10 })
         if (result.success && result.data) {
           // Convert BlogPostSummary[] to BlogPost[] for compatibility
           const posts = result.data.map((summary: any) => ({
@@ -163,27 +153,33 @@ const Home = () => {
             content_markdown: '',
             content_json: '{}',
             user_id: 0,
-          }));
-          setBlogPosts(posts);
+          }))
+          setBlogPosts(posts)
         } else {
-          console.error('Failed to load blog posts:', result.error);
+          console.error('Failed to load blog posts:', result.error)
         }
       } catch (error) {
-        console.error('Error loading blog posts:', error);
+        console.error('Error loading blog posts:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadBlogPosts();
-  }, []);
+    loadBlogPosts()
+  }, [])
 
   return (
     <Box bg={pageBg}>
       {/* Hero Section */}
-      <Box borderBottom="1px" borderColor={borderColor} bg={heroBg} position="relative" overflow="hidden">
+      <Box
+        borderBottom="1px"
+        borderColor={borderColor}
+        bg={heroBg}
+        position="relative"
+        overflow="hidden"
+      >
         <Container maxW="container.xl" py={{ base: 20, md: 28 }}>
-          <Flex 
+          <Flex
             direction={{ base: 'column', md: 'row' }}
             align="center"
             justify="space-between"
@@ -211,7 +207,7 @@ const Home = () => {
               </Text>
               <Button
                 as={RouterLink}
-                to={user ? "/blog" : "/register"}
+                to={user ? '/blog' : '/register'}
                 bg={useColorModeValue('black', 'accent.primary')}
                 color="white"
                 rounded="full"
@@ -224,15 +220,15 @@ const Home = () => {
                 }}
                 width="fit-content"
               >
-                {user ? "Continue reading" : "Start reading"}
+                {user ? 'Continue reading' : 'Start reading'}
               </Button>
             </Stack>
 
             {/* Right side illustration */}
-            <Box 
-              position="relative" 
-              width={{ base: "full", md: "50%" }}
-              height={{ base: "300px", md: "500px" }}
+            <Box
+              position="relative"
+              width={{ base: 'full', md: '50%' }}
+              height={{ base: '300px', md: '500px' }}
               display={{ base: 'none', md: 'block' }}
             >
               <Box
@@ -302,7 +298,7 @@ const Home = () => {
               Trending on Horizon
             </Text>
           </HStack>
-          
+
           {isLoading ? (
             <Text>Loading trending posts...</Text>
           ) : blogPosts.length > 0 ? (
@@ -320,7 +316,9 @@ const Home = () => {
                   <Stack spacing={2}>
                     <HStack spacing={2}>
                       <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
-                      <Text fontSize="sm" color={textColor}>{post.author.username}</Text>
+                      <Text fontSize="sm" color={textColor}>
+                        {post.author.username}
+                      </Text>
                     </HStack>
                     <Heading
                       as={RouterLink}
@@ -360,14 +358,11 @@ const Home = () => {
             </Stack>
           ) : (
             <Box textAlign="center" py={10}>
-              <Heading size="md" mb={4}>No blog posts available yet</Heading>
+              <Heading size="md" mb={4}>
+                No blog posts available yet
+              </Heading>
               <Text mb={6}>Be the first to publish a story!</Text>
-              <Button
-                as={RouterLink}
-                to="/editor"
-                colorScheme="teal"
-                size="md"
-              >
+              <Button as={RouterLink} to="/editor" colorScheme="teal" size="md">
                 Start Writing
               </Button>
             </Box>
@@ -375,7 +370,7 @@ const Home = () => {
         </Container>
       </Box>
     </Box>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

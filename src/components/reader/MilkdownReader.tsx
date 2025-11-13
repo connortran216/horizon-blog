@@ -9,114 +9,109 @@
  * - Clean, distraction-free UI
  */
 
-import React, { useState, useRef } from 'react';
-import { Box, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react';
-import { WarningIcon } from '@chakra-ui/icons';
-import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core';
-import { commonmark } from '@milkdown/preset-commonmark';
-import { gfm } from '@milkdown/preset-gfm';
-import { prism, prismConfig } from '@milkdown/plugin-prism';
-import { nord } from '@milkdown/theme-nord';
-import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
-import { EDITOR_CONFIG } from '../../config/editor.config';
+import React, { useState, useRef } from 'react'
+import { Box, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react'
+import { WarningIcon } from '@chakra-ui/icons'
+import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core'
+import { commonmark } from '@milkdown/preset-commonmark'
+import { gfm } from '@milkdown/preset-gfm'
+import { prism, prismConfig } from '@milkdown/plugin-prism'
+import { nord } from '@milkdown/theme-nord'
+import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
+import { EDITOR_CONFIG } from '../../config/editor.config'
 
 // Import Prism themes
-import 'prismjs/themes/prism-okaidia.css';
-import '@milkdown/theme-nord/style.css';
+import 'prismjs/themes/prism-okaidia.css'
+import '@milkdown/theme-nord/style.css'
 
 interface MilkdownReaderProps {
-  content?: string;
+  content?: string
 }
 
-const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
-  content = '',
-}) => {
-  const [editorError, setEditorError] = useState<string | null>(null);
-  const editorContainerRef = useRef<HTMLDivElement>(null);
+const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) => {
+  const [editorError, setEditorError] = useState<string | null>(null)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
 
   // Color mode values for styling
-  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)');
-  const errorBorderColor = useColorModeValue('orange.200', 'orange.700');
-  const errorTextColor = useColorModeValue('orange.600', 'orange.300');
-  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary');
-  const headingH1Color = useColorModeValue('gray.900', 'text.primary');
-  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary');
-  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary');
-  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock');
-  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default');
-  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary');
-  const linkColor = useColorModeValue('blue.500', 'link.default');
-  const linkHoverColor = useColorModeValue('blue.600', 'link.hover');
-  const hrBorderColor = useColorModeValue('gray.300', 'border.default');
-  const tableBorderColor = useColorModeValue('gray.300', 'border.default');
-  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary');
+  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)')
+  const errorBorderColor = useColorModeValue('orange.200', 'orange.700')
+  const errorTextColor = useColorModeValue('orange.600', 'orange.300')
+  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary')
+  const headingH1Color = useColorModeValue('gray.900', 'text.primary')
+  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary')
+  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary')
+  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock')
+  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default')
+  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary')
+  const linkColor = useColorModeValue('blue.500', 'link.default')
+  const linkHoverColor = useColorModeValue('blue.600', 'link.hover')
+  const hrBorderColor = useColorModeValue('gray.300', 'border.default')
+  const tableBorderColor = useColorModeValue('gray.300', 'border.default')
+  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary')
 
   // Configure Milkdown editor in read-only mode
-  useEditor((root) => {
-    if (EDITOR_CONFIG.debug?.logLifecycle) {
-      console.log('📖 Creating Milkdown reader with content:', content?.substring(0, 50));
-    }
-
-    try {
-      let editor = Editor.make()
-        .config((ctx) => {
-          ctx.set(rootCtx, root);
-
-          // Set editor to read-only mode
-          ctx.set(editorViewOptionsCtx, {
-            editable: () => false, // Always false for reader
-            attributes: {
-              class: 'milkdown-reader-content',
-              spellcheck: 'false',
-            },
-          });
-
-          // Set initial content
-          if (content) {
-            ctx.set(defaultValueCtx, content);
-          }
-
-          // Configure Prism for code syntax highlighting
-          if (EDITOR_CONFIG.features.codeBlockHighlighting) {
-            ctx.set(prismConfig.key, {
-              configureRefractor: () => {
-                // Prism languages are loaded automatically
-              },
-            });
-          }
-        })
-        .config(nord)
-        .use(commonmark);
-
-      // Apply optional plugins
-      if (EDITOR_CONFIG.features.gfm) {
-        editor = editor.use(gfm);
-      }
-      if (EDITOR_CONFIG.features.codeBlockHighlighting) {
-        editor = editor.use(prism);
-      }
-
+  useEditor(
+    (root) => {
       if (EDITOR_CONFIG.debug?.logLifecycle) {
-        console.log('✅ Milkdown reader instance created');
+        console.log('📖 Creating Milkdown reader with content:', content?.substring(0, 50))
       }
 
-      return editor;
-    } catch (error: any) {
-      console.error('❌ Error setting up Milkdown reader:', error);
-      setEditorError(error.message || 'Failed to setup reader');
-    }
-  }, [content]);
+      try {
+        let editor = Editor.make()
+          .config((ctx) => {
+            ctx.set(rootCtx, root)
+
+            // Set editor to read-only mode
+            ctx.set(editorViewOptionsCtx, {
+              editable: () => false, // Always false for reader
+              attributes: {
+                class: 'milkdown-reader-content',
+                spellcheck: 'false',
+              },
+            })
+
+            // Set initial content
+            if (content) {
+              ctx.set(defaultValueCtx, content)
+            }
+
+            // Configure Prism for code syntax highlighting
+            if (EDITOR_CONFIG.features.codeBlockHighlighting) {
+              ctx.set(prismConfig.key, {
+                configureRefractor: () => {
+                  // Prism languages are loaded automatically
+                },
+              })
+            }
+          })
+          .config(nord)
+          .use(commonmark)
+
+        // Apply optional plugins
+        if (EDITOR_CONFIG.features.gfm) {
+          editor = editor.use(gfm)
+        }
+        if (EDITOR_CONFIG.features.codeBlockHighlighting) {
+          editor = editor.use(prism)
+        }
+
+        if (EDITOR_CONFIG.debug?.logLifecycle) {
+          console.log('✅ Milkdown reader instance created')
+        }
+
+        return editor
+      } catch (error: any) {
+        console.error('❌ Error setting up Milkdown reader:', error)
+        setEditorError(error.message || 'Failed to setup reader')
+      }
+    },
+    [content],
+  )
 
   // Show error if reader failed to initialize
   if (editorError) {
     return (
-      <Box
-        p={6}
-        border="1px"
-        borderColor={errorBorderColor}
-        borderRadius="md"
-        bg={errorBg}
-      >
+      <Box p={6} border="1px" borderColor={errorBorderColor} borderRadius="md" bg={errorBg}>
         <VStack spacing={4} align="stretch">
           <HStack>
             <WarningIcon color="orange.500" />
@@ -130,7 +125,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           </Text>
         </VStack>
       </Box>
-    );
+    )
   }
 
   // Render Milkdown in read-only mode
@@ -156,13 +151,13 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           userSelect: 'text', // Allow text selection
 
           // Typography optimized for reading
-          'p': {
+          p: {
             marginBottom: '1.2em',
             lineHeight: '1.8',
           },
 
           // Headings
-          'h1': {
+          h1: {
             fontSize: '2.8em',
             fontWeight: 'bold',
             marginTop: '0.8em',
@@ -170,7 +165,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             lineHeight: '1.2',
             color: headingH1Color,
           },
-          'h2': {
+          h2: {
             fontSize: '2.2em',
             fontWeight: 'bold',
             marginTop: '0.8em',
@@ -178,7 +173,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             lineHeight: '1.3',
             color: headingH2H3Color,
           },
-          'h3': {
+          h3: {
             fontSize: '1.7em',
             fontWeight: 'bold',
             marginTop: '0.8em',
@@ -186,19 +181,19 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             lineHeight: '1.4',
             color: headingH2H3Color,
           },
-          'h4': {
+          h4: {
             fontSize: '1.25em',
             fontWeight: 'bold',
             marginTop: '0.5em',
             marginBottom: '0.5em',
           },
-          'h5': {
+          h5: {
             fontSize: '1.1em',
             fontWeight: 'bold',
             marginTop: '0.5em',
             marginBottom: '0.5em',
           },
-          'h6': {
+          h6: {
             fontSize: '1em',
             fontWeight: 'bold',
             marginTop: '0.5em',
@@ -210,19 +205,19 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             paddingLeft: '2em',
             marginBottom: '1em',
           },
-          'li': {
+          li: {
             marginBottom: '0.5em',
           },
 
           // Code
-          'code': {
+          code: {
             backgroundColor: inlineCodeBg,
             padding: '0.2em 0.4em',
             borderRadius: 'sm',
             fontSize: '0.9em',
             fontFamily: 'monospace',
           },
-          'pre': {
+          pre: {
             backgroundColor: preCodeBg,
             color: 'white',
             padding: '1em',
@@ -230,7 +225,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             marginBottom: '1em',
             overflow: 'auto',
 
-            'code': {
+            code: {
               backgroundColor: 'transparent',
               padding: '0',
               color: 'inherit',
@@ -238,7 +233,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
 
           // Blockquote
-          'blockquote': {
+          blockquote: {
             borderLeft: '4px solid',
             borderColor: blockquoteBorderColor,
             paddingLeft: '1em',
@@ -249,7 +244,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
 
           // Links
-          'a': {
+          a: {
             color: linkColor,
             textDecoration: 'underline',
             cursor: 'pointer',
@@ -259,7 +254,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
 
           // Horizontal rule
-          'hr': {
+          hr: {
             border: 'none',
             borderTop: '2px solid',
             borderColor: hrBorderColor,
@@ -268,7 +263,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
 
           // Tables
-          'table': {
+          table: {
             borderCollapse: 'collapse',
             width: '100%',
             marginBottom: '1em',
@@ -279,13 +274,13 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
             padding: '0.5em',
             textAlign: 'left',
           },
-          'th': {
+          th: {
             backgroundColor: tableHeaderBg,
             fontWeight: 'bold',
           },
 
           // Images
-          'img': {
+          img: {
             maxWidth: '100%',
             height: 'auto',
             borderRadius: 'md',
@@ -293,10 +288,10 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
           },
 
           // Strong and emphasis
-          'strong': {
+          strong: {
             fontWeight: 'bold',
           },
-          'em': {
+          em: {
             fontStyle: 'italic',
           },
 
@@ -309,17 +304,17 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({
     >
       <Milkdown />
     </Box>
-  );
-};
+  )
+}
 
 const MilkdownReader: React.FC<MilkdownReaderProps> = React.memo((props) => {
   return (
     <MilkdownProvider>
       <MilkdownReaderInner {...props} />
     </MilkdownProvider>
-  );
-});
+  )
+})
 
-MilkdownReader.displayName = 'MilkdownReader';
+MilkdownReader.displayName = 'MilkdownReader'
 
-export default MilkdownReader;
+export default MilkdownReader

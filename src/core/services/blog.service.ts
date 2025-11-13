@@ -4,11 +4,11 @@
  * Uses Repository Pattern through DI for data access
  */
 
-import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types';
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types';
-import { IBlogRepository } from '../types/blog-repository.types';
-import { getBlogRepository } from '../di/container';
-import { RepositoryResult } from '../types/blog-repository.types';
+import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types'
+import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types'
+import { IBlogRepository } from '../types/blog-repository.types'
+import { getBlogRepository } from '../di/container'
+import { RepositoryResult } from '../types/blog-repository.types'
 
 /**
  * Default configuration for blog service
@@ -16,7 +16,7 @@ import { RepositoryResult } from '../types/blog-repository.types';
 const DEFAULT_CONFIG: BlogServiceConfig = {
   defaultExcerptLength: 150,
   wordsPerMinute: 200,
-};
+}
 
 /**
  * Blog service implementation
@@ -24,12 +24,12 @@ const DEFAULT_CONFIG: BlogServiceConfig = {
  * Delegates data access to repository through DI
  */
 export class BlogService implements IBlogService {
-  private config: BlogServiceConfig;
-  private repository: IBlogRepository;
+  private config: BlogServiceConfig
+  private repository: IBlogRepository
 
   constructor(config: Partial<BlogServiceConfig> = {}, repository?: IBlogRepository) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
-    this.repository = repository || getBlogRepository();
+    this.config = { ...DEFAULT_CONFIG, ...config }
+    this.repository = repository || getBlogRepository()
   }
 
   /**
@@ -37,9 +37,9 @@ export class BlogService implements IBlogService {
    * Removes markdown syntax and truncates to specified length
    */
   generateExcerpt(content: string, maxLength?: number): string {
-    if (!content) return 'No content';
+    if (!content) return 'No content'
 
-    const length = maxLength || this.config.defaultExcerptLength;
+    const length = maxLength || this.config.defaultExcerptLength
 
     // Remove markdown syntax (simple approach)
     let plainText = content
@@ -52,11 +52,9 @@ export class BlogService implements IBlogService {
       .replace(/>\s+/g, '') // Remove blockquotes
       .replace(/[-*+]\s+/g, '') // Remove list markers
       .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim();
+      .trim()
 
-    return plainText.length > length
-      ? plainText.substring(0, length) + '...'
-      : plainText;
+    return plainText.length > length ? plainText.substring(0, length) + '...' : plainText
   }
 
   /**
@@ -64,8 +62,8 @@ export class BlogService implements IBlogService {
    * Uses configured words per minute rate
    */
   calculateReadingTime(content: string): number {
-    const words = content.split(/\s+/).length;
-    return Math.max(1, Math.ceil(words / this.config.wordsPerMinute));
+    const words = content.split(/\s+/).length
+    return Math.max(1, Math.ceil(words / this.config.wordsPerMinute))
   }
 
   /**
@@ -87,7 +85,7 @@ export class BlogService implements IBlogService {
       tags: [], // API doesn't provide tags in list view
       status: post.status as any,
       slug: post.id.toString(),
-    };
+    }
   }
 
   /**
@@ -96,11 +94,12 @@ export class BlogService implements IBlogService {
    */
   async getPublishedPosts(options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
     try {
-      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getPublishedPosts(options);
-      return result.success && result.data ? result.data : [];
+      const result: RepositoryResult<BlogPostSummary[]> =
+        await this.repository.getPublishedPosts(options)
+      return result.success && result.data ? result.data : []
     } catch (error) {
-      console.error('Failed to fetch published posts:', error);
-      return [];
+      console.error('Failed to fetch published posts:', error)
+      return []
     }
   }
 
@@ -110,11 +109,11 @@ export class BlogService implements IBlogService {
    */
   async getPostById(id: string): Promise<BlogPost | null> {
     try {
-      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id);
-      return result.success && result.data ? result.data : null;
+      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id)
+      return result.success && result.data ? result.data : null
     } catch (error) {
-      console.error(`Failed to fetch post ${id}:`, error);
-      return null;
+      console.error(`Failed to fetch post ${id}:`, error)
+      return null
     }
   }
 
@@ -124,11 +123,14 @@ export class BlogService implements IBlogService {
    */
   async searchPosts(query: string, options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
     try {
-      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.searchPosts(query, options);
-      return result.success && result.data ? result.data : [];
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.searchPosts(
+        query,
+        options,
+      )
+      return result.success && result.data ? result.data : []
     } catch (error) {
-      console.error(`Failed to search posts with query "${query}":`, error);
-      return [];
+      console.error(`Failed to search posts with query "${query}":`, error)
+      return []
     }
   }
 
@@ -138,11 +140,14 @@ export class BlogService implements IBlogService {
    */
   async getUserPosts(username: string, options?: BlogSearchOptions): Promise<BlogPostSummary[]> {
     try {
-      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getUserPosts(username, options);
-      return result.success && result.data ? result.data : [];
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getUserPosts(
+        username,
+        options,
+      )
+      return result.success && result.data ? result.data : []
     } catch (error) {
-      console.error(`Failed to fetch user posts for ${username}:`, error);
-      return [];
+      console.error(`Failed to fetch user posts for ${username}:`, error)
+      return []
     }
   }
 
@@ -150,13 +155,21 @@ export class BlogService implements IBlogService {
    * Get current user posts
    * Delegates to repository for data access
    */
-  async getCurrentUserPosts(status?: 'draft' | 'published', page?: number, limit?: number): Promise<BlogPostSummary[]> {
+  async getCurrentUserPosts(
+    status?: 'draft' | 'published',
+    page?: number,
+    limit?: number,
+  ): Promise<BlogPostSummary[]> {
     try {
-      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getCurrentUserPosts(status, page, limit);
-      return result.success && result.data ? result.data : [];
+      const result: RepositoryResult<BlogPostSummary[]> = await this.repository.getCurrentUserPosts(
+        status,
+        page,
+        limit,
+      )
+      return result.success && result.data ? result.data : []
     } catch (error) {
-      console.error('Failed to fetch current user posts:', error);
-      return [];
+      console.error('Failed to fetch current user posts:', error)
+      return []
     }
   }
 
@@ -164,13 +177,15 @@ export class BlogService implements IBlogService {
    * Create new blog post
    * Delegates to repository for data access
    */
-  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<BlogPost | null> {
+  async createPost(
+    post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<BlogPost | null> {
     try {
-      const result: RepositoryResult<BlogPost> = await this.repository.createPost(post);
-      return result.success && result.data ? result.data : null;
+      const result: RepositoryResult<BlogPost> = await this.repository.createPost(post)
+      return result.success && result.data ? result.data : null
     } catch (error) {
-      console.error('Failed to create post:', error);
-      return null;
+      console.error('Failed to create post:', error)
+      return null
     }
   }
 
@@ -180,11 +195,11 @@ export class BlogService implements IBlogService {
    */
   async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost | null> {
     try {
-      const result: RepositoryResult<BlogPost> = await this.repository.updatePost(id, updates);
-      return result.success && result.data ? result.data : null;
+      const result: RepositoryResult<BlogPost> = await this.repository.updatePost(id, updates)
+      return result.success && result.data ? result.data : null
     } catch (error) {
-      console.error(`Failed to update post ${id}:`, error);
-      return null;
+      console.error(`Failed to update post ${id}:`, error)
+      return null
     }
   }
 
@@ -194,11 +209,11 @@ export class BlogService implements IBlogService {
    */
   async deletePost(id: string): Promise<boolean> {
     try {
-      const result: RepositoryResult<boolean> = await this.repository.deletePost(id);
-      return result.success && result.data ? true : false;
+      const result: RepositoryResult<boolean> = await this.repository.deletePost(id)
+      return result.success && result.data ? true : false
     } catch (error) {
-      console.error(`Failed to delete post ${id}:`, error);
-      return false;
+      console.error(`Failed to delete post ${id}:`, error)
+      return false
     }
   }
 
@@ -208,13 +223,13 @@ export class BlogService implements IBlogService {
    */
   async getPostByIdEnriched(id: string): Promise<BlogPost | null> {
     try {
-      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id);
+      const result: RepositoryResult<BlogPost> = await this.repository.getPostById(id)
       if (!result.success || !result.data) {
-        return null;
+        return null
       }
 
-      const post = result.data;
-      
+      const post = result.data
+
       // Apply business logic enrichment
       const enrichedPost: BlogPost = {
         ...post,
@@ -222,15 +237,15 @@ export class BlogService implements IBlogService {
         excerpt: post.excerpt || this.generateExcerpt(post.content_markdown),
         // Ensure reading time is calculated
         readingTime: post.readingTime || this.calculateReadingTime(post.content_markdown),
-      };
+      }
 
-      return enrichedPost;
+      return enrichedPost
     } catch (error) {
-      console.error(`Failed to fetch enriched post ${id}:`, error);
-      return null;
+      console.error(`Failed to fetch enriched post ${id}:`, error)
+      return null
     }
   }
 }
 
 // Export singleton instance factory to avoid circular dependency
-export const createBlogServiceInstance = (): BlogService => new BlogService();
+export const createBlogServiceInstance = (): BlogService => new BlogService()

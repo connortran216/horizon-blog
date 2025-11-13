@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 import {
   Box,
   Container,
@@ -14,30 +14,30 @@ import {
   Button,
   Avatar,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { SearchIcon } from '@chakra-ui/icons';
-import { Link as RouterLink } from 'react-router-dom';
-import { apiService } from '../core/services/api.service';
+} from '@chakra-ui/react'
+import { SearchIcon } from '@chakra-ui/icons'
+import { Link as RouterLink } from 'react-router-dom'
+import { apiService } from '../core/services/api.service'
 
 interface BlogPost {
-  id: number;
-  title: string;
-  content_markdown: string;
-  content_json: string;
-  status: string;
-  user_id: number;
-  created_at: string;
-  updated_at: string;
+  id: number
+  title: string
+  content_markdown: string
+  content_json: string
+  status: string
+  user_id: number
+  created_at: string
+  updated_at: string
   user?: {
-    name: string;
-    email: string;
-  };
+    name: string
+    email: string
+  }
 }
 
 const BlogCard = ({ post }: { post: BlogPost }) => {
   // Extract excerpt from markdown content
   const getExcerpt = (markdown: string): string => {
-    if (!markdown) return 'No content';
+    if (!markdown) return 'No content'
 
     // Remove markdown syntax (simple approach)
     let plainText = markdown
@@ -50,23 +50,23 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       .replace(/>\s+/g, '') // Remove blockquotes
       .replace(/[-*+]\s+/g, '') // Remove list markers
       .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim();
+      .trim()
 
-    return plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
-  };
+    return plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '')
+  }
 
   // Calculate reading time (rough estimate: 200 words per minute)
   const getReadingTime = (markdown: string): number => {
-    const words = markdown.split(/\s+/).length;
-    return Math.max(1, Math.ceil(words / 200));
-  };
+    const words = markdown.split(/\s+/).length
+    return Math.max(1, Math.ceil(words / 200))
+  }
 
-  const cardBg = useColorModeValue('white', 'bg.secondary');
-  const readingTimeColor = useColorModeValue('gray.500', 'text.secondary');
-  const excerptColor = useColorModeValue('gray.600', 'text.secondary');
-  const metaColor = useColorModeValue('gray.500', 'text.tertiary');
-  const buttonBg = useColorModeValue('black', 'accent.primary');
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+  const cardBg = useColorModeValue('white', 'bg.secondary')
+  const readingTimeColor = useColorModeValue('gray.500', 'text.secondary')
+  const excerptColor = useColorModeValue('gray.600', 'text.secondary')
+  const metaColor = useColorModeValue('gray.500', 'text.tertiary')
+  const buttonBg = useColorModeValue('black', 'accent.primary')
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   return (
     <Box
@@ -95,9 +95,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       </Box>
       <VStack p={6} spacing={3} align="stretch">
         <HStack spacing={2} justify="space-between">
-          <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>
-            {post.status}
-          </Tag>
+          <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>{post.status}</Tag>
           <Text fontSize="sm" color={readingTimeColor}>
             {getReadingTime(post.content_markdown)} min read
           </Text>
@@ -124,7 +122,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           bg={buttonBg}
           color="white"
           _hover={{
-            bg: buttonHoverBg
+            bg: buttonHoverBg,
           }}
           as={RouterLink}
           to={`/blog/${post.id}`}
@@ -134,59 +132,60 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
         </Button>
       </VStack>
     </Box>
-  );
-};
+  )
+}
 
 const Blog = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 20;
+  const [searchQuery, setSearchQuery] = useState('')
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const limit = 20
 
   // Load blog posts from API
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        setLoading(true);
+        setLoading(true)
         const response = await apiService.get<{
-          data: BlogPost[];
-          page: number;
-          limit: number;
-          total: number;
-        }>('/posts', { page, limit });
+          data: BlogPost[]
+          page: number
+          limit: number
+          total: number
+        }>('/posts', { page, limit })
 
         // Only show published posts
-        const publishedPosts = response.data.filter(post => post.status === 'published');
-        setBlogPosts(publishedPosts);
-        setTotal(response.total || 0);
-        setTotalPages(Math.ceil((response.total || 0) / limit));
+        const publishedPosts = response.data.filter((post) => post.status === 'published')
+        setBlogPosts(publishedPosts)
+        setTotal(response.total || 0)
+        setTotalPages(Math.ceil((response.total || 0) / limit))
       } catch (error) {
-        console.error('Failed to load blog posts:', error);
-        setBlogPosts([]);
+        console.error('Failed to load blog posts:', error)
+        setBlogPosts([])
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadPosts();
-  }, [page]);
+    loadPosts()
+  }, [page])
 
   const filteredPosts = blogPosts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          post.content_markdown.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content_markdown.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
+  })
 
-  const headingColor = useColorModeValue('gray.900', 'text.primary');
-  const subtitleColor = useColorModeValue('gray.600', 'text.secondary');
-  const searchIconColor = useColorModeValue('gray.300', 'text.tertiary');
-  const loadingTextColor = useColorModeValue('gray.500', 'text.secondary');
-  const paginationButtonBg = useColorModeValue('black', 'accent.primary');
-  const paginationButtonHoverBg = useColorModeValue('gray.800', 'accent.hover');
-  const paginationTextColor = useColorModeValue('gray.700', 'text.primary');
+  const headingColor = useColorModeValue('gray.900', 'text.primary')
+  const subtitleColor = useColorModeValue('gray.600', 'text.secondary')
+  const searchIconColor = useColorModeValue('gray.300', 'text.tertiary')
+  const loadingTextColor = useColorModeValue('gray.500', 'text.secondary')
+  const paginationButtonBg = useColorModeValue('black', 'accent.primary')
+  const paginationButtonHoverBg = useColorModeValue('gray.800', 'accent.hover')
+  const paginationTextColor = useColorModeValue('gray.700', 'text.primary')
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -232,7 +231,7 @@ const Blog = () => {
         {!loading && totalPages > 1 && !searchQuery && (
           <HStack spacing={4} justify="center">
             <Button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               isDisabled={page === 1}
               bg={paginationButtonBg}
               color="white"
@@ -244,7 +243,7 @@ const Blog = () => {
               Page {page} of {totalPages} ({total} total posts)
             </Text>
             <Button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               isDisabled={page === totalPages}
               bg={paginationButtonBg}
               color="white"
@@ -256,7 +255,7 @@ const Blog = () => {
         )}
       </VStack>
     </Container>
-  );
-};
+  )
+}
 
-export default Blog;
+export default Blog

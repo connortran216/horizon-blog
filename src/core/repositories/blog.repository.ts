@@ -4,10 +4,15 @@
  * Follows Repository Pattern for SOLID principles
  */
 
-import { IBlogRepository, RepositoryResult, RepositoryConfig, RepositoryCacheConfig } from '../types/blog-repository.types';
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types';
-import { ApiBlogPost, ApiListPostsResponse } from '../types/blog-service.types';
-import { apiService } from '../services/api.service';
+import {
+  IBlogRepository,
+  RepositoryResult,
+  RepositoryConfig,
+  RepositoryCacheConfig,
+} from '../types/blog-repository.types'
+import { BlogPost, BlogPostSummary, BlogSearchOptions } from '../types/blog.types'
+import { ApiBlogPost, ApiListPostsResponse } from '../types/blog-service.types'
+import { apiService } from '../services/api.service'
 
 /**
  * Default configuration for blog repository
@@ -16,77 +21,77 @@ const DEFAULT_CACHE_CONFIG: RepositoryCacheConfig = {
   enabled: true,
   ttl: 5 * 60 * 1000, // 5 minutes
   maxSize: 100,
-};
+}
 
 const DEFAULT_CONFIG: RepositoryConfig = {
   cache: DEFAULT_CACHE_CONFIG,
   retryAttempts: 3,
   retryDelay: 1000,
-};
+}
 
 /**
  * API Blog Repository Implementation
  * Provides data access layer with caching, retry logic, and error handling
  */
 export class ApiBlogRepository implements IBlogRepository {
-  private cache: Map<string, { data: any; timestamp: number }> = new Map();
-  private config: RepositoryConfig;
-  private lastUpdate: Date = new Date();
+  private cache: Map<string, { data: any; timestamp: number }> = new Map()
+  private config: RepositoryConfig
+  private lastUpdate: Date = new Date()
 
   constructor(config: RepositoryConfig = {}) {
     this.config = {
       ...DEFAULT_CONFIG,
       ...config,
       cache: { ...DEFAULT_CACHE_CONFIG, ...config.cache },
-    };
+    }
   }
 
   /**
    * Generate cache key for operations
    */
   private generateCacheKey(operation: string, params?: any): string {
-    return `${operation}_${JSON.stringify(params || {})}`;
+    return `${operation}_${JSON.stringify(params || {})}`
   }
 
   /**
    * Get data from cache if valid
    */
   private getFromCache(key: string): any | null {
-    const cached = this.cache.get(key);
-    if (!cached) return null;
+    const cached = this.cache.get(key)
+    if (!cached) return null
 
-    const isExpired = Date.now() - cached.timestamp > (this.config.cache?.ttl || 0);
+    const isExpired = Date.now() - cached.timestamp > (this.config.cache?.ttl || 0)
     if (isExpired) {
-      this.cache.delete(key);
-      return null;
+      this.cache.delete(key)
+      return null
     }
 
-    return cached.data;
+    return cached.data
   }
 
   /**
    * Set data in cache
    */
   private setCache(key: string, data: any): void {
-    if (!this.config.cache?.enabled) return;
+    if (!this.config.cache?.enabled) return
 
     // Evict oldest entries if cache is full
     if (this.cache.size >= (this.config.cache.maxSize || 100)) {
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey) this.cache.delete(firstKey);
+      const firstKey = this.cache.keys().next().value
+      if (firstKey) this.cache.delete(firstKey)
     }
 
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-    });
+    })
   }
 
   /**
    * Remove specific cache entry
    */
   private removeFromCache(key: string): void {
-    this.cache.delete(key);
+    this.cache.delete(key)
   }
 
   /**
@@ -94,7 +99,7 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   private clearRelatedCaches(): void {
     // Clear all caches since data has changed
-    this.cache.clear();
+    this.cache.clear()
   }
 
   /**
@@ -115,7 +120,7 @@ export class ApiBlogRepository implements IBlogRepository {
       tags: [],
       status: post.status as any,
       slug: post.id.toString(),
-    };
+    }
   }
 
   /**
@@ -123,7 +128,7 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   private transformFullPost(post: BlogPost): BlogPost {
     // For now, return as-is since it's already in the right format
-    return post;
+    return post
   }
 
   /**
@@ -131,14 +136,14 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   private transformToApiPost(post: any): any {
     // For now, return as-is since the API accepts the same format
-    return post;
+    return post
   }
 
   /**
    * Generate excerpt from markdown content
    */
   private generateExcerpt(content: string, maxLength: number = 150): string {
-    if (!content) return 'No content';
+    if (!content) return 'No content'
 
     let plainText = content
       .replace(/#{1,6}\s+/g, '') // Remove headings
@@ -150,49 +155,49 @@ export class ApiBlogRepository implements IBlogRepository {
       .replace(/>\s+/g, '') // Remove blockquotes
       .replace(/[-*+]\s+/g, '') // Remove list markers
       .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim();
+      .trim()
 
-    return plainText.length > maxLength
-      ? plainText.substring(0, maxLength) + '...'
-      : plainText;
+    return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText
   }
 
   /**
    * Calculate reading time based on word count
    */
   private calculateReadingTime(content: string): number {
-    const words = content.split(/\s+/).length;
-    return Math.max(1, Math.ceil(words / 200)); // 200 words per minute
+    const words = content.split(/\s+/).length
+    return Math.max(1, Math.ceil(words / 200)) // 200 words per minute
   }
 
   /**
    * Get published blog posts with optional filtering
    */
-  async getPublishedPosts(options?: BlogSearchOptions): Promise<RepositoryResult<BlogPostSummary[]>> {
+  async getPublishedPosts(
+    options?: BlogSearchOptions,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('published', options);
-      
+      const cacheKey = this.generateCacheKey('published', options)
+
       // Check cache first
-      const cached = this.getFromCache(cacheKey);
+      const cached = this.getFromCache(cacheKey)
       if (cached) {
-        return { success: true, data: cached };
+        return { success: true, data: cached }
       }
 
       const params: Record<string, any> = {
         status: 'published',
         ...options,
-      };
+      }
 
-      const response = await apiService.get<ApiListPostsResponse>('/posts', params);
-      
+      const response = await apiService.get<ApiListPostsResponse>('/posts', params)
+
       // Transform API data to business objects
-      const posts = response.data.map(post => this.transformPostForDisplay(post));
-      
+      const posts = response.data.map((post) => this.transformPostForDisplay(post))
+
       // Cache the result
-      this.setCache(cacheKey, posts);
-      
-      this.lastUpdate = new Date();
-      
+      this.setCache(cacheKey, posts)
+
+      this.lastUpdate = new Date()
+
       return {
         success: true,
         data: posts,
@@ -203,13 +208,13 @@ export class ApiBlogRepository implements IBlogRepository {
           hasNext: response.page * response.limit < response.total,
           hasPrev: response.page > 1,
         },
-      };
+      }
     } catch (error: any) {
-      console.error('Failed to fetch published posts:', error);
+      console.error('Failed to fetch published posts:', error)
       return {
         success: false,
         error: error.message || 'Failed to fetch published posts',
-      };
+      }
     }
   }
 
@@ -218,54 +223,56 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   async getPostById(id: string): Promise<RepositoryResult<BlogPost>> {
     try {
-      const cacheKey = `post_${id}`;
-      
+      const cacheKey = `post_${id}`
+
       // Check cache first
-      const cached = this.getFromCache(cacheKey);
+      const cached = this.getFromCache(cacheKey)
       if (cached) {
-        return { success: true, data: cached };
+        return { success: true, data: cached }
       }
 
-      const response = await apiService.get<{ data: BlogPost }>(`/posts/${id}`);
-      
+      const response = await apiService.get<{ data: BlogPost }>(`/posts/${id}`)
+
       // Transform API data if needed
-      const post = this.transformFullPost(response.data);
-      
+      const post = this.transformFullPost(response.data)
+
       // Cache the result
-      this.setCache(cacheKey, post);
-      
-      this.lastUpdate = new Date();
-      
-      return { success: true, data: post };
+      this.setCache(cacheKey, post)
+
+      this.lastUpdate = new Date()
+
+      return { success: true, data: post }
     } catch (error: any) {
-      console.error(`Failed to fetch post ${id}:`, error);
+      console.error(`Failed to fetch post ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to fetch blog post',
-      };
+      }
     }
   }
 
   /**
    * Create new blog post
    */
-  async createPost(post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<RepositoryResult<BlogPost>> {
+  async createPost(
+    post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<RepositoryResult<BlogPost>> {
     try {
       // Transform business object to API format
-      const apiPost = this.transformToApiPost(post);
-      
-      const response = await apiService.post<{ data: BlogPost }>('/posts', apiPost);
-      
+      const apiPost = this.transformToApiPost(post)
+
+      const response = await apiService.post<{ data: BlogPost }>('/posts', apiPost)
+
       // Clear relevant caches
-      this.clearRelatedCaches();
-      
-      return { success: true, data: response.data };
+      this.clearRelatedCaches()
+
+      return { success: true, data: response.data }
     } catch (error: any) {
-      console.error('Failed to create post:', error);
+      console.error('Failed to create post:', error)
       return {
         success: false,
         error: error.message || 'Failed to create blog post',
-      };
+      }
     }
   }
 
@@ -275,21 +282,21 @@ export class ApiBlogRepository implements IBlogRepository {
   async updatePost(id: string, updates: Partial<BlogPost>): Promise<RepositoryResult<BlogPost>> {
     try {
       // Transform updates to API format
-      const apiUpdates = this.transformToApiPost(updates as any);
-      
-      const response = await apiService.put<{ data: BlogPost }>(`/posts/${id}`, apiUpdates);
-      
+      const apiUpdates = this.transformToApiPost(updates as any)
+
+      const response = await apiService.put<{ data: BlogPost }>(`/posts/${id}`, apiUpdates)
+
       // Clear relevant caches
-      this.clearRelatedCaches();
-      this.removeFromCache(`post_${id}`);
-      
-      return { success: true, data: response.data };
+      this.clearRelatedCaches()
+      this.removeFromCache(`post_${id}`)
+
+      return { success: true, data: response.data }
     } catch (error: any) {
-      console.error(`Failed to update post ${id}:`, error);
+      console.error(`Failed to update post ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to update blog post',
-      };
+      }
     }
   }
 
@@ -298,50 +305,53 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   async deletePost(id: string): Promise<RepositoryResult<boolean>> {
     try {
-      await apiService.delete<{ message: string }>(`/posts/${id}`);
-      
+      await apiService.delete<{ message: string }>(`/posts/${id}`)
+
       // Clear relevant caches
-      this.clearRelatedCaches();
-      this.removeFromCache(`post_${id}`);
-      
-      return { success: true, data: true };
+      this.clearRelatedCaches()
+      this.removeFromCache(`post_${id}`)
+
+      return { success: true, data: true }
     } catch (error: any) {
-      console.error(`Failed to delete post ${id}:`, error);
+      console.error(`Failed to delete post ${id}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to delete blog post',
-      };
+      }
     }
   }
 
   /**
    * Get blog posts by a specific user
    */
-  async getUserPosts(username: string, options?: BlogSearchOptions): Promise<RepositoryResult<BlogPostSummary[]>> {
+  async getUserPosts(
+    username: string,
+    options?: BlogSearchOptions,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('user', { ...options, author: username });
-      
+      const cacheKey = this.generateCacheKey('user', { ...options, author: username })
+
       // Check cache first
-      const cached = this.getFromCache(cacheKey);
+      const cached = this.getFromCache(cacheKey)
       if (cached) {
-        return { success: true, data: cached };
+        return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { author: username, ...options };
-      const response = await apiService.get<ApiListPostsResponse>('/posts', params);
-      
-      const posts = response.data.map(post => this.transformPostForDisplay(post));
-      
+      const params: Record<string, any> = { author: username, ...options }
+      const response = await apiService.get<ApiListPostsResponse>('/posts', params)
+
+      const posts = response.data.map((post) => this.transformPostForDisplay(post))
+
       // Cache the result
-      this.setCache(cacheKey, posts);
-      
-      return { success: true, data: posts };
+      this.setCache(cacheKey, posts)
+
+      return { success: true, data: posts }
     } catch (error: any) {
-      console.error(`Failed to fetch user posts for ${username}:`, error);
+      console.error(`Failed to fetch user posts for ${username}:`, error)
       return {
         success: false,
         error: error.message || 'Failed to retrieve user blog posts',
-      };
+      }
     }
   }
 
@@ -349,70 +359,77 @@ export class ApiBlogRepository implements IBlogRepository {
    * Get draft posts by a specific user
    */
   async getUserDrafts(username: string): Promise<RepositoryResult<BlogPostSummary[]>> {
-    return this.getUserPosts(username, { status: 'draft' });
+    return this.getUserPosts(username, { status: 'draft' })
   }
 
   /**
    * Get current authenticated user's posts
    */
-  async getCurrentUserPosts(status?: 'draft' | 'published', page: number = 1, limit: number = 10): Promise<RepositoryResult<BlogPostSummary[]>> {
+  async getCurrentUserPosts(
+    status?: 'draft' | 'published',
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('current-user', { status, page, limit });
-      
+      const cacheKey = this.generateCacheKey('current-user', { status, page, limit })
+
       // Check cache first
-      const cached = this.getFromCache(cacheKey);
+      const cached = this.getFromCache(cacheKey)
       if (cached) {
-        return { success: true, data: cached };
+        return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { page, limit };
-      if (status) params.status = status;
+      const params: Record<string, any> = { page, limit }
+      if (status) params.status = status
 
-      const response = await apiService.get<{ data: BlogPostSummary[] }>('/users/me/posts', params);
-      
+      const response = await apiService.get<{ data: BlogPostSummary[] }>('/users/me/posts', params)
+
       // Cache the result
-      this.setCache(cacheKey, response.data);
-      
-      return { success: true, data: response.data || [] };
+      this.setCache(cacheKey, response.data)
+
+      return { success: true, data: response.data || [] }
     } catch (error: any) {
-      console.error('Failed to fetch current user posts:', error);
+      console.error('Failed to fetch current user posts:', error)
       return {
         success: false,
         error: error.message || 'Failed to retrieve current user posts',
-      };
+      }
     }
   }
 
   /**
    * Search blog posts by query
    */
-  async searchPosts(query: string, options?: BlogSearchOptions): Promise<RepositoryResult<BlogPostSummary[]>> {
+  async searchPosts(
+    query: string,
+    options?: BlogSearchOptions,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('search', { query, ...options });
-      
+      const cacheKey = this.generateCacheKey('search', { query, ...options })
+
       // Check cache first
-      const cached = this.getFromCache(cacheKey);
+      const cached = this.getFromCache(cacheKey)
       if (cached) {
-        return { success: true, data: cached };
+        return { success: true, data: cached }
       }
 
-      const params: Record<string, any> = { q: query, ...options };
-      const response = await apiService.get<{ data: ApiBlogPost[] }>('/posts/search', params);
+      const params: Record<string, any> = { q: query, ...options }
+      const response = await apiService.get<{ data: ApiBlogPost[] }>('/posts/search', params)
 
       const posts = response.data
-        .filter(post => post.status === 'published')
-        .map(post => this.transformPostForDisplay(post));
-      
+        .filter((post) => post.status === 'published')
+        .map((post) => this.transformPostForDisplay(post))
+
       // Cache the result
-      this.setCache(cacheKey, posts);
-      
-      return { success: true, data: posts };
+      this.setCache(cacheKey, posts)
+
+      return { success: true, data: posts }
     } catch (error: any) {
-      console.error(`Failed to search posts with query "${query}":`, error);
+      console.error(`Failed to search posts with query "${query}":`, error)
       return {
         success: false,
         error: error.message || 'Failed to search blog posts',
-      };
+      }
     }
   }
 
@@ -420,7 +437,7 @@ export class ApiBlogRepository implements IBlogRepository {
    * Clear all caches
    */
   async clearCache(): Promise<void> {
-    this.cache.clear();
+    this.cache.clear()
   }
 
   /**
@@ -430,9 +447,9 @@ export class ApiBlogRepository implements IBlogRepository {
     return {
       hasData: this.cache.size > 0,
       lastUpdated: this.lastUpdate,
-    };
+    }
   }
 }
 
 // Export singleton instance
-export const blogRepository = new ApiBlogRepository();
+export const blogRepository = new ApiBlogRepository()

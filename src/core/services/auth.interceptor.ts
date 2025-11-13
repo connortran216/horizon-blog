@@ -3,7 +3,7 @@
  * Follows Single Responsibility Principle by separating auth concerns from HTTP concerns
  */
 
-import { AUTH_STORAGE_KEYS } from '../types/auth.types';
+import { AUTH_STORAGE_KEYS } from '../types/auth.types'
 
 export class AuthInterceptor {
   /**
@@ -12,14 +12,14 @@ export class AuthInterceptor {
   getHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-    };
-
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
     }
 
-    return headers;
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
+    return headers
   }
 
   /**
@@ -29,18 +29,17 @@ export class AuthInterceptor {
     // Handle authentication errors ONLY for protected endpoints
     if (status === 401) {
       // Don't redirect if this is a login/register attempt (wrong credentials)
-      const isAuthEndpoint = endpoint.includes('/auth/login') ||
-        endpoint.includes('/users');
+      const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/users')
 
       if (!isAuthEndpoint) {
-        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
 
         // Dispatch custom event for auth context to handle
-        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'))
 
         // Only redirect if not already on login page
         if (!window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login';
+          window.location.href = '/login'
         }
       }
     }
@@ -50,17 +49,17 @@ export class AuthInterceptor {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-    return !!token;
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
+    return !!token
   }
 
   /**
    * Clear authentication data
    */
   clearAuth(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
   }
 }
 
 // Export singleton instance
-export const authInterceptor = new AuthInterceptor();
+export const authInterceptor = new AuthInterceptor()

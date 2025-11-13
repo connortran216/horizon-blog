@@ -1,10 +1,10 @@
-import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import Routes from './Routes';
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
-import theme from './theme';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
+import { BrowserRouter as Router } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import Routes from './Routes'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
+import theme from './theme'
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
         </AuthProvider>
       </ChakraProvider>
     </>
-  );
+  )
 }
 
-export default App; 
+export default App

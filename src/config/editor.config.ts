@@ -25,8 +25,8 @@ export const EDITOR_CONFIG = {
 
     // Auto-save delays (in milliseconds)
     autoSave: {
-      localStorage: 1000,  // Local backup delay
-      backend: 5000,       // Backend API delay
+      localStorage: 1000, // Local backup delay
+      backend: 5000, // Backend API delay
     },
   },
 
@@ -106,7 +106,18 @@ export const EDITOR_CONFIG = {
     // Prism configuration for code syntax highlighting
     prism: {
       theme: 'okaidia', // Prism theme name
-      languages: ['javascript', 'typescript', 'python', 'java', 'go', 'rust', 'html', 'css', 'json', 'markdown'],
+      languages: [
+        'javascript',
+        'typescript',
+        'python',
+        'java',
+        'go',
+        'rust',
+        'html',
+        'css',
+        'json',
+        'markdown',
+      ],
     },
 
     // Block plugin configuration
@@ -188,15 +199,15 @@ export const EDITOR_CONFIG = {
     // Enable React DevTools profiling
     enableProfiling: false,
   },
-};
+}
 
 /**
  * TYPE EXPORTS
  * TypeScript types derived from the config for type safety
  */
-export type EditorConfig = typeof EDITOR_CONFIG;
-export type RenderTiming = EditorConfig['behavior']['renderTiming'];
-export type EditGranularity = EditorConfig['behavior']['editGranularity'];
-export type ToolbarType = EditorConfig['ui']['toolbarType'];
-export type EditorTheme = EditorConfig['ui']['theme'];
-export type ViewStyle = EditorConfig['ui']['viewStyle'];
+export type EditorConfig = typeof EDITOR_CONFIG
+export type RenderTiming = EditorConfig['behavior']['renderTiming']
+export type EditGranularity = EditorConfig['behavior']['editGranularity']
+export type ToolbarType = EditorConfig['ui']['toolbarType']
+export type EditorTheme = EditorConfig['ui']['theme']
+export type ViewStyle = EditorConfig['ui']['viewStyle']

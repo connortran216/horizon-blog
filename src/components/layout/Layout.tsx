@@ -1,9 +1,9 @@
-import { Box, Container, Flex } from '@chakra-ui/react';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import { Box, Container, Flex } from '@chakra-ui/react'
+import Navbar from './Navbar'
+import Footer from './Footer'
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -15,7 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Container>
       <Footer />
     </Flex>
-  );
-};
+  )
+}
 
-export default Layout; 
+export default Layout

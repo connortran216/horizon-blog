@@ -1,4 +1,4 @@
-import { AppError } from '../types/common.types';
+import { AppError } from '../types/common.types'
 
 /**
  * Error handling utilities
@@ -10,13 +10,13 @@ import { AppError } from '../types/common.types';
 export function createAppError(
   code: string,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): AppError {
   return {
     code,
     message,
     details,
-  };
+  }
 }
 
 /**
@@ -24,14 +24,14 @@ export function createAppError(
  */
 export async function handleAsyncError<T>(
   operation: () => Promise<T>,
-  errorHandler?: (error: unknown) => AppError
+  errorHandler?: (error: unknown) => AppError,
 ): Promise<{ success: true; data: T } | { success: false; error: AppError }> {
   try {
-    const data = await operation();
-    return { success: true, data };
+    const data = await operation()
+    return { success: true, data }
   } catch (error) {
-    const appError = errorHandler ? errorHandler(error) : convertToAppError(error);
-    return { success: false, error: appError };
+    const appError = errorHandler ? errorHandler(error) : convertToAppError(error)
+    return { success: false, error: appError }
   }
 }
 
@@ -40,33 +40,21 @@ export async function handleAsyncError<T>(
  */
 export function convertToAppError(error: unknown): AppError {
   if (isAppError(error)) {
-    return error;
+    return error
   }
 
   if (error instanceof Error) {
-    return createAppError(
-      'UNKNOWN_ERROR',
-      error.message || 'An unexpected error occurred'
-    );
+    return createAppError('UNKNOWN_ERROR', error.message || 'An unexpected error occurred')
   }
 
-  return createAppError(
-    'UNKNOWN_ERROR',
-    'An unexpected error occurred',
-    { originalError: error }
-  );
+  return createAppError('UNKNOWN_ERROR', 'An unexpected error occurred', { originalError: error })
 }
 
 /**
  * Type guard to check if error is AppError
  */
 export function isAppError(error: unknown): error is AppError {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    'message' in error
-  );
+  return typeof error === 'object' && error !== null && 'code' in error && 'message' in error
 }
 
 /**
@@ -77,9 +65,9 @@ export function logError(error: unknown, context?: string): void {
     ? `${error.code}: ${error.message}`
     : error instanceof Error
       ? error.message
-      : 'Unknown error';
+      : 'Unknown error'
 
-  console.error(`[${context || 'APP_ERROR'}]`, errorMessage, error);
+  console.error(`[${context || 'APP_ERROR'}]`, errorMessage, error)
 }
 
 /**
@@ -87,21 +75,21 @@ export function logError(error: unknown, context?: string): void {
  */
 export function getErrorMessage(error: unknown): string {
   if (isAppError(error)) {
-    return error.message;
+    return error.message
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return error.message
   }
 
-  return 'An unexpected error occurred. Please try again.';
+  return 'An unexpected error occurred. Please try again.'
 }
 
 /**
  * Check if error is a specific type
  */
 export function isErrorType(error: unknown, code: string): boolean {
-  return isAppError(error) && error.code === code;
+  return isAppError(error) && error.code === code
 }
 
 /**
@@ -110,25 +98,25 @@ export function isErrorType(error: unknown, code: string): boolean {
 export async function retryWithBackoff<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
-  let lastError: unknown;
+  let lastError: unknown
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await operation();
+      return await operation()
     } catch (error) {
-      lastError = error;
+      lastError = error
 
       if (attempt === maxRetries) {
-        throw error;
+        throw error
       }
 
       // Exponential backoff
-      const delay = baseDelay * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const delay = baseDelay * Math.pow(2, attempt)
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
   }
 
-  throw lastError;
+  throw lastError
 }

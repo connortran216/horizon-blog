@@ -3,49 +3,49 @@
  * Authentication logic is handled by AuthInterceptor
  */
 
-import { getRuntimeConfig } from '../../config/runtime';
-import { authInterceptor } from './auth.interceptor';
+import { getRuntimeConfig } from '../../config/runtime'
+import { authInterceptor } from './auth.interceptor'
 
 export class ApiError extends Error {
   constructor(
     message: string,
-    public status: number
+    public status: number,
   ) {
-    super(message);
-    this.name = 'ApiError';
+    super(message)
+    this.name = 'ApiError'
   }
 }
 
 export class ApiService {
-  private baseUrl: string;
+  private baseUrl: string
 
   constructor() {
     // Get base URL from runtime configuration
-    this.baseUrl = getRuntimeConfig().beHost;
+    this.baseUrl = getRuntimeConfig().beHost
   }
 
   /**
    * Get headers with optional Authorization token
    */
   private getHeaders(): HeadersInit {
-    return authInterceptor.getHeaders();
+    return authInterceptor.getHeaders()
   }
 
   /**
    * Generic GET request
    */
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const url = new URL(endpoint, this.baseUrl);
+    const url = new URL(endpoint, this.baseUrl)
     if (params) {
-      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+      Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]))
     }
 
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: this.getHeaders(),
-    });
+    })
 
-    return this.handleResponse<T>(response, endpoint);
+    return this.handleResponse<T>(response, endpoint)
   }
 
   /**
@@ -56,9 +56,9 @@ export class ApiService {
       method: 'POST',
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-    });
+    })
 
-    return this.handleResponse<T>(response, endpoint);
+    return this.handleResponse<T>(response, endpoint)
   }
 
   /**
@@ -69,9 +69,9 @@ export class ApiService {
       method: 'PUT',
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-    });
+    })
 
-    return this.handleResponse<T>(response, endpoint);
+    return this.handleResponse<T>(response, endpoint)
   }
 
   /**
@@ -81,9 +81,9 @@ export class ApiService {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
-    });
+    })
 
-    return this.handleResponse<T>(response, endpoint);
+    return this.handleResponse<T>(response, endpoint)
   }
 
   /**
@@ -94,9 +94,9 @@ export class ApiService {
       method: 'PATCH',
       headers: this.getHeaders(),
       body: data ? JSON.stringify(data) : undefined,
-    });
+    })
 
-    return this.handleResponse<T>(response, endpoint);
+    return this.handleResponse<T>(response, endpoint)
   }
 
   /**
@@ -104,33 +104,33 @@ export class ApiService {
    */
   private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
     if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}`;
+      let errorMessage = `HTTP ${response.status}`
 
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
       } catch (e) {
         // Response is not JSON, use status text
-        errorMessage = response.statusText || errorMessage;
+        errorMessage = response.statusText || errorMessage
       }
 
-      const error = new ApiError(errorMessage, response.status);
+      const error = new ApiError(errorMessage, response.status)
 
       // Handle authentication errors using interceptor
-      authInterceptor.handleAuthError(response.status, endpoint);
+      authInterceptor.handleAuthError(response.status, endpoint)
 
-      throw error;
+      throw error
     }
 
     // Handle successful responses
     if (response.status === 204) {
       // No content response
-      return {} as T;
+      return {} as T
     }
 
-    return response.json();
+    return response.json()
   }
 }
 
 // Export singleton instance
-export const apiService = new ApiService();
+export const apiService = new ApiService()

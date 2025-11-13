@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'
 import {
   Box,
   Button,
@@ -13,9 +13,9 @@ import {
   Link,
   FormErrorMessage,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+} from '@chakra-ui/react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -23,59 +23,59 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const toast = useToast();
-  const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const toast = useToast()
+  const navigate = useNavigate()
+  const { register, isLoading } = useAuth()
 
   // Dark mode color values
-  const headingColor = useColorModeValue('gray.900', 'text.primary');
-  const textColor = useColorModeValue('gray.600', 'text.secondary');
-  const linkColor = useColorModeValue('black', 'link.default');
-  const buttonBg = useColorModeValue('black', 'accent.primary');
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover');
+  const headingColor = useColorModeValue('gray.900', 'text.primary')
+  const textColor = useColorModeValue('gray.600', 'text.secondary')
+  const linkColor = useColorModeValue('black', 'link.default')
+  const buttonBg = useColorModeValue('black', 'accent.primary')
+  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     if (!formData.name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = 'Name is required'
     }
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Email is invalid'
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required'
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Password must be at least 6 characters'
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'Passwords do not match'
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!validateForm()) {
-      return;
+      return
     }
 
     try {
@@ -84,7 +84,7 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
-      });
+      })
 
       toast({
         title: 'Registration successful',
@@ -92,9 +92,9 @@ const Register = () => {
         status: 'success',
         duration: 3000,
         isClosable: true,
-      });
+      })
 
-      navigate('/');
+      navigate('/')
     } catch (error) {
       toast({
         title: 'Registration failed',
@@ -102,9 +102,9 @@ const Register = () => {
         status: 'error',
         duration: 3000,
         isClosable: true,
-      });
+      })
     }
-  };
+  }
 
   return (
     <Container maxW="lg" py={{ base: '12', md: '24' }}>
@@ -130,22 +130,13 @@ const Register = () => {
             <Stack spacing="6">
               <FormControl isInvalid={!!errors.name} isRequired>
                 <FormLabel>Name</FormLabel>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
+                <Input name="name" value={formData.name} onChange={handleChange} />
                 <FormErrorMessage>{errors.name}</FormErrorMessage>
               </FormControl>
 
               <FormControl isInvalid={!!errors.email} isRequired>
                 <FormLabel>Email</FormLabel>
-                <Input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
+                <Input name="email" type="email" value={formData.email} onChange={handleChange} />
                 <FormErrorMessage>{errors.email}</FormErrorMessage>
               </FormControl>
 
@@ -176,7 +167,7 @@ const Register = () => {
                 bg={buttonBg}
                 color="white"
                 _hover={{
-                  bg: buttonHoverBg
+                  bg: buttonHoverBg,
                 }}
                 isLoading={isLoading}
               >
@@ -187,7 +178,7 @@ const Register = () => {
         </Box>
       </Stack>
     </Container>
-  );
-};
+  )
+}
 
-export default Register;
+export default Register

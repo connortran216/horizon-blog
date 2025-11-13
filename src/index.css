@@ -12,7 +12,9 @@
 
 body {
   min-height: 100vh;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 
 /* Obsidian-inspired subtle background texture for dark mode */
@@ -170,4 +172,4 @@ body {
 
 .markdown-preview a:hover {
   text-decoration: underline;
-} 
+}

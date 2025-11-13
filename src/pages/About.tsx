@@ -10,19 +10,19 @@ import {
   Icon,
   Divider,
   useColorModeValue,
-} from '@chakra-ui/react';
-import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
+} from '@chakra-ui/react'
+import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa'
 
 interface TeamMember {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
+  name: string
+  role: string
+  bio: string
+  image: string
   social: {
-    github?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
+    github?: string
+    twitter?: string
+    linkedin?: string
+  }
 }
 
 const teamMembers: TeamMember[] = [
@@ -30,7 +30,8 @@ const teamMembers: TeamMember[] = [
     name: 'Connor Tran',
     role: 'Founder & Lead Developer',
     bio: 'Passionate about web development and creating meaningful content.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60',
+    image:
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=60',
     social: {
       github: 'https://github.com/connortran216',
       // twitter: 'https://twitter.com',
@@ -44,15 +45,15 @@ const teamMembers: TeamMember[] = [
   //   image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60',
   //   social: {},
   // },
-];
+]
 
 const About = () => {
-  const missionText = useColorModeValue('gray.600', 'text.secondary');
-  const valueHeading = useColorModeValue('black', 'text.primary');
-  const cardBg = useColorModeValue('white', 'bg.secondary');
-  const roleText = useColorModeValue('black', 'accent.primary');
-  const bioText = useColorModeValue('gray.600', 'text.secondary');
-  const iconHoverColor = useColorModeValue('gray.800', 'accent.hover');
+  const missionText = useColorModeValue('gray.600', 'text.secondary')
+  const valueHeading = useColorModeValue('black', 'text.primary')
+  const cardBg = useColorModeValue('white', 'bg.secondary')
+  const roleText = useColorModeValue('black', 'accent.primary')
+  const bioText = useColorModeValue('gray.600', 'text.secondary')
+  const iconHoverColor = useColorModeValue('gray.800', 'accent.hover')
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -61,10 +62,9 @@ const About = () => {
         <Box textAlign="center">
           <Heading mb={4}>Our Mission</Heading>
           <Text fontSize="lg" color={missionText} maxW="2xl" mx="auto">
-            We are dedicated to providing high-quality content about web development,
-            programming, and technology. Our goal is to help developers stay
-            up-to-date with the latest trends and best practices while building a
-            supportive community.
+            We are dedicated to providing high-quality content about web development, programming,
+            and technology. Our goal is to help developers stay up-to-date with the latest trends
+            and best practices while building a supportive community.
           </Text>
         </Box>
 
@@ -72,27 +72,35 @@ const About = () => {
 
         {/* Values Section */}
         <Box width="100%">
-          <Heading textAlign="center" mb={8}>Our Values</Heading>
+          <Heading textAlign="center" mb={8}>
+            Our Values
+          </Heading>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
             <VStack>
-              <Heading size="md" color={valueHeading}>Quality</Heading>
+              <Heading size="md" color={valueHeading}>
+                Quality
+              </Heading>
               <Text textAlign="center">
-                We strive to deliver the highest quality content and maintain
-                rigorous standards in our writing.
+                We strive to deliver the highest quality content and maintain rigorous standards in
+                our writing.
               </Text>
             </VStack>
             <VStack>
-              <Heading size="md" color={valueHeading}>Community</Heading>
+              <Heading size="md" color={valueHeading}>
+                Community
+              </Heading>
               <Text textAlign="center">
-                We believe in fostering a supportive and inclusive community
-                for developers of all skill levels.
+                We believe in fostering a supportive and inclusive community for developers of all
+                skill levels.
               </Text>
             </VStack>
             <VStack>
-              <Heading size="md" color={valueHeading}>Innovation</Heading>
+              <Heading size="md" color={valueHeading}>
+                Innovation
+              </Heading>
               <Text textAlign="center">
-                We stay at the forefront of technology and share cutting-edge
-                insights with our readers.
+                We stay at the forefront of technology and share cutting-edge insights with our
+                readers.
               </Text>
             </VStack>
           </SimpleGrid>
@@ -102,7 +110,9 @@ const About = () => {
 
         {/* Team Section */}
         <Box width="100%">
-          <Heading textAlign="center" mb={8}>Our Team</Heading>
+          <Heading textAlign="center" mb={8}>
+            Our Team
+          </Heading>
           <SimpleGrid columns={{ base: 1, md: 1 }} justifyItems="center" spacing={10}>
             {teamMembers.map((member, index) => (
               <VStack
@@ -166,7 +176,7 @@ const About = () => {
         </Box>
       </VStack>
     </Container>
-  );
-};
+  )
+}
 
-export default About; 
+export default About

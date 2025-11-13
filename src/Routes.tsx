@@ -1,14 +1,14 @@
-import { Routes as RouterRoutes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Blog from './pages/Blog';
-import Contact from './pages/Contact';
-import About from './pages/About';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import BlogEditor from './pages/BlogEditor';
-import Profile from './pages/Profile';
-import BlogDetail from './pages/BlogDetail';
-import ProfileBlogDetail from './pages/ProfileBlogDetail';
+import { Routes as RouterRoutes, Route } from 'react-router-dom'
+import Home from './pages/Home'
+import Blog from './pages/Blog'
+import Contact from './pages/Contact'
+import About from './pages/About'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import BlogEditor from './pages/BlogEditor'
+import Profile from './pages/Profile'
+import BlogDetail from './pages/BlogDetail'
+import ProfileBlogDetail from './pages/ProfileBlogDetail'
 
 const Routes = () => {
   return (
@@ -24,7 +24,7 @@ const Routes = () => {
       <Route path="/profile/:username" element={<Profile />} />
       <Route path="/profile/:username/blog/:id" element={<ProfileBlogDetail />} />
     </RouterRoutes>
-  );
-};
+  )
+}
 
-export default Routes; 
+export default Routes

@@ -5,25 +5,25 @@
  */
 
 // Service interfaces
-import { IBlogRepository } from '../types/blog-repository.types';
-import { ApiBlogRepository } from '../repositories/blog.repository';
-import { IAuthService } from '../types/auth.types';
-import { authService } from '../services/auth.service';
-import { IBlogService } from '../types/blog-service.types';
-import { createBlogServiceInstance } from '../services/blog.service';
+import { IBlogRepository } from '../types/blog-repository.types'
+import { ApiBlogRepository } from '../repositories/blog.repository'
+import { IAuthService } from '../types/auth.types'
+import { authService } from '../services/auth.service'
+import { IBlogService } from '../types/blog-service.types'
+import { createBlogServiceInstance } from '../services/blog.service'
 
 /**
  * Service factory function type
  */
-export type ServiceFactory<T> = () => T;
+export type ServiceFactory<T> = () => T
 
 /**
  * Service registration configuration
  */
 interface ServiceRegistration<T> {
-  factory: ServiceFactory<T>;
-  singleton?: boolean;
-  instance?: T;
+  factory: ServiceFactory<T>
+  singleton?: boolean
+  instance?: T
 }
 
 /**
@@ -31,11 +31,11 @@ interface ServiceRegistration<T> {
  * Manages service instantiation and dependency resolution
  */
 export class DIContainer {
-  private services: Map<string | symbol, ServiceRegistration<any>> = new Map();
-  private resolving: Set<string | symbol> = new Set();
+  private services: Map<string | symbol, ServiceRegistration<any>> = new Map()
+  private resolving: Set<string | symbol> = new Set()
 
   constructor() {
-    this.registerDefaultServices();
+    this.registerDefaultServices()
   }
 
   /**
@@ -46,42 +46,42 @@ export class DIContainer {
       factory,
       singleton,
       instance: undefined,
-    });
+    })
   }
 
   /**
    * Resolve a service from the container
    */
   resolve<T>(key: string | symbol): T {
-    const registration = this.services.get(key);
-    
+    const registration = this.services.get(key)
+
     if (!registration) {
-      throw new Error(`Service not registered: ${String(key)}`);
+      throw new Error(`Service not registered: ${String(key)}`)
     }
 
     // Check for circular dependencies
     if (this.resolving.has(key)) {
-      throw new Error(`Circular dependency detected: ${String(key)}`);
+      throw new Error(`Circular dependency detected: ${String(key)}`)
     }
 
     // Return existing instance for singleton services
     if (registration.singleton && registration.instance) {
-      return registration.instance;
+      return registration.instance
     }
 
     // Create new instance
-    this.resolving.add(key);
-    
+    this.resolving.add(key)
+
     try {
-      const instance = registration.factory();
-      
+      const instance = registration.factory()
+
       if (registration.singleton) {
-        registration.instance = instance;
+        registration.instance = instance
       }
-      
-      return instance;
+
+      return instance
     } finally {
-      this.resolving.delete(key);
+      this.resolving.delete(key)
     }
   }
 
@@ -89,22 +89,22 @@ export class DIContainer {
    * Check if a service is registered
    */
   has(key: string | symbol): boolean {
-    return this.services.has(key);
+    return this.services.has(key)
   }
 
   /**
    * Clear all registered services
    */
   clear(): void {
-    this.services.clear();
-    this.resolving.clear();
+    this.services.clear()
+    this.resolving.clear()
   }
 
   /**
    * Get all registered service keys
    */
   getKeys(): (string | symbol)[] {
-    return Array.from(this.services.keys());
+    return Array.from(this.services.keys())
   }
 
   /**
@@ -112,18 +112,18 @@ export class DIContainer {
    */
   private registerDefaultServices(): void {
     // Register repository services
-    this.register('IBlogRepository', () => new ApiBlogRepository());
-    
+    this.register('IBlogRepository', () => new ApiBlogRepository())
+
     // Register auth service
-    this.register('IAuthService', () => authService);
-    
+    this.register('IAuthService', () => authService)
+
     // Register blog service
-    this.register('IBlogService', () => createBlogServiceInstance());
+    this.register('IBlogService', () => createBlogServiceInstance())
   }
 }
 
 // Global container instance
-export const container = new DIContainer();
+export const container = new DIContainer()
 
 /**
  * Decorator for automatic dependency injection
@@ -134,8 +134,8 @@ export function Inject(token: string | symbol) {
       get: () => container.resolve(token),
       enumerable: true,
       configurable: true,
-    });
-  };
+    })
+  }
 }
 
 /**
@@ -145,18 +145,20 @@ export const SERVICE_TOKENS = {
   BLOG_REPOSITORY: 'IBlogRepository' as const,
   AUTH_SERVICE: 'IAuthService' as const,
   BLOG_SERVICE: 'IBlogService' as const,
-} as const;
+} as const
 
 /**
  * Utility functions for service access
  */
-export const getBlogRepository = (): IBlogRepository => container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY);
-export const getAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE);
-export const getBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE);
+export const getBlogRepository = (): IBlogRepository =>
+  container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY)
+export const getAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE)
+export const getBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE)
 
 /**
  * Factory functions for service creation
  */
-export const createBlogRepository = (): IBlogRepository => container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY);
-export const createAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE);
-export const createBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE);
+export const createBlogRepository = (): IBlogRepository =>
+  container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY)
+export const createAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE)
+export const createBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE)
