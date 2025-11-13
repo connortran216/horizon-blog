@@ -236,7 +236,7 @@ const BlogEditor = () => {
         response = await apiService.patch<{ data: unknown }>(`/posts/${postId}`, postData)
       } else {
         // Create new post
-        response = await apiService.post<{ data: unknown }>('/posts', postData)
+        response = await apiService.post<{ data: { id: number } }>(`/posts`, postData)
         if (response.data?.id) {
           setPostId(response.data.id)
         }
