@@ -14,7 +14,7 @@ import {
   Divider,
   useColorModeValue,
 } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { FaBookmark, FaClock } from 'react-icons/fa'
 import { useEffect, useState } from 'react'
 import { getBlogRepository } from '../core/di/container'
@@ -123,9 +123,12 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
 }
 
 const Home = () => {
+  const location = useLocation()
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
+
+
 
   // Color mode values
   const pageBg = useColorModeValue('#faf9f7', 'bg.page')
@@ -144,6 +147,9 @@ const Home = () => {
 
   useEffect(() => {
     const loadBlogPosts = async () => {
+      // Clear repository cache to ensure fresh data on navigation
+      getBlogRepository().clearCache?.()
+
       try {
         const result = await getBlogRepository().getPublishedPosts({ limit: 10 })
         if (result.success && result.data) {
@@ -166,7 +172,7 @@ const Home = () => {
     }
 
     loadBlogPosts()
-  }, [])
+  }, [location.pathname])
 
   return (
     <Box bg={pageBg}>

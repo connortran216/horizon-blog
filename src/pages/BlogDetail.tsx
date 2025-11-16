@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
   Container,
@@ -35,6 +35,7 @@ interface BlogPost {
 const BlogDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const toast = useToast()
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
@@ -75,7 +76,7 @@ const BlogDetail = () => {
 
       fetchPost()
     }
-  }, [id, navigate, toast])
+  }, [id, navigate, toast, location.pathname])
 
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {

@@ -16,7 +16,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { apiService } from '../core/services/api.service'
 
 interface BlogPost {
@@ -136,6 +136,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
 }
 
 const Blog = () => {
+  const location = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
@@ -170,7 +171,7 @@ const Blog = () => {
     }
 
     loadPosts()
-  }, [page])
+  }, [page, location.pathname])
 
   const filteredPosts = blogPosts.filter((post) => {
     const matchesSearch =

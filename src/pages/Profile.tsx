@@ -20,7 +20,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBlogRepository } from '../core/di/container'
 import { FiMoreVertical } from 'react-icons/fi'
@@ -38,13 +38,19 @@ const Profile = () => {
   const { username } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([])
   const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
 
+
+
   useEffect(() => {
     // Load the current user's posts using /users/me/posts endpoint
     const loadUserPosts = async () => {
+      // Clear repository cache to ensure fresh data on navigation
+      getBlogRepository().clearCache?.()
+
       try {
         // Fetch published posts
         const publishedResult = await getBlogRepository().getCurrentUserPosts('published')
@@ -79,7 +85,7 @@ const Profile = () => {
     }
 
     loadUserPosts()
-  }, [])
+  }, [location.pathname])
 
   const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
