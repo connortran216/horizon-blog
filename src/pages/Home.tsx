@@ -128,8 +128,6 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
 
-
-
   // Color mode values
   const pageBg = useColorModeValue('#faf9f7', 'bg.page')
   const heroBg = useColorModeValue('#faf9f7', 'bg.page')

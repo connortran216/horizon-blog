@@ -43,8 +43,6 @@ const Profile = () => {
   const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
 
-
-
   useEffect(() => {
     // Load the current user's posts using /users/me/posts endpoint
     const loadUserPosts = async () => {
