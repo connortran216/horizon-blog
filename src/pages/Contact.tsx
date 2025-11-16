@@ -28,17 +28,17 @@ const contactInfo: ContactInfo[] = [
   {
     icon: FaMapMarkerAlt,
     title: 'Our Address',
-    content: '123 Blog Street, Digital City, 12345',
+    content: '10 Lam Van Ben, Tan Hung ward, HCM City, Vietnam',
   },
   {
     icon: FaPhone,
     title: 'Phone',
-    content: '+1 (555) 123-4567',
+    content: '+84 96 345 2909',
   },
   {
     icon: FaEnvelope,
     title: 'Email',
-    content: 'contact@personalblog.com',
+    content: 'canhtran210699@gmail.com',
   },
 ]
 
