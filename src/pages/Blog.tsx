@@ -198,7 +198,7 @@ const Blog = () => {
     <MotionWrapper>
       <Container maxW="container.xl" py={8}>
         <VStack spacing={8}>
-          <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} duration={0.8}>
             <Box textAlign="center">
               <Heading color={headingColor}>Blog Posts</Heading>
               <Text mt={4} color={subtitleColor}>
@@ -207,7 +207,7 @@ const Blog = () => {
             </Box>
           </MotionWrapper>
 
-          <MotionWrapper initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
+          <MotionWrapper initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} duration={0.6} delay={0.2}>
             <motion.div
               animate={{
                 scale: isSearching ? 1.02 : 1,
@@ -287,7 +287,7 @@ const Blog = () => {
           </AnimatePresence>
 
           {!loading && totalPages > 1 && !searchQuery && (
-            <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 }}>
+            <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} duration={0.6} delay={0.8}>
               <HStack spacing={4} justify="center">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
@@ -304,7 +304,7 @@ const Blog = () => {
                   key={`page-${page}`}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
+                  duration={0.3}
                 >
                   <Text color={paginationTextColor}>
                     Page {page} of {totalPages} ({total} total posts)
