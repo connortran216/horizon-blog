@@ -200,7 +200,12 @@ const Home = () => {
               {/* Left side content with staggered reveals */}
               <MotionWrapper>
                 <Stack spacing={6} maxW="640px" px={{ base: 4, md: 8 }}>
-                  <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+                  <MotionWrapper
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    duration={0.8}
+                    delay={0.2}
+                  >
                     <Heading
                       fontFamily="gt-super, Georgia, serif"
                       fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
@@ -212,7 +217,12 @@ const Home = () => {
                       Human stories & ideas
                     </Heading>
                   </MotionWrapper>
-                  <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
+                  <MotionWrapper
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    duration={0.8}
+                    delay={0.4}
+                  >
                     <Text
                       fontSize={{ base: 'lg', md: 'xl' }}
                       color={textColor}
@@ -222,8 +232,16 @@ const Home = () => {
                       A place to read, write, and deepen your understanding
                     </Text>
                   </MotionWrapper>
-                  <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}>
-                    <RouterLink to={user ? '/blog' : '/register'} style={{ textDecoration: 'none' }}>
+                  <MotionWrapper
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    duration={0.8}
+                    delay={0.6}
+                  >
+                    <RouterLink
+                      to={user ? '/blog' : '/register'}
+                      style={{ textDecoration: 'none' }}
+                    >
                       <AnimatedPrimaryButton
                         size="lg"
                         fontSize="md"
@@ -239,7 +257,12 @@ const Home = () => {
               </MotionWrapper>
 
               {/* Right side illustration with parallax */}
-              <MotionWrapper initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.8 }}>
+              <MotionWrapper
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                duration={0.8}
+                delay={0.8}
+              >
                 <Box
                   position="relative"
                   width={{ base: 'full', md: '50%' }}
@@ -309,10 +332,20 @@ const Home = () => {
       </motion.div>
 
       {/* Trending Section with Scroll Reveals */}
-      <MotionWrapper initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.2 }}>
+      <MotionWrapper
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        duration={0.8}
+        delay={1.2}
+      >
         <Box py={10} borderBottom="1px" borderColor={borderColor} bg={sectionBg}>
           <Container maxW="container.md">
-            <MotionWrapper initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 1.4 }}>
+            <MotionWrapper
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              duration={0.6}
+              delay={1.4}
+            >
               <HStack spacing={2} mb={6}>
                 <Icon as={FaBookmark} w={4} h={4} color={headingColor} />
                 <Text fontWeight="bold" color={headingColor}>
@@ -322,7 +355,12 @@ const Home = () => {
             </MotionWrapper>
 
             {isLoading ? (
-              <MotionWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 1.6 }}>
+              <MotionWrapper
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                duration={0.6}
+                delay={1.6}
+              >
                 <Text>Loading trending posts...</Text>
               </MotionWrapper>
             ) : blogPosts.length > 0 ? (
@@ -332,7 +370,8 @@ const Home = () => {
                     key={post.id}
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 1.6 + index * 0.1 }}
+                    duration={0.6}
+                    delay={1.6 + index * 0.1}
                   >
                     <HStack align="start" spacing={4}>
                       <Text
@@ -371,7 +410,12 @@ const Home = () => {
                 ))}
               </SimpleGrid>
             ) : (
-              <MotionWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 1.6 }}>
+              <MotionWrapper
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                duration={0.6}
+                delay={1.6}
+              >
                 <Text>No trending posts available. Start writing to see your posts here!</Text>
               </MotionWrapper>
             )}

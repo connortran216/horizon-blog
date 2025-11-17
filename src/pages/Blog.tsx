@@ -15,10 +15,11 @@ import {
   Avatar,
   useColorModeValue,
 } from '@chakra-ui/react'
-import { SearchIcon } from '@chakra-ui/icons'
+import { SearchIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
-import { AnimatedCard } from '../core'
+import { AnimatedCard, MotionWrapper } from '../core'
 
 interface BlogPost {
   id: number
@@ -140,6 +141,7 @@ const Blog = () => {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [isSearching, setIsSearching] = useState(false)
   const limit = 20
 
   // Load blog posts from API
@@ -170,7 +172,14 @@ const Blog = () => {
     loadPosts()
   }, [page, location.pathname])
 
+  // Handle search with animation
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    setIsSearching(value.length > 0)
+  }
+
   const filteredPosts = blogPosts.filter((post) => {
+    if (!searchQuery) return true
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.content_markdown.toLowerCase().includes(searchQuery.toLowerCase())
@@ -186,73 +195,138 @@ const Blog = () => {
   const paginationTextColor = useColorModeValue('gray.700', 'text.primary')
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <VStack spacing={8}>
-        <Box textAlign="center">
-          <Heading color={headingColor}>Blog Posts</Heading>
-          <Text mt={4} color={subtitleColor}>
-            Explore our latest articles and tutorials
-          </Text>
-        </Box>
+    <MotionWrapper>
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={8}>
+          <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <Box textAlign="center">
+              <Heading color={headingColor}>Blog Posts</Heading>
+              <Text mt={4} color={subtitleColor}>
+                Explore our latest articles and tutorials
+              </Text>
+            </Box>
+          </MotionWrapper>
 
-        <InputGroup maxW="600px">
-          <InputLeftElement pointerEvents="none">
-            <SearchIcon color={searchIconColor} />
-          </InputLeftElement>
-          <Input
-            placeholder="Search posts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
-
-        {loading && (
-          <Text textAlign="center" color={loadingTextColor}>
-            Loading posts...
-          </Text>
-        )}
-
-        {!loading && (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} width="100%">
-            {filteredPosts.map((post, index) => (
-              <BlogCard key={post.id} post={post} index={index} />
-            ))}
-          </SimpleGrid>
-        )}
-
-        {!loading && filteredPosts.length === 0 && (
-          <Text textAlign="center" color={loadingTextColor}>
-            {searchQuery ? 'No posts found matching your search.' : 'No posts available yet.'}
-          </Text>
-        )}
-
-        {!loading && totalPages > 1 && !searchQuery && (
-          <HStack spacing={4} justify="center">
-            <Button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              isDisabled={page === 1}
-              bg={paginationButtonBg}
-              color="white"
-              _hover={{ bg: paginationButtonHoverBg }}
+          <MotionWrapper initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
+            <motion.div
+              animate={{
+                scale: isSearching ? 1.02 : 1,
+                boxShadow: searchQuery ? '0 0 0 3px rgba(139, 127, 199, 0.1)' : 'none'
+              }}
+              transition={{ duration: 0.2 }}
             >
-              Previous
-            </Button>
-            <Text color={paginationTextColor}>
-              Page {page} of {totalPages} ({total} total posts)
-            </Text>
-            <Button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              isDisabled={page === totalPages}
-              bg={paginationButtonBg}
-              color="white"
-              _hover={{ bg: paginationButtonHoverBg }}
-            >
-              Next
-            </Button>
-          </HStack>
-        )}
-      </VStack>
-    </Container>
+              <InputGroup maxW="600px">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color={searchIconColor} />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                />
+              </InputGroup>
+            </motion.div>
+          </MotionWrapper>
+
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <MotionWrapper
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Text textAlign="center" color={loadingTextColor}>
+                  Loading posts...
+                </Text>
+              </MotionWrapper>
+            ) : filteredPosts.length === 0 ? (
+              <MotionWrapper
+                key="empty"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Text textAlign="center" color={loadingTextColor}>
+                  {searchQuery ? 'No posts found matching your search.' : 'No posts available yet.'}
+                </Text>
+              </MotionWrapper>
+            ) : (
+              <motion.div
+                key="grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                layout
+              >
+                <LayoutGroup>
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} width="100%">
+                    <AnimatePresence>
+                      {filteredPosts.map((post, index) => (
+                        <motion.div
+                          key={post.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            transition: { duration: 0.5, delay: index * 0.05 }
+                          }}
+                          exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <BlogCard post={post} index={index} />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </SimpleGrid>
+                </LayoutGroup>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!loading && totalPages > 1 && !searchQuery && (
+            <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 }}>
+              <HStack spacing={4} justify="center">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    isDisabled={page === 1}
+                    bg={paginationButtonBg}
+                    color="white"
+                    _hover={{ bg: paginationButtonHoverBg }}
+                  >
+                    Previous
+                  </Button>
+                </motion.div>
+                <MotionWrapper
+                  key={`page-${page}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Text color={paginationTextColor}>
+                    Page {page} of {totalPages} ({total} total posts)
+                  </Text>
+                </MotionWrapper>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    isDisabled={page === totalPages}
+                    bg={paginationButtonBg}
+                    color="white"
+                    _hover={{ bg: paginationButtonHoverBg }}
+                  >
+                    Next
+                  </Button>
+                </motion.div>
+              </HStack>
+            </MotionWrapper>
+          )}
+        </VStack>
+      </Container>
+    </MotionWrapper>
   )
 }
 

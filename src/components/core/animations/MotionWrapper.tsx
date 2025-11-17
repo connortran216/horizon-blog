@@ -53,9 +53,12 @@ interface MotionWrapperProps {
   once?: boolean
   whileHover?: TargetAndTransition
   whileTap?: TargetAndTransition
-  initial?: string
-  animate?: string
-  exit?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  initial?: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  animate?: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  exit?: any
   viewport?: unknown
 }
 
