@@ -15,6 +15,7 @@ import {
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
+import { particleSystem } from '../core'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -35,6 +36,10 @@ const Login = () => {
 
     try {
       await login({ email, password })
+
+      // Trigger success particles
+      particleSystem.showSuccessParticles()
+
       toast({
         title: 'Login Successful',
         description: `Welcome back!`,
