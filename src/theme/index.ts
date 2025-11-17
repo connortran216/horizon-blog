@@ -342,6 +342,44 @@ const lineHeights = {
   taller: 2,
 }
 
+// Animation settings for smooth interactions
+const animationConfig = {
+  transition: {
+    default: {
+      duration: 0.2,
+      ease: [0.4, 0.0, 0.2, 1], // Material Design easing
+    },
+    smooth: {
+      duration: 0.3,
+      ease: [0.25, 0.46, 0.45, 0.94], // Custom smooth easing
+    },
+    bouncy: {
+      type: 'spring',
+      damping: 12,
+      stiffness: 100,
+    },
+  },
+  variants: {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          delayChildren: 0.1,
+          staggerChildren: 0.1
+        }
+      }
+    },
+    item: {
+      hidden: { y: 20, opacity: 0 },
+      visible: {
+        y: 0,
+        opacity: 1
+      }
+    }
+  }
+}
+
 // Create and export the theme
 const theme = extendTheme({
   config,
@@ -353,11 +391,16 @@ const theme = extendTheme({
   fonts,
   fontSizes,
   lineHeights,
+  animations: animationConfig,
   styles: {
     global: (props: { colorMode: 'light' | 'dark' }) => ({
       body: {
         bg: props.colorMode === 'dark' ? 'obsidian.dark.bg' : 'obsidian.light.bg',
         color: props.colorMode === 'dark' ? 'obsidian.text.primary' : 'obsidian.text.lightPrimary',
+      },
+      // Framer Motion optimization
+      '*[data-framer]': {
+        willChange: 'transform',
       },
     }),
   },
