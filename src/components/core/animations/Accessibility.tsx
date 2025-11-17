@@ -131,7 +131,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   focusRing = true,
   ...buttonProps
 }) => {
-  const { transition: _transition, ...animationProps } = useAnimationProps(motionProps)
+  const { transition: _, ...animationProps } = useAnimationProps(motionProps)
 
   return (
     <FocusRing showRing={focusRing}>
