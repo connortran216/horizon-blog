@@ -1,7 +1,6 @@
 import { motion, Variants, TargetAndTransition } from 'framer-motion'
 import { ReactNode } from 'react'
 
-
 // Animation presets for consistent behavior
 export const animationVariants = {
   fadeInUp: {
@@ -110,11 +109,7 @@ export const StaggerContainer = ({
   children: ReactNode
   className?: string
 } & MotionWrapperProps) => (
-  <MotionWrapper
-    className={className}
-    custom={animationVariants.staggerContainer}
-    {...props}
-  >
+  <MotionWrapper className={className} custom={animationVariants.staggerContainer} {...props}>
     {children}
   </MotionWrapper>
 )

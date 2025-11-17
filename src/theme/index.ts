@@ -366,18 +366,18 @@ const animationConfig = {
         opacity: 1,
         transition: {
           delayChildren: 0.1,
-          staggerChildren: 0.1
-        }
-      }
+          staggerChildren: 0.1,
+        },
+      },
     },
     item: {
       hidden: { y: 20, opacity: 0 },
       visible: {
         y: 0,
-        opacity: 1
-      }
-    }
-  }
+        opacity: 1,
+      },
+    },
+  },
 }
 
 // Create and export the theme

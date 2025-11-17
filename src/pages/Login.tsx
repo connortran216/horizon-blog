@@ -111,12 +111,7 @@ const Login = () => {
                 />
               </FormControl>
 
-              <AnimatedPrimaryButton
-                type="submit"
-                size="lg"
-                fontSize="md"
-                isLoading={isLoading}
-              >
+              <AnimatedPrimaryButton type="submit" size="lg" fontSize="md" isLoading={isLoading}>
                 Sign in
               </AnimatedPrimaryButton>
             </Stack>

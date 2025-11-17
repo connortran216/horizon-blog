@@ -279,9 +279,7 @@ const Navbar = () => {
             )}
             {!user && (
               <RouterLink to="/login">
-                <AnimatedPrimaryButton>
-                  Sign in
-                </AnimatedPrimaryButton>
+                <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
               </RouterLink>
             )}
           </Flex>

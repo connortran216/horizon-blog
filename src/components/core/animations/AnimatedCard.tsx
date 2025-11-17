@@ -27,8 +27,6 @@ interface AnimatedCardProps {
   p?: number
   /** Overflow behavior */
   overflow?: string
-  /** Additional className */
-  className?: string
 }
 
 const animationVariants = {
@@ -37,33 +35,33 @@ const animationVariants = {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-    }
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
   },
   slideFromLeft: {
     hidden: { opacity: 0, x: -50 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-    }
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
   },
   slideFromRight: {
     hidden: { opacity: 0, x: 50 },
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }
-    }
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
   },
   scaleIn: {
     hidden: { opacity: 0, scale: 0.8 },
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
-    }
-  }
+      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+  },
 }
 
 export const AnimatedCard = ({
@@ -81,7 +79,7 @@ export const AnimatedCard = ({
   const controls = useAnimation()
   const isInView = useInView(cardRef, {
     margin: '-10% 0px -10% 0px',
-    once: true
+    once: true,
   })
 
   // Parallax effect
@@ -105,7 +103,6 @@ export const AnimatedCard = ({
   // Start animation when in view
   useEffect(() => {
     if (isInView) {
-      const totalDelay = delay + (staggerDelay * index)
       controls.start('visible')
     }
   }, [isInView, controls, delay, staggerDelay, index])
@@ -115,9 +112,9 @@ export const AnimatedCard = ({
     scale: 1.02,
     boxShadow: useColorModeValue(
       '0 8px 25px rgba(139, 127, 199, 0.25)',
-      '0 8px 25px rgba(139, 127, 199, 0.4)'
+      '0 8px 25px rgba(139, 127, 199, 0.4)',
     ),
-    transition: { type: 'spring', stiffness: 300, damping: 20 }
+    transition: { type: 'spring', stiffness: 300, damping: 20 },
   }
 
   // Parallax transform
@@ -132,16 +129,14 @@ export const AnimatedCard = ({
       whileHover={hoverEffects}
       style={{
         transform: parallaxTransform,
-        willChange: parallax ? 'transform' : 'auto'
+        willChange: parallax ? 'transform' : 'auto',
       }}
       transition={{
-        delay: delay + (staggerDelay * index),
-        duration
+        delay: delay + staggerDelay * index,
+        duration,
       }}
     >
-      <GlassCard {...boxProps}>
-        {children}
-      </GlassCard>
+      <GlassCard {...boxProps}>{children}</GlassCard>
     </motion.div>
   )
 }
@@ -154,7 +149,11 @@ export const ScrollRevealCard = (props: AnimatedCardProps) => (
 )
 
 // Card with slide animations for alternating layouts
-export const SlideInCard = ({ alternate, index = 0, ...props }: AnimatedCardProps & { alternate?: boolean }) => (
+export const SlideInCard = ({
+  alternate,
+  index = 0,
+  ...props
+}: AnimatedCardProps & { alternate?: boolean }) => (
   <AnimatedCard
     animation={alternate && index % 2 === 1 ? 'slideFromRight' : 'slideFromLeft'}
     {...props}
@@ -165,7 +164,7 @@ export const SlideInCard = ({ alternate, index = 0, ...props }: AnimatedCardProp
 export const StaggeredCardGrid = ({
   children,
   staggerDelay = 0.15,
-  animation = 'fadeInUp'
+  animation = 'fadeInUp',
 }: {
   children: React.ReactNode
   staggerDelay?: number
@@ -177,7 +176,7 @@ export const StaggeredCardGrid = ({
         staggerDelay,
         index,
         animation: animation,
-        delay: 0
+        delay: 0,
       })
     }
     return child

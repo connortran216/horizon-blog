@@ -1,4 +1,3 @@
-import React from 'react'
 import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react'
 
 /**
@@ -13,15 +12,12 @@ interface GlassmorphismProps extends BoxProps {
   intensity?: 'light' | 'medium' | 'heavy'
   /** Optional custom backdrop blur value */
   blur?: string
-  /** Custom background opacity override */
-  opacity?: number
 }
 
 export const Glassmorphism = ({
   children,
   intensity = 'medium',
   blur,
-  opacity,
   ...boxProps
 }: GlassmorphismProps) => {
   // Adaptive colors for light/dark modes
@@ -57,15 +53,9 @@ export const Glassmorphism = ({
   }
 
   // Get current mode values
-  const bgColor = useColorModeValue(
-    glassBgLight[intensity],
-    glassBgDark[intensity]
-  )
+  const bgColor = useColorModeValue(glassBgLight[intensity], glassBgDark[intensity])
 
-  const borderColor = useColorModeValue(
-    glassBorderLight[intensity],
-    glassBorderDark[intensity]
-  )
+  const borderColor = useColorModeValue(glassBorderLight[intensity], glassBorderDark[intensity])
 
   const backdropBlur = blur || blurValues[intensity]
 
@@ -92,16 +82,8 @@ interface GlassCardProps extends GlassmorphismProps {
   p?: number
 }
 
-export const GlassCard = ({
-  children,
-  p = 6,
-  ...props
-}: GlassCardProps) => (
-  <Glassmorphism
-    p={p}
-    borderRadius="xl"
-    {...props}
-  >
+export const GlassCard = ({ children, p = 6, ...props }: GlassCardProps) => (
+  <Glassmorphism p={p} borderRadius="xl" {...props}>
     {children}
   </Glassmorphism>
 )
@@ -110,19 +92,8 @@ interface GlassModalProps extends GlassmorphismProps {
   maxW?: string
 }
 
-export const GlassModal = ({
-  children,
-  maxW = "lg",
-  p = 8,
-  ...props
-}: GlassModalProps) => (
-  <Glassmorphism
-    maxW={maxW}
-    mx="auto"
-    p={p}
-    intensity="heavy"
-    {...props}
-  >
+export const GlassModal = ({ children, maxW = 'lg', p = 8, ...props }: GlassModalProps) => (
+  <Glassmorphism maxW={maxW} mx="auto" p={p} intensity="heavy" {...props}>
     {children}
   </Glassmorphism>
 )
@@ -134,15 +105,15 @@ interface GlassOverlayProps extends GlassmorphismProps {
 export const GlassOverlay = ({
   children,
   onClick,
-  position = "fixed",
+  position = 'fixed',
   top = 0,
   left = 0,
   right = 0,
   bottom = 0,
   zIndex = 1000,
-  display = "flex",
-  alignItems = "center",
-  justifyContent = "center",
+  display = 'flex',
+  alignItems = 'center',
+  justifyContent = 'center',
   ...props
 }: GlassOverlayProps) => (
   <Glassmorphism
@@ -156,7 +127,7 @@ export const GlassOverlay = ({
     alignItems={alignItems}
     justifyContent={justifyContent}
     onClick={onClick}
-    cursor={onClick ? "pointer" : undefined}
+    cursor={onClick ? 'pointer' : undefined}
     intensity="light"
     {...props}
   >
