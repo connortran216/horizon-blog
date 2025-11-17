@@ -15,11 +15,11 @@ import {
   Avatar,
   useColorModeValue,
 } from '@chakra-ui/react'
-import { SearchIcon, ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
+import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
-import { AnimatedCard, MotionWrapper } from '../core'
+import { AnimatedCard, MotionWrapper, FadeInShimmer, ShimmerLoader } from '../core'
 
 interface BlogPost {
   id: number
@@ -198,7 +198,11 @@ const Blog = () => {
     <MotionWrapper>
       <Container maxW="container.xl" py={8}>
         <VStack spacing={8}>
-          <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} duration={0.8}>
+          <MotionWrapper
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            duration={0.8}
+          >
             <Box textAlign="center">
               <Heading color={headingColor}>Blog Posts</Heading>
               <Text mt={4} color={subtitleColor}>
@@ -207,11 +211,16 @@ const Blog = () => {
             </Box>
           </MotionWrapper>
 
-          <MotionWrapper initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} duration={0.6} delay={0.2}>
+          <MotionWrapper
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            duration={0.6}
+            delay={0.2}
+          >
             <motion.div
               animate={{
                 scale: isSearching ? 1.02 : 1,
-                boxShadow: searchQuery ? '0 0 0 3px rgba(139, 127, 199, 0.1)' : 'none'
+                boxShadow: searchQuery ? '0 0 0 3px rgba(139, 127, 199, 0.1)' : 'none',
               }}
               transition={{ duration: 0.2 }}
             >
@@ -230,16 +239,9 @@ const Blog = () => {
 
           <AnimatePresence mode="wait">
             {loading ? (
-              <MotionWrapper
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <Text textAlign="center" color={loadingTextColor}>
-                  Loading posts...
-                </Text>
-              </MotionWrapper>
+              <FadeInShimmer key="loading" delay={0.3}>
+                <ShimmerLoader variant="blog" count={6} />
+              </FadeInShimmer>
             ) : filteredPosts.length === 0 ? (
               <MotionWrapper
                 key="empty"
@@ -271,7 +273,7 @@ const Blog = () => {
                             opacity: 1,
                             scale: 1,
                             y: 0,
-                            transition: { duration: 0.5, delay: index * 0.05 }
+                            transition: { duration: 0.5, delay: index * 0.05 },
                           }}
                           exit={{ opacity: 0, scale: 0.8, y: -20 }}
                           transition={{ duration: 0.3 }}
@@ -287,7 +289,12 @@ const Blog = () => {
           </AnimatePresence>
 
           {!loading && totalPages > 1 && !searchQuery && (
-            <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} duration={0.6} delay={0.8}>
+            <MotionWrapper
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              duration={0.6}
+              delay={0.8}
+            >
               <HStack spacing={4} justify="center">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button

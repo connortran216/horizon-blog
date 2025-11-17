@@ -15,7 +15,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { ArrowBackIcon } from '@chakra-ui/icons'
-import { motion, useScroll, useTransform, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
 import MilkdownReader from '../components/reader/MilkdownReader'
 
@@ -60,7 +60,10 @@ const BlogDetail = () => {
       const windowHeight = window.innerHeight
 
       const totalHeight = elementTop + elementHeight - windowHeight
-      const currentProgress = Math.min(100, Math.max(0, ((scrollTop - elementTop) / totalHeight) * 100))
+      const currentProgress = Math.min(
+        100,
+        Math.max(0, ((scrollTop - elementTop) / totalHeight) * 100),
+      )
 
       setReadingProgress(currentProgress)
     }
@@ -178,7 +181,12 @@ const BlogDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <Button leftIcon={<ArrowBackIcon />} variant="ghost" mb={6} onClick={() => navigate('/blog')}>
+          <Button
+            leftIcon={<ArrowBackIcon />}
+            variant="ghost"
+            mb={6}
+            onClick={() => navigate('/blog')}
+          >
             Back to Blog
           </Button>
         </motion.div>
@@ -238,7 +246,7 @@ const BlogDetail = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1 }}
             style={{
-              paddingBottom: '5vh' // Extra space for reading progress
+              paddingBottom: '5vh', // Extra space for reading progress
             }}
           >
             {renderContent()}
