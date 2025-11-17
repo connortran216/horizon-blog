@@ -25,4 +25,5 @@ export * from './components/ErrorBoundary'
 // Animations
 export * from '../components/core/animations/MotionWrapper'
 export * from '../components/core/animations/AnimatedButton'
+export * from '../components/core/animations/AnimatedCard'
 export * from '../components/core/animations/Glassmorphism'

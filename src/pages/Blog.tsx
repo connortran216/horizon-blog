@@ -18,7 +18,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { apiService } from '../core/services/api.service'
-import { GlassCard } from '../core'
+import { AnimatedCard } from '../core'
 
 interface BlogPost {
   id: number
@@ -35,7 +35,7 @@ interface BlogPost {
   }
 }
 
-const BlogCard = ({ post }: { post: BlogPost }) => {
+const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
   // Extract excerpt from markdown content
   const getExcerpt = (markdown: string): string => {
     if (!markdown) return 'No content'
@@ -69,12 +69,13 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
   const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   return (
-    <GlassCard
+    <AnimatedCard
       maxW="100%"
       overflow="hidden"
-      _hover={{ transform: 'translateY(-4px)' }}
-      transition="transform 0.2s"
       intensity="medium"
+      staggerDelay={0.15}
+      index={index}
+      animation="fadeInUp"
     >
       <Box
         height="200px"
@@ -127,7 +128,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           Read More
         </Button>
       </VStack>
-    </GlassCard>
+    </AnimatedCard>
   )
 }
 
@@ -213,8 +214,8 @@ const Blog = () => {
 
         {!loading && (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} width="100%">
-            {filteredPosts.map((post) => (
-              <BlogCard key={post.id} post={post} />
+            {filteredPosts.map((post, index) => (
+              <BlogCard key={post.id} post={post} index={index} />
             ))}
           </SimpleGrid>
         )}
