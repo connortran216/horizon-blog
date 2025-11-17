@@ -18,7 +18,15 @@ interface ParticleProps {
   type?: 'circle' | 'star' | 'spark' | 'heart'
 }
 
-const Particle: React.FC<ParticleProps> = ({ x, y, size, color, duration, delay, type = 'circle' }) => {
+const Particle: React.FC<ParticleProps> = ({
+  x,
+  y,
+  size,
+  color,
+  duration,
+  delay,
+  type = 'circle',
+}) => {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
@@ -62,21 +70,21 @@ const Particle: React.FC<ParticleProps> = ({ x, y, size, color, duration, delay,
         scale: 0,
         x: 0,
         y: 0,
-        rotate: 0
+        rotate: 0,
       }}
       animate={{
         opacity: [0, 1, 1, 0],
         scale: [0, randomScale, randomScale * 1.2, 0],
         x: [0, randomX * 0.3, randomX, randomX * 1.2],
         y: [0, randomY * 0.3, randomY, randomY * 1.2],
-        rotate: [0, 180, 360]
+        rotate: [0, 180, 360],
       }}
       transition={{
         duration: duration,
         delay: delay,
         ease: [0.25, 0.46, 0.45, 0.94],
         opacity: { times: [0, 0.1, 0.9, 1] },
-        scale: { times: [0, 0.2, 0.8, 1] }
+        scale: { times: [0, 0.2, 0.8, 1] },
       }}
     >
       {renderShape()}
@@ -131,7 +139,7 @@ export const ParticleBurst: React.FC<ParticleBurstProps> = ({
   sizeRange,
   durationRange,
   types = ['star', 'circle', 'spark'],
-  intensity = 'medium'
+  intensity = 'medium',
 }) => {
   const [particles, setParticles] = useState<ParticleProps[]>([])
   const [isActive, setIsActive] = useState(false)
@@ -153,13 +161,13 @@ export const ParticleBurst: React.FC<ParticleBurstProps> = ({
       color: getColorScheme(colorScheme),
       duration: Math.random() * (maxDuration - minDuration) + minDuration,
       delay: Math.random() * 0.3, // Stagger start times
-      type: types[Math.floor(Math.random() * types.length)]
+      type: types[Math.floor(Math.random() * types.length)],
     }))
 
     setParticles(newParticles)
 
     // Clean up after longest particle duration + delay
-    const cleanupTime = (Math.max(...newParticles.map(p => p.duration + p.delay)) + 1) * 1000
+    const cleanupTime = (Math.max(...newParticles.map((p) => p.duration + p.delay)) + 1) * 1000
     setTimeout(() => {
       setParticles([])
       setIsActive(false)
@@ -195,10 +203,7 @@ interface SuccessCelebrationProps {
   onComplete?: () => void
 }
 
-export const SuccessCelebration: React.FC<SuccessCelebrationProps> = ({
-  position,
-  onComplete
-}) => {
+export const SuccessCelebration: React.FC<SuccessCelebrationProps> = ({ position, onComplete }) => {
   const [showParticles, setShowParticles] = useState(false)
 
   useEffect(() => {
@@ -225,11 +230,7 @@ export const SuccessCelebration: React.FC<SuccessCelebrationProps> = ({
       />
 
       {/* Secondary bursts with delay */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
         <ParticleBurst
           position={position ? { x: position.x + 20, y: position.y - 30 } : undefined}
           count={6}
@@ -252,7 +253,7 @@ interface FloatingNotificationProps {
 export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
   message,
   onComplete,
-  position = 'top'
+  position = 'top',
 }) => {
   const [isVisible, setIsVisible] = useState(true)
   const notificationRef = useRef<HTMLDivElement>(null)
@@ -274,17 +275,17 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
       initial={{
         opacity: 0,
         y: position === 'top' ? -50 : 50,
-        scale: 0.8
+        scale: 0.8,
       }}
       animate={{
         opacity: 1,
         y: 0,
-        scale: 1
+        scale: 1,
       }}
       exit={{
         opacity: 0,
         y: position === 'top' ? -20 : 20,
-        scale: 0.95
+        scale: 0.95,
       }}
       style={{
         position: 'fixed',
@@ -340,7 +341,7 @@ class ParticleSystem {
 
     const center = position || {
       x: window.innerWidth / 2,
-      y: window.innerHeight / 2
+      y: window.innerHeight / 2,
     }
 
     // Create and append React component to DOM
@@ -352,7 +353,7 @@ class ParticleSystem {
           colorScheme="success"
           intensity="medium"
           types={['star', 'spark', 'circle']}
-        />
+        />,
       )
 
       // Clean up after animation
@@ -377,7 +378,7 @@ class ParticleSystem {
               container.remove()
             }, 300)
           }}
-        />
+        />,
       )
     })
 

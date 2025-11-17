@@ -46,12 +46,18 @@ export const Shimmer: React.FC<ShimmerProps> = ({
       transition: {
         repeat: Infinity,
         duration: 1.5,
-        ease: 'easeInOut'
-      }
-    }
+        ease: 'easeInOut',
+      },
+    },
   }
 
-  const ShimmerLine = ({ width = '100%', delay = 0 }: { width?: string | number; delay?: number }) => (
+  const ShimmerLine = ({
+    width = '100%',
+    delay = 0,
+  }: {
+    width?: string | number
+    delay?: number
+  }) => (
     <motion.div
       variants={shimmerVariants}
       initial="initial"
@@ -67,7 +73,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({
         delay,
         repeat: Infinity,
         duration: 1.5,
-        ease: 'easeInOut'
+        ease: 'easeInOut',
       }}
     />
   )
@@ -79,11 +85,7 @@ export const Shimmer: React.FC<ShimmerProps> = ({
   return (
     <VStack spacing={2} align="stretch" width="100%">
       {Array.from({ length: lines }, (_, i) => (
-        <ShimmerLine
-          key={i}
-          width={i === lines - 1 ? '60%' : '100%'}
-          delay={i * 0.1}
-        />
+        <ShimmerLine key={i} width={i === lines - 1 ? '60%' : '100%'} delay={i * 0.1} />
       ))}
     </VStack>
   )
@@ -205,7 +207,7 @@ export const ArticleSkeleton = () => (
 // Generic loading state with different variants
 export const ShimmerLoader = ({
   variant = 'blog',
-  count = 6
+  count = 6,
 }: {
   variant?: 'blog' | 'list' | 'article' | 'compact'
   count?: number
@@ -224,7 +226,13 @@ export const ShimmerLoader = ({
 }
 
 // Fade-in wrapper for loading states
-export const FadeInShimmer = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
+export const FadeInShimmer = ({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode
+  delay?: number
+}) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
