@@ -17,9 +17,11 @@ import {
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { FaBookmark, FaClock } from 'react-icons/fa'
 import { useEffect, useState } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { getBlogRepository } from '../core/di/container'
 import { BlogPost } from '../core'
 import { useAuth } from '../context/AuthContext'
+import { AnimatedPrimaryButton, MotionWrapper } from '../core'
 
 // Default avatar for posts without author avatar
 const DEFAULT_AVATAR =
@@ -128,6 +130,11 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
 
+  // Parallax effect for hero section
+  const { scrollY } = useScroll()
+  const heroY = useTransform(scrollY, [0, 500], [0, -100])
+  const backgroundY = useTransform(scrollY, [0, 300], [0, 50])
+
   // Color mode values
   const pageBg = useColorModeValue('#faf9f7', 'bg.page')
   const heroBg = useColorModeValue('#faf9f7', 'bg.page')
@@ -174,180 +181,203 @@ const Home = () => {
 
   return (
     <Box bg={pageBg}>
-      {/* Hero Section */}
-      <Box
-        borderBottom="1px"
-        borderColor={borderColor}
-        bg={heroBg}
-        position="relative"
-        overflow="hidden"
-      >
-        <Container maxW="container.xl" py={{ base: 20, md: 28 }}>
-          <Flex
-            direction={{ base: 'column', md: 'row' }}
-            align="center"
-            justify="space-between"
-            gap={10}
-          >
-            {/* Left side content */}
-            <Stack spacing={6} maxW="640px" px={{ base: 4, md: 8 }}>
-              <Heading
-                fontFamily="gt-super, Georgia, serif"
-                fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
-                fontWeight="400"
-                color={headingColor}
-                lineHeight="1.1"
-                letterSpacing="-0.05em"
-              >
-                Human stories & ideas
-              </Heading>
-              <Text
-                fontSize={{ base: 'lg', md: 'xl' }}
-                color={textColor}
-                maxW="400px"
-                lineHeight="tall"
-              >
-                A place to read, write, and deepen your understanding
-              </Text>
-              <Button
-                as={RouterLink}
-                to={user ? '/blog' : '/register'}
-                bg={useColorModeValue('black', 'accent.primary')}
-                color="white"
-                rounded="full"
-                px={8}
-                size="lg"
-                fontSize="md"
-                fontWeight="normal"
-                _hover={{
-                  bg: useColorModeValue('gray.800', 'accent.hover'),
-                }}
-                width="fit-content"
-              >
-                {user ? 'Continue reading' : 'Start reading'}
-              </Button>
-            </Stack>
-
-            {/* Right side illustration */}
-            <Box
-              position="relative"
-              width={{ base: 'full', md: '50%' }}
-              height={{ base: '300px', md: '500px' }}
-              display={{ base: 'none', md: 'block' }}
+      {/* Hero Section with Parallax */}
+      <motion.div style={{ y: heroY }}>
+        <Box
+          borderBottom="1px"
+          borderColor={borderColor}
+          bg={heroBg}
+          position="relative"
+          overflow="hidden"
+        >
+          <Container maxW="container.xl" py={{ base: 20, md: 28 }}>
+            <Flex
+              direction={{ base: 'column', md: 'row' }}
+              align="center"
+              justify="space-between"
+              gap={10}
             >
-              <Box
-                position="absolute"
-                right="-100px"
-                top="50%"
-                transform="translateY(-50%)"
-                width="600px"
-                height="600px"
-              >
-                <Box
-                  position="absolute"
-                  top="50px"
-                  right="100px"
-                  width="150px"
-                  height="150px"
-                  bg={shapeColor}
-                  borderRadius="full"
-                  opacity="0.8"
-                />
-                <Box
-                  position="absolute"
-                  top="200px"
-                  right="200px"
-                  width="100px"
-                  height="100px"
-                  bg={shapeColor}
-                  transform="rotate(45deg)"
-                  opacity="0.6"
-                />
-                <Box
-                  position="absolute"
-                  top="0"
-                  right="300px"
-                  width="80px"
-                  height="80px"
-                  bg={shapeColor}
-                  borderRadius="full"
-                  opacity="0.4"
-                />
-                {/* Add some decorative dots */}
-                {[...Array(6)].map((_, i) => (
-                  <Box
-                    key={i}
-                    position="absolute"
-                    top={`${Math.random() * 400}px`}
-                    right={`${Math.random() * 400}px`}
-                    width="4px"
-                    height="4px"
-                    bg={accentColor}
-                    borderRadius="full"
-                    opacity="0.3"
-                  />
-                ))}
-              </Box>
-            </Box>
-          </Flex>
-        </Container>
-      </Box>
-
-      {/* Trending Section */}
-      <Box py={10} borderBottom="1px" borderColor={borderColor} bg={sectionBg}>
-        <Container maxW="container.md">
-          <HStack spacing={2} mb={6}>
-            <Icon as={FaBookmark} w={4} h={4} color={headingColor} />
-            <Text fontWeight="bold" color={headingColor}>
-              Trending on Horizon
-            </Text>
-          </HStack>
-
-          {isLoading ? (
-            <Text>Loading trending posts...</Text>
-          ) : blogPosts.length > 0 ? (
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-              {blogPosts.slice(0, 2).map((post, index) => (
-                <HStack key={post.id} align="start" spacing={4}>
-                  <Text
-                    fontSize="32px"
-                    fontWeight="bold"
-                    color={trendingNumberColor}
-                    lineHeight="1"
-                  >
-                    {String(index + 1).padStart(2, '0')}
-                  </Text>
-                  <Stack spacing={2}>
-                    <HStack spacing={2}>
-                      <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
-                      <Text fontSize="sm" color={textColor}>
-                        {post.author.username}
-                      </Text>
-                    </HStack>
+              {/* Left side content with staggered reveals */}
+              <MotionWrapper>
+                <Stack spacing={6} maxW="640px" px={{ base: 4, md: 8 }}>
+                  <MotionWrapper initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
                     <Heading
-                      as={RouterLink}
-                      to={`/blog/${post.id}`}
-                      fontSize="16px"
-                      fontWeight="bold"
+                      fontFamily="gt-super, Georgia, serif"
+                      fontSize={{ base: '4xl', md: '6xl', lg: '7xl' }}
+                      fontWeight="400"
                       color={headingColor}
-                      _hover={{ color: trendingTitleHoverColor }}
+                      lineHeight="1.1"
+                      letterSpacing="-0.05em"
                     >
-                      {post.title}
+                      Human stories & ideas
                     </Heading>
-                    <HStack spacing={2} color={trendingMetaColor} fontSize="sm">
-                      <Text>{new Date(post.createdAt).toLocaleDateString()}</Text>
-                      <Text>·</Text>
-                      <Text>{post.readingTime || 1} min read</Text>
+                  </MotionWrapper>
+                  <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
+                    <Text
+                      fontSize={{ base: 'lg', md: 'xl' }}
+                      color={textColor}
+                      maxW="400px"
+                      lineHeight="tall"
+                    >
+                      A place to read, write, and deepen your understanding
+                    </Text>
+                  </MotionWrapper>
+                  <MotionWrapper initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}>
+                    <RouterLink to={user ? '/blog' : '/register'} style={{ textDecoration: 'none' }}>
+                      <AnimatedPrimaryButton
+                        size="lg"
+                        fontSize="md"
+                        fontWeight="normal"
+                        px={8}
+                        width="fit-content"
+                      >
+                        {user ? 'Continue reading' : 'Start reading'}
+                      </AnimatedPrimaryButton>
+                    </RouterLink>
+                  </MotionWrapper>
+                </Stack>
+              </MotionWrapper>
+
+              {/* Right side illustration with parallax */}
+              <MotionWrapper initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.8 }}>
+                <Box
+                  position="relative"
+                  width={{ base: 'full', md: '50%' }}
+                  height={{ base: '300px', md: '500px' }}
+                  display={{ base: 'none', md: 'block' }}
+                >
+                  <motion.div style={{ y: backgroundY }}>
+                    <Box
+                      position="absolute"
+                      right="-100px"
+                      top="50%"
+                      transform="translateY(-50%)"
+                      width="600px"
+                      height="600px"
+                    >
+                      <Box
+                        position="absolute"
+                        top="50px"
+                        right="100px"
+                        width="150px"
+                        height="150px"
+                        bg={shapeColor}
+                        borderRadius="full"
+                        opacity="0.8"
+                      />
+                      <Box
+                        position="absolute"
+                        top="200px"
+                        right="200px"
+                        width="100px"
+                        height="100px"
+                        bg={shapeColor}
+                        transform="rotate(45deg)"
+                        opacity="0.6"
+                      />
+                      <Box
+                        position="absolute"
+                        top="0"
+                        right="300px"
+                        width="80px"
+                        height="80px"
+                        bg={shapeColor}
+                        borderRadius="full"
+                        opacity="0.4"
+                      />
+                      {/* Add some decorative dots */}
+                      {[...Array(6)].map((_, i) => (
+                        <Box
+                          key={i}
+                          position="absolute"
+                          top={`${Math.random() * 400}px`}
+                          right={`${Math.random() * 400}px`}
+                          width="4px"
+                          height="4px"
+                          bg={accentColor}
+                          borderRadius="full"
+                          opacity="0.3"
+                        />
+                      ))}
+                    </Box>
+                  </motion.div>
+                </Box>
+              </MotionWrapper>
+            </Flex>
+          </Container>
+        </Box>
+      </motion.div>
+
+      {/* Trending Section with Scroll Reveals */}
+      <MotionWrapper initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.2 }}>
+        <Box py={10} borderBottom="1px" borderColor={borderColor} bg={sectionBg}>
+          <Container maxW="container.md">
+            <MotionWrapper initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 1.4 }}>
+              <HStack spacing={2} mb={6}>
+                <Icon as={FaBookmark} w={4} h={4} color={headingColor} />
+                <Text fontWeight="bold" color={headingColor}>
+                  Trending on Horizon
+                </Text>
+              </HStack>
+            </MotionWrapper>
+
+            {isLoading ? (
+              <MotionWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 1.6 }}>
+                <Text>Loading trending posts...</Text>
+              </MotionWrapper>
+            ) : blogPosts.length > 0 ? (
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+                {blogPosts.slice(0, 2).map((post, index) => (
+                  <MotionWrapper
+                    key={post.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 1.6 + index * 0.1 }}
+                  >
+                    <HStack align="start" spacing={4}>
+                      <Text
+                        fontSize="32px"
+                        fontWeight="bold"
+                        color={trendingNumberColor}
+                        lineHeight="1"
+                      >
+                        {String(index + 1).padStart(2, '0')}
+                      </Text>
+                      <Stack spacing={2}>
+                        <HStack spacing={2}>
+                          <Avatar src={post.author.avatar || DEFAULT_AVATAR} size="xs" />
+                          <Text fontSize="sm" color={textColor}>
+                            {post.author.username}
+                          </Text>
+                        </HStack>
+                        <Heading
+                          as={RouterLink}
+                          to={`/blog/${post.id}`}
+                          fontSize="16px"
+                          fontWeight="bold"
+                          color={headingColor}
+                          _hover={{ color: trendingTitleHoverColor }}
+                        >
+                          {post.title}
+                        </Heading>
+                        <HStack spacing={2} color={trendingMetaColor} fontSize="sm">
+                          <Text>{new Date(post.createdAt).toLocaleDateString()}</Text>
+                          <Text>·</Text>
+                          <Text>{post.readingTime || 1} min read</Text>
+                        </HStack>
+                      </Stack>
                     </HStack>
-                  </Stack>
-                </HStack>
-              ))}
-            </SimpleGrid>
-          ) : (
-            <Text>No trending posts available. Start writing to see your posts here!</Text>
-          )}
-        </Container>
-      </Box>
+                  </MotionWrapper>
+                ))}
+              </SimpleGrid>
+            ) : (
+              <MotionWrapper initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 1.6 }}>
+                <Text>No trending posts available. Start writing to see your posts here!</Text>
+              </MotionWrapper>
+            )}
+          </Container>
+        </Box>
+      </MotionWrapper>
 
       {/* Main Content */}
       <Box bg={sectionBg}>
