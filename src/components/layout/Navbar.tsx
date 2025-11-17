@@ -21,6 +21,7 @@ import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogRepository } from '../../core/di/container'
+import { AnimatedPrimaryButton } from '../core/animations/AnimatedButton'
 
 // Declare global interface for window object
 declare global {
@@ -277,15 +278,11 @@ const Navbar = () => {
               </Menu>
             )}
             {!user && (
-              <Button
-                as={RouterLink}
-                to="/login"
-                bg="black"
-                color="white"
-                _hover={{ bg: 'gray.800' }}
-              >
-                Sign in
-              </Button>
+              <RouterLink to="/login">
+                <AnimatedPrimaryButton>
+                  Sign in
+                </AnimatedPrimaryButton>
+              </RouterLink>
             )}
           </Flex>
         </Flex>

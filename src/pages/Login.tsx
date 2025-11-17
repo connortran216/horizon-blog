@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Box,
-  Button,
   Container,
   FormControl,
   FormLabel,
@@ -15,6 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -28,8 +28,6 @@ const Login = () => {
   const headingColor = useColorModeValue('gray.900', 'text.primary')
   const textColor = useColorModeValue('gray.600', 'text.secondary')
   const linkColor = useColorModeValue('black', 'link.default')
-  const buttonBg = useColorModeValue('black', 'accent.primary')
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
   const toastBg = useColorModeValue('black', 'bg.elevated')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,19 +111,14 @@ const Login = () => {
                 />
               </FormControl>
 
-              <Button
+              <AnimatedPrimaryButton
                 type="submit"
-                bg={buttonBg}
-                color="white"
-                _hover={{
-                  bg: buttonHoverBg,
-                }}
                 size="lg"
                 fontSize="md"
                 isLoading={isLoading}
               >
                 Sign in
-              </Button>
+              </AnimatedPrimaryButton>
             </Stack>
           </form>
         </Box>
