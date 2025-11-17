@@ -1,7 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { Box, Button, ButtonProps, IconButton, Switch, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react'
-import { MoonIcon, SunIcon } from '@chakra-ui/icons'
-import { motion } from 'framer-motion'
+import {
+  Box,
+  Button,
+  ButtonProps,
+  Switch,
+  Text,
+  VStack,
+  HStack,
+  useColorModeValue,
+} from '@chakra-ui/react'
+import { motion, Transition } from 'framer-motion'
+
+interface AnimationProps {
+  animate?: Record<string, unknown>
+  transition?: Transition
+  whileHover?: Record<string, unknown> | string
+  whileTap?: Record<string, unknown> | string
+}
 
 // Animation preference context
 interface AnimationPreferences {
@@ -16,12 +31,7 @@ interface AccessibilityContextType {
   preferences: AnimationPreferences
   updatePreferences: (updates: Partial<AnimationPreferences>) => void
   motionSafe: boolean // Helper for components
-  animationProps: {
-    animate?: any
-    transition?: any
-    whileHover?: any
-    whileTap?: any
-  }
+  animationProps: AnimationProps
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
@@ -36,18 +46,18 @@ export const useAccessibility = () => {
         showParticles: true,
         showShimmers: true,
         scale: 1,
-        animationSpeed: 1
+        animationSpeed: 1,
       },
       updatePreferences: () => {},
       motionSafe: true,
-      animationProps: {}
+      animationProps: {},
     }
   }
   return context
 }
 
 // Global animation settings hook that respects user preferences
-export const useAnimationProps = (baseProps: any = {}) => {
+export const useAnimationProps = (baseProps: AnimationProps = {}) => {
   const { motionSafe, preferences } = useAccessibility()
 
   if (!motionSafe) {
@@ -55,15 +65,19 @@ export const useAnimationProps = (baseProps: any = {}) => {
     return {
       ...baseProps,
       animate: { opacity: 1 }, // Just ensure elements are visible
-      transition: { duration: 0.1 } as any, // Very fast transition
+      transition: { duration: 0.1 } as Transition, // Very fast transition
     }
   }
 
   // Scale animations for user speed preference
   const scaledDuration = (duration: number) => duration * preferences.animationSpeed
-  const scaledTransition = baseProps.transition?.duration
-    ? { ...baseProps.transition, duration: scaledDuration(baseProps.transition.duration) }
-    : baseProps.transition
+  const scaledTransition =
+    baseProps.transition &&
+    typeof baseProps.transition === 'object' &&
+    'duration' in baseProps.transition &&
+    typeof baseProps.transition.duration === 'number'
+      ? { ...baseProps.transition, duration: scaledDuration(baseProps.transition.duration) }
+      : baseProps.transition
 
   return {
     ...baseProps,
@@ -80,11 +94,7 @@ interface FocusRingProps {
   ringColor?: string
 }
 
-export const FocusRing: React.FC<FocusRingProps> = ({
-  children,
-  showRing = true,
-  ringColor
-}) => {
+export const FocusRing: React.FC<FocusRingProps> = ({ children, showRing = true, ringColor }) => {
   const { motionSafe } = useAccessibility()
   const defaultRingColor = useColorModeValue('blue.500', 'purple.300')
 
@@ -93,7 +103,7 @@ export const FocusRing: React.FC<FocusRingProps> = ({
       as={motion.div}
       whileFocus={{
         scale: motionSafe ? 1.02 : 1,
-        transition: { type: 'spring', stiffness: 400, damping: 17 }
+        transition: { type: 'spring', stiffness: 400, damping: 17 },
       }}
       _focusVisible={{
         outline: '2px solid',
@@ -101,7 +111,7 @@ export const FocusRing: React.FC<FocusRingProps> = ({
         outlineOffset: '2px',
         boxShadow: showRing ? `0 0 0 2px ${ringColor || defaultRingColor}` : undefined,
       }}
-      transition={{ duration: 0.15 }}
+      transition={undefined} // Explicitly set to avoid conflicts
     >
       {children}
     </Box>
@@ -111,7 +121,7 @@ export const FocusRing: React.FC<FocusRingProps> = ({
 // Animated button with accessibility features
 interface AccessibleButtonProps extends ButtonProps {
   children: ReactNode
-  motionProps?: any
+  motionProps?: AnimationProps
   focusRing?: boolean
 }
 
@@ -121,12 +131,13 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   focusRing = true,
   ...buttonProps
 }) => {
-  const animationProps = useAnimationProps(motionProps)
+  const { transition: _transition, ...animationProps } = useAnimationProps(motionProps)
 
   return (
     <FocusRing showRing={focusRing}>
       <Button
         as={motion.button}
+        transition={undefined} // Explicitly set to avoid conflicts
         {...animationProps}
         {...buttonProps}
         _focusVisible={{
@@ -150,7 +161,7 @@ interface AccessibilityPanelProps {
 export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
   isOpen,
   onClose,
-  position = 'bottom-right'
+  position = 'bottom-right',
 }) => {
   const { preferences, updatePreferences } = useAccessibility()
   const bgColor = useColorModeValue('white', 'gray.800')
@@ -231,7 +242,11 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
               <Button
                 size="xs"
                 variant="outline"
-                onClick={() => updatePreferences({ animationSpeed: Math.max(0.5, preferences.animationSpeed - 0.25) })}
+                onClick={() =>
+                  updatePreferences({
+                    animationSpeed: Math.max(0.5, preferences.animationSpeed - 0.25),
+                  })
+                }
                 isDisabled={preferences.animationSpeed <= 0.5}
               >
                 -
@@ -242,7 +257,11 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
               <Button
                 size="xs"
                 variant="outline"
-                onClick={() => updatePreferences({ animationSpeed: Math.min(2, preferences.animationSpeed + 0.25) })}
+                onClick={() =>
+                  updatePreferences({
+                    animationSpeed: Math.min(2, preferences.animationSpeed + 0.25),
+                  })
+                }
                 isDisabled={preferences.animationSpeed >= 2}
               >
                 +
@@ -265,10 +284,7 @@ interface AccessibilityToggleProps {
   isOpen: boolean
 }
 
-export const AccessibilityToggle: React.FC<AccessibilityToggleProps> = ({
-  onToggle,
-  isOpen
-}) => {
+export const AccessibilityToggle: React.FC<AccessibilityToggleProps> = ({ onToggle, isOpen }) => {
   const { motionSafe } = useAccessibility()
 
   return (
@@ -286,11 +302,15 @@ export const AccessibilityToggle: React.FC<AccessibilityToggleProps> = ({
           _hover={{ bg: 'purple.600' }}
           color="white"
           boxShadow="lg"
-          animate={{
-            scale: isOpen ? 0.8 : 1,
-            y: isOpen ? -260 : 0, // Move up when panel is open
-          }}
-          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          animate={
+            motionSafe
+              ? {
+                  scale: isOpen ? 0.8 : 1,
+                  y: isOpen ? -260 : 0, // Move up when panel is open
+                }
+              : undefined
+          }
+          transition={undefined} // Explicitly set to avoid conflicts
         >
           <Box transform={isOpen ? 'rotate(45deg)' : 'none'} transition="transform 0.2s">
             {isOpen ? '✕' : '♿'}
@@ -309,7 +329,7 @@ interface AccessibilityProviderProps {
 
 export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
   children,
-  enablePanel = false
+  enablePanel = false,
 }) => {
   const [preferences, setPreferences] = useState<AnimationPreferences>(() => {
     // Check for prefers-reduced-motion
@@ -321,7 +341,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
       showParticles: true,
       showShimmers: true,
       scale: 1,
-      animationSpeed: 1
+      animationSpeed: 1,
     }
 
     if (saved) {
@@ -354,14 +374,14 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
   }, [])
 
   // Derived values
-  const motionSafe = !preferences.reducedMotion
+  const _motionSafe = !preferences.reducedMotion
   const animationProps = useAnimationProps()
 
   const value: AccessibilityContextType = {
     preferences,
     updatePreferences,
-    motionSafe,
-    animationProps
+    motionSafe: _motionSafe,
+    animationProps,
   }
 
   return (
@@ -370,10 +390,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
       {enablePanel && (
         <>
           <AccessibilityToggle onToggle={() => setPanelOpen(!panelOpen)} isOpen={panelOpen} />
-          <AccessibilityPanel
-            isOpen={panelOpen}
-            onClose={() => setPanelOpen(false)}
-          />
+          <AccessibilityPanel isOpen={panelOpen} onClose={() => setPanelOpen(false)} />
         </>
       )}
     </AccessibilityContext.Provider>
