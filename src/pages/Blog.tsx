@@ -18,6 +18,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { apiService } from '../core/services/api.service'
+import { GlassCard } from '../core'
 
 interface BlogPost {
   id: number
@@ -61,7 +62,6 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
     return Math.max(1, Math.ceil(words / 200))
   }
 
-  const cardBg = useColorModeValue('white', 'bg.secondary')
   const readingTimeColor = useColorModeValue('gray.500', 'text.secondary')
   const excerptColor = useColorModeValue('gray.600', 'text.secondary')
   const metaColor = useColorModeValue('gray.500', 'text.tertiary')
@@ -69,16 +69,12 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
   const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   return (
-    <Box
+    <GlassCard
       maxW="100%"
-      bg={cardBg}
-      boxShadow="xl"
-      rounded="md"
       overflow="hidden"
-      transition="transform 0.2s"
       _hover={{ transform: 'translateY(-4px)' }}
-      borderWidth="1px"
-      borderColor={useColorModeValue('gray.200', 'border.subtle')}
+      transition="transform 0.2s"
+      intensity="medium"
     >
       <Box
         height="200px"
@@ -131,7 +127,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           Read More
         </Button>
       </VStack>
-    </Box>
+    </GlassCard>
   )
 }
 
