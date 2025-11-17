@@ -9,6 +9,7 @@ import BlogEditor from './pages/BlogEditor'
 import Profile from './pages/Profile'
 import BlogDetail from './pages/BlogDetail'
 import ProfileBlogDetail from './pages/ProfileBlogDetail'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const Routes = () => {
   return (
@@ -20,9 +21,30 @@ const Routes = () => {
       <Route path="/about" element={<About />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/blog-editor" element={<BlogEditor />} />
-      <Route path="/profile/:username" element={<Profile />} />
-      <Route path="/profile/:username/blog/:id" element={<ProfileBlogDetail />} />
+      <Route
+        path="/blog-editor"
+        element={
+          <ProtectedRoute>
+            <BlogEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:username"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:username/blog/:id"
+        element={
+          <ProtectedRoute>
+            <ProfileBlogDetail />
+          </ProtectedRoute>
+        }
+      />
     </RouterRoutes>
   )
 }

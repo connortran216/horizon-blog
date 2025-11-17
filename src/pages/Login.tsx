@@ -13,7 +13,7 @@ import {
   Link,
   useColorModeValue,
 } from '@chakra-ui/react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
@@ -21,6 +21,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const toast = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, isLoading } = useAuth()
 
   // Dark mode color values
@@ -55,7 +56,10 @@ const Login = () => {
           </Box>
         ),
       })
-      navigate('/')
+
+      // Redirect to the intended destination or home page
+      const destination = location.state?.from || '/'
+      navigate(destination, { replace: true })
     } catch {
       toast({
         title: 'Login failed',

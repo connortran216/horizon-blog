@@ -36,7 +36,7 @@ interface BlogPost {
 
 const Profile = () => {
   const { username } = useParams()
-  const { user } = useAuth()
+  const { user, status } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([])
@@ -44,9 +44,15 @@ const Profile = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Don't load posts if user is not authenticated or auth is still loading
+    if (status === 'loading' || status === 'unauthenticated' || !user) {
+      setLoading(false)
+      return
+    }
+
     // Load the current user's posts using /users/me/posts endpoint
     const loadUserPosts = async () => {
-      // Clear repository cache to ensure fresh data on navigation
+      setLoading(true)
       getBlogRepository().clearCache?.()
 
       try {
@@ -83,7 +89,16 @@ const Profile = () => {
     }
 
     loadUserPosts()
-  }, [location.pathname])
+  }, [location.pathname, user, status])
+
+  // Clear data when user becomes unauthenticated
+  useEffect(() => {
+    if (status === 'unauthenticated' || !user) {
+      setPublishedBlogs([])
+      setDraftBlogs([])
+      setLoading(false)
+    }
+  }, [status, user])
 
   const handleDelete = async (blogId: string) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
