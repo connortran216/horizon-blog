@@ -3,7 +3,6 @@ import {
   Heading,
   Container,
   Text,
-  Button,
   Stack,
   SimpleGrid,
   Image,
@@ -440,9 +439,9 @@ const Home = () => {
                 No blog posts available yet
               </Heading>
               <Text mb={6}>Be the first to publish a story!</Text>
-              <Button as={RouterLink} to="/editor" colorScheme="teal" size="md">
+              <AnimatedPrimaryButton as={RouterLink} to="/editor" size="md">
                 Start Writing
-              </Button>
+              </AnimatedPrimaryButton>
             </Box>
           )}
         </Container>

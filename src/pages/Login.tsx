@@ -14,8 +14,8 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
 import { particleSystem } from '../core'
+import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
 
 const Login = () => {
   const [email, setEmail] = useState('')

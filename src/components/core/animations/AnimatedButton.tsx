@@ -1,103 +1,136 @@
-import React, { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { Button, ButtonProps, useColorModeValue } from '@chakra-ui/react'
+import React, { useState } from 'react'
+import { Button, ButtonProps, Box } from '@chakra-ui/react'
+import { LinkProps } from 'react-router-dom'
 
-// Create a motion-enhanced Button
-const MotionButton = motion(Button)
+// ===== TYPES =====
 
-// Ripple effect component
-const Ripple = ({ x, y, size }: { x: number; y: number; size: number }) => (
-  <motion.span
-    className="absolute bg-white/30 rounded-full pointer-events-none"
-    style={{
-      width: size,
-      height: size,
-      left: x - size / 2,
-      top: y - size / 2,
-    }}
-    initial={{ scale: 0, opacity: 1 }}
-    animate={{ scale: 4, opacity: 0 }}
-    transition={{ duration: 0.6 }}
-  />
-)
+interface RippleData {
+  x: number
+  y: number
+  size: number
+  id: number
+}
 
-// Animated Button with ripple and morph effects
 interface AnimatedButtonProps extends ButtonProps {
   enableRipple?: boolean
 }
 
+// ===== MAIN COMPONENT =====
+
+/**
+ * Simplified AnimatedButton - following clean example pattern
+ * - Chakra Box components for ripples (like the example)
+ * - Simple onMouseDown trigger (instead of complex onClick)
+ * - Pure CSS keyframes (like styled-jsx approach)
+ * - Design system compliant (semantic tokens preserved)
+ */
 export const AnimatedButton = ({
   children,
   enableRipple = true,
-  ...buttonProps
-}: Omit<AnimatedButtonProps, 'magneticStrength' | 'enableMagnetic'>) => {
-  const [ripples, setRipples] = useState<{ id: number; x: number; y: number; size: number }[]>([])
-  const rippleIdRef = useRef(0)
+  ...props
+}: AnimatedButtonProps) => {
+  const [ripples, setRipples] = useState<RippleData[]>([])
 
-  // Create ripple effect
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (enableRipple && e.currentTarget) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const rippleX = e.clientX - rect.left
-      const rippleY = e.clientY - rect.top
-      const size = Math.max(rect.width, rect.height)
+  const addRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!enableRipple) return
 
-      const newRipple = {
-        id: rippleIdRef.current++,
-        x: rippleX,
-        y: rippleY,
-        size,
-      }
+    const button = e.currentTarget
+    const rect = button.getBoundingClientRect()
+    const size = Math.max(rect.width, rect.height)
+    const x = e.clientX - rect.left - size / 2
+    const y = e.clientY - rect.top - size / 2
 
-      setRipples((prev) => [...prev, newRipple])
-
-      // Remove ripple after animation
-      setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id))
-      }, 600)
+    const newRipple = {
+      x,
+      y,
+      size,
+      id: Date.now(),
     }
 
-    // Call original onClick if provided
-    buttonProps.onClick?.(e)
+    setRipples((prev) => [...prev, newRipple])
+
+    // Clean up after animation completes (like example)
+    setTimeout(() => {
+      setRipples((prevRipples) => prevRipples.filter((ripple) => ripple.id !== newRipple.id))
+    }, 600)
   }
 
   return (
-    <MotionButton
-      whileHover={{
-        scale: 1.02,
-        boxShadow: useColorModeValue(
-          '0 4px 15px rgba(139, 127, 199, 0.2)',
-          '0 4px 15px rgba(139, 127, 199, 0.3)',
-        ),
-      }}
-      whileTap={{
-        scale: 0.98,
-        transition: { type: 'spring', stiffness: 400, damping: 17 },
-      }}
-      onClick={handleClick}
-      className={`relative overflow-hidden`}
+    <Button
       position="relative"
-      {...buttonProps}
+      overflow="hidden"
+      onMouseDown={addRipple} // Simple trigger like example
+      _hover={{
+        transform: 'translateY(-1px)', // Safe hover lift
+        boxShadow: 'lg',
+      }}
+      {...props} // All props pass through (RouterLink compatible)
     >
+      {/* Ripple effects using Chakra Box (like example) */}
+      {ripples.map((ripple) => (
+        <Box
+          key={ripple.id}
+          position="absolute"
+          borderRadius="50%"
+          bg="rgba(255, 255, 255, 0.6)" // More visible like example
+          animation="ripple 600ms ease-out" // Chakra animation prop
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            width: ripple.size,
+            height: ripple.size,
+          }}
+        />
+      ))}
       {children}
 
-      {/* Ripple effects */}
-      {ripples.map((ripple) => (
-        <Ripple key={ripple.id} x={ripple.x} y={ripple.y} size={ripple.size} />
-      ))}
-    </MotionButton>
+      {/* CSS keyframes injected globally */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes ripple {
+            to {
+              transform: scale(4);
+              opacity: 0;
+            }
+          }
+        `,
+        }}
+      />
+    </Button>
   )
 }
 
-// Convenience wrappers for common button types
-export const AnimatedPrimaryButton = (props: AnimatedButtonProps) => (
-  <AnimatedButton variant="solid" colorScheme="purple" {...props} />
+// ===== CONVENIENCE WRAPPERS =====
+
+/**
+ * Primary variant - uses design system semantic tokens
+ */
+export const AnimatedPrimaryButton = (props: AnimatedButtonProps & Partial<LinkProps>) => (
+  <AnimatedButton
+    bg="accent.primary"
+    color="white"
+    _hover={{ bg: 'accent.hover' }}
+    _active={{ bg: 'accent.active' }}
+    fontWeight="medium"
+    transition="all 0.2s"
+    // Explicit width control (no min-w or auto sizing that could conflict)
+    minW="0"
+    w="auto"
+    {...props}
+  />
 )
 
+/**
+ * Ghost variant
+ */
 export const AnimatedGhostButton = (props: AnimatedButtonProps) => (
   <AnimatedButton variant="ghost" {...props} />
 )
 
+/**
+ * Outline variant
+ */
 export const AnimatedOutlineButton = (props: AnimatedButtonProps) => (
   <AnimatedButton variant="outline" {...props} />
 )

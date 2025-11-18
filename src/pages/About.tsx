@@ -8,7 +8,6 @@ import {
   VStack,
   HStack,
   Icon,
-  useColorModeValue,
 } from '@chakra-ui/react'
 import { FaGithub, FaLinkedin, FaUsers, FaBook, FaCode, FaHeart } from 'react-icons/fa'
 import { IconType } from 'react-icons/lib'
@@ -50,12 +49,13 @@ const teamMembers: TeamMember[] = [
 ]
 
 const About = () => {
-  const missionText = useColorModeValue('gray.600', 'text.secondary')
-  const valueHeading = useColorModeValue('black', 'text.primary')
-  const roleText = useColorModeValue('black', 'accent.primary')
-  const bioText = useColorModeValue('gray.600', 'text.secondary')
-  const statNumberColor = useColorModeValue('purple.600', 'purple.400')
-  const iconHoverColor = useColorModeValue('gray.800', 'accent.hover')
+  // Using design system semantic tokens instead of useColorModeValue
+  const missionText = 'text.secondary'
+  const valueHeading = 'text.primary'
+  const roleText = 'accent.primary'
+  const bioText = 'text.secondary'
+  const statNumberColor = 'accent.primary'
+  const iconHoverColor = 'accent.hover'
 
   const stats = [
     { icon: FaBook, number: 47, label: 'Articles Published' },
@@ -220,7 +220,7 @@ const About = () => {
                       </motion.div>
 
                       <VStack spacing={2} textAlign="center">
-                        <Heading size="lg" color={useColorModeValue('gray.900', 'white')}>
+                        <Heading size="lg" color="text.primary">
                           {member.name}
                         </Heading>
                         <Text
@@ -247,7 +247,7 @@ const About = () => {
                                 w={7}
                                 h={7}
                                 cursor="pointer"
-                                color={useColorModeValue('gray.600', 'gray.300')}
+                                color="text.secondary"
                                 _hover={{ color: iconHoverColor }}
                                 onClick={() => window.open(member.social.github, '_blank')}
                               />
@@ -262,7 +262,7 @@ const About = () => {
                                 w={7}
                                 h={7}
                                 cursor="pointer"
-                                color={useColorModeValue('gray.600', 'gray.300')}
+                                color="text.secondary"
                                 _hover={{ color: iconHoverColor }}
                                 onClick={() => window.open(member.social.linkedin, '_blank')}
                               />

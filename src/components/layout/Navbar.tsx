@@ -10,7 +10,6 @@ import {
   MenuList,
   MenuItem,
   useDisclosure,
-  useColorModeValue,
   useColorMode,
   Stack,
   Container,
@@ -21,7 +20,7 @@ import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogRepository } from '../../core/di/container'
-import { AnimatedPrimaryButton } from '../core/animations/AnimatedButton'
+import { AnimatedPrimaryButton, AnimatedGhostButton } from '../core/animations/AnimatedButton'
 
 // Declare global interface for window object
 declare global {
@@ -68,9 +67,7 @@ const Navbar = () => {
     handlePublish?: () => Promise<boolean>
   }>({ title: '', content_markdown: '' })
 
-  // Color mode values for Write button
-  const writeBtnColor = useColorModeValue('black', 'text.primary')
-  const writeBtnHoverBg = useColorModeValue('gray.100', 'bg.tertiary')
+
 
   // Use effect to access the editor state
   useEffect(() => {
@@ -236,27 +233,30 @@ const Navbar = () => {
 
           <Flex alignItems="center" gap={4}>
             {user && !isEditorPage && (
-              <Button
-                as={RouterLink}
-                to="/blog-editor"
-                leftIcon={
-                  <Box as="span" fontSize="xl">
-                    ✍️
-                  </Box>
-                }
-                variant="ghost"
-                color={writeBtnColor}
-                _hover={{
-                  bg: writeBtnHoverBg,
-                }}
-              >
-                Write
-              </Button>
+              <RouterLink to="/blog-editor">
+                <AnimatedGhostButton
+                  leftIcon={
+                    <Box as="span" fontSize="xl">
+                      ✍️
+                    </Box>
+                  }
+                  // Remove manual color styling - use AnimatedGhostButton defaults
+                  // which should work better with our theme
+                  _hover={{}}
+                >
+                  Write
+                </AnimatedGhostButton>
+              </RouterLink>
             )}
             {user && isEditorPage && (
-              <Button onClick={handlePublish} colorScheme="green" mr={2}>
+              <AnimatedPrimaryButton
+                onClick={handlePublish}
+                bg="green.500"
+                _hover={{ bg: 'green.600' }}
+                mr={2}
+              >
                 Publish
-              </Button>
+              </AnimatedPrimaryButton>
             )}
             {user && (
               <Menu>

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Box,
-  Button,
   Container,
   FormControl,
   FormLabel,
@@ -18,6 +17,7 @@ import {
 } from '@chakra-ui/react'
 import { FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
 import { MotionWrapper, Glassmorphism } from '../core'
+import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
 
 interface ContactInfo {
   icon: typeof FaMapMarkerAlt
@@ -101,8 +101,6 @@ const Contact = () => {
   const subtitleColor = useColorModeValue('gray.600', 'text.secondary')
   const iconColor = useColorModeValue('purple.600', 'purple.400')
   const infoText = useColorModeValue('gray.600', 'text.secondary')
-  const buttonBg = useColorModeValue('black', 'accent.primary')
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   return (
     <MotionWrapper>
@@ -199,17 +197,9 @@ const Contact = () => {
                       />
                     </FormControl>
 
-                    <Button
-                      type="submit"
-                      bg={buttonBg}
-                      color="white"
-                      _hover={{
-                        bg: buttonHoverBg,
-                      }}
-                      isLoading={isLoading}
-                    >
+                    <AnimatedPrimaryButton type="submit" isLoading={isLoading}>
                       Send Message
-                    </Button>
+                    </AnimatedPrimaryButton>
                   </Stack>
                 </form>
               </Box>

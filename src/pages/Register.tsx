@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Box,
-  Button,
   Container,
   FormControl,
   FormLabel,
@@ -16,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { AnimatedPrimaryButton } from '../components/core/animations/AnimatedButton'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,8 +33,6 @@ const Register = () => {
   const headingColor = useColorModeValue('gray.900', 'text.primary')
   const textColor = useColorModeValue('gray.600', 'text.secondary')
   const linkColor = useColorModeValue('black', 'link.default')
-  const buttonBg = useColorModeValue('black', 'accent.primary')
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -162,17 +160,9 @@ const Register = () => {
                 <FormErrorMessage>{errors.confirmPassword}</FormErrorMessage>
               </FormControl>
 
-              <Button
-                type="submit"
-                bg={buttonBg}
-                color="white"
-                _hover={{
-                  bg: buttonHoverBg,
-                }}
-                isLoading={isLoading}
-              >
+              <AnimatedPrimaryButton type="submit" isLoading={isLoading}>
                 Register
-              </Button>
+              </AnimatedPrimaryButton>
             </Stack>
           </form>
         </Box>
