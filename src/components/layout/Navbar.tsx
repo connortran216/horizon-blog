@@ -67,8 +67,6 @@ const Navbar = () => {
     handlePublish?: () => Promise<boolean>
   }>({ title: '', content_markdown: '' })
 
-
-
   // Use effect to access the editor state
   useEffect(() => {
     // Access editor state from window object if available
