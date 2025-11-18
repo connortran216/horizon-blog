@@ -136,7 +136,12 @@ const Contact = () => {
                   duration={0.5}
                   delay={0.3 + index * 0.1}
                 >
-                  <Glassmorphism backdropBlur="10px" bg="rgba(255, 255, 255, 0.1)" borderRadius="2xl" height="200px">
+                  <Glassmorphism
+                    backdropBlur="10px"
+                    bg="rgba(255, 255, 255, 0.1)"
+                    borderRadius="2xl"
+                    height="200px"
+                  >
                     <VStack p={6} spacing={4} align="center" justify="center" height="100%">
                       <Icon as={info.icon} w={12} h={12} color={iconColor} />
                       <Text fontWeight="bold" fontSize="lg" color={headingColor}>
@@ -160,48 +165,53 @@ const Contact = () => {
           >
             <Glassmorphism backdropBlur="15px" bg="rgba(255, 255, 255, 0.1)" borderRadius="3xl">
               <Box p={8}>
-          <form onSubmit={handleSubmit}>
-            <Stack spacing={6}>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                <FormControl isRequired>
-                  <FormLabel>Name</FormLabel>
-                  <Input name="name" value={formData.name} onChange={handleChange} />
-                </FormControl>
+                <form onSubmit={handleSubmit}>
+                  <Stack spacing={6}>
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                      <FormControl isRequired>
+                        <FormLabel>Name</FormLabel>
+                        <Input name="name" value={formData.name} onChange={handleChange} />
+                      </FormControl>
 
-                <FormControl isRequired>
-                  <FormLabel>Email</FormLabel>
-                  <Input name="email" type="email" value={formData.email} onChange={handleChange} />
-                </FormControl>
-              </SimpleGrid>
+                      <FormControl isRequired>
+                        <FormLabel>Email</FormLabel>
+                        <Input
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                        />
+                      </FormControl>
+                    </SimpleGrid>
 
-              <FormControl isRequired>
-                <FormLabel>Subject</FormLabel>
-                <Input name="subject" value={formData.subject} onChange={handleChange} />
-              </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Subject</FormLabel>
+                      <Input name="subject" value={formData.subject} onChange={handleChange} />
+                    </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Message</FormLabel>
-                <Textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  minH="200px"
-                />
-              </FormControl>
+                    <FormControl isRequired>
+                      <FormLabel>Message</FormLabel>
+                      <Textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        minH="200px"
+                      />
+                    </FormControl>
 
-              <Button
-                type="submit"
-                bg={buttonBg}
-                color="white"
-                _hover={{
-                  bg: buttonHoverBg,
-                }}
-                isLoading={isLoading}
-              >
-                Send Message
-              </Button>
-            </Stack>
-          </form>
+                    <Button
+                      type="submit"
+                      bg={buttonBg}
+                      color="white"
+                      _hover={{
+                        bg: buttonHoverBg,
+                      }}
+                      isLoading={isLoading}
+                    >
+                      Send Message
+                    </Button>
+                  </Stack>
+                </form>
               </Box>
             </Glassmorphism>
           </MotionWrapper>
