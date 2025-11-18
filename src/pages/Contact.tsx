@@ -17,6 +17,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa'
+import { MotionWrapper, Glassmorphism } from '../core'
 
 interface ContactInfo {
   icon: typeof FaMapMarkerAlt
@@ -96,46 +97,69 @@ const Contact = () => {
     }
   }
 
-  const headerText = useColorModeValue('gray.600', 'text.secondary')
-  const cardBg = useColorModeValue('white', 'bg.secondary')
-  const iconColor = useColorModeValue('black', 'accent.primary')
+  const headingColor = useColorModeValue('gray.900', 'text.primary')
+  const subtitleColor = useColorModeValue('gray.600', 'text.secondary')
+  const iconColor = useColorModeValue('purple.600', 'purple.400')
   const infoText = useColorModeValue('gray.600', 'text.secondary')
   const buttonBg = useColorModeValue('black', 'accent.primary')
   const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Stack spacing={8}>
-        <Box textAlign="center">
-          <Heading>Contact Us</Heading>
-          <Text mt={4} color={headerText}>
-            Have questions? We'd love to hear from you.
-          </Text>
-        </Box>
-
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-          {contactInfo.map((info, index) => (
-            <VStack
-              key={index}
-              p={5}
-              bg={cardBg}
-              rounded="lg"
-              shadow="md"
-              spacing={4}
-              align="center"
-            >
-              <Icon as={info.icon} w={10} h={10} color={iconColor} />
-              <Text fontWeight="bold" fontSize="lg">
-                {info.title}
+    <MotionWrapper>
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={8}>
+          <MotionWrapper
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            duration={0.8}
+          >
+            <Box textAlign="center">
+              <Heading color={headingColor}>Contact Us</Heading>
+              <Text mt={4} color={subtitleColor}>
+                Have questions? We'd love to hear from you.
               </Text>
-              <Text color={infoText} textAlign="center">
-                {info.content}
-              </Text>
-            </VStack>
-          ))}
-        </SimpleGrid>
+            </Box>
+          </MotionWrapper>
 
-        <Box p={8} bg={cardBg} rounded="lg" shadow="md">
+          <MotionWrapper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            duration={0.6}
+            delay={0.2}
+          >
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
+              {contactInfo.map((info, index) => (
+                <MotionWrapper
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  duration={0.5}
+                  delay={0.3 + index * 0.1}
+                >
+                  <Glassmorphism backdropBlur="10px" bg="rgba(255, 255, 255, 0.1)" borderRadius="2xl" height="200px">
+                    <VStack p={6} spacing={4} align="center" justify="center" height="100%">
+                      <Icon as={info.icon} w={12} h={12} color={iconColor} />
+                      <Text fontWeight="bold" fontSize="lg" color={headingColor}>
+                        {info.title}
+                      </Text>
+                      <Text color={infoText} textAlign="center">
+                        {info.content}
+                      </Text>
+                    </VStack>
+                  </Glassmorphism>
+                </MotionWrapper>
+              ))}
+            </SimpleGrid>
+          </MotionWrapper>
+
+          <MotionWrapper
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            duration={0.6}
+            delay={0.4}
+          >
+            <Glassmorphism backdropBlur="15px" bg="rgba(255, 255, 255, 0.1)" borderRadius="3xl">
+              <Box p={8}>
           <form onSubmit={handleSubmit}>
             <Stack spacing={6}>
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
@@ -178,9 +202,12 @@ const Contact = () => {
               </Button>
             </Stack>
           </form>
-        </Box>
-      </Stack>
-    </Container>
+              </Box>
+            </Glassmorphism>
+          </MotionWrapper>
+        </VStack>
+      </Container>
+    </MotionWrapper>
   )
 }
 
