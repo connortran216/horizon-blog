@@ -111,8 +111,8 @@ export const AnimatedCard = ({
   const hoverEffects = whileHover || {
     scale: 1.02,
     boxShadow: useColorModeValue(
-      '0 8px 25px rgba(139, 127, 199, 0.25)',
-      '0 8px 25px rgba(139, 127, 199, 0.4)',
+      '0 4px 12px rgba(139, 127, 199, 0.5), 0 0 0 1px rgba(139, 127, 199, 0.1)',
+      '0 4px 12px rgba(139, 127, 199, 0.6), 0 0 0 1px rgba(139, 127, 199, 0.2)',
     ),
     transition: { type: 'spring', stiffness: 300, damping: 20 },
   }
@@ -126,17 +126,51 @@ export const AnimatedCard = ({
       initial="hidden"
       animate={controls}
       variants={animationVariants[animation]}
-      whileHover={hoverEffects}
       style={{
         transform: parallaxTransform,
         willChange: parallax ? 'transform' : 'auto',
+        position: 'relative',
+        zIndex: 1, // Ensure stacking context is clean
+
+        // Negative margin + positive padding creates "invisible canvas" for shadow/scale
+        margin: '-12px',
+        padding: '12px',
+
+        // Compensate for negative margin in grid/flex layouts
+        width: 'calc(100% + 24px)',
       }}
       transition={{
         delay: delay + staggerDelay * index,
         duration,
       }}
     >
-      <GlassCard {...boxProps}>{children}</GlassCard>
+      <motion.div
+        whileHover={hoverEffects}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        // Force initial shadow state to prevent interpolation snap
+        initial={{ boxShadow: '0 0 0 0 rgba(0,0,0,0)' }}
+        style={{
+          width: '100%',
+          borderRadius: '1rem', // Match GlassCard's xl border radius (1rem)
+
+          // GPU Layer promotion - prevents filter/transform conflicts
+          transform: 'translateZ(0)',
+
+          // Smooth scale transitions
+          backfaceVisibility: 'hidden',
+
+          // Optimize for expected changes
+          willChange: 'transform, box-shadow',
+
+          // Fix Safari/Chrome transparency stacking
+          isolation: 'isolate',
+
+          // Prevent layer snap - force constant anti-aliasing
+          outline: '1px solid transparent',
+        }}
+      >
+        <GlassCard {...boxProps}>{children}</GlassCard>
+      </motion.div>
     </motion.div>
   )
 }

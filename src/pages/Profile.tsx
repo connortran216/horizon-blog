@@ -4,9 +4,10 @@ import {
   Heading,
   Text,
   VStack,
+  HStack,
   Avatar,
   SimpleGrid,
-  Button,
+  Tag,
   Tabs,
   TabList,
   TabPanels,
@@ -17,9 +18,10 @@ import {
   MenuList,
   MenuItem,
   IconButton,
-  useColorModeValue,
 } from '@chakra-ui/react'
+import { MotionWrapper, AnimatedCard, Glassmorphism } from '../core'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBlogRepository } from '../core/di/container'
@@ -154,126 +156,168 @@ const Profile = () => {
   }
 
   const BlogGrid = ({ blogs }: { blogs: BlogPost[] }) => {
-    const cardBg = useColorModeValue('white', 'bg.secondary')
-    const dateMeta = useColorModeValue('gray.500', 'text.tertiary')
-    const bodyText = useColorModeValue('gray.600', 'text.secondary')
-    const buttonColor = useColorModeValue('black', 'accent.primary')
-    const buttonHoverBg = useColorModeValue('gray.50', 'bg.tertiary')
+    const dateMeta = 'text.tertiary'
 
     return (
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        {blogs.map((blog) => (
-          <Box key={blog.id} p={6} bg={cardBg} shadow="md" rounded="lg" position="relative">
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                icon={<FiMoreVertical />}
-                variant="ghost"
-                position="absolute"
-                top={2}
-                right={2}
-                aria-label="Options"
-              />
-              <MenuList>
-                <MenuItem onClick={() => handleEdit(blog.id)}>Edit Blog</MenuItem>
-                <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">
-                  Delete Blog
-                </MenuItem>
-              </MenuList>
-            </Menu>
-            <Text fontSize="sm" color={dateMeta} mb={2}>
-              {formatDate(blog.createdAt)}
-            </Text>
-            <Heading size="md" mb={2}>
-              {blog.title}
-            </Heading>
-            <Text color={bodyText} mb={4}>
-              {blog.subtitle || 'No description available'}
-            </Text>
-            <Button
-              variant="outline"
-              color={buttonColor}
-              _hover={{ bg: buttonHoverBg }}
-              as={RouterLink}
-              to={`/profile/${username}/blog/${blog.id}`}
-            >
-              Read more
-            </Button>
+      <SimpleGrid columns={{ base: 1 }} spacing={4}>
+        {blogs.map((blog, index) => (
+          <Box key={blog.id} position="relative">
+            <RouterLink to={`/profile/${username}/blog/${blog.id}`}>
+              <AnimatedCard
+                maxW="100%"
+                overflow="hidden"
+                intensity="medium"
+                staggerDelay={0.15}
+                index={index}
+                animation="fadeInUp"
+              >
+                <HStack height="120px" align="stretch">
+                  <Box
+                    width="100px"
+                    height="100%"
+                    bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    color="white"
+                    fontSize="xl"
+                    fontWeight="bold"
+                    borderTopLeftRadius="md"
+                    borderBottomLeftRadius="md"
+                  >
+                    {blog.title.substring(0, 2).toUpperCase()}
+                  </Box>
+                  <VStack p={3} spacing={2} align="stretch" flex={1} justify="space-between">
+                    <Tag
+                      colorScheme={blog.status === 'published' ? 'green' : 'gray'}
+                      size="sm"
+                      w="fit-content"
+                      variant="subtle"
+                    >
+                      {blog.status}
+                    </Tag>
+
+                    <Heading size="sm" color="text.primary" noOfLines={1} lineHeight="1.3">
+                      {blog.title}
+                    </Heading>
+
+                    <HStack spacing={2} align="center" flex={1}>
+                      <Text fontSize="xs" color={dateMeta}>
+                        {formatDate(blog.createdAt)}
+                      </Text>
+                    </HStack>
+                  </VStack>
+                </HStack>
+              </AnimatedCard>
+            </RouterLink>
+
+            <Box position="absolute" top={1} right={1} zIndex="10">
+              <Menu>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <MenuButton
+                    as={IconButton}
+                    icon={<FiMoreVertical />}
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Options"
+                  />
+                </motion.div>
+                <MenuList zIndex="tooltip">
+                  <MenuItem onClick={() => handleEdit(blog.id)}>Edit Blog</MenuItem>
+                  <MenuItem onClick={() => handleDelete(blog.id)} color="red.500">
+                    Delete Blog
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Box>
           </Box>
         ))}
       </SimpleGrid>
     )
   }
 
-  const profileText = useColorModeValue('gray.600', 'text.secondary')
+  const profileText = 'text.secondary'
 
   // Tab color mode values
-  const tabColor = useColorModeValue('gray.600', 'text.secondary')
-  const tabSelectedColor = useColorModeValue('black', 'accent.primary')
-  const tabBorderColor = useColorModeValue('black', 'accent.primary')
+  const tabColor = 'text.secondary'
+  const tabSelectedColor = 'accent.primary'
+  const tabBorderColor = 'accent.primary'
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <VStack spacing={8} align="stretch">
-        <Box textAlign="center">
-          <Avatar size="2xl" src={user?.avatar} name={username} mb={4} />
-          <Heading size="lg">{username}</Heading>
-          <Text color={profileText} mt={2}>
-            Passionate developer sharing insights about web development
-          </Text>
-        </Box>
+    <MotionWrapper>
+      <Container maxW="container.xl" py={8}>
+        <VStack spacing={8} align="stretch">
+          <Glassmorphism backdropBlur="15px" bg="rgba(255, 255, 255, 0.1)" borderRadius="3xl" p={8}>
+            <VStack spacing={6} align="center" height="100%" justify="center">
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+              >
+                <Avatar size="2xl" src={user?.avatar} name={username} />
+              </motion.div>
+              <VStack spacing={2} textAlign="center">
+                <Heading size="lg" color="text.primary">
+                  {username}
+                </Heading>
+                <Text color={profileText}>
+                  Passionate developer sharing insights about web development
+                </Text>
+              </VStack>
+            </VStack>
+          </Glassmorphism>
 
-        <Box>
-          <Heading size="md" mb={4}>
-            My Articles
-          </Heading>
-          {loading ? (
-            <Text textAlign="center">Loading articles...</Text>
-          ) : publishedBlogs.length === 0 && draftBlogs.length === 0 ? (
-            <Text textAlign="center">No articles published yet.</Text>
-          ) : (
-            <Tabs>
-              <TabList>
-                <Tab
-                  color={tabColor}
-                  _selected={{
-                    color: tabSelectedColor,
-                    borderColor: tabBorderColor,
-                  }}
-                >
-                  Published Blogs
-                </Tab>
-                <Tab
-                  color={tabColor}
-                  _selected={{
-                    color: tabSelectedColor,
-                    borderColor: tabBorderColor,
-                  }}
-                >
-                  Draft Blogs
-                </Tab>
-              </TabList>
-              <TabPanels>
-                <TabPanel>
-                  {publishedBlogs.length === 0 ? (
-                    <Text textAlign="center">No published articles yet.</Text>
-                  ) : (
-                    <BlogGrid blogs={publishedBlogs} />
-                  )}
-                </TabPanel>
-                <TabPanel>
-                  {draftBlogs.length === 0 ? (
-                    <Text textAlign="center">No draft articles.</Text>
-                  ) : (
-                    <BlogGrid blogs={draftBlogs} />
-                  )}
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          )}
-        </Box>
-      </VStack>
-    </Container>
+          <Box>
+            <Heading size="md" color="text.primary" mb={4}>
+              My Articles
+            </Heading>
+            {loading ? (
+              <Text textAlign="center">Loading articles...</Text>
+            ) : publishedBlogs.length === 0 && draftBlogs.length === 0 ? (
+              <Text textAlign="center">No articles published yet.</Text>
+            ) : (
+              <Tabs>
+                <TabList>
+                  <Tab
+                    color={tabColor}
+                    _selected={{
+                      color: tabSelectedColor,
+                      borderColor: tabBorderColor,
+                    }}
+                  >
+                    Published Blogs
+                  </Tab>
+                  <Tab
+                    color={tabColor}
+                    _selected={{
+                      color: tabSelectedColor,
+                      borderColor: tabBorderColor,
+                    }}
+                  >
+                    Draft Blogs
+                  </Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel>
+                    {publishedBlogs.length === 0 ? (
+                      <Text textAlign="center">No published articles yet.</Text>
+                    ) : (
+                      <BlogGrid blogs={publishedBlogs} />
+                    )}
+                  </TabPanel>
+                  <TabPanel>
+                    {draftBlogs.length === 0 ? (
+                      <Text textAlign="center">No draft articles.</Text>
+                    ) : (
+                      <BlogGrid blogs={draftBlogs} />
+                    )}
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            )}
+          </Box>
+        </VStack>
+      </Container>
+    </MotionWrapper>
   )
 }
 
