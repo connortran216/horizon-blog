@@ -11,15 +11,20 @@ import {
   VStack,
   HStack,
   Tag,
-  Button,
   Avatar,
-  useColorModeValue,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
-import { AnimatedCard, MotionWrapper, FadeInShimmer, ShimmerLoader } from '../core'
+import {
+  AnimatedCard,
+  MotionWrapper,
+  FadeInShimmer,
+  ShimmerLoader,
+  AnimatedPrimaryButton,
+  FocusRing,
+} from '../core'
 
 interface BlogPost {
   id: number
@@ -63,73 +68,68 @@ const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
     return Math.max(1, Math.ceil(words / 200))
   }
 
-  const readingTimeColor = useColorModeValue('gray.500', 'text.secondary')
-  const excerptColor = useColorModeValue('gray.600', 'text.secondary')
-  const metaColor = useColorModeValue('gray.500', 'text.tertiary')
-  const buttonBg = useColorModeValue('black', 'accent.primary')
-  const buttonHoverBg = useColorModeValue('gray.800', 'accent.hover')
+  const readingTimeColor = 'text.secondary'
+  const excerptColor = 'text.secondary'
+  const metaColor = 'text.tertiary'
+  const cardHoverScale = 1.02
 
   return (
-    <AnimatedCard
-      maxW="100%"
-      overflow="hidden"
-      intensity="medium"
-      staggerDelay={0.15}
-      index={index}
-      animation="fadeInUp"
-    >
-      <Box
-        height="200px"
-        width="100%"
-        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="white"
-        fontSize="3xl"
-        fontWeight="bold"
+    <RouterLink to={`/blog/${post.id}`}>
+      <motion.div
+        whileHover={{ scale: cardHoverScale }}
+        transition={{ duration: 0.2 }}
+        style={{ cursor: 'pointer' }}
       >
-        {post.title.substring(0, 2).toUpperCase()}
-      </Box>
-      <VStack p={6} spacing={3} align="stretch">
-        <HStack spacing={2} justify="space-between">
-          <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>{post.status}</Tag>
-          <Text fontSize="sm" color={readingTimeColor}>
-            {getReadingTime(post.content_markdown)} min read
-          </Text>
-        </HStack>
-        <Heading size="md" noOfLines={2} color={useColorModeValue('gray.900', 'text.primary')}>
-          {post.title}
-        </Heading>
-        <Text color={excerptColor} noOfLines={3}>
-          {getExcerpt(post.content_markdown)}
-        </Text>
-        <HStack spacing={2} align="center">
-          <Avatar size="xs" name={post.user?.name || 'Anonymous'} />
-          <Text fontSize="sm" color={metaColor}>
-            {post.user?.name || 'Anonymous'}
-          </Text>
-          <Text fontSize="sm" color={metaColor}>
-            •
-          </Text>
-          <Text fontSize="sm" color={metaColor}>
-            {new Date(post.created_at).toLocaleDateString()}
-          </Text>
-        </HStack>
-        <Button
-          bg={buttonBg}
-          color="white"
-          _hover={{
-            bg: buttonHoverBg,
-          }}
-          as={RouterLink}
-          to={`/blog/${post.id}`}
-          mt={2}
+        <AnimatedCard
+          maxW="100%"
+          overflow="hidden"
+          intensity="medium"
+          staggerDelay={0.15}
+          index={index}
+          animation="fadeInUp"
         >
-          Read More
-        </Button>
-      </VStack>
-    </AnimatedCard>
+          <Box
+            height="200px"
+            width="100%"
+            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            color="white"
+            fontSize="3xl"
+            fontWeight="bold"
+          >
+            {post.title.substring(0, 2).toUpperCase()}
+          </Box>
+          <VStack p={6} spacing={3} align="stretch">
+            <HStack spacing={2} justify="space-between">
+              <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>{post.status}</Tag>
+              <Text fontSize="sm" color={readingTimeColor}>
+                {getReadingTime(post.content_markdown)} min read
+              </Text>
+            </HStack>
+            <Heading size="md" noOfLines={2} color="text.primary">
+              {post.title}
+            </Heading>
+            <Text color={excerptColor} noOfLines={3}>
+              {getExcerpt(post.content_markdown)}
+            </Text>
+            <HStack spacing={2} align="center">
+              <Avatar size="xs" name={post.user?.name || 'Anonymous'} />
+              <Text fontSize="sm" color={metaColor}>
+                {post.user?.name || 'Anonymous'}
+              </Text>
+              <Text fontSize="sm" color={metaColor}>
+                •
+              </Text>
+              <Text fontSize="sm" color={metaColor}>
+                {new Date(post.created_at).toLocaleDateString()}
+              </Text>
+            </HStack>
+          </VStack>
+        </AnimatedCard>
+      </motion.div>
+    </RouterLink>
   )
 }
 
@@ -186,13 +186,11 @@ const Blog = () => {
     return matchesSearch
   })
 
-  const headingColor = useColorModeValue('gray.900', 'text.primary')
-  const subtitleColor = useColorModeValue('gray.600', 'text.secondary')
-  const searchIconColor = useColorModeValue('gray.300', 'text.tertiary')
-  const loadingTextColor = useColorModeValue('gray.500', 'text.secondary')
-  const paginationButtonBg = useColorModeValue('black', 'accent.primary')
-  const paginationButtonHoverBg = useColorModeValue('gray.800', 'accent.hover')
-  const paginationTextColor = useColorModeValue('gray.700', 'text.primary')
+  const headingColor = 'text.primary'
+  const subtitleColor = 'text.secondary'
+  const searchIconColor = 'text.tertiary'
+  const loadingTextColor = 'text.secondary'
+  const paginationTextColor = 'text.primary'
 
   return (
     <MotionWrapper>
@@ -296,17 +294,14 @@ const Blog = () => {
               delay={0.8}
             >
               <HStack spacing={4} justify="center">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
+                <FocusRing>
+                  <AnimatedPrimaryButton
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     isDisabled={page === 1}
-                    bg={paginationButtonBg}
-                    color="white"
-                    _hover={{ bg: paginationButtonHoverBg }}
                   >
                     Previous
-                  </Button>
-                </motion.div>
+                  </AnimatedPrimaryButton>
+                </FocusRing>
                 <MotionWrapper
                   key={`page-${page}`}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -317,17 +312,14 @@ const Blog = () => {
                     Page {page} of {totalPages} ({total} total posts)
                   </Text>
                 </MotionWrapper>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
+                <FocusRing>
+                  <AnimatedPrimaryButton
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     isDisabled={page === totalPages}
-                    bg={paginationButtonBg}
-                    color="white"
-                    _hover={{ bg: paginationButtonHoverBg }}
                   >
                     Next
-                  </Button>
-                </motion.div>
+                  </AnimatedPrimaryButton>
+                </FocusRing>
               </HStack>
             </MotionWrapper>
           )}

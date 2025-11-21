@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Avatar,
-  Button,
-  Divider,
-  useToast,
-  Badge,
-} from '@chakra-ui/react'
+import { Container, Heading, Text, VStack, HStack, useToast, Badge } from '@chakra-ui/react'
 import { ArrowBackIcon } from '@chakra-ui/icons'
+import { motion } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
 import { useAuth } from '../context/AuthContext'
 import MilkdownReader from '../components/reader/MilkdownReader'
+import {
+  MotionWrapper,
+  AnimatedPrimaryButton,
+  FocusRing,
+  BackButtonAnimation,
+  AuthorAnimation,
+  DividerAnimation,
+  ContentAnimation,
+} from '../core'
 
 interface BlogPost {
   id: number
@@ -95,7 +93,7 @@ const ProfileBlogDetail = () => {
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {
     if (!post || !post.content_markdown) {
-      return <Text>No content available</Text>
+      return <Text color="text.secondary">No content available</Text>
     }
 
     // Use MilkdownReader for read-only display
@@ -122,53 +120,66 @@ const ProfileBlogDetail = () => {
   }
 
   return (
-    <Container maxW="container.md" py={10}>
-      <Button
-        leftIcon={<ArrowBackIcon />}
-        variant="ghost"
-        mb={6}
-        onClick={() => navigate(`/profile/${username}`)}
-      >
-        Back to Profile
-      </Button>
+    <MotionWrapper>
+      <Container maxW="container.md" py={10}>
+        <VStack spacing={6} align="stretch">
+          {/* Back Button */}
+          <BackButtonAnimation>
+            <FocusRing>
+              <AnimatedPrimaryButton
+                leftIcon={<ArrowBackIcon />}
+                variant="ghost"
+                mb={6}
+                onClick={() => navigate(`/profile/${username}`)}
+              >
+                Back to Profile
+              </AnimatedPrimaryButton>
+            </FocusRing>
+          </BackButtonAnimation>
 
-      <VStack spacing={6} align="stretch">
-        <HStack justify="space-between" align="start">
-          <Heading as="h1" size="2xl">
-            {post.title}
-          </Heading>
-          {post.status === 'draft' && (
-            <Badge colorScheme="yellow" fontSize="md" px={3} py={1}>
-              Draft
-            </Badge>
+          {/* Title with Draft Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <HStack justify="space-between" align="start">
+              <Heading as="h1" size="2xl" color="text.primary" lineHeight="1.2">
+                {post.title}
+              </Heading>
+              {post.status === 'draft' && (
+                <Badge colorScheme="yellow" fontSize="md" px={3} py={1}>
+                  Draft
+                </Badge>
+              )}
+            </HStack>
+          </motion.div>
+
+          {/* Author Info */}
+          <AuthorAnimation post={post} />
+
+          {/* Profile-specific message */}
+          {isOwnProfile && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
+            >
+              <Text fontSize="sm" color="text.secondary" fontStyle="italic">
+                This is a read-only view. To edit this post, go back to your profile and use the
+                Edit option from the menu.
+              </Text>
+            </motion.div>
           )}
-        </HStack>
 
-        <HStack spacing={4}>
-          <Avatar size="md" name={post.user?.name || 'Anonymous'} />
-          <Box>
-            <Text fontWeight="bold">{post.user?.name || 'Anonymous'}</Text>
-            <Text fontSize="sm" color="gray.500">
-              {post.status === 'published' ? 'Published' : 'Created'} on{' '}
-              {new Date(post.created_at).toLocaleDateString()}
-              {post.created_at !== post.updated_at &&
-                ` • Updated on ${new Date(post.updated_at).toLocaleDateString()}`}
-            </Text>
-          </Box>
-        </HStack>
+          {/* Divider */}
+          <DividerAnimation />
 
-        {isOwnProfile && (
-          <Text fontSize="sm" color="gray.600" fontStyle="italic">
-            This is a read-only view. To edit this post, go back to your profile and use the Edit
-            option from the menu.
-          </Text>
-        )}
-
-        <Divider my={4} />
-
-        {renderContent()}
-      </VStack>
-    </Container>
+          {/* Content */}
+          <ContentAnimation hasPaddingBottom={false}>{renderContent()}</ContentAnimation>
+        </VStack>
+      </Container>
+    </MotionWrapper>
   )
 }
 
