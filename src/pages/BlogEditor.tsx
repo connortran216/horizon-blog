@@ -1,4 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+/**
+ * BlogEditor Page Component - Clean UI-focused component
+ *
+ * Follows Single Responsibility Principle by focusing only on UI composition.
+ * Business logic is delegated to custom hooks following our architectural patterns.
+ */
+
+import React, { useEffect, useCallback } from 'react'
 import {
   Box,
   Container,
@@ -16,11 +23,12 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import MilkdownEditor from '../components/editor/MilkdownEditor'
-import { ErrorBoundary, apiService } from '../core'
+import { ErrorBoundary } from '../core'
+import { useBlogPost, useAutoSave, useEditorContent } from '../hooks'
 
-// Declare global interface for window object
+// Declare global interface for window object (keeping interface but removing logic)
 declare global {
   interface Window {
     editorState?: {
@@ -31,159 +39,85 @@ declare global {
   }
 }
 
-const AUTO_SAVE_DELAY = 5000 // 5 seconds delay for backend auto-save
-const LOCAL_SAVE_DELAY = 1000 // 1 second for localStorage backup
-
-const BlogEditor = () => {
+const BlogEditor: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
-  const location = useLocation()
 
-  // Color mode values`
+  // Theme colors - using semantic tokens from our design system
   const textTertiary = useColorModeValue('gray.500', 'text.tertiary')
   const textAuthor = useColorModeValue('gray.700', 'text.secondary')
   const bgPrimary = useColorModeValue('white', 'bg.secondary')
   const borderColor = useColorModeValue('gray.200', 'border.subtle')
 
-  // Parse URL parameters and router state
-  const postIdParam = new URLSearchParams(location.search).get('id')
-  const routerPost = location.state?.blog
-  const authorizedEdit = location.state?.authorizedEdit || false
+  // Custom hooks for business logic separation
+  const { post, isLoading, postId } = useBlogPost()
 
-  // State management
-  const [title, setTitle] = useState('')
-  const [postId, setPostId] = useState<number | null>(null)
-  const [contentMarkdown, setContentMarkdown] = useState('')
-  const [contentJSON, setContentJSON] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState('')
+  const editorContent = useEditorContent({
+    title: post?.title || '',
+    contentMarkdown: post?.content_markdown || '',
+    contentJSON: post?.content_json || '',
+    tags: Array.isArray(post?.tags)
+      ? post.tags.map((tag: unknown) =>
+          typeof tag === 'string' ? tag : (tag as { name: string }).name,
+        )
+      : [],
+  })
 
-  // Refs for auto-save timers and initial content tracking
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const initialContentSet = useRef<boolean>(false)
-  const editorInitialContent = useRef<string>('')
+  const autoSave = useAutoSave(
+    editorContent.title,
+    editorContent.contentMarkdown,
+    editorContent.contentJSON,
+    editorContent.tags,
+    postId,
+  )
 
-  // Load post content on mount
-  useEffect(() => {
-    console.log(
-      '🚀 BlogEditor mounted with postIdParam:',
-      postIdParam,
-      'routerPost:',
-      routerPost?.id,
-    )
+  // Handle publishing the post
+  const handlePublish = useCallback(async (): Promise<boolean> => {
+    try {
+      const publishedPost = await autoSave.publishPost()
 
-    const loadPost = async () => {
-      setIsLoading(true)
-      try {
-        let post = routerPost
+      // Clear localStorage backup on successful publish
+      autoSave.clearLocalStorage()
 
-        // Load by ID if URL parameter exists and no router state
-        if (postIdParam && !post) {
-          console.log('🔗 Loading post by ID:', postIdParam)
-          const response = await apiService.get<{ data: unknown }>(`/posts/${postIdParam}`)
-          post = response.data
+      // Show success toast
+      toast({
+        title: 'Success',
+        description: `Blog post ${postId ? 'updated' : 'published'} successfully`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
 
-          if (!post) {
-            console.error('❌ Post not found for ID:', postIdParam)
-            toast({
-              title: 'Error',
-              description: 'Post not found',
-              status: 'error',
-              duration: 3000,
-              isClosable: true,
-            })
-            setIsLoading(false)
-            return
-          }
-
-          // Access Control: Check if user is owner and has authorization
-          if (!user || post.user_id !== user.id) {
-            console.error('❌ Unauthorized access attempt to edit post:', postIdParam)
-            toast({
-              title: 'Access Denied',
-              description:
-                'You do not have permission to edit this post. Only the post owner can edit from their profile.',
-              status: 'error',
-              duration: 5000,
-              isClosable: true,
-            })
-            navigate(`/blog/${postIdParam}`)
-            return
-          }
-
-          // Check if access is authorized (coming from Profile page)
-          if (!authorizedEdit) {
-            console.error('❌ Unauthorized direct access to editor:', postIdParam)
-            toast({
-              title: 'Access Denied',
-              description: 'Please use the Edit option from your profile to edit your posts.',
-              status: 'warning',
-              duration: 5000,
-              isClosable: true,
-            })
-            navigate(`/blog/${postIdParam}`)
-            return
-          }
-        }
-
-        // Initialize state from loaded post
-        if (post) {
-          console.log(
-            '📋 Loading post:',
-            post.title,
-            'with content length:',
-            post.content_markdown?.length || 0,
-          )
-          setTitle(post.title || '')
-          setPostId(post.id)
-          setContentMarkdown(post.content_markdown || '')
-          setContentJSON(post.content_json || '')
-          // Load tags if available
-          if (post.tags && Array.isArray(post.tags)) {
-            const tagNames = post.tags.map((tag: unknown) =>
-              typeof tag === 'string' ? tag : (tag as { name: string }).name,
-            )
-            setTags(tagNames)
-          }
-          // Set initial content for editor (only once)
-          editorInitialContent.current = post.content_markdown || ''
-          console.log('✅ Post loaded successfully, initialContentSet:', true)
-        } else {
-          // New post
-          console.log('🆕 Initializing new post')
-          editorInitialContent.current = ''
-        }
-        initialContentSet.current = true
-      } catch (error) {
-        console.error('❌ Error loading post:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to load post',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        })
-      } finally {
-        console.log('✅ Loading complete, isLoading set to false')
-        setIsLoading(false)
+      // Navigate to the published post
+      if (publishedPost?.id) {
+        navigate(`/blog/${publishedPost.id}`)
       }
+
+      return true
+    } catch (error) {
+      console.error('❌ Error publishing blog post:', error)
+
+      // Show error toast
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to publish blog post',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+
+      return false
     }
+  }, [autoSave, postId, toast, navigate])
 
-    loadPost()
-  }, [postIdParam, routerPost, toast, user, authorizedEdit, navigate])
-
-  // Share editor state with Navbar
+  // Share editor state with Navbar (keeping this minimal global state)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.editorState = {
-        content_markdown: contentMarkdown,
-        title: title,
-        handlePublish: handlePublish,
+        content_markdown: editorContent.contentMarkdown,
+        title: editorContent.title,
+        handlePublish,
       }
     }
 
@@ -193,217 +127,28 @@ const BlogEditor = () => {
         window.editorState = undefined
       }
     }
-  }, [contentMarkdown, contentJSON, title])
+  }, [editorContent.contentMarkdown, editorContent.title, handlePublish])
 
-  // Local storage backup (1 second debounce)
-  const saveToLocalStorage = useCallback(() => {
-    if (!title.trim() || !contentMarkdown) return
-
-    try {
-      localStorage.setItem(
-        'blog_draft_backup',
-        JSON.stringify({
-          title,
-          contentMarkdown,
-          contentJSON,
-          timestamp: new Date().toISOString(),
-        }),
-      )
-    } catch (error) {
-      console.error('Error saving to localStorage:', error)
-    }
-  }, [title, contentMarkdown, contentJSON])
-
-  // Backend auto-save (5 second debounce)
-  const autoSave = useCallback(async () => {
-    if (!title.trim() || !contentMarkdown) return
-
-    setSaveStatus('saving')
-    setIsSaving(true)
-
-    try {
-      const postData = {
-        title: title.trim(),
-        content_markdown: contentMarkdown,
-        content_json: contentJSON || '{}',
-        status: 'draft',
-        tag_names: tags,
-      }
-
-      let response
-      if (postId) {
-        // Update existing post
-        response = await apiService.patch<{ data: unknown }>(`/posts/${postId}`, postData)
-      } else {
-        // Create new post
-        response = await apiService.post<{ data: { id: number } }>(`/posts`, postData)
-        if (response.data?.id) {
-          setPostId(response.data.id)
-        }
-      }
-
-      setSaveStatus('saved')
-      console.log('✅ Auto-saved to backend')
-    } catch (error) {
-      console.error('Error auto-saving to backend:', error)
-      setSaveStatus('error')
-      // Don't show toast for auto-save errors to avoid interrupting user
-    } finally {
-      setIsSaving(false)
-    }
-  }, [title, contentMarkdown, contentJSON, postId, tags])
-
-  // Set up auto-save timers
-  useEffect(() => {
-    // Clear existing timers
-    if (localSaveTimer.current) {
-      clearTimeout(localSaveTimer.current)
-    }
-    if (autoSaveTimer.current) {
-      clearTimeout(autoSaveTimer.current)
-    }
-
-    // Set new timers
-    localSaveTimer.current = setTimeout(saveToLocalStorage, LOCAL_SAVE_DELAY)
-    autoSaveTimer.current = setTimeout(autoSave, AUTO_SAVE_DELAY)
-
-    return () => {
-      if (localSaveTimer.current) {
-        clearTimeout(localSaveTimer.current)
-      }
-      if (autoSaveTimer.current) {
-        clearTimeout(autoSaveTimer.current)
-      }
-    }
-  }, [saveToLocalStorage, autoSave])
-
-  // Handle editor content changes - memoized to prevent unnecessary re-renders
-  const handleEditorChange = useCallback((markdown: string, prosemirrorJSON: string) => {
-    setContentMarkdown(markdown)
-
-    // Validate and store ProseMirror JSON
-    try {
-      // Validate that it's proper JSON
-      const parsed = JSON.parse(prosemirrorJSON)
-
-      // Validate it has the expected ProseMirror structure
-      if (parsed && typeof parsed === 'object') {
-        setContentJSON(prosemirrorJSON)
-      } else {
-        console.warn('⚠️ Invalid ProseMirror JSON structure, using fallback')
-        setContentJSON('{}')
-      }
-    } catch (error) {
-      console.error('❌ Failed to parse ProseMirror JSON:', error)
-      setContentJSON('{}')
-    }
-  }, []) // Empty deps - this function never needs to change
-
-  // Handle publishing a post
-  const handlePublish = async () => {
-    if (!title.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please add a title for your blog post',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-      return false
-    }
-
-    if (!contentMarkdown.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please add content to your blog post',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-      return false
-    }
-
-    try {
-      const postData = {
-        title: title.trim(),
-        content_markdown: contentMarkdown,
-        content_json: contentJSON || '{}',
-        status: 'published',
-        tag_names: tags,
-      }
-
-      let response
-      if (postId) {
-        // Update existing post
-        response = await apiService.put<{ data: unknown }>(`/posts/${postId}`, postData)
-      } else {
-        // Create new post
-        response = await apiService.post<{ data: unknown }>('/posts', postData)
-      }
-
-      const savedPost = response.data as { id: number }
-
-      if (!savedPost) {
-        throw new Error('Failed to save blog post')
-      }
-
-      // Clear localStorage backup
-      localStorage.removeItem('blog_draft_backup')
-
-      // Display success message
-      toast({
-        title: 'Success',
-        description: `Blog post ${postId ? 'updated' : 'published'} successfully`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
-
-      // Navigate to the blog post
-      navigate(`/blog/${savedPost.id}`)
-      return true
-    } catch (error: unknown) {
-      console.error('Error publishing blog post:', error)
-
-      // Display error message
-      toast({
-        title: 'Error',
-        description:
-          error instanceof Error
-            ? error.message
-            : `Failed to ${postId ? 'update' : 'publish'} blog post`,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-
-      return false
-    }
-  }
-
-  // Save status text
-  const getSaveStatusText = () => {
-    if (isSaving || saveStatus === 'saving') return 'Saving...'
-    if (saveStatus === 'error') return 'Save failed'
-    if (postId) return 'Draft saved'
-    return 'Draft'
-  }
-
-  // Handle tag addition
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim()) {
-      e.preventDefault()
-      const newTag = tagInput.trim().toLowerCase()
-      if (!tags.includes(newTag)) {
-        setTags([...tags, newTag])
-      }
-      setTagInput('')
-    }
-  }
-
-  // Handle tag removal
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
+  // Don't render anything while loading or if there's an error
+  if (isLoading) {
+    return (
+      <Container maxW="container.xl" p={5}>
+        <VStack spacing={6} align="stretch">
+          <Box
+            border="1px"
+            borderColor={borderColor}
+            borderRadius="md"
+            minH="500px"
+            bg={bgPrimary}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Text color={textTertiary}>Loading editor...</Text>
+          </Box>
+        </VStack>
+      </Container>
+    )
   }
 
   return (
@@ -420,14 +165,14 @@ const BlogEditor = () => {
           <Text
             fontSize="sm"
             color={
-              saveStatus === 'error'
+              autoSave.saveStatus === 'error'
                 ? 'red.500'
-                : saveStatus === 'saving'
+                : autoSave.saveStatus === 'saving' || autoSave.isSaving
                   ? 'blue.500'
-                  : 'green.500'
+                  : 'accent.primary'
             }
           >
-            {getSaveStatusText()}
+            {autoSave.getSaveStatusText()}
           </Text>
         </HStack>
 
@@ -440,8 +185,8 @@ const BlogEditor = () => {
           border="none"
           _focus={{ border: 'none', boxShadow: 'none' }}
           _hover={{ border: 'none' }}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={editorContent.title}
+          onChange={(e) => editorContent.setTitle(e.target.value)}
           isDisabled={isLoading}
         />
 
@@ -450,17 +195,17 @@ const BlogEditor = () => {
           <Input
             placeholder="Add tags (press Enter)"
             size="sm"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleAddTag}
+            value={editorContent.tagInput}
+            onChange={(e) => editorContent.setTagInput(e.target.value)}
+            onKeyDown={editorContent.handleAddTagByEnter}
             isDisabled={isLoading}
           />
           <Wrap mt={2} spacing={2}>
-            {tags.map((tag) => (
+            {editorContent.tags.map((tag: string) => (
               <WrapItem key={tag}>
                 <Tag size="md" colorScheme="blue" borderRadius="full">
                   <TagLabel>{tag}</TagLabel>
-                  <TagCloseButton onClick={() => handleRemoveTag(tag)} />
+                  <TagCloseButton onClick={() => editorContent.removeTag(tag)} />
                 </Tag>
               </WrapItem>
             ))}
@@ -468,30 +213,13 @@ const BlogEditor = () => {
         </Box>
 
         {/* Milkdown Editor */}
-        {!isLoading && initialContentSet.current && (
-          <ErrorBoundary>
-            <MilkdownEditor
-              initialContent={contentMarkdown}
-              onChange={handleEditorChange}
-              placeholder="Start writing your blog post..."
-            />
-          </ErrorBoundary>
-        )}
-
-        {isLoading && (
-          <Box
-            border="1px"
-            borderColor={borderColor}
-            borderRadius="md"
-            minH="500px"
-            bg={bgPrimary}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Text color={textTertiary}>Loading editor...</Text>
-          </Box>
-        )}
+        <ErrorBoundary>
+          <MilkdownEditor
+            initialContent={editorContent.contentMarkdown}
+            onChange={editorContent.handleEditorChange}
+            placeholder="Start writing your blog post..."
+          />
+        </ErrorBoundary>
       </VStack>
     </Container>
   )

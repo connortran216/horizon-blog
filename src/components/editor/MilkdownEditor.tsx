@@ -471,18 +471,21 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = React.memo((props) => {
   // Stable key for MilkdownProvider to prevent recreation on every render
   const milkdownKey = useRef<number>(0)
 
-  // Controlled sync: Only update when switching TO Preview tab and content differs
+  // Controlled sync: Update content when initialContent changes (e.g., when post loads) or when switching tabs
   useEffect(() => {
-    // Only sync if we're switching tabs AND content is different from what Preview has
-    if (isTabSwitching.current && initialContent !== lastSyncedContent.current) {
+    const contentHasChanged = initialContent !== lastSyncedContent.current
+
+    // Always sync when content changes, regardless of tab switching
+    if (contentHasChanged) {
       setMarkdownContent(initialContent)
       lastSyncedContent.current = initialContent
-      // Increment key to force Preview remount with fresh content
-      milkdownKey.current += 1
+      // Note: Milkdown handles its own updates internally via listener plugins
+      // No need to force remounting which causes focus loss
     }
-    // Reset the tab switching flag
+
+    // Reset the tab switching flag for next tab change
     isTabSwitching.current = false
-  }, [initialContent, mode])
+  }, [initialContent])
 
   // Sync line numbers scroll with textarea scroll
   const handleTextareaScroll = useCallback(() => {
