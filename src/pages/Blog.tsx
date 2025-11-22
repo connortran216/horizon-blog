@@ -17,14 +17,8 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
-import {
-  AnimatedCard,
-  MotionWrapper,
-  FadeInShimmer,
-  ShimmerLoader,
-  AnimatedPrimaryButton,
-  FocusRing,
-} from '../core'
+import { AnimatedCard, MotionWrapper, FadeInShimmer, ShimmerLoader } from '../core'
+import PaginationControls from '../components/PaginationControls'
 
 interface BlogPost {
   id: number
@@ -142,7 +136,7 @@ const Blog = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
   const [isSearching, setIsSearching] = useState(false)
-  const limit = 20
+  const limit = 6
 
   // Load blog posts from API
   useEffect(() => {
@@ -154,13 +148,17 @@ const Blog = () => {
           page: number
           limit: number
           total: number
-        }>('/posts', { page, limit })
+        }>('/posts', { page, limit, status: 'published' })
 
-        // Only show published posts
-        const publishedPosts = response.data.filter((post) => post.status === 'published')
-        setBlogPosts(publishedPosts)
-        setTotal(response.total || 0)
-        setTotalPages(Math.ceil((response.total || 0) / limit))
+        setBlogPosts(response.data)
+        const blogTotal = response.total
+        if (blogTotal !== undefined) {
+          setTotal(blogTotal)
+          setTotalPages(Math.ceil(blogTotal / limit))
+        } else {
+          setTotal(0)
+          setTotalPages(1)
+        }
       } catch (error) {
         console.error('Failed to load blog posts:', error)
         setBlogPosts([])
@@ -287,41 +285,15 @@ const Blog = () => {
           </AnimatePresence>
 
           {!loading && totalPages > 1 && !searchQuery && (
-            <MotionWrapper
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              duration={0.6}
-              delay={0.8}
-            >
-              <HStack spacing={4} justify="center">
-                <FocusRing>
-                  <AnimatedPrimaryButton
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    isDisabled={page === 1}
-                  >
-                    Previous
-                  </AnimatedPrimaryButton>
-                </FocusRing>
-                <MotionWrapper
-                  key={`page-${page}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  duration={0.3}
-                >
-                  <Text color={paginationTextColor}>
-                    Page {page} of {totalPages} ({total} total posts)
-                  </Text>
-                </MotionWrapper>
-                <FocusRing>
-                  <AnimatedPrimaryButton
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    isDisabled={page === totalPages}
-                  >
-                    Next
-                  </AnimatedPrimaryButton>
-                </FocusRing>
-              </HStack>
-            </MotionWrapper>
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              totalCount={total}
+              pageSize={limit}
+              onPageChange={setPage}
+              textColor={paginationTextColor}
+              showOnlyWhenMultiple={false}
+            />
           )}
         </VStack>
       </Container>

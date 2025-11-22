@@ -20,7 +20,10 @@ import { HamburgerIcon, CloseIcon, SunIcon, MoonIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogRepository } from '../../core/di/container'
-import { AnimatedPrimaryButton, AnimatedGhostButton } from '../core/animations/AnimatedButton'
+import { AnimatedPrimaryButton } from '../core/animations/AnimatedButton'
+import { Glassmorphism } from '../core/animations/Glassmorphism'
+import { MotionWrapper } from '../core/animations/MotionWrapper'
+import { useSuccessParticles } from '../core/animations/ParticleSystem'
 
 // Declare global interface for window object
 declare global {
@@ -61,6 +64,7 @@ const Navbar = () => {
   const location = useLocation()
   const isEditorPage = location.pathname === '/blog-editor'
   const toast = useToast()
+  const { triggerSuccess } = useSuccessParticles() // Success particles hook
   const [editorState, setEditorState] = useState<{
     title: string
     content_markdown: string
@@ -189,6 +193,9 @@ const Navbar = () => {
           isClosable: true,
         })
 
+        // Trigger success particles at publish button position
+        triggerSuccess()
+
         navigate(`/blog/${newPost.id}`)
       } else {
         throw new Error(result.error || 'Failed to save blog post')
@@ -205,82 +212,75 @@ const Navbar = () => {
   }
 
   return (
-    <Box bg="bg.secondary" px={4} boxShadow="sm" borderBottom="1px" borderColor="border.subtle">
+    <Glassmorphism
+      px={4}
+      intensity="light"
+      position="sticky"
+      top={0}
+      zIndex={1000}
+      backdropFilter="blur(20px)"
+    >
       <Container maxW="container.xl">
         <Flex h={16} alignItems="center" justifyContent="space-between">
-          <IconButton
-            size="md"
-            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-            aria-label="Open Menu"
-            display={{ md: 'none' }}
-            onClick={onToggle}
-          />
+          <MotionWrapper variant="fadeInLeft" delay={0.1}>
+            <IconButton
+              size="md"
+              icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              aria-label="Open Menu"
+              display={{ md: 'none' }}
+              onClick={onToggle}
+            />
+          </MotionWrapper>
 
-          <HStack spacing={8} alignItems="center">
-            <Box fontWeight="bold" fontSize="xl">
-              <RouterLink to="/">Horizon</RouterLink>
-            </Box>
-            <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
-              {Links.map((link) => (
-                <NavLink key={link.path} to={link.path}>
-                  {link.name}
-                </NavLink>
-              ))}
+          <MotionWrapper variant="fadeInUp" delay={0.2}>
+            <HStack spacing={8} alignItems="center">
+              <Box fontWeight="bold" fontSize="xl">
+                <RouterLink to="/">Horizon</RouterLink>
+              </Box>
+              <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
+                {Links.map((link, index) => (
+                  <MotionWrapper key={link.path} variant="fadeInUp" delay={0.3 + index * 0.1}>
+                    <NavLink to={link.path}>{link.name}</NavLink>
+                  </MotionWrapper>
+                ))}
+              </HStack>
             </HStack>
-          </HStack>
+          </MotionWrapper>
 
-          <Flex alignItems="center" gap={4}>
-            {user && !isEditorPage && (
-              <RouterLink to="/blog-editor">
-                <AnimatedGhostButton
-                  leftIcon={
-                    <Box as="span" fontSize="xl">
-                      ✍️
-                    </Box>
-                  }
-                  // Remove manual color styling - use AnimatedGhostButton defaults
-                  // which should work better with our theme
-                  _hover={{}}
-                >
-                  Write
-                </AnimatedGhostButton>
-              </RouterLink>
-            )}
-            {user && isEditorPage && (
-              <AnimatedPrimaryButton
-                onClick={handlePublish}
-                bg="green.500"
-                _hover={{ bg: 'green.600' }}
-                mr={2}
-              >
-                Publish
-              </AnimatedPrimaryButton>
-            )}
-            {user && (
-              <Menu>
-                <MenuButton>
-                  <Avatar size="sm" src={user.avatar} name={user.username} />
-                </MenuButton>
-                <MenuList>
-                  <MenuItem as={RouterLink} to={`/profile/${user.username}`}>
-                    Profile
-                  </MenuItem>
-                  <MenuItem
-                    onClick={toggleColorMode}
-                    icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
-                  >
-                    {colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>Sign out</MenuItem>
-                </MenuList>
-              </Menu>
-            )}
-            {!user && (
-              <RouterLink to="/login">
-                <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
-              </RouterLink>
-            )}
-          </Flex>
+          <MotionWrapper variant="fadeInRight" delay={0.4}>
+            <Flex alignItems="center" gap={4}>
+              {user && !isEditorPage && <NavLink to="/blog-editor">Write</NavLink>}
+              {user && isEditorPage && (
+                <AnimatedPrimaryButton onClick={handlePublish} mr={2}>
+                  Publish
+                </AnimatedPrimaryButton>
+              )}
+              {user && (
+                <Menu>
+                  <MenuButton>
+                    <Avatar size="sm" src={user.avatar} name={user.username} />
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem as={RouterLink} to={`/profile/${user.username}`}>
+                      Profile
+                    </MenuItem>
+                    <MenuItem
+                      onClick={toggleColorMode}
+                      icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
+                    >
+                      {colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>Sign out</MenuItem>
+                  </MenuList>
+                </Menu>
+              )}
+              {!user && (
+                <RouterLink to="/login">
+                  <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
+                </RouterLink>
+              )}
+            </Flex>
+          </MotionWrapper>
         </Flex>
 
         {/* Mobile menu */}
@@ -296,7 +296,7 @@ const Navbar = () => {
           </Box>
         )}
       </Container>
-    </Box>
+    </Glassmorphism>
   )
 }
 

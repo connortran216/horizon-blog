@@ -376,20 +376,34 @@ export class ApiBlogRepository implements IBlogRepository {
       // Check cache first
       const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
       if (cached) {
-        return { success: true, data: cached }
+        // For cached data, we need to assume the metadata or re-call
+        // For simplicity, we'll re-call the API if we need metadata
+        // This could be improved by caching metadata separately
       }
 
       const params: Record<string, unknown> = { page, limit }
       if (status) params.status = status
 
-      const response = await apiService.get<{ data: ApiBlogPost[] }>('/users/me/posts', params)
+      const response = await apiService.get<ApiListPostsResponse>('/users/me/posts', params)
 
-      const posts = response.data?.map((post) => this.transformPostForDisplay(post)) || []
+      const posts = response.data.map((post) => this.transformPostForDisplay(post))
 
       // Cache the result
       this.setCache(cacheKey, posts)
 
-      return { success: true, data: posts }
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: posts,
+        metadata: {
+          page: response.page,
+          limit: response.limit,
+          total: response.total,
+          hasNext: response.page * response.limit < response.total,
+          hasPrev: response.page > 1,
+        },
+      }
     } catch (error: unknown) {
       console.error('Failed to fetch current user posts:', error)
       return {
