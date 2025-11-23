@@ -5,6 +5,8 @@ import {
   Text,
   VStack,
   HStack,
+  Flex,
+  Stack,
   Avatar,
   SimpleGrid,
   Tag,
@@ -18,8 +20,10 @@ import {
   MenuList,
   MenuItem,
   IconButton,
+  Icon,
 } from '@chakra-ui/react'
-import { MotionWrapper, AnimatedCard, Glassmorphism } from '../core'
+import { FaUsers, FaPenNib, FaGithub, FaTwitter } from 'react-icons/fa'
+import { MotionWrapper, AnimatedCard, AnimatedGhostButton } from '../core'
 import PaginationControls from '../components/PaginationControls'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -319,8 +323,6 @@ const Profile = () => {
     )
   }
 
-  const profileText = 'text.secondary'
-
   // Tab color mode values
   const tabColor = 'text.secondary'
   const tabSelectedColor = 'accent.primary'
@@ -330,24 +332,88 @@ const Profile = () => {
     <MotionWrapper>
       <Container maxW="container.xl" py={8}>
         <VStack spacing={8} align="stretch">
-          <Glassmorphism backdropBlur="15px" bg="rgba(255, 255, 255, 0.1)" borderRadius="3xl" p={8}>
-            <VStack spacing={6} align="center" height="100%" justify="center">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+          <AnimatedCard overflow="hidden" intensity="medium">
+            <Box p={8} overflow="hidden" pos="relative">
+              <Flex
+                direction={{ base: 'column', md: 'row' }}
+                align={{ base: 'center', md: 'flex-start' }}
+                gap={6}
               >
-                <Avatar size="2xl" src={user?.avatar} name={username} />
-              </motion.div>
-              <VStack spacing={2} textAlign="center">
-                <Heading size="lg" color="text.primary">
-                  {username}
-                </Heading>
-                <Text color={profileText}>
-                  Passionate developer sharing insights about web development
-                </Text>
-              </VStack>
-            </VStack>
-          </Glassmorphism>
+                <Box pos="relative">
+                  <Avatar
+                    size={{ base: 'xl', md: 'xl' }}
+                    src={user?.avatar}
+                    name={user?.username || username}
+                  />
+                </Box>
+
+                <VStack flex={1} align={{ base: 'center', md: 'stretch' }} spacing={3}>
+                  <Heading size="3xl" color="text.primary">
+                    {user?.username || username}
+                  </Heading>
+                  <Text color="text.secondary" textAlign={{ base: 'center', md: 'left' }} maxW="lg">
+                    Passionate developer sharing insights about web development, UI/UX, and Python
+                    mastery.
+                  </Text>
+
+                  <Stack direction="row" spacing={6} justify={{ base: 'center', md: 'flex-start' }}>
+                    <HStack spacing={2}>
+                      <Icon as={FaUsers} color="accent.primary" />
+                      <Text color="text.secondary">
+                        <Text as="span" fontWeight="bold" color="text.primary">
+                          1.2k
+                        </Text>{' '}
+                        Followers
+                      </Text>
+                    </HStack>
+                    <HStack spacing={2}>
+                      <Icon as={FaPenNib} color="accent.primary" />
+                      <Text color="text.secondary">
+                        <Text as="span" fontWeight="bold" color="text.primary">
+                          {publishedPagination.total}
+                        </Text>{' '}
+                        Articles
+                      </Text>
+                    </HStack>
+                    <HStack
+                      spacing={3}
+                      ml={2}
+                      borderLeft="1px solid"
+                      borderColor="border.default"
+                      pl={4}
+                    >
+                      <IconButton
+                        as="a"
+                        href="#"
+                        aria-label="GitHub"
+                        icon={<Icon as={FaGithub} />}
+                        variant="ghost"
+                        size="sm"
+                        color="text.secondary"
+                        _hover={{ color: 'text.primary' }}
+                      />
+                      <IconButton
+                        as="a"
+                        href="#"
+                        aria-label="Twitter"
+                        icon={<Icon as={FaTwitter} />}
+                        variant="ghost"
+                        size="sm"
+                        color="text.secondary"
+                        _hover={{ color: '#1DA1F2' }}
+                      />
+                    </HStack>
+                  </Stack>
+                </VStack>
+
+                <Box alignSelf={{ base: 'center', md: 'flex-start' }}>
+                  <AnimatedGhostButton disabled px={5} py={2}>
+                    Edit Profile
+                  </AnimatedGhostButton>
+                </Box>
+              </Flex>
+            </Box>
+          </AnimatedCard>
 
           <Box>
             <Heading size="md" color="text.primary" mb={4}>
