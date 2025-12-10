@@ -5,7 +5,7 @@
  * Business logic is delegated to custom hooks following our architectural patterns.
  */
 
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import {
   Box,
   Container,
@@ -21,10 +21,16 @@ import {
   Wrap,
   WrapItem,
   useColorModeValue,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from '@chakra-ui/react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import MilkdownEditor from '../components/editor/MilkdownEditor'
+import CrepeEditor from '../components/editor/CrepeEditor'
+import MarkdownEditor from '../components/editor/MarkdownEditor'
 import { ErrorBoundary } from '../core'
 import { useBlogPost, useAutoSave, useEditorContent } from '../hooks'
 
@@ -43,12 +49,16 @@ const BlogEditor: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
+  const [tabIndex, setTabIndex] = useState(0)
 
   // Theme colors - using semantic tokens from our design system
   const textTertiary = useColorModeValue('gray.500', 'text.tertiary')
   const textAuthor = useColorModeValue('gray.700', 'text.secondary')
   const bgPrimary = useColorModeValue('white', 'bg.secondary')
   const borderColor = useColorModeValue('gray.200', 'border.subtle')
+  const tabColor = useColorModeValue('gray.600', 'text.secondary')
+  const tabSelectedColor = useColorModeValue('black', 'accent.primary')
+  const tabBorderColor = useColorModeValue('accent.primary', 'accent.primary')
 
   // Custom hooks for business logic separation
   const { post, isLoading, postId } = useBlogPost()
@@ -212,14 +222,56 @@ const BlogEditor: React.FC = () => {
           </Wrap>
         </Box>
 
-        {/* Milkdown Editor */}
-        <ErrorBoundary>
-          <MilkdownEditor
-            initialContent={editorContent.contentMarkdown}
-            onChange={editorContent.handleEditorChange}
-            placeholder="Start writing your blog post..."
-          />
-        </ErrorBoundary>
+        {/* Crepe Editor with Dual Tabs */}
+        <Tabs index={tabIndex} onChange={setTabIndex} mb={4}>
+          <TabList>
+            <Tab
+              color={tabColor}
+              _selected={{
+                color: tabSelectedColor,
+                borderColor: tabBorderColor,
+              }}
+            >
+              Editor
+            </Tab>
+            <Tab
+              color={tabColor}
+              _selected={{
+                color: tabSelectedColor,
+                borderColor: tabBorderColor,
+              }}
+            >
+              Preview
+            </Tab>
+          </TabList>
+
+          <TabPanels>
+            <TabPanel p={0} pt={4}>
+              <ErrorBoundary>
+                <MarkdownEditor
+                  content={editorContent.contentMarkdown}
+                  onChange={(markdown) => {
+                    editorContent.setContentMarkdown(markdown)
+                    // Update JSON to empty for raw editing
+                    editorContent.setContentJSON('{}')
+                  }}
+                  placeholder="Start writing your markdown..."
+                />
+              </ErrorBoundary>
+            </TabPanel>
+
+            <TabPanel p={0} pt={4}>
+              <ErrorBoundary>
+                <CrepeEditor
+                  key={tabIndex} // Force re-render when switching to this tab
+                  initialContent={editorContent.contentMarkdown}
+                  onChange={editorContent.handleEditorChange}
+                  placeholder="Start writing your blog post..."
+                />
+              </ErrorBoundary>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </VStack>
     </Container>
   )

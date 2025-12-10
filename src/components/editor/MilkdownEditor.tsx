@@ -1,4 +1,16 @@
 /**
+ * ⚠️ DEPRECATED - Use CrepeEditor instead
+ *
+ * This file is kept for reference only and will be removed in a future update.
+ * The editor has been migrated to Crepe (@milkdown/crepe) for better
+ * WYSIWYG experience with Phase 1 features.
+ *
+ * Migration: Phase 1 - Completed
+ * New Editor: src/components/editor/CrepeEditor.tsx
+ * Preview: src/components/editor/CrepePreview.tsx
+ *
+ * ---
+ *
  * Milkdown Editor with Obsidian-style Editing Experience
  *
  * Features:

@@ -1,0 +1,494 @@
+/**
+ * Crepe Theme Overrides
+ *
+ * Custom CSS to match Crepe editor with Obsidian design system.
+ * Overrides default Crepe styles with purple accent (#8b7fc7) and
+ * Chakra UI theme colors for seamless integration.
+ */
+
+/* =========================================
+   Accent Colors (Obsidian Purple)
+   ========================================= */
+
+.crepe-editor-wrapper {
+  /* Primary accent color - Obsidian purple */
+  --crepe-accent-primary: #8b7fc7;
+  --crepe-accent-hover: #9d8fd9;
+  --crepe-accent-active: #7a6eb5;
+
+  /* Link colors */
+  --crepe-link: #5b9cf6;
+  --crepe-link-hover: #74aff7;
+
+  /* Code block colors */
+  --crepe-code-bg: #0d1117;
+  --crepe-code-fg: #dcddde;
+
+  /* Map Chakra theme variables to Milkdown/Crepe */
+  --milkdown-color-background: var(--chakra-colors-bg-secondary);
+  --milkdown-color-surface: var(--chakra-colors-bg-tertiary);
+  --milkdown-color-text: var(--chakra-colors-text-primary);
+  --milkdown-color-secondary: var(--chakra-colors-text-secondary);
+  --milkdown-color-border: var(--chakra-colors-border-default);
+}
+
+/* =========================================
+   Dark Mode Theme
+   ========================================= */
+
+.chakra-ui-dark .crepe-editor-wrapper {
+  --crepe-bg-primary: #252525;
+  --crepe-bg-secondary: #2d2d2d;
+  --crepe-border: #3a3a3a;
+  --crepe-border-subtle: #2a2a2a;
+  --crepe-text-primary: #dcddde;
+  --crepe-text-secondary: #b9bbbe;
+  --crepe-text-tertiary: #8e9297;
+}
+
+.chakra-ui-dark .crepe-editor-wrapper .milkdown {
+  background-color: var(--crepe-bg-primary);
+  color: var(--crepe-text-primary);
+}
+
+.chakra-ui-dark .crepe-editor-wrapper .milkdown-menu {
+  background-color: var(--crepe-bg-secondary);
+  border-color: var(--crepe-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================
+   Light Mode Theme
+   ========================================= */
+
+.chakra-ui-light .crepe-editor-wrapper {
+  --crepe-bg-primary: #ffffff;
+  --crepe-bg-secondary: #f8f9fa;
+  --crepe-border: #e2e4e9;
+  --crepe-border-subtle: #ebedf0;
+  --crepe-text-primary: #2c3e50;
+  --crepe-text-secondary: #5a6c7d;
+  --crepe-text-tertiary: #8896a4;
+}
+
+.chakra-ui-light .crepe-editor-wrapper .milkdown {
+  background-color: var(--crepe-bg-primary);
+  color: var(--crepe-text-primary);
+}
+
+.chakra-ui-light .crepe-editor-wrapper .milkdown-menu {
+  background-color: var(--crepe-bg-secondary);
+  border-color: var(--crepe-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================
+   Toolbar Styling
+   ========================================= */
+
+/* Toolbar container */
+.crepe-editor-wrapper .milkdown-menu {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  z-index: 1100 !important; /* Above navbar (1000) */
+  position: relative;
+}
+
+/* Toolbar buttons */
+.crepe-editor-wrapper .milkdown-menu-button {
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  color: var(--crepe-text-secondary);
+}
+
+.crepe-editor-wrapper .milkdown-menu-button:hover {
+  background-color: var(--crepe-accent-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.crepe-editor-wrapper .milkdown-menu-button:active,
+.crepe-editor-wrapper .milkdown-menu-button[data-active='true'] {
+  background-color: var(--crepe-accent-active);
+  color: white;
+}
+
+/* Toolbar dividers */
+.crepe-editor-wrapper .milkdown-menu-divider {
+  background-color: var(--crepe-border-subtle);
+  margin: 0 0.5rem;
+}
+
+/* =========================================
+   Image Block Styling
+   ========================================= */
+
+.crepe-editor-wrapper .image-block-container {
+  border-radius: 0.5rem;
+  border: 2px dashed var(--crepe-border);
+  transition: all 0.2s ease-in-out;
+}
+
+.crepe-editor-wrapper .image-block-container:hover {
+  border-color: var(--crepe-accent-primary);
+  background-color: var(--crepe-bg-secondary);
+}
+
+.crepe-editor-wrapper .image-block-container img {
+  border-radius: 0.5rem;
+  max-width: 100%;
+}
+
+/* =========================================
+   Code Block Styling
+   ========================================= */
+
+.crepe-editor-wrapper .code-block {
+  background-color: var(--crepe-code-bg);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.crepe-editor-wrapper .code-block code {
+  color: var(--crepe-code-fg);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+}
+
+/* =========================================
+   Link Styling
+   ========================================= */
+
+.crepe-editor-wrapper a {
+  color: var(--crepe-link);
+  text-decoration: underline;
+  transition: color 0.2s ease-in-out;
+}
+
+.crepe-editor-wrapper a:hover {
+  color: var(--crepe-link-hover);
+}
+
+/* Link tooltip */
+.crepe-editor-wrapper .milkdown-tooltip {
+  background-color: var(--crepe-bg-secondary);
+  border: 1px solid var(--crepe-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+
+/* =========================================
+   Table Styling
+   ========================================= */
+
+.crepe-editor-wrapper table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.crepe-editor-wrapper table th,
+.crepe-editor-wrapper table td {
+  border: 1px solid var(--crepe-border);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.crepe-editor-wrapper table th {
+  background-color: var(--crepe-bg-secondary);
+  font-weight: 600;
+  color: var(--crepe-text-primary);
+}
+
+.crepe-editor-wrapper table tr:hover {
+  background-color: var(--crepe-bg-secondary);
+}
+
+/* =========================================
+   Blockquote Styling
+   ========================================= */
+
+.crepe-editor-wrapper blockquote {
+  border-left: 4px solid var(--crepe-accent-primary);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--crepe-text-secondary);
+  font-style: italic;
+}
+
+/* =========================================
+   List Styling
+   ========================================= */
+
+.crepe-editor-wrapper ul,
+.crepe-editor-wrapper ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.crepe-editor-wrapper li {
+  margin: 0.25rem 0;
+  color: var(--crepe-text-primary);
+}
+
+/* =========================================
+   Placeholder Styling
+   ========================================= */
+
+.crepe-editor-wrapper .placeholder {
+  color: var(--crepe-text-tertiary);
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* =========================================
+   Selection Styling
+   ========================================= */
+
+.crepe-editor-wrapper ::selection {
+  background-color: var(--crepe-accent-primary);
+  color: white;
+}
+
+/* =========================================
+   Scrollbar Styling
+   ========================================= */
+
+.crepe-editor-wrapper .milkdown::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.crepe-editor-wrapper .milkdown::-webkit-scrollbar-track {
+  background-color: var(--crepe-bg-secondary);
+  border-radius: 4px;
+}
+
+.crepe-editor-wrapper .milkdown::-webkit-scrollbar-thumb {
+  background-color: var(--crepe-border);
+  border-radius: 4px;
+}
+
+.crepe-editor-wrapper .milkdown::-webkit-scrollbar-thumb:hover {
+  background-color: var(--crepe-accent-primary);
+}
+
+/* =========================================
+   Focus States
+   ========================================= */
+
+.crepe-editor-wrapper:focus-within .milkdown {
+  outline: none;
+}
+
+.crepe-editor-wrapper:focus-within .milkdown-menu {
+  border-color: var(--crepe-accent-primary);
+}
+
+/* =========================================
+   Block Insertion Menu (Z-Index Fixes)
+   ========================================= */
+
+/* Block menu dropdown */
+.crepe-editor-wrapper .milkdown-block-menu {
+  z-index: 1100 !important; /* Above navbar */
+  position: relative;
+  background-color: var(--crepe-bg-secondary) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--crepe-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
+}
+
+/* Dark mode block menu styling */
+.chakra-ui-dark .crepe-editor-wrapper .milkdown-block-menu {
+  background-color: var(--crepe-bg-secondary) !important;
+  border-color: var(--crepe-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Light mode block menu styling */
+.chakra-ui-light .crepe-editor-wrapper .milkdown-block-menu {
+  background-color: var(--crepe-bg-secondary) !important;
+  border-color: var(--crepe-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Block handle (the + button) */
+.crepe-editor-wrapper .milkdown-block-handle {
+  z-index: 1100 !important; /* Above navbar */
+  background-color: var(--crepe-accent-primary) !important;
+  color: white;
+  border-radius: 0.25rem;
+  /* DO NOT SET position - Crepe uses absolute positioning internally */
+}
+
+.crepe-editor-wrapper .milkdown-block-handle:hover {
+  background-color: var(--crepe-accent-hover) !important;
+}
+
+/* Tooltip and floating menus */
+.crepe-editor-wrapper .milkdown-tooltip {
+  z-index: 1100 !important;
+  position: relative;
+}
+
+/* =========================================
+   Responsive Design
+   ========================================= */
+
+@media (max-width: 768px) {
+  .crepe-editor-wrapper .milkdown-menu {
+    flex-wrap: wrap;
+    padding: 0.25rem;
+  }
+
+  .crepe-editor-wrapper .milkdown-menu-button {
+    padding: 0.375rem;
+  }
+
+  .crepe-editor-wrapper table {
+    font-size: 0.875rem;
+  }
+
+  .crepe-editor-wrapper table th,
+  .crepe-editor-wrapper table td {
+    padding: 0.5rem;
+  }
+}
+
+/* =========================================
+   Cursor Visibility
+   ========================================= */
+
+/* Ensure cursor is visible in editor */
+.crepe-editor-wrapper .milkdown .ProseMirror {
+  caret-color: var(--crepe-accent-primary);
+}
+
+.crepe-editor-wrapper .milkdown .ProseMirror:focus {
+  caret-color: var(--crepe-accent-primary);
+  outline: none;
+}
+
+/* Dark mode cursor */
+.chakra-ui-dark .crepe-editor-wrapper .milkdown .ProseMirror {
+  caret-color: var(--crepe-accent-primary);
+}
+
+/* Light mode cursor */
+.chakra-ui-light .crepe-editor-wrapper .milkdown .ProseMirror {
+  caret-color: var(--crepe-accent-primary);
+}
+
+/* =========================================
+   Block Menu Enhanced Styling
+   ========================================= */
+
+/* Menu container - improved */
+.crepe-editor-wrapper .milkdown-block-menu {
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 0.75rem !important;
+  min-width: 280px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Tabs styling */
+.crepe-editor-wrapper .milkdown-block-menu [role='tablist'] {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--crepe-border-subtle);
+}
+
+.crepe-editor-wrapper .milkdown-block-menu [role='tab'] {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--crepe-text-secondary);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.crepe-editor-wrapper .milkdown-block-menu [role='tab']:hover {
+  background-color: var(--crepe-accent-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.crepe-editor-wrapper .milkdown-block-menu [role='tab'][aria-selected='true'] {
+  background-color: var(--crepe-accent-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 127, 199, 0.3);
+}
+
+/* Menu items */
+.crepe-editor-wrapper .milkdown-block-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  color: var(--crepe-text-primary);
+}
+
+.crepe-editor-wrapper .milkdown-block-menu-item:hover {
+  background-color: var(--crepe-accent-primary);
+  color: white;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(139, 127, 199, 0.2);
+}
+
+/* Menu item icons */
+.crepe-editor-wrapper .milkdown-block-menu-item svg,
+.crepe-editor-wrapper .milkdown-block-menu-item [class*='icon'] {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.crepe-editor-wrapper .milkdown-block-menu-item:hover svg,
+.crepe-editor-wrapper .milkdown-block-menu-item:hover [class*='icon'] {
+  opacity: 1;
+}
+
+/* Section headers */
+.crepe-editor-wrapper .milkdown-block-menu-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--crepe-border-subtle);
+}
+
+.crepe-editor-wrapper .milkdown-block-menu-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--crepe-text-tertiary);
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Dark mode adjustments */
+.chakra-ui-dark .crepe-editor-wrapper .milkdown-block-menu {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Light mode adjustments */
+.chakra-ui-light .crepe-editor-wrapper .milkdown-block-menu {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}

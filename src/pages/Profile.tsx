@@ -421,8 +421,6 @@ const Profile = () => {
             </Heading>
             {loading ? (
               <Text textAlign="center">Loading articles...</Text>
-            ) : publishedBlogs.length === 0 && draftBlogs.length === 0 ? (
-              <Text textAlign="center">No articles published yet.</Text>
             ) : (
               <Tabs>
                 <TabList>
