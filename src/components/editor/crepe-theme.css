@@ -30,6 +30,13 @@
   --milkdown-color-text: var(--chakra-colors-text-primary);
   --milkdown-color-secondary: var(--chakra-colors-text-secondary);
   --milkdown-color-border: var(--chakra-colors-border-default);
+
+  /* Crepe's expected CSS variables for menus */
+  --crepe-color-surface: var(--crepe-bg-secondary);
+  --crepe-color-on-surface: var(--crepe-text-primary);
+  --crepe-color-hover: var(--crepe-accent-primary);
+  --crepe-color-selected: var(--crepe-accent-active);
+  --crepe-shadow-1: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* =========================================
@@ -491,4 +498,123 @@
 /* Light mode adjustments */
 .chakra-ui-light .crepe-editor-wrapper .milkdown-block-menu {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* =========================================
+   Slash Menu (Block Insertion "+")
+   ========================================= */
+
+/* Main slash menu container */
+.milkdown-slash-menu {
+  z-index: 1100 !important;
+  background-color: var(--crepe-bg-secondary, #2d2d2d) !important;
+  border: 1px solid var(--crepe-border, #3a3a3a);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  min-width: 200px;
+}
+
+/* Dark mode slash menu */
+.chakra-ui-dark .milkdown-slash-menu {
+  background-color: #2d2d2d !important;
+  border-color: #3a3a3a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Light mode slash menu */
+.chakra-ui-light .milkdown-slash-menu {
+  background-color: #f8f9fa !important;
+  border-color: #e2e4e9;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Tab group styling */
+.milkdown-slash-menu .tab-group {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--crepe-border-subtle, #2a2a2a);
+}
+
+.milkdown-slash-menu .tab-group li {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--crepe-text-secondary, #b9bbbe);
+  transition: all 0.15s ease;
+}
+
+.milkdown-slash-menu .tab-group li:hover,
+.milkdown-slash-menu .tab-group li.selected {
+  background-color: var(--crepe-accent-primary, #8b7fc7);
+  color: white;
+}
+
+/* Menu groups container */
+.milkdown-slash-menu .menu-groups {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Menu items */
+.milkdown-slash-menu .menu-group li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--crepe-text-primary, #dcddde);
+  transition: all 0.15s ease;
+}
+
+.milkdown-slash-menu .menu-group li:hover,
+.milkdown-slash-menu .menu-group li.hover {
+  background-color: var(--crepe-accent-primary, #8b7fc7);
+  color: white;
+}
+
+.milkdown-slash-menu .menu-group li.active {
+  background-color: var(--crepe-accent-active, #7a6eb5);
+  color: white;
+}
+
+/* Group headers */
+.milkdown-slash-menu .menu-group h6 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--crepe-text-tertiary, #8e9297);
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+/* Dark mode text colors for slash menu */
+.chakra-ui-dark .milkdown-slash-menu .menu-group li {
+  color: #dcddde;
+}
+
+.chakra-ui-dark .milkdown-slash-menu .tab-group li {
+  color: #b9bbbe;
+}
+
+.chakra-ui-dark .milkdown-slash-menu .menu-group h6 {
+  color: #8e9297;
+}
+
+/* Light mode text colors for slash menu */
+.chakra-ui-light .milkdown-slash-menu .menu-group li {
+  color: #2c3e50;
+}
+
+.chakra-ui-light .milkdown-slash-menu .tab-group li {
+  color: #5a6c7d;
+}
+
+.chakra-ui-light .milkdown-slash-menu .menu-group h6 {
+  color: #8896a4;
 }
