@@ -119,44 +119,7 @@ const Navbar = () => {
       return
     }
 
-    // Prepare content for saving
-    let contentToSave = editorState.content_markdown
-
-    // If we don't have content, create minimal fallback
-    if (!contentToSave) {
-      // Create a minimal Lexical editor state
-      contentToSave = JSON.stringify({
-        root: {
-          children: [
-            {
-              children: [
-                {
-                  detail: 0,
-                  format: 0,
-                  mode: 'normal',
-                  style: '',
-                  text: 'Empty content',
-                  type: 'text',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              type: 'paragraph',
-              version: 1,
-            },
-          ],
-          direction: 'ltr',
-          format: '',
-          indent: 0,
-          type: 'root',
-          version: 1,
-        },
-      })
-    }
-
-    console.log('Content to save:', contentToSave)
+    const contentToSave = '{}'
 
     try {
       // Generate slug from title

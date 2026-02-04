@@ -2,7 +2,7 @@
  * Crepe Editor Configuration
  *
  * Centralized configuration for the Crepe WYSIWYG editor.
- * Phase 1: Core features (basic formatting, images, code, tables)
+ * Phase 1: Core features (basic formatting, code, tables)
  * Phase 2: Advanced features (colors, alignment, videos, LaTeX) - Coming later
  */
 
@@ -45,7 +45,6 @@ export interface CrepeConfig {
  *
  * Enabled features:
  * - Basic formatting (bold, italic, headings, lists, links, blockquotes)
- * - Image upload with Minio integration
  * - Code blocks with syntax highlighting
  * - Tables
  * - Theme integration with Obsidian purple accent
@@ -54,7 +53,7 @@ export const CREPE_CONFIG: CrepeConfig = {
   features: {
     // Phase 1: Core features (ENABLED)
     toolbar: true,
-    imageBlock: true,
+    imageBlock: false,
     codeBlocks: true,
     tables: true,
 

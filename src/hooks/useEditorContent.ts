@@ -28,7 +28,7 @@ interface EditorContentActions {
   handleAddTagByEnter: (e: React.KeyboardEvent<HTMLInputElement>) => void
 
   // Content change handler for editor
-  handleEditorChange: (markdown: string, prosemirrorJSON: string) => void
+  handleEditorChange: (markdown: string) => void
 
   // Validation helpers
   isTitleValid: () => boolean
@@ -125,27 +125,11 @@ export function useEditorContent(initialValues: Partial<EditorContentState> = {}
     [state.tagInput, addTag],
   )
 
-  // Editor content change handler
+  // Markdown is canonical. Keep JSON as temporary compatibility payload for backend validation.
   const handleEditorChange = useCallback(
-    (markdown: string, prosemirrorJSON: string) => {
+    (markdown: string) => {
       setContentMarkdown(markdown)
-
-      // Validate and store ProseMirror JSON
-      try {
-        // Validate that it's proper JSON
-        const parsed = JSON.parse(prosemirrorJSON)
-
-        // Validate it has the expected ProseMirror structure
-        if (parsed && typeof parsed === 'object') {
-          setContentJSON(prosemirrorJSON)
-        } else {
-          console.warn('⚠️ Invalid ProseMirror JSON structure, using fallback')
-          setContentJSON('{}')
-        }
-      } catch (error) {
-        console.error('❌ Failed to parse ProseMirror JSON:', error)
-        setContentJSON('{}')
-      }
+      setContentJSON('{}')
     },
     [setContentMarkdown, setContentJSON],
   )

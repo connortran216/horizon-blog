@@ -33,6 +33,8 @@
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
+    "@codemirror/state": "^6.5.4",
+    "@codemirror/view": "^6.39.12",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@milkdown/core": "^7.17.1",
@@ -56,6 +58,9 @@
     "jwt-decode": "^4.0.0",
     "marked": "^17.0.1",
     "prismjs": "^1.30.0",
+    "prosemirror-model": "^1.25.4",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-view": "^1.41.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",

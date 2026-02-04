@@ -71,7 +71,7 @@ export function useAutoSave(
       const postData = {
         title: title.trim(),
         content_markdown: contentMarkdown,
-        content_json: contentJSON || '{}',
+        content_json: '{}',
         status: 'draft' as const,
         tag_names: tags,
       }
@@ -143,7 +143,7 @@ export function useAutoSave(
     const postData = {
       title: title.trim(),
       content_markdown: contentMarkdown,
-      content_json: contentJSON || '{}',
+      content_json: '{}',
       status: 'published' as const,
       tag_names: tags,
     }

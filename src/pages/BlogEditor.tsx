@@ -30,7 +30,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import CrepeEditor from '../components/editor/CrepeEditor'
-import MarkdownEditor from '../components/editor/MarkdownEditor'
+import CrepePreview from '../components/editor/CrepePreview'
 import { ErrorBoundary } from '../core'
 import { useBlogPost, useAutoSave, useEditorContent } from '../hooks'
 
@@ -66,7 +66,7 @@ const BlogEditor: React.FC = () => {
   const editorContent = useEditorContent({
     title: post?.title || '',
     contentMarkdown: post?.content_markdown || '',
-    contentJSON: post?.content_json || '',
+    contentJSON: '',
     tags: Array.isArray(post?.tags)
       ? post.tags.map((tag: unknown) =>
           typeof tag === 'string' ? tag : (tag as { name: string }).name,
@@ -188,6 +188,8 @@ const BlogEditor: React.FC = () => {
 
         {/* Title Input */}
         <Input
+          id="blog-title"
+          name="blogTitle"
           placeholder="Blog Title"
           size="lg"
           fontSize="2xl"
@@ -203,6 +205,8 @@ const BlogEditor: React.FC = () => {
         {/* Tags Input */}
         <Box>
           <Input
+            id="blog-tags"
+            name="blogTags"
             placeholder="Add tags (press Enter)"
             size="sm"
             value={editorContent.tagInput}
@@ -248,26 +252,20 @@ const BlogEditor: React.FC = () => {
           <TabPanels>
             <TabPanel p={0} pt={4}>
               <ErrorBoundary>
-                <MarkdownEditor
-                  content={editorContent.contentMarkdown}
-                  onChange={(markdown) => {
-                    editorContent.setContentMarkdown(markdown)
-                    // Update JSON to empty for raw editing
-                    editorContent.setContentJSON('{}')
-                  }}
+                <CrepeEditor
+                  key={postId || 'new-post'}
+                  initialContent={editorContent.contentMarkdown}
+                  onChange={editorContent.setContentMarkdown}
                   placeholder="Start writing your markdown..."
+                  inputId="blog-content"
+                  inputName="blogContent"
                 />
               </ErrorBoundary>
             </TabPanel>
 
             <TabPanel p={0} pt={4}>
               <ErrorBoundary>
-                <CrepeEditor
-                  key={tabIndex} // Force re-render when switching to this tab
-                  initialContent={editorContent.contentMarkdown}
-                  onChange={editorContent.handleEditorChange}
-                  placeholder="Start writing your blog post..."
-                />
+                <CrepePreview content={editorContent.contentMarkdown} />
               </ErrorBoundary>
             </TabPanel>
           </TabPanels>

@@ -1,28 +1,32 @@
 /**
  * Crepe Theme Overrides
  *
- * Custom CSS to match Crepe editor with Obsidian design system.
- * Overrides default Crepe styles with purple accent (#8b7fc7) and
- * Chakra UI theme colors for seamless integration.
+ * Custom CSS to match Crepe editor with the Chakra design system.
+ * Uses semantic Chakra tokens for consistent light/dark behavior.
  */
 
 /* =========================================
-   Accent Colors (Obsidian Purple)
+   Theme Tokens
    ========================================= */
 
 .crepe-editor-wrapper {
-  /* Primary accent color - Obsidian purple */
-  --crepe-accent-primary: #8b7fc7;
-  --crepe-accent-hover: #9d8fd9;
-  --crepe-accent-active: #7a6eb5;
+  --crepe-accent-primary: var(--chakra-colors-accent-primary);
+  --crepe-accent-hover: var(--chakra-colors-accent-hover);
+  --crepe-accent-active: var(--chakra-colors-accent-primary);
 
-  /* Link colors */
-  --crepe-link: #5b9cf6;
-  --crepe-link-hover: #74aff7;
+  --crepe-link: var(--chakra-colors-link-default);
+  --crepe-link-hover: var(--chakra-colors-link-hover);
 
-  /* Code block colors */
-  --crepe-code-bg: #0d1117;
-  --crepe-code-fg: #dcddde;
+  --crepe-code-bg: var(--chakra-colors-bg-tertiary);
+  --crepe-code-fg: var(--chakra-colors-text-primary);
+
+  --crepe-bg-primary: var(--chakra-colors-bg-secondary);
+  --crepe-bg-secondary: var(--chakra-colors-bg-tertiary);
+  --crepe-border: var(--chakra-colors-border-default);
+  --crepe-border-subtle: var(--chakra-colors-border-subtle);
+  --crepe-text-primary: var(--chakra-colors-text-primary);
+  --crepe-text-secondary: var(--chakra-colors-text-secondary);
+  --crepe-text-tertiary: var(--chakra-colors-text-tertiary);
 
   /* Map Chakra theme variables to Milkdown/Crepe */
   --milkdown-color-background: var(--chakra-colors-bg-secondary);
@@ -37,20 +41,15 @@
   --crepe-color-hover: var(--crepe-accent-primary);
   --crepe-color-selected: var(--crepe-accent-active);
   --crepe-shadow-1: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
 
-/* =========================================
-   Dark Mode Theme
-   ========================================= */
-
-.chakra-ui-dark .crepe-editor-wrapper {
-  --crepe-bg-primary: #252525;
-  --crepe-bg-secondary: #2d2d2d;
-  --crepe-border: #3a3a3a;
-  --crepe-border-subtle: #2a2a2a;
-  --crepe-text-primary: #dcddde;
-  --crepe-text-secondary: #b9bbbe;
-  --crepe-text-tertiary: #8e9297;
+  /* Crepe's expected CSS variables for image block */
+  --crepe-color-primary: var(--crepe-accent-primary);
+  --crepe-color-outline: var(--crepe-text-tertiary);
+  --crepe-color-on-background: var(--crepe-text-primary);
+  --crepe-color-secondary: var(--crepe-accent-active);
+  --crepe-color-on-secondary: white;
+  --crepe-color-inverse: var(--crepe-bg-primary);
+  --crepe-color-on-inverse: var(--crepe-text-primary);
 }
 
 .chakra-ui-dark .crepe-editor-wrapper .milkdown {
@@ -62,20 +61,6 @@
   background-color: var(--crepe-bg-secondary);
   border-color: var(--crepe-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* =========================================
-   Light Mode Theme
-   ========================================= */
-
-.chakra-ui-light .crepe-editor-wrapper {
-  --crepe-bg-primary: #ffffff;
-  --crepe-bg-secondary: #f8f9fa;
-  --crepe-border: #e2e4e9;
-  --crepe-border-subtle: #ebedf0;
-  --crepe-text-primary: #2c3e50;
-  --crepe-text-secondary: #5a6c7d;
-  --crepe-text-tertiary: #8896a4;
 }
 
 .chakra-ui-light .crepe-editor-wrapper .milkdown {
@@ -249,10 +234,21 @@
    Placeholder Styling
    ========================================= */
 
-.crepe-editor-wrapper .placeholder {
+/* Editor text placeholder - more specific selector */
+.crepe-editor-wrapper .milkdown .ProseMirror .placeholder {
   color: var(--crepe-text-tertiary);
   font-style: italic;
   pointer-events: none;
+}
+
+/* Ensure image upload placeholder is clickable */
+.crepe-editor-wrapper .image-edit .placeholder {
+  pointer-events: auto !important;
+}
+
+.crepe-editor-wrapper .image-edit .placeholder .uploader {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 /* =========================================
@@ -507,8 +503,8 @@
 /* Main slash menu container */
 .milkdown-slash-menu {
   z-index: 1100 !important;
-  background-color: var(--crepe-bg-secondary, #2d2d2d) !important;
-  border: 1px solid var(--crepe-border, #3a3a3a);
+  background-color: var(--crepe-bg-secondary) !important;
+  border: 1px solid var(--crepe-border);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   padding: 8px;
@@ -517,15 +513,15 @@
 
 /* Dark mode slash menu */
 .chakra-ui-dark .milkdown-slash-menu {
-  background-color: #2d2d2d !important;
-  border-color: #3a3a3a;
+  background-color: var(--crepe-bg-secondary) !important;
+  border-color: var(--crepe-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* Light mode slash menu */
 .chakra-ui-light .milkdown-slash-menu {
-  background-color: #f8f9fa !important;
-  border-color: #e2e4e9;
+  background-color: var(--crepe-bg-secondary) !important;
+  border-color: var(--crepe-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
@@ -535,7 +531,7 @@
   gap: 4px;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--crepe-border-subtle, #2a2a2a);
+  border-bottom: 1px solid var(--crepe-border-subtle);
 }
 
 .milkdown-slash-menu .tab-group li {
@@ -543,13 +539,13 @@
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  color: var(--crepe-text-secondary, #b9bbbe);
+  color: var(--crepe-text-secondary);
   transition: all 0.15s ease;
 }
 
 .milkdown-slash-menu .tab-group li:hover,
 .milkdown-slash-menu .tab-group li.selected {
-  background-color: var(--crepe-accent-primary, #8b7fc7);
+  background-color: var(--crepe-accent-primary);
   color: white;
 }
 
@@ -567,18 +563,18 @@
   padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
-  color: var(--crepe-text-primary, #dcddde);
+  color: var(--crepe-text-primary);
   transition: all 0.15s ease;
 }
 
 .milkdown-slash-menu .menu-group li:hover,
 .milkdown-slash-menu .menu-group li.hover {
-  background-color: var(--crepe-accent-primary, #8b7fc7);
+  background-color: var(--crepe-accent-primary);
   color: white;
 }
 
 .milkdown-slash-menu .menu-group li.active {
-  background-color: var(--crepe-accent-active, #7a6eb5);
+  background-color: var(--crepe-accent-active);
   color: white;
 }
 
@@ -588,33 +584,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--crepe-text-tertiary, #8e9297);
+  color: var(--crepe-text-tertiary);
   padding: 8px 12px 4px;
   margin: 0;
-}
-
-/* Dark mode text colors for slash menu */
-.chakra-ui-dark .milkdown-slash-menu .menu-group li {
-  color: #dcddde;
-}
-
-.chakra-ui-dark .milkdown-slash-menu .tab-group li {
-  color: #b9bbbe;
-}
-
-.chakra-ui-dark .milkdown-slash-menu .menu-group h6 {
-  color: #8e9297;
-}
-
-/* Light mode text colors for slash menu */
-.chakra-ui-light .milkdown-slash-menu .menu-group li {
-  color: #2c3e50;
-}
-
-.chakra-ui-light .milkdown-slash-menu .tab-group li {
-  color: #5a6c7d;
-}
-
-.chakra-ui-light .milkdown-slash-menu .menu-group h6 {
-  color: #8896a4;
 }
