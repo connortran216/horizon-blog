@@ -18,20 +18,23 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
+        node-version: '20'
+        cache: 'yarn'
+
+    - name: Enable Corepack
+      run: corepack enable
 
     - name: Install dependencies
-      run: npm ci
+      run: yarn install --immutable
 
     - name: Run ESLint
-      run: npm run lint
+      run: yarn lint
 
     - name: Check Prettier formatting
-      run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+      run: yarn format
 
     - name: Run TypeScript type check
-      run: npx tsc --noEmit
+      run: yarn tsc --noEmit
 
   build:
     name: Build
@@ -45,14 +48,17 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
+        node-version: '20'
+        cache: 'yarn'
+
+    - name: Enable Corepack
+      run: corepack enable
 
     - name: Install dependencies
-      run: npm ci
+      run: yarn install --immutable
 
     - name: Build application
-      run: npm run build
+      run: yarn build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
