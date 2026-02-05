@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
 import { useAuth } from '../context/AuthContext'
 import MilkdownReader from '../components/reader/MilkdownReader'
+import { useResolvedMarkdown } from '../features/media/useResolvedMarkdown'
 import {
   MotionWrapper,
   AnimatedPrimaryButton,
@@ -39,6 +40,7 @@ const ProfileBlogDetail = () => {
   const { user } = useAuth()
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
 
   useEffect(() => {
     if (id) {
@@ -92,12 +94,12 @@ const ProfileBlogDetail = () => {
 
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {
-    if (!post || !post.content_markdown) {
+    if (!post || !resolvedContent) {
       return <Text color="text.secondary">No content available</Text>
     }
 
     // Use MilkdownReader for read-only display
-    return <MilkdownReader content={post.content_markdown} />
+    return <MilkdownReader content={resolvedContent} />
   }
 
   // Check if current user is viewing their own profile

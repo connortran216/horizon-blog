@@ -3,7 +3,8 @@
  *
  * Centralized configuration for the Crepe WYSIWYG editor.
  * Phase 1: Core features (basic formatting, code, tables)
- * Phase 2: Advanced features (colors, alignment, videos, LaTeX) - Coming later
+ * Phase 2: Image upload enabled on top of phase 1 baseline
+ * Future phases: advanced features (colors, alignment, videos, LaTeX)
  */
 
 export interface CrepeConfig {
@@ -44,7 +45,7 @@ export interface CrepeConfig {
  * Default Crepe configuration for Phase 1
  *
  * Enabled features:
- * - Basic formatting (bold, italic, headings, lists, links, blockquotes)
+ * - Basic formatting (bold, italic, headings, lists, links, block quotes)
  * - Code blocks with syntax highlighting
  * - Tables
  * - Theme integration with Obsidian purple accent
@@ -53,7 +54,7 @@ export const CREPE_CONFIG: CrepeConfig = {
   features: {
     // Phase 1: Core features (ENABLED)
     toolbar: true,
-    imageBlock: false,
+    imageBlock: true,
     codeBlocks: true,
     tables: true,
 
@@ -66,9 +67,9 @@ export const CREPE_CONFIG: CrepeConfig = {
   },
 
   upload: {
-    endpoint: '/images/upload',
-    maxFileSize: 10, // 10MB max
-    allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    endpoint: '/posts/{post_id}/media',
+    maxFileSize: 5, // 5MB max
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
   },
 
   theme: {

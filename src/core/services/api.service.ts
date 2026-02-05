@@ -26,9 +26,11 @@ export class ApiService {
 
   /**
    * Get headers with optional Authorization token
+   *
+   * @param skipContentType - If true, skips setting Content-Type header (for FormData uploads)
    */
-  private getHeaders(): HeadersInit {
-    return authInterceptor.getHeaders()
+  private getHeaders(skipContentType = false): HeadersInit {
+    return authInterceptor.getHeaders(skipContentType)
   }
 
   /**
@@ -52,10 +54,13 @@ export class ApiService {
    * Generic POST request
    */
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    // Handle FormData differently (for file uploads)
+    const isFormData = data instanceof FormData
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     })
 
     return this.handleResponse<T>(response, endpoint)
@@ -65,10 +70,13 @@ export class ApiService {
    * Generic PUT request
    */
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    // Handle FormData differently (for file uploads)
+    const isFormData = data instanceof FormData
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PUT',
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     })
 
     return this.handleResponse<T>(response, endpoint)
@@ -90,10 +98,13 @@ export class ApiService {
    * PATCH request
    */
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    // Handle FormData differently (for file uploads)
+    const isFormData = data instanceof FormData
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'PATCH',
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
+      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     })
 
     return this.handleResponse<T>(response, endpoint)

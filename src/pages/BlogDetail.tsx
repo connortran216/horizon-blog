@@ -5,6 +5,7 @@ import { ArrowBackIcon } from '@chakra-ui/icons'
 import { motion } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
 import MilkdownReader from '../components/reader/MilkdownReader'
+import { useResolvedMarkdown } from '../features/media/useResolvedMarkdown'
 import {
   MotionWrapper,
   AnimatedPrimaryButton,
@@ -39,6 +40,7 @@ const BlogDetail = () => {
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
   const [readingProgress, setReadingProgress] = useState(0)
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
 
   // Refs for scroll tracking
   const contentRef = useRef<HTMLDivElement>(null)
@@ -115,12 +117,12 @@ const BlogDetail = () => {
 
   // Render content using MilkdownReader (read-only)
   const renderContent = () => {
-    if (!post || !post.content_markdown) {
+    if (!post || !resolvedContent) {
       return <Text color="text.secondary">No content available</Text>
     }
 
     // Use MilkdownReader for read-only display
-    return <MilkdownReader content={post.content_markdown} />
+    return <MilkdownReader content={resolvedContent} />
   }
 
   if (loading) {

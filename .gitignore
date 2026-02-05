@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Yarn Berry / PnP local artifacts
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
 # Environment variables
 .env
 .env.local

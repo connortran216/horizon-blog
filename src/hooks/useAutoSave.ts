@@ -30,6 +30,8 @@ export function useAutoSave(
   options: UseAutoSaveOptions = {},
 ) {
   const { autoSaveDelay = 5000, localSaveDelay = 1000, enabled = true } = options
+  const [currentPostId, setCurrentPostId] = useState<number | null>(postId)
+  const activePostId = currentPostId ?? postId
 
   // State management
   const [state, setState] = useState<AutoSaveState>({
@@ -40,6 +42,12 @@ export function useAutoSave(
   // Refs for timers
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (postId) {
+      setCurrentPostId(postId)
+    }
+  }, [postId])
 
   // Local storage backup
   const saveToLocalStorage = useCallback(() => {
@@ -77,11 +85,11 @@ export function useAutoSave(
       }
 
       const repository = getBlogRepository()
-      let updatedPostId = postId
+      let updatedPostId = activePostId
 
-      if (postId) {
+      if (updatedPostId) {
         // Update existing post
-        const result = await repository.updatePost(postId.toString(), postData)
+        const result = await repository.updatePost(updatedPostId.toString(), postData)
         if (!result.success) {
           throw new Error(result.error || 'Failed to update post')
         }
@@ -93,7 +101,6 @@ export function useAutoSave(
           content_json: postData.content_json,
           status: postData.status,
           tags: tags,
-          user_id: 0, // Will be set by backend from auth context
           author: { username: '', avatar: undefined },
           excerpt: '',
           slug: '',
@@ -102,6 +109,7 @@ export function useAutoSave(
 
         if (result.success && result.data?.id) {
           updatedPostId = parseInt(result.data.id)
+          setCurrentPostId(updatedPostId)
         } else {
           throw new Error(result.error || 'Failed to create post')
         }
@@ -128,7 +136,7 @@ export function useAutoSave(
       // Don't show toast for auto-save errors to avoid interrupting user
       return null
     }
-  }, [title, contentMarkdown, contentJSON, postId, tags])
+  }, [title, contentMarkdown, contentJSON, activePostId, tags])
 
   // Manual publish function (extracted from original component)
   const publishPost = useCallback(async () => {
@@ -151,9 +159,9 @@ export function useAutoSave(
     const repository = getBlogRepository()
 
     try {
-      if (postId) {
+      if (activePostId) {
         // Update existing post
-        const result = await repository.updatePost(postId.toString(), postData)
+        const result = await repository.updatePost(activePostId.toString(), postData)
         if (!result.success) {
           throw new Error(result.error || 'Failed to update blog post')
         }
@@ -166,7 +174,6 @@ export function useAutoSave(
           content_json: postData.content_json,
           status: postData.status,
           tags: tags,
-          user_id: 0, // Will be set by backend from auth context
           author: { username: '', avatar: undefined },
           excerpt: '',
           slug: '',
@@ -177,16 +184,20 @@ export function useAutoSave(
           throw new Error(result.error || 'Failed to create blog post')
         }
 
+        if (result.data?.id) {
+          setCurrentPostId(parseInt(result.data.id))
+        }
+
         return result.data
       }
     } catch (error: unknown) {
       throw new Error(
         error instanceof Error
           ? error.message
-          : `Failed to ${postId ? 'update' : 'publish'} blog post`,
+          : `Failed to ${activePostId ? 'update' : 'publish'} blog post`,
       )
     }
-  }, [title, contentMarkdown, contentJSON, postId, tags])
+  }, [title, contentMarkdown, contentJSON, activePostId, tags])
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {
@@ -225,6 +236,7 @@ export function useAutoSave(
     isSaving: state.isSaving,
     saveStatus: state.saveStatus,
     lastSaved: state.lastSaved,
+    currentPostId,
 
     // Methods
     saveToBackend,
@@ -235,7 +247,7 @@ export function useAutoSave(
     getSaveStatusText: () => {
       if (state.isSaving || state.saveStatus === 'saving') return 'Saving...'
       if (state.saveStatus === 'error') return 'Save failed'
-      if (postId) return 'Draft saved'
+      if (activePostId) return 'Draft saved'
       return 'Draft'
     },
   }

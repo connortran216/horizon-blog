@@ -8,10 +8,15 @@ import { AUTH_STORAGE_KEYS } from '../types/auth.types'
 export class AuthInterceptor {
   /**
    * Get headers with optional Authorization token
+   *
+   * @param skipContentType - If true, skips setting Content-Type header (for FormData uploads)
    */
-  getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+  getHeaders(skipContentType = false): HeadersInit {
+    const headers: HeadersInit = {}
+
+    // Only set Content-Type for non-FormData requests
+    if (!skipContentType) {
+      headers['Content-Type'] = 'application/json'
     }
 
     const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)

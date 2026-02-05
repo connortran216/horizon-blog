@@ -9,6 +9,7 @@
  */
 
 import { CREPE_CONFIG } from '../config/crepe.config'
+import { apiService } from '../core/services/api.service'
 
 /**
  * Response structure from Go backend /images/upload endpoint
@@ -23,10 +24,6 @@ interface UploadResult {
 interface UploadResponse {
   data: UploadResult
   message: string
-}
-
-interface ErrorResponse {
-  error: string
 }
 
 /**
@@ -48,48 +45,18 @@ export class ImageUploadHandler {
     const formData = new FormData()
     formData.append('file', file)
 
-    // Get JWT token from localStorage
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('Authentication required. Please log in to upload images.')
+    // Upload to Minio via Go backend using the API service
+    // The API service handles base URL, authentication, and error handling
+    const data: UploadResponse = await apiService.post<UploadResponse>(
+      CREPE_CONFIG.upload.endpoint,
+      formData,
+    )
+
+    if (!data.data?.url) {
+      throw new Error('Invalid response from server: missing image URL')
     }
 
-    try {
-      // Upload to Minio via Go backend
-      const response = await fetch(CREPE_CONFIG.upload.endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Note: Don't set Content-Type header - browser will set it automatically with boundary
-        },
-        body: formData,
-      })
-
-      // Handle non-OK responses
-      if (!response.ok) {
-        const errorData = (await response
-          .json()
-          .catch(() => ({ error: 'Upload failed' }))) as ErrorResponse
-        throw new Error(errorData.error || `Upload failed: ${response.statusText}`)
-      }
-
-      // Parse successful response
-      const data: UploadResponse = await response.json()
-
-      if (!data.data?.url) {
-        throw new Error('Invalid response from server: missing image URL')
-      }
-
-      return data.data.url
-    } catch (error) {
-      // Re-throw with more context if it's a network error
-      if (error instanceof TypeError) {
-        throw new Error('Network error: Unable to reach upload server')
-      }
-
-      // Re-throw other errors as-is
-      throw error
-    }
+    return data.data.url
   }
 
   /**

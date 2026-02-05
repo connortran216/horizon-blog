@@ -82,6 +82,12 @@ const BlogEditor: React.FC = () => {
     postId,
   )
 
+  const ensurePostId = useCallback(async (): Promise<number | null> => {
+    if (autoSave.currentPostId) return autoSave.currentPostId
+    const newPostId = await autoSave.saveToBackend()
+    return newPostId ?? null
+  }, [autoSave])
+
   // Handle publishing the post
   const handlePublish = useCallback(async (): Promise<boolean> => {
     try {
@@ -253,12 +259,14 @@ const BlogEditor: React.FC = () => {
             <TabPanel p={0} pt={4}>
               <ErrorBoundary>
                 <CrepeEditor
-                  key={postId || 'new-post'}
+                  key={postId || autoSave.currentPostId || 'new-post'}
                   initialContent={editorContent.contentMarkdown}
-                  onChange={editorContent.setContentMarkdown}
+                  onChange={editorContent.handleEditorChange}
                   placeholder="Start writing your markdown..."
                   inputId="blog-content"
                   inputName="blogContent"
+                  postId={autoSave.currentPostId}
+                  ensurePostId={ensurePostId}
                 />
               </ErrorBoundary>
             </TabPanel>

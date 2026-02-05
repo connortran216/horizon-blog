@@ -10,6 +10,7 @@ import React, { useMemo } from 'react'
 import { Box, useColorModeValue } from '@chakra-ui/react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { useResolvedMarkdown } from '../../features/media/useResolvedMarkdown'
 
 interface CrepePreviewProps {
   content: string
@@ -19,6 +20,8 @@ interface CrepePreviewProps {
  * CrepePreview - Renders markdown content as HTML
  */
 export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
+  const resolvedContent = useResolvedMarkdown(content)
+
   // Chakra UI theme integration
   const bgColor = useColorModeValue('white', 'obsidian.dark.bgSecondary')
   const textColor = useColorModeValue('obsidian.text.lightPrimary', 'obsidian.text.primary')
@@ -32,7 +35,7 @@ export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
   const renderedHTML = useMemo(() => {
     try {
       // Parse markdown to HTML
-      const rawHTML = marked.parse(content, {
+      const rawHTML = marked.parse(resolvedContent, {
         gfm: true, // GitHub Flavored Markdown
         breaks: true, // Convert \n to <br>
       }) as string
@@ -77,7 +80,7 @@ export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
       console.error('Error rendering markdown:', error)
       return { __html: '<p>Error rendering content</p>' }
     }
-  }, [content])
+  }, [resolvedContent])
 
   return (
     <Box
@@ -200,7 +203,7 @@ export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
           my: 2,
         },
 
-        // Blockquotes
+        // Block quotes
         '& blockquote': {
           borderLeft: '4px solid',
           borderColor: 'accent.primary',
