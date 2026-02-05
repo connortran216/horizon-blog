@@ -4,23 +4,15 @@
  * Centralized configuration for the Crepe WYSIWYG editor.
  * Phase 1: Core features (basic formatting, code, tables)
  * Phase 2: Image upload enabled on top of phase 1 baseline
- * Future phases: advanced features (colors, alignment, videos, LaTeX)
  */
 
 export interface CrepeConfig {
   features: {
-    // Core features (Phase 1)
+    // Currently wired features
     toolbar: boolean
     imageBlock: boolean
     codeBlocks: boolean
     tables: boolean
-
-    // Advanced features (Phase 2 - deferred)
-    latex: boolean
-    textColor: boolean
-    highlight: boolean
-    alignment: boolean
-    videoEmbed: boolean
   }
 
   upload: {
@@ -52,18 +44,10 @@ export interface CrepeConfig {
  */
 export const CREPE_CONFIG: CrepeConfig = {
   features: {
-    // Phase 1: Core features (ENABLED)
     toolbar: true,
     imageBlock: true,
     codeBlocks: true,
     tables: true,
-
-    // Phase 2: Advanced features (DISABLED - coming later)
-    latex: false, // TODO: Enable in Phase 2
-    textColor: false, // TODO: Enable in Phase 2
-    highlight: false, // TODO: Enable in Phase 2
-    alignment: false, // TODO: Enable in Phase 2
-    videoEmbed: false, // TODO: Enable in Phase 2
   },
 
   upload: {

@@ -69,6 +69,8 @@ export default [
     // Ignore patterns
     ignores: [
       'node_modules/',
+      '.yarn/',
+      '.pnp.*',
       'dist/',
       'build/',
       '*.min.js',
