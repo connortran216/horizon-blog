@@ -57,8 +57,8 @@ This project demonstrates **advanced frontend development** with:
 ## Prerequisites
 
 Before you begin, ensure you have:
-- **Node.js (v18 or higher)** - [Download here](https://nodejs.org/)
-- **npm** (comes with Node.js) or **yarn**
+- **Node.js (v20 or higher)** - [Download here](https://nodejs.org/)
+- **yarn** (required; npm is not supported in this repo)
 - **Modern web browser** - Chrome, Firefox, Safari, or Edge
 - **Basic TypeScript knowledge** - Recommended for optimal learning experience
 
@@ -72,23 +72,23 @@ cd horizon-blog
 
 ### 2. Install Dependencies
 ```bash
-npm install
+yarn install
 ```
 
 ### 3. Start Development Server
 ```bash
-npm run dev
+yarn dev
 ```
 
 ### 4. Open Your Browser
 Visit `http://localhost:5173` to see your blog!
 
 ### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
+- `yarn dev` - Start development server
+- `yarn build` - Build for production
+- `yarn preview` - Preview production build
+- `yarn lint` - Run ESLint
+- `yarn tsc --noEmit` - Run TypeScript type checking
 
 ## 📚 Learning Path
 
@@ -267,18 +267,18 @@ export class ErrorService {
 
 ### **Common Issues**
 
-**❌ `npm install` fails**
+**❌ `yarn install` fails**
 ```bash
-# Clear npm cache and reinstall
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
+# Clear Yarn cache and reinstall
+yarn cache clean
+rm -rf node_modules .yarn
+yarn install
 ```
 
 **❌ TypeScript errors**
 ```bash
 # Run type checking
-npm run type-check
+yarn tsc --noEmit
 
 # Common fixes:
 # 1. Check import paths and relative imports
@@ -292,7 +292,7 @@ npm run type-check
 # Kill process using the port
 npx kill-port 5173
 # Or use different port
-npm run dev -- --port 3000
+yarn dev -- --port 3000
 ```
 
 **❌ Milkdown editor not loading**
