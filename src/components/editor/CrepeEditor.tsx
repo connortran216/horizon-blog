@@ -10,6 +10,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react'
 import { Crepe, CrepeFeature } from '@milkdown/crepe'
+import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
 import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
 import { Box, useColorModeValue, useToast } from '@chakra-ui/react'
@@ -59,6 +60,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const crepeRef = useRef<Crepe | null>(null)
   const lastContentRef = useRef<string>(initialContent)
   const isEditorReadyRef = useRef<boolean>(false)
+  const isMountedRef = useRef<boolean>(true)
   const urlToMediaIdRef = useRef<Record<string, string>>({})
   const managedMediaIdsRef = useRef<Set<string>>(new Set())
   const previousTokenIdsRef = useRef<Set<string>>(new Set())
@@ -73,7 +75,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   }, [postId, ensurePostId])
 
   const syncExternalContent = useCallback(
-    async (sourceMarkdown: string, retries: number = 2): Promise<void> => {
+    async (sourceMarkdown: string, retries: number = 8): Promise<void> => {
       if (!crepeRef.current) return
 
       const tokenIds = parseMediaIdsFromMarkdown(sourceMarkdown)
@@ -90,26 +92,28 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
 
       const convertedContent = parseWikiLinks(parseHashtags(nextContent))
 
-      try {
-        crepeRef.current.editor.action((ctx) => {
-          const view = ctx.get('editorViewCtx' as 'editorView') as EditorView
-          const parser = ctx.get('parserCtx' as 'parser') as (text: string) => ProseMirrorNode
-          const doc = parser(convertedContent)
-          const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content)
-          view.dispatch(tr)
-        })
+      for (let attempt = 0; attempt <= retries; attempt += 1) {
+        if (!isMountedRef.current || !crepeRef.current) return
+        try {
+          crepeRef.current.editor.action((ctx) => {
+            const view = ctx.get(editorViewCtx) as EditorView
+            const parser = ctx.get(parserCtx) as (text: string) => ProseMirrorNode
+            const doc = parser(convertedContent)
+            const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content)
+            view.dispatch(tr)
+          })
 
-        previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(sourceMarkdown))
-        lastContentRef.current = sourceMarkdown
-      } catch (error) {
-        const maybeMilkdownError = error as { code?: string }
-        if (maybeMilkdownError?.code === 'contextNotFound' && retries > 0) {
-          setTimeout(() => {
-            void syncExternalContent(sourceMarkdown, retries - 1)
-          }, 50)
+          previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(sourceMarkdown))
+          lastContentRef.current = sourceMarkdown
           return
+        } catch (error) {
+          const maybeMilkdownError = error as { code?: string }
+          const canRetry = maybeMilkdownError?.code === 'contextNotFound' && attempt < retries
+          if (!canRetry) throw error
+          await new Promise((resolve) => {
+            setTimeout(resolve, 50)
+          })
         }
-        throw error
       }
     },
     [],
@@ -118,7 +122,10 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const validateUploadFile = (file: File): void => {
     const maxFileSizeBytes = CREPE_CONFIG.upload.maxFileSize * 1024 * 1024
     if (file.size > maxFileSizeBytes) {
-      throw new Error(`Image exceeds ${CREPE_CONFIG.upload.maxFileSize}MB`)
+      const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1)
+      throw new Error(
+        `Image is ${fileSizeMb}MB. Maximum allowed size is ${CREPE_CONFIG.upload.maxFileSize}MB. Please compress the image and try again.`,
+      )
     }
 
     if (!CREPE_CONFIG.upload.allowedTypes.includes(file.type)) {
@@ -131,6 +138,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const borderColor = useColorModeValue('gray.200', 'border.default')
 
   useEffect(() => {
+    isMountedRef.current = true
     if (!editorRef.current) return
     let observer: MutationObserver | null = null
 
@@ -284,14 +292,19 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       // Create editor and apply readonly mode
       crepe.create().then(() => {
         try {
-          // Mark editor as ready
-          isEditorReadyRef.current = true
-          previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(initialContent))
-          const pendingContent = pendingExternalContentRef.current
-          if (pendingContent && pendingContent !== lastContentRef.current) {
-            void syncExternalContent(pendingContent)
-            pendingExternalContentRef.current = null
-          }
+          // Defer readiness until editor contexts are fully injected.
+          setTimeout(() => {
+            if (!isMountedRef.current) return
+            isEditorReadyRef.current = true
+            previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(initialContent))
+            const pendingContent = pendingExternalContentRef.current
+            if (pendingContent && pendingContent !== lastContentRef.current) {
+              void syncExternalContent(pendingContent).catch((error) => {
+                console.error('Failed to sync pending editor content:', error)
+              })
+              pendingExternalContentRef.current = null
+            }
+          }, 0)
 
           // Set readonly mode if specified
           if (readOnly) {
@@ -332,6 +345,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
 
     // Cleanup on unmount
     return () => {
+      isMountedRef.current = false
       isEditorReadyRef.current = false
       observer?.disconnect()
       if (crepeRef.current) {

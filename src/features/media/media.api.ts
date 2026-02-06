@@ -117,11 +117,16 @@ export const resolveMediaUrls = async (mediaIds: string[]): Promise<ResolveMedia
 }
 
 export const mapMediaApiError = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
   if (!(error instanceof ApiError)) {
     return fallback
   }
 
-  if (error.status === 413) return 'Image exceeds 5MB'
+  if (error.status === 413)
+    return 'Image is larger than 5MB. Please compress it or choose a smaller file.'
   if (error.status === 415) return 'Unsupported image format'
   if (error.status === 403) return "You don't have permission to modify this post media"
   if (error.status === 404) return 'Image not found or already removed'
