@@ -127,7 +127,7 @@ const BlogDetail = () => {
 
   if (loading) {
     return (
-      <Container maxW="container.md" py={10}>
+      <Container maxW="container.lg" py={10}>
         <Text color="text.secondary">Loading...</Text>
       </Container>
     )
@@ -135,7 +135,7 @@ const BlogDetail = () => {
 
   if (!post) {
     return (
-      <Container maxW="container.md" py={10}>
+      <Container maxW="container.lg" py={10}>
         <Text color="text.secondary">Post not found</Text>
       </Container>
     )
@@ -164,7 +164,7 @@ const BlogDetail = () => {
           />
         </motion.div>
 
-        <Container maxW="container.md" py={10} ref={contentRef}>
+        <Container maxW="container.lg" py={10} ref={contentRef}>
           <VStack spacing={6} align="stretch">
             {/* Back Button */}
             <BackButtonAnimation>

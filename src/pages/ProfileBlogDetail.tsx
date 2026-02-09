@@ -107,7 +107,7 @@ const ProfileBlogDetail = () => {
 
   if (loading) {
     return (
-      <Container maxW="container.md" py={10}>
+      <Container maxW="container.lg" py={10}>
         <Text>Loading...</Text>
       </Container>
     )
@@ -115,7 +115,7 @@ const ProfileBlogDetail = () => {
 
   if (!post) {
     return (
-      <Container maxW="container.md" py={10}>
+      <Container maxW="container.lg" py={10}>
         <Text>Post not found</Text>
       </Container>
     )
@@ -123,7 +123,7 @@ const ProfileBlogDetail = () => {
 
   return (
     <MotionWrapper>
-      <Container maxW="container.md" py={10}>
+      <Container maxW="container.lg" py={10}>
         <VStack spacing={6} align="stretch">
           {/* Back Button */}
           <BackButtonAnimation>
