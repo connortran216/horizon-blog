@@ -31,7 +31,8 @@ export function useAutoSave(
 ) {
   const { autoSaveDelay = 5000, localSaveDelay = 1000, enabled = true } = options
   const [currentPostId, setCurrentPostId] = useState<number | null>(postId)
-  const activePostId = currentPostId ?? postId
+  const postIdRef = useRef<number | null>(postId)
+  const createInFlightRef = useRef<Promise<number | null> | null>(null)
 
   // State management
   const [state, setState] = useState<AutoSaveState>({
@@ -46,8 +47,13 @@ export function useAutoSave(
   useEffect(() => {
     if (postId) {
       setCurrentPostId(postId)
+      postIdRef.current = postId
     }
   }, [postId])
+
+  useEffect(() => {
+    postIdRef.current = currentPostId ?? postId
+  }, [currentPostId, postId])
 
   // Local storage backup
   const saveToLocalStorage = useCallback(() => {
@@ -85,7 +91,11 @@ export function useAutoSave(
       }
 
       const repository = getBlogRepository()
-      let updatedPostId = activePostId
+      let updatedPostId = postIdRef.current
+
+      if (!updatedPostId && createInFlightRef.current) {
+        updatedPostId = await createInFlightRef.current
+      }
 
       if (updatedPostId) {
         // Update existing post
@@ -94,24 +104,36 @@ export function useAutoSave(
           throw new Error(result.error || 'Failed to update post')
         }
       } else {
-        // Create new post
-        const result = await repository.createPost({
-          title: postData.title,
-          content_markdown: postData.content_markdown,
-          content_json: postData.content_json,
-          status: postData.status,
-          tags: tags,
-          author: { username: '', avatar: undefined },
-          excerpt: '',
-          slug: '',
-          readingTime: 1,
-        } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
+        const createPromise = (async () => {
+          const result = await repository.createPost({
+            title: postData.title,
+            content_markdown: postData.content_markdown,
+            content_json: postData.content_json,
+            status: postData.status,
+            tags: tags,
+            author: { username: '', avatar: undefined },
+            excerpt: '',
+            slug: '',
+            readingTime: 1,
+          } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
 
-        if (result.success && result.data?.id) {
-          updatedPostId = parseInt(result.data.id)
-          setCurrentPostId(updatedPostId)
-        } else {
-          throw new Error(result.error || 'Failed to create post')
+          if (!result.success || !result.data?.id) {
+            throw new Error(result.error || 'Failed to create post')
+          }
+
+          const createdPostId = parseInt(result.data.id)
+          setCurrentPostId(createdPostId)
+          postIdRef.current = createdPostId
+          return createdPostId
+        })()
+
+        createInFlightRef.current = createPromise
+        try {
+          updatedPostId = await createPromise
+        } finally {
+          if (createInFlightRef.current === createPromise) {
+            createInFlightRef.current = null
+          }
         }
       }
 
@@ -136,7 +158,7 @@ export function useAutoSave(
       // Don't show toast for auto-save errors to avoid interrupting user
       return null
     }
-  }, [title, contentMarkdown, contentJSON, activePostId, tags])
+  }, [title, contentMarkdown, contentJSON, tags])
 
   // Manual publish function (extracted from original component)
   const publishPost = useCallback(async () => {
@@ -159,9 +181,15 @@ export function useAutoSave(
     const repository = getBlogRepository()
 
     try {
-      if (activePostId) {
+      let targetPostId = postIdRef.current
+
+      if (!targetPostId && createInFlightRef.current) {
+        targetPostId = await createInFlightRef.current
+      }
+
+      if (targetPostId) {
         // Update existing post
-        const result = await repository.updatePost(activePostId.toString(), postData)
+        const result = await repository.updatePost(targetPostId.toString(), postData)
         if (!result.success) {
           throw new Error(result.error || 'Failed to update blog post')
         }
@@ -194,10 +222,10 @@ export function useAutoSave(
       throw new Error(
         error instanceof Error
           ? error.message
-          : `Failed to ${activePostId ? 'update' : 'publish'} blog post`,
+          : `Failed to ${postIdRef.current ? 'update' : 'publish'} blog post`,
       )
     }
-  }, [title, contentMarkdown, contentJSON, activePostId, tags])
+  }, [title, contentMarkdown, contentJSON, tags])
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {
@@ -247,7 +275,7 @@ export function useAutoSave(
     getSaveStatusText: () => {
       if (state.isSaving || state.saveStatus === 'saving') return 'Saving...'
       if (state.saveStatus === 'error') return 'Save failed'
-      if (activePostId) return 'Draft saved'
+      if (postIdRef.current) return 'Draft saved'
       return 'Draft'
     },
   }
