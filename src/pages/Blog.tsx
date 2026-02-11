@@ -140,7 +140,13 @@ const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
         >
           {coverImage ? (
             <Box height="200px" width="100%" overflow="hidden">
-              <Image src={coverImage} alt={post.title} width="100%" height="100%" objectFit="cover" />
+              <Image
+                src={coverImage}
+                alt={post.title}
+                width="100%"
+                height="100%"
+                objectFit="cover"
+              />
             </Box>
           ) : (
             <Box

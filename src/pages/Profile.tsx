@@ -298,7 +298,12 @@ const Profile = () => {
                   >
                     <HStack minHeight="140px" align="stretch">
                       {blog.featuredImage ? (
-                        <Box width="100px" overflow="hidden" borderTopLeftRadius="md" borderBottomLeftRadius="md">
+                        <Box
+                          width="100px"
+                          overflow="hidden"
+                          borderTopLeftRadius="md"
+                          borderBottomLeftRadius="md"
+                        >
                           <Image
                             src={blog.featuredImage}
                             alt={blog.title}
