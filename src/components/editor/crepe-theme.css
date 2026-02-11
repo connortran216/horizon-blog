@@ -157,13 +157,13 @@
   background: transparent !important;
 }
 
-/* Align block images to the left to match preview behavior. */
+/* Center block images in editor content area. */
 .crepe-editor-wrapper .milkdown .milkdown-image-block > .image-wrapper {
-  margin: 0 !important;
+  margin: 0 auto !important;
 }
 
 .crepe-editor-wrapper .milkdown .milkdown-image-block .image-wrapper {
-  justify-content: flex-start !important;
+  justify-content: center !important;
 }
 
 /* =========================================
