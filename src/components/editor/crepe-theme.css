@@ -385,6 +385,10 @@
     padding: 0.25rem;
   }
 
+  .crepe-editor-wrapper .milkdown .ProseMirror {
+    padding: 16px !important;
+  }
+
   .crepe-editor-wrapper .milkdown-menu-button {
     padding: 0.375rem;
   }
@@ -405,6 +409,7 @@
 
 /* Ensure cursor is visible in editor */
 .crepe-editor-wrapper .milkdown .ProseMirror {
+  padding: 32px !important;
   caret-color: var(--crepe-accent-primary);
 }
 
