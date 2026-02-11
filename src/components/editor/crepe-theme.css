@@ -132,6 +132,38 @@
 .crepe-editor-wrapper .image-block-container img {
   border-radius: 0.5rem;
   max-width: 100%;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Keep editor image colors consistent with preview rendering */
+.crepe-editor-wrapper .milkdown .ProseMirror img,
+.crepe-editor-wrapper .milkdown .ProseMirror .ProseMirror-selectednode img,
+.crepe-editor-wrapper .milkdown .ProseMirror img.ProseMirror-selectednode {
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  transform: none;
+}
+
+/* Crepe default applies a selected-state overlay via ::before, which makes
+   editor images look dimmer than preview. Disable it to keep parity. */
+.crepe-editor-wrapper .milkdown .milkdown-image-block.selected > .image-wrapper::before,
+.crepe-editor-wrapper
+  .milkdown
+  .milkdown-image-block.selected
+  > .image-edit:not(:has(input:focus))::before {
+  background: transparent !important;
+}
+
+/* Align block images to the left to match preview behavior. */
+.crepe-editor-wrapper .milkdown .milkdown-image-block > .image-wrapper {
+  margin: 0 !important;
+}
+
+.crepe-editor-wrapper .milkdown .milkdown-image-block .image-wrapper {
+  justify-content: flex-start !important;
 }
 
 /* =========================================
