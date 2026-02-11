@@ -33,6 +33,16 @@ export class BlogService implements IBlogService {
   }
 
   /**
+   * Extract first image URL from markdown content
+   */
+  private extractFirstImageFromMarkdown(content: string): string | undefined {
+    if (!content) return undefined
+
+    const match = content.match(/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+["'][^"']*["'])?\)/)
+    return match?.[1] || match?.[2]
+  }
+
+  /**
    * Generate excerpt from markdown content
    * Removes markdown syntax and truncates to specified length
    */
@@ -71,6 +81,8 @@ export class BlogService implements IBlogService {
    * Applies business logic for excerpt and reading time
    */
   formatPostForDisplay(post: ApiBlogPost): BlogPostSummary {
+    const featuredImage = this.extractFirstImageFromMarkdown(post.content_markdown)
+
     return {
       id: post.id.toString(),
       title: post.title,
@@ -83,6 +95,7 @@ export class BlogService implements IBlogService {
       updatedAt: post.updated_at,
       readingTime: this.calculateReadingTime(post.content_markdown),
       tags: [], // API doesn't provide tags in list view
+      featuredImage,
       status: post.status as BlogStatus,
       slug: post.id.toString(),
     }
@@ -237,6 +250,9 @@ export class BlogService implements IBlogService {
         excerpt: post.excerpt || this.generateExcerpt(post.content_markdown),
         // Ensure reading time is calculated
         readingTime: post.readingTime || this.calculateReadingTime(post.content_markdown),
+        // Use first image in markdown as cover image if present
+        featuredImage:
+          post.featuredImage || this.extractFirstImageFromMarkdown(post.content_markdown),
       }
 
       return enrichedPost

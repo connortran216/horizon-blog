@@ -30,9 +30,6 @@ import {
 // Default avatar for posts without author avatar
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
-// Default image for posts without featured image
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop&q=60'
 
 const AnimatedBlogCard = ({ post }: { post: BlogPost; index: number }) => {
   // Format date to a readable string
@@ -110,15 +107,17 @@ const AnimatedBlogCard = ({ post }: { post: BlogPost; index: number }) => {
               </HStack>
             </Stack>
 
-            <Box w="200px" h="134px" rounded="md" overflow="hidden" flexShrink={0}>
-              <Image
-                src={post.featuredImage || DEFAULT_IMAGE}
-                alt={post.title}
-                w="full"
-                h="full"
-                objectFit="cover"
-              />
-            </Box>
+            {post.featuredImage && (
+              <Box w="200px" h="134px" rounded="md" overflow="hidden" flexShrink={0}>
+                <Image
+                  src={post.featuredImage}
+                  alt={post.title}
+                  w="full"
+                  h="full"
+                  objectFit="cover"
+                />
+              </Box>
+            )}
           </Flex>
         </Box>
       </motion.div>

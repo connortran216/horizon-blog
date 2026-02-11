@@ -102,6 +102,7 @@ export type BlogPostSummary = Pick<
   | 'updatedAt'
   | 'readingTime'
   | 'tags'
+  | 'featuredImage'
   | 'status'
   | 'slug'
   | 'viewCount'

@@ -103,9 +103,21 @@ export class ApiBlogRepository implements IBlogRepository {
   }
 
   /**
+   * Extract first image URL from markdown content
+   */
+  private extractFirstImageFromMarkdown(content: string): string | undefined {
+    if (!content) return undefined
+
+    const match = content.match(/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+["'][^"']*["'])?\)/)
+    return match?.[1] || match?.[2]
+  }
+
+  /**
    * Transform API post for display (summary view)
    */
   private transformPostForDisplay(post: ApiBlogPost): BlogPostSummary {
+    const featuredImage = this.extractFirstImageFromMarkdown(post.content_markdown)
+
     return {
       id: post.id.toString(),
       title: post.title,
@@ -118,6 +130,7 @@ export class ApiBlogRepository implements IBlogRepository {
       updatedAt: post.updated_at,
       readingTime: this.calculateReadingTime(post.content_markdown),
       tags: [],
+      featuredImage,
       status: post.status as BlogStatus,
       slug: post.id.toString(),
     }
@@ -127,8 +140,11 @@ export class ApiBlogRepository implements IBlogRepository {
    * Transform full blog post
    */
   private transformFullPost(post: BlogPost): BlogPost {
-    // For now, return as-is since it's already in the right format
-    return post
+    return {
+      ...post,
+      featuredImage:
+        post.featuredImage || this.extractFirstImageFromMarkdown(post.content_markdown),
+    }
   }
 
   /**

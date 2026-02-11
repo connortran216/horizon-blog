@@ -56,8 +56,9 @@ const BlogEditor: React.FC = () => {
   const textAuthor = useColorModeValue('gray.700', 'text.secondary')
   const bgPrimary = useColorModeValue('white', 'bg.secondary')
   const borderColor = useColorModeValue('gray.200', 'border.subtle')
-  const tabColor = useColorModeValue('gray.600', 'text.secondary')
-  const tabSelectedColor = useColorModeValue('black', 'accent.primary')
+  const tabColor = useColorModeValue('text.secondary', 'text.secondary')
+  const tabHoverColor = useColorModeValue('text.primary', 'text.primary')
+  const tabSelectedColor = useColorModeValue('accent.primary', 'accent.primary')
   const tabBorderColor = useColorModeValue('accent.primary', 'accent.primary')
 
   // Custom hooks for business logic separation
@@ -234,21 +235,33 @@ const BlogEditor: React.FC = () => {
 
         {/* Crepe Editor with Dual Tabs */}
         <Tabs index={tabIndex} onChange={setTabIndex} mb={4}>
-          <TabList>
+          <TabList borderBottom="1px solid" borderColor={borderColor}>
             <Tab
               color={tabColor}
+              fontWeight="medium"
+              borderBottomWidth="2px"
+              borderBottomColor="transparent"
+              _hover={{
+                color: tabHoverColor,
+              }}
               _selected={{
                 color: tabSelectedColor,
-                borderColor: tabBorderColor,
+                borderBottomColor: tabBorderColor,
               }}
             >
               Editor
             </Tab>
             <Tab
               color={tabColor}
+              fontWeight="medium"
+              borderBottomWidth="2px"
+              borderBottomColor="transparent"
+              _hover={{
+                color: tabHoverColor,
+              }}
               _selected={{
                 color: tabSelectedColor,
-                borderColor: tabBorderColor,
+                borderBottomColor: tabBorderColor,
               }}
             >
               Preview
