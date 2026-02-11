@@ -12,6 +12,7 @@ import {
   HStack,
   Tag,
   Avatar,
+  Image,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
@@ -19,6 +20,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { apiService } from '../core/services/api.service'
 import { AnimatedCard, MotionWrapper, FadeInShimmer, ShimmerLoader } from '../core'
 import PaginationControls from '../components/PaginationControls'
+import { resolveMediaUrls } from '../features/media/media.api'
 
 interface BlogPost {
   id: number
@@ -35,7 +37,59 @@ interface BlogPost {
   }
 }
 
+const extractFirstImageUrl = (content: string): string | undefined => {
+  if (!content) return undefined
+
+  const markdownMatch = content.match(/!\[[^\]]*]\(([^)]+)\)/)
+  if (markdownMatch?.[1]) {
+    const raw = markdownMatch[1].trim()
+    const urlMatch = raw.match(/^<([^>]+)>|^(\S+)/)
+    const markdownUrl = urlMatch?.[1] || urlMatch?.[2]
+    if (markdownUrl) return markdownUrl
+  }
+
+  const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i)
+  if (htmlMatch?.[1]) return htmlMatch[1]
+
+  return undefined
+}
+
 const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
+  const [coverImage, setCoverImage] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    let active = true
+
+    const setCover = async () => {
+      const extracted = extractFirstImageUrl(post.content_markdown)
+      if (!extracted) {
+        setCoverImage(undefined)
+        return
+      }
+
+      const mediaMatch = extracted.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)
+      if (!mediaMatch?.[1]) {
+        setCoverImage(extracted)
+        return
+      }
+
+      try {
+        const mediaMap = await resolveMediaUrls([mediaMatch[1]])
+        if (!active) return
+        setCoverImage(mediaMap[mediaMatch[1]]?.url)
+      } catch {
+        if (!active) return
+        setCoverImage(undefined)
+      }
+    }
+
+    setCover()
+
+    return () => {
+      active = false
+    }
+  }, [post.content_markdown])
+
   // Extract excerpt from markdown content
   const getExcerpt = (markdown: string): string => {
     if (!markdown) return 'No content'
@@ -43,9 +97,11 @@ const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
     // Remove markdown syntax (simple approach)
     const plainText = markdown
       .replace(/#{1,6}\s+/g, '') // Remove headings
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove image markdown
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+      .replace(/<img[^>]*>/gi, '') // Remove html images
       .replace(/`([^`]+)`/g, '$1') // Remove inline code
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/>\s+/g, '') // Remove blockquotes
@@ -82,19 +138,25 @@ const BlogCard = ({ post, index }: { post: BlogPost; index: number }) => {
           index={index}
           animation="fadeInUp"
         >
-          <Box
-            height="200px"
-            width="100%"
-            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            color="white"
-            fontSize="3xl"
-            fontWeight="bold"
-          >
-            {post.title.substring(0, 2).toUpperCase()}
-          </Box>
+          {coverImage ? (
+            <Box height="200px" width="100%" overflow="hidden">
+              <Image src={coverImage} alt={post.title} width="100%" height="100%" objectFit="cover" />
+            </Box>
+          ) : (
+            <Box
+              height="200px"
+              width="100%"
+              bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              color="white"
+              fontSize="3xl"
+              fontWeight="bold"
+            >
+              {post.title.substring(0, 2).toUpperCase()}
+            </Box>
+          )}
           <VStack p={6} spacing={3} align="stretch">
             <HStack spacing={2} justify="space-between">
               <Tag colorScheme={post.status === 'published' ? 'green' : 'gray'}>{post.status}</Tag>

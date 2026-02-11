@@ -19,6 +19,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { getBlogRepository } from '../core/di/container'
 import { BlogPost } from '../core'
 import { useAuth } from '../context/AuthContext'
+import { resolveMediaUrls } from '../features/media/media.api'
 import {
   AnimatedPrimaryButton,
   MotionWrapper,
@@ -32,6 +33,40 @@ const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
 
 const AnimatedBlogCard = ({ post }: { post: BlogPost; index: number }) => {
+  const [coverImage, setCoverImage] = useState<string | undefined>(post.featuredImage)
+
+  useEffect(() => {
+    let active = true
+
+    const resolveCover = async () => {
+      if (!post.featuredImage) {
+        setCoverImage(undefined)
+        return
+      }
+
+      const mediaMatch = post.featuredImage.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)
+      if (!mediaMatch?.[1]) {
+        setCoverImage(post.featuredImage)
+        return
+      }
+
+      try {
+        const mediaMap = await resolveMediaUrls([mediaMatch[1]])
+        if (!active) return
+        setCoverImage(mediaMap[mediaMatch[1]]?.url)
+      } catch {
+        if (!active) return
+        setCoverImage(undefined)
+      }
+    }
+
+    resolveCover()
+
+    return () => {
+      active = false
+    }
+  }, [post.featuredImage])
+
   // Format date to a readable string
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -107,15 +142,9 @@ const AnimatedBlogCard = ({ post }: { post: BlogPost; index: number }) => {
               </HStack>
             </Stack>
 
-            {post.featuredImage && (
+            {coverImage && (
               <Box w="200px" h="134px" rounded="md" overflow="hidden" flexShrink={0}>
-                <Image
-                  src={post.featuredImage}
-                  alt={post.title}
-                  w="full"
-                  h="full"
-                  objectFit="cover"
-                />
+                <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
               </Box>
             )}
           </Flex>

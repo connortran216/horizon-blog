@@ -38,8 +38,18 @@ export class BlogService implements IBlogService {
   private extractFirstImageFromMarkdown(content: string): string | undefined {
     if (!content) return undefined
 
-    const match = content.match(/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+["'][^"']*["'])?\)/)
-    return match?.[1] || match?.[2]
+    const markdownMatch = content.match(/!\[[^\]]*]\(([^)]+)\)/)
+    if (markdownMatch?.[1]) {
+      const raw = markdownMatch[1].trim()
+      const urlMatch = raw.match(/^<([^>]+)>|^(\S+)/)
+      const markdownUrl = urlMatch?.[1] || urlMatch?.[2]
+      if (markdownUrl) return markdownUrl
+    }
+
+    const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i)
+    if (htmlMatch?.[1]) return htmlMatch[1]
+
+    return undefined
   }
 
   /**
@@ -54,9 +64,11 @@ export class BlogService implements IBlogService {
     // Remove markdown syntax (simple approach)
     const plainText = content
       .replace(/#{1,6}\s+/g, '') // Remove headings
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove image markdown
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+      .replace(/<img[^>]*>/gi, '') // Remove html images
       .replace(/`([^`]+)`/g, '$1') // Remove inline code
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/>\s+/g, '') // Remove blockquotes
@@ -252,7 +264,7 @@ export class BlogService implements IBlogService {
         readingTime: post.readingTime || this.calculateReadingTime(post.content_markdown),
         // Use first image in markdown as cover image if present
         featuredImage:
-          post.featuredImage || this.extractFirstImageFromMarkdown(post.content_markdown),
+          this.extractFirstImageFromMarkdown(post.content_markdown) || post.featuredImage,
       }
 
       return enrichedPost

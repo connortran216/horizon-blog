@@ -21,6 +21,7 @@ import {
   MenuItem,
   IconButton,
   Icon,
+  Image,
 } from '@chakra-ui/react'
 import { FaUsers, FaPenNib, FaGithub, FaTwitter } from 'react-icons/fa'
 import { MotionWrapper, AnimatedCard, AnimatedGhostButton } from '../core'
@@ -31,6 +32,7 @@ import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-r
 import { useAuth } from '../context/AuthContext'
 import { getBlogRepository } from '../core/di/container'
 import { FiMoreVertical } from 'react-icons/fi'
+import { resolveMediaUrls } from '../features/media/media.api'
 
 // Local BlogPost type that matches the old format
 interface BlogPost {
@@ -39,6 +41,7 @@ interface BlogPost {
   subtitle?: string
   createdAt: string
   status: string
+  featuredImage?: string
 }
 
 const Profile = () => {
@@ -51,6 +54,35 @@ const Profile = () => {
   const [loading, setLoading] = useState(true)
   const [publishedPagination, setPublishedPagination] = useState({ page: 1, limit: 6, total: 0 })
   const [draftPagination, setDraftPagination] = useState({ page: 1, limit: 6, total: 0 })
+
+  const resolveFeaturedImages = async (
+    posts: Array<{ featuredImage?: string }>,
+  ): Promise<Record<string, string>> => {
+    const tokenToMediaId = new Map<string, string>()
+
+    posts.forEach((post) => {
+      const cover = post.featuredImage
+      if (!cover) return
+      const match = cover.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)
+      if (match?.[1]) tokenToMediaId.set(cover, match[1])
+    })
+
+    if (tokenToMediaId.size === 0) return {}
+
+    try {
+      const mediaMap = await resolveMediaUrls(Array.from(tokenToMediaId.values()))
+      const resolvedByToken: Record<string, string> = {}
+
+      tokenToMediaId.forEach((mediaId, token) => {
+        const resolved = mediaMap[mediaId]?.url
+        if (resolved) resolvedByToken[token] = resolved
+      })
+
+      return resolvedByToken
+    } catch {
+      return {}
+    }
+  }
 
   useEffect(() => {
     // Don't load posts if user is not authenticated or auth is still loading
@@ -72,12 +104,16 @@ const Profile = () => {
           publishedPagination.limit,
         )
         if (publishedResult.success && publishedResult.data) {
+          const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
           const mappedPublished = publishedResult.data.map((post) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt,
             status: post.status,
+            featuredImage: post.featuredImage
+              ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
+              : undefined,
           }))
           setPublishedBlogs(mappedPublished)
           // Set total from metadata if available
@@ -96,12 +132,16 @@ const Profile = () => {
           draftPagination.limit,
         )
         if (draftsResult.success && draftsResult.data) {
+          const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
           const mappedDrafts = draftsResult.data.map((post) => ({
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt,
             status: post.status,
+            featuredImage: post.featuredImage
+              ? resolvedDraftImages[post.featuredImage] || post.featuredImage
+              : undefined,
           }))
           setDraftBlogs(mappedDrafts)
           // Set total from metadata if available
@@ -144,12 +184,16 @@ const Profile = () => {
       publishedPagination.limit,
     )
     if (publishedResult.success && publishedResult.data) {
+      const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
       const mappedPublished = publishedResult.data.map((post) => ({
         id: String(post.id),
         title: post.title,
         subtitle: post.subtitle || post.excerpt,
         createdAt: post.createdAt,
         status: post.status,
+        featuredImage: post.featuredImage
+          ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
+          : undefined,
       }))
       setPublishedBlogs(mappedPublished)
       const publishedTotal = publishedResult.metadata?.total
@@ -164,12 +208,16 @@ const Profile = () => {
       draftPagination.limit,
     )
     if (draftsResult.success && draftsResult.data) {
+      const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
       const mappedDrafts = draftsResult.data.map((post) => ({
         id: String(post.id),
         title: post.title,
         subtitle: post.subtitle || post.excerpt,
         createdAt: post.createdAt,
         status: post.status,
+        featuredImage: post.featuredImage
+          ? resolvedDraftImages[post.featuredImage] || post.featuredImage
+          : undefined,
       }))
       setDraftBlogs(mappedDrafts)
       const draftTotalInLoadBlogs = draftsResult.metadata?.total
@@ -249,20 +297,32 @@ const Profile = () => {
                     animation="fadeInUp"
                   >
                     <HStack minHeight="140px" align="stretch">
-                      <Box
-                        width="100px"
-                        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        color="white"
-                        fontSize="xl"
-                        fontWeight="bold"
-                        borderTopLeftRadius="md"
-                        borderBottomLeftRadius="md"
-                      >
-                        {blog.title.substring(0, 2).toUpperCase()}
-                      </Box>
+                      {blog.featuredImage ? (
+                        <Box width="100px" overflow="hidden" borderTopLeftRadius="md" borderBottomLeftRadius="md">
+                          <Image
+                            src={blog.featuredImage}
+                            alt={blog.title}
+                            width="100%"
+                            height="100%"
+                            objectFit="cover"
+                          />
+                        </Box>
+                      ) : (
+                        <Box
+                          width="100px"
+                          bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          color="white"
+                          fontSize="xl"
+                          fontWeight="bold"
+                          borderTopLeftRadius="md"
+                          borderBottomLeftRadius="md"
+                        >
+                          {blog.title.substring(0, 2).toUpperCase()}
+                        </Box>
+                      )}
                       <VStack p={4} spacing={2} align="stretch" flex={1} justify="space-between">
                         <Tag
                           colorScheme={blog.status === 'published' ? 'green' : 'gray'}

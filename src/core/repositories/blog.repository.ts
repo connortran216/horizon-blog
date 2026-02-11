@@ -108,8 +108,18 @@ export class ApiBlogRepository implements IBlogRepository {
   private extractFirstImageFromMarkdown(content: string): string | undefined {
     if (!content) return undefined
 
-    const match = content.match(/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+["'][^"']*["'])?\)/)
-    return match?.[1] || match?.[2]
+    const markdownMatch = content.match(/!\[[^\]]*]\(([^)]+)\)/)
+    if (markdownMatch?.[1]) {
+      const raw = markdownMatch[1].trim()
+      const urlMatch = raw.match(/^<([^>]+)>|^(\S+)/)
+      const markdownUrl = urlMatch?.[1] || urlMatch?.[2]
+      if (markdownUrl) return markdownUrl
+    }
+
+    const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i)
+    if (htmlMatch?.[1]) return htmlMatch[1]
+
+    return undefined
   }
 
   /**
@@ -140,10 +150,11 @@ export class ApiBlogRepository implements IBlogRepository {
    * Transform full blog post
    */
   private transformFullPost(post: BlogPost): BlogPost {
+    const extractedImage = this.extractFirstImageFromMarkdown(post.content_markdown)
+
     return {
       ...post,
-      featuredImage:
-        post.featuredImage || this.extractFirstImageFromMarkdown(post.content_markdown),
+      featuredImage: extractedImage || post.featuredImage,
     }
   }
 
@@ -163,9 +174,11 @@ export class ApiBlogRepository implements IBlogRepository {
 
     const plainText = content
       .replace(/#{1,6}\s+/g, '') // Remove headings
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove image markdown
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
       .replace(/\*([^*]+)\*/g, '$1') // Remove italic
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+      .replace(/<img[^>]*>/gi, '') // Remove html images
       .replace(/`([^`]+)`/g, '$1') // Remove inline code
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/>\s+/g, '') // Remove blockquotes
