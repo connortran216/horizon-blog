@@ -40,7 +40,9 @@ const ProfileBlogDetail = () => {
   const { user } = useAuth()
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '', {
+    postId: post?.id ?? null,
+  })
 
   useEffect(() => {
     if (id) {

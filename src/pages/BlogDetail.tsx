@@ -40,7 +40,9 @@ const BlogDetail = () => {
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
   const [readingProgress, setReadingProgress] = useState(0)
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '', {
+    postId: post?.id ?? null,
+  })
 
   // Refs for scroll tracking
   const contentRef = useRef<HTMLDivElement>(null)

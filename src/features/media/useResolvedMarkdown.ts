@@ -1,8 +1,20 @@
 import { useEffect, useState } from 'react'
-import { parseMediaIdsFromMarkdown, replaceMediaTokensWithUrls } from './media.tokens'
-import { resolveMediaUrls } from './media.api'
+import {
+  normalizeMarkdownToMediaTokens,
+  parseMediaIdsFromMarkdown,
+  replaceMediaTokensWithUrls,
+} from './media.tokens'
+import { getPostMedia, resolveMediaUrls } from './media.api'
 
-export const useResolvedMarkdown = (markdown: string): string => {
+interface UseResolvedMarkdownOptions {
+  postId?: number | null
+}
+
+export const useResolvedMarkdown = (
+  markdown: string,
+  options: UseResolvedMarkdownOptions = {},
+): string => {
+  const { postId } = options
   const [resolvedMarkdown, setResolvedMarkdown] = useState(markdown)
 
   useEffect(() => {
@@ -14,20 +26,38 @@ export const useResolvedMarkdown = (markdown: string): string => {
         return
       }
 
-      const mediaIds = parseMediaIdsFromMarkdown(markdown)
+      let normalizedMarkdown = markdown
+
+      if (postId) {
+        try {
+          const postMedia = await getPostMedia(postId)
+          const urlToMediaId = postMedia.reduce<Record<string, string>>((acc, item) => {
+            if (item.url) {
+              acc[item.url] = item.mediaId
+            }
+            return acc
+          }, {})
+
+          normalizedMarkdown = normalizeMarkdownToMediaTokens(markdown, urlToMediaId)
+        } catch {
+          // Keep content as-is if media metadata cannot be loaded.
+        }
+      }
+
+      const mediaIds = parseMediaIdsFromMarkdown(normalizedMarkdown)
       if (mediaIds.length === 0) {
-        setResolvedMarkdown(markdown)
+        setResolvedMarkdown(normalizedMarkdown)
         return
       }
 
       try {
         const mediaMap = await resolveMediaUrls(mediaIds)
         if (!active) return
-        setResolvedMarkdown(replaceMediaTokensWithUrls(markdown, mediaMap))
+        setResolvedMarkdown(replaceMediaTokensWithUrls(normalizedMarkdown, mediaMap))
       } catch (error) {
         console.error('Failed to resolve media URLs:', error)
         if (!active) return
-        setResolvedMarkdown(markdown)
+        setResolvedMarkdown(normalizedMarkdown)
       }
     }
 
@@ -36,7 +66,7 @@ export const useResolvedMarkdown = (markdown: string): string => {
     return () => {
       active = false
     }
-  }, [markdown])
+  }, [markdown, postId])
 
   return resolvedMarkdown
 }

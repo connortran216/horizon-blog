@@ -78,12 +78,16 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     async (sourceMarkdown: string, retries: number = 8): Promise<void> => {
       if (!crepeRef.current) return
 
-      const tokenIds = parseMediaIdsFromMarkdown(sourceMarkdown)
-      let nextContent = sourceMarkdown
+      const normalizedMarkdown = normalizeMarkdownToMediaTokens(
+        sourceMarkdown,
+        urlToMediaIdRef.current,
+      )
+      const tokenIds = parseMediaIdsFromMarkdown(normalizedMarkdown)
+      let nextContent = normalizedMarkdown
 
       if (tokenIds.length > 0) {
         const mediaMap = await resolveMediaUrls(tokenIds)
-        nextContent = replaceMediaTokensWithUrls(sourceMarkdown, mediaMap)
+        nextContent = replaceMediaTokensWithUrls(normalizedMarkdown, mediaMap)
         Object.entries(mediaMap).forEach(([mediaId, value]) => {
           urlToMediaIdRef.current[value.url] = mediaId
           managedMediaIdsRef.current.add(mediaId)
@@ -103,8 +107,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             view.dispatch(tr)
           })
 
-          previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(sourceMarkdown))
-          lastContentRef.current = sourceMarkdown
+          previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(normalizedMarkdown))
+          lastContentRef.current = normalizedMarkdown
           return
         } catch (error) {
           const maybeMilkdownError = error as { code?: string }
@@ -157,13 +161,17 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         }
       }
 
-      const tokenIds = parseMediaIdsFromMarkdown(initialContent)
-      let resolvedInitialContent = initialContent
+      const normalizedInitialContent = normalizeMarkdownToMediaTokens(
+        initialContent,
+        urlToMediaIdRef.current,
+      )
+      const tokenIds = parseMediaIdsFromMarkdown(normalizedInitialContent)
+      let resolvedInitialContent = normalizedInitialContent
 
       if (tokenIds.length > 0) {
         try {
           const mediaMap = await resolveMediaUrls(tokenIds)
-          resolvedInitialContent = replaceMediaTokensWithUrls(initialContent, mediaMap)
+          resolvedInitialContent = replaceMediaTokensWithUrls(normalizedInitialContent, mediaMap)
           Object.entries(mediaMap).forEach(([mediaId, value]) => {
             urlToMediaIdRef.current[value.url] = mediaId
             managedMediaIdsRef.current.add(mediaId)
@@ -296,7 +304,9 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
           setTimeout(() => {
             if (!isMountedRef.current) return
             isEditorReadyRef.current = true
-            previousTokenIdsRef.current = new Set(parseMediaIdsFromMarkdown(initialContent))
+            previousTokenIdsRef.current = new Set(
+              parseMediaIdsFromMarkdown(normalizedInitialContent),
+            )
             const pendingContent = pendingExternalContentRef.current
             if (pendingContent && pendingContent !== lastContentRef.current) {
               void syncExternalContent(pendingContent).catch((error) => {
