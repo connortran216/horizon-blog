@@ -82,6 +82,9 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         sourceMarkdown,
         urlToMediaIdRef.current,
       )
+      if (onChange && normalizedMarkdown !== sourceMarkdown) {
+        onChange(normalizedMarkdown)
+      }
       const tokenIds = parseMediaIdsFromMarkdown(normalizedMarkdown)
       let nextContent = normalizedMarkdown
 
@@ -165,6 +168,9 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         initialContent,
         urlToMediaIdRef.current,
       )
+      if (onChange && normalizedInitialContent !== initialContent) {
+        onChange(normalizedInitialContent)
+      }
       const tokenIds = parseMediaIdsFromMarkdown(normalizedInitialContent)
       let resolvedInitialContent = normalizedInitialContent
 
@@ -292,6 +298,9 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             }
 
             previousTokenIdsRef.current = currentTokenIds
+            // Mark this as the latest editor-authored content to avoid
+            // re-syncing the same markdown back into the editor instance.
+            lastContentRef.current = normalizedMarkdown
             onChange(normalizedMarkdown)
           })
         })
