@@ -175,9 +175,11 @@ export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
 
         // Images
         '& img': {
+          display: 'block',
           maxW: '100%',
           height: 'auto',
           borderRadius: 'md',
+          mx: 'auto',
           my: 4,
           border: '1px solid',
           borderColor: 'border.subtle',
