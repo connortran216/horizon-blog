@@ -14,6 +14,18 @@ const normalizeOptionalText = (value?: string | null): string | undefined => {
   return trimmed ? trimmed : undefined
 }
 
+const normalizeAvatarUrl = (value?: string | null): string | undefined => {
+  const normalized = normalizeOptionalText(value)
+  if (!normalized) return undefined
+
+  // Prevent invalid schemes (e.g. media:// token) from being used as image src.
+  if (normalized.startsWith('media://')) {
+    return undefined
+  }
+
+  return normalized
+}
+
 /**
  * API Profile Repository
  * Encapsulates profile and avatar endpoint calls.
@@ -27,7 +39,7 @@ export class ApiProfileRepository implements IProfileRepository {
       bio: normalizeOptionalText(apiProfile.bio),
       website: normalizeOptionalText(apiProfile.website),
       location: normalizeOptionalText(apiProfile.location),
-      avatarUrl: normalizeOptionalText(apiProfile.avatar_url),
+      avatarUrl: normalizeAvatarUrl(apiProfile.avatar_url),
     }
   }
 
@@ -55,7 +67,6 @@ export class ApiProfileRepository implements IProfileRepository {
         data: this.transformProfile(response.data),
       }
     } catch (error: unknown) {
-      console.error('Failed to fetch current profile:', error)
       return {
         success: false,
         error: this.toErrorMessage(error, 'Failed to fetch current profile'),
@@ -74,7 +85,6 @@ export class ApiProfileRepository implements IProfileRepository {
         data: this.transformProfile(response.data),
       }
     } catch (error: unknown) {
-      console.error('Failed to update current profile:', error)
       return {
         success: false,
         error: this.toErrorMessage(error, 'Failed to update current profile'),
@@ -94,7 +104,6 @@ export class ApiProfileRepository implements IProfileRepository {
         data: this.transformProfile(response.data),
       }
     } catch (error: unknown) {
-      console.error('Failed to upload avatar:', error)
       return {
         success: false,
         error: this.toErrorMessage(error, 'Failed to upload avatar'),
@@ -111,7 +120,6 @@ export class ApiProfileRepository implements IProfileRepository {
         data: undefined,
       }
     } catch (error: unknown) {
-      console.error('Failed to remove avatar:', error)
       return {
         success: false,
         error: this.toErrorMessage(error, 'Failed to remove avatar'),

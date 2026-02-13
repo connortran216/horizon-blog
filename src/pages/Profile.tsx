@@ -87,6 +87,29 @@ const buildProfileFormValues = (profile: UserProfile | null): ProfileFormValues 
   }
 }
 
+const buildFallbackProfile = (
+  profile: UserProfile | null,
+  authUser: {
+    id: number
+    username: string
+    email?: string
+  } | null,
+): UserProfile => {
+  if (profile) {
+    return profile
+  }
+
+  return {
+    id: authUser?.id || 0,
+    name: authUser?.username || '',
+    email: authUser?.email || '',
+    bio: '',
+    website: '',
+    location: '',
+    avatarUrl: undefined,
+  }
+}
+
 const getProfileErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof ApiError) {
     if (error.status === 400) return 'Invalid profile data. Please check your inputs.'
@@ -101,6 +124,25 @@ const getProfileErrorMessage = (error: unknown, fallback: string): string => {
   }
 
   return fallback
+}
+
+const sanitizeImageSrc = (value?: string): string | undefined => {
+  if (!value) return undefined
+
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (trimmed.startsWith('media://')) return undefined
+
+  if (
+    /^https?:\/\//i.test(trimmed) ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('/')
+  ) {
+    return trimmed
+  }
+
+  return undefined
 }
 
 const Profile = () => {
@@ -218,14 +260,16 @@ const Profile = () => {
         if (publishedResult.success && publishedResult.data) {
           const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
           const mappedPublished = publishedResult.data.map((post) => ({
+            featuredImage: sanitizeImageSrc(
+              post.featuredImage
+                ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
+                : undefined,
+            ),
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt,
             status: post.status,
-            featuredImage: post.featuredImage
-              ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
-              : undefined,
           }))
           setPublishedBlogs(mappedPublished)
 
@@ -246,14 +290,16 @@ const Profile = () => {
         if (draftsResult.success && draftsResult.data) {
           const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
           const mappedDrafts = draftsResult.data.map((post) => ({
+            featuredImage: sanitizeImageSrc(
+              post.featuredImage
+                ? resolvedDraftImages[post.featuredImage] || post.featuredImage
+                : undefined,
+            ),
             id: String(post.id),
             title: post.title,
             subtitle: post.subtitle || post.excerpt,
             createdAt: post.createdAt,
             status: post.status,
-            featuredImage: post.featuredImage
-              ? resolvedDraftImages[post.featuredImage] || post.featuredImage
-              : undefined,
           }))
           setDraftBlogs(mappedDrafts)
 
@@ -299,14 +345,16 @@ const Profile = () => {
     if (publishedResult.success && publishedResult.data) {
       const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
       const mappedPublished = publishedResult.data.map((post) => ({
+        featuredImage: sanitizeImageSrc(
+          post.featuredImage
+            ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
+            : undefined,
+        ),
         id: String(post.id),
         title: post.title,
         subtitle: post.subtitle || post.excerpt,
         createdAt: post.createdAt,
         status: post.status,
-        featuredImage: post.featuredImage
-          ? resolvedPublishedImages[post.featuredImage] || post.featuredImage
-          : undefined,
       }))
       setPublishedBlogs(mappedPublished)
       const publishedTotal = publishedResult.metadata?.total
@@ -323,14 +371,16 @@ const Profile = () => {
     if (draftsResult.success && draftsResult.data) {
       const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
       const mappedDrafts = draftsResult.data.map((post) => ({
+        featuredImage: sanitizeImageSrc(
+          post.featuredImage
+            ? resolvedDraftImages[post.featuredImage] || post.featuredImage
+            : undefined,
+        ),
         id: String(post.id),
         title: post.title,
         subtitle: post.subtitle || post.excerpt,
         createdAt: post.createdAt,
         status: post.status,
-        featuredImage: post.featuredImage
-          ? resolvedDraftImages[post.featuredImage] || post.featuredImage
-          : undefined,
       }))
       setDraftBlogs(mappedDrafts)
       const draftTotalInLoadBlogs = draftsResult.metadata?.total
@@ -369,7 +419,8 @@ const Profile = () => {
   }
 
   const handleOpenProfileEditor = () => {
-    setProfileForm(buildProfileFormValues(profile))
+    const fallbackProfile = buildFallbackProfile(profile, user)
+    setProfileForm(buildProfileFormValues(fallbackProfile))
     onOpen()
   }
 
@@ -381,11 +432,26 @@ const Profile = () => {
   }
 
   const handleSaveProfile = async () => {
-    if (!profile) return
+    const fallbackProfile = buildFallbackProfile(profile, user)
+    const normalizedName = profileForm.name.trim() || fallbackProfile.name.trim()
+
+    if (!normalizedName) {
+      toast({
+        title: 'Name is required',
+        description: 'Please enter your display name before saving.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+      return
+    }
 
     setIsSavingProfile(true)
     try {
-      const updatedProfile = await getProfileService().updateCurrentProfile(profile, profileForm)
+      const updatedProfile = await getProfileService().updateCurrentProfile(fallbackProfile, {
+        ...profileForm,
+        name: normalizedName,
+      })
       setProfile(updatedProfile)
       setProfileForm(buildProfileFormValues(updatedProfile))
       setAvatarRefreshAttempted(false)
@@ -492,13 +558,14 @@ const Profile = () => {
   }
 
   useEffect(() => {
-    if (!profile?.avatarUrl || avatarRefreshAttempted) {
+    const safeAvatarUrl = sanitizeImageSrc(profile?.avatarUrl)
+    if (!safeAvatarUrl || avatarRefreshAttempted) {
       return
     }
 
     let isMounted = true
     const imageProbe = new window.Image()
-    imageProbe.src = profile.avatarUrl
+    imageProbe.src = safeAvatarUrl
     imageProbe.onerror = () => {
       if (!isMounted) return
 
@@ -651,6 +718,7 @@ const Profile = () => {
   const tabBorderColor = 'accent.primary'
 
   const profileName = profile?.name || user?.username || username || 'My Profile'
+  const avatarSrc = sanitizeImageSrc(profile?.avatarUrl) || sanitizeImageSrc(user?.avatar)
 
   return (
     <MotionWrapper>
@@ -669,11 +737,7 @@ const Profile = () => {
                   gap={6}
                 >
                   <Box pos="relative">
-                    <Avatar
-                      size={{ base: 'xl', md: 'xl' }}
-                      src={profile?.avatarUrl || user?.avatar}
-                      name={profileName}
-                    />
+                    <Avatar size={{ base: 'xl', md: 'xl' }} src={avatarSrc} name={profileName} />
                   </Box>
 
                   <VStack flex={1} align={{ base: 'center', md: 'stretch' }} spacing={3}>
