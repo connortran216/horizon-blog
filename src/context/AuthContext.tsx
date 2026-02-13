@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react'
 import { User } from '../core/types/common.types'
 import { authService } from '../core/services/auth.service'
 import {
@@ -8,6 +8,8 @@ import {
   LoginCredentials,
   RegisterData,
 } from '../core/types/auth.types'
+import { getProfileService } from '../core/di/container'
+import { ApiError } from '../core/services/api.service'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
@@ -17,9 +19,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const refreshUserProfile = useCallback(async (): Promise<User | null> => {
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
+    if (!token) {
+      setUser(null)
+      setStatus(AuthStatus.UNAUTHENTICATED)
+      return null
+    }
+
+    try {
+      const profileService = getProfileService()
+      const profile = await profileService.getCurrentProfile()
+      const refreshedUser = profileService.toAuthUser(profile)
+      setUser(refreshedUser)
+      setStatus(AuthStatus.AUTHENTICATED)
+      setError(null)
+      return refreshedUser
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
+        setUser(null)
+        setStatus(AuthStatus.UNAUTHENTICATED)
+        setError('Session expired. Please log in again.')
+        return null
+      }
+
+      return null
+    }
+  }, [])
+
   // Restore user session on app initialization
   useEffect(() => {
-    const restoreSession = () => {
+    const restoreSession = async () => {
       try {
         const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
         if (!token) {
@@ -28,27 +59,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        // Decode JWT token client-side (no API call needed)
-        const currentUser = authService.decodeToken(token)
-        if (currentUser) {
-          setUser(currentUser)
-          setStatus(AuthStatus.AUTHENTICATED)
-        } else {
+        // Decode JWT to validate token expiration first.
+        const decodedUser = authService.decodeToken(token)
+        if (!decodedUser) {
           // Token invalid or expired, clear it
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
           setStatus(AuthStatus.UNAUTHENTICATED)
+          setIsLoading(false)
+          return
         }
+
+        // Set a quick local user first, then refresh full profile from /users/me.
+        setUser(decodedUser)
+        setStatus(AuthStatus.AUTHENTICATED)
+        await refreshUserProfile()
       } catch (err) {
         console.error('Failed to restore session:', err)
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
+        setUser(null)
         setStatus(AuthStatus.UNAUTHENTICATED)
       } finally {
         setIsLoading(false)
       }
     }
 
-    restoreSession()
-  }, [])
+    void restoreSession()
+  }, [refreshUserProfile])
 
   // Listen for unauthorized events from API service
   useEffect(() => {
@@ -70,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const loggedInUser = await authService.login(credentials)
       setUser(loggedInUser)
       setStatus(AuthStatus.AUTHENTICATED)
+      await refreshUserProfile()
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed'
       setError(errorMessage)
@@ -88,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const registeredUser = await authService.register(data)
       setUser(registeredUser)
       setStatus(AuthStatus.AUTHENTICATED)
+      await refreshUserProfile()
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed'
       setError(errorMessage)
@@ -119,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshUserProfile,
         clearError,
       }}
     >

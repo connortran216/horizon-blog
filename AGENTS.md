@@ -92,6 +92,8 @@
 - `src/core/services/auth.service.ts`: login/register and token handling.
 - `src/core/services/blog.service.ts`: blog business rules.
 - `src/core/repositories/blog.repository.ts`: API data access and caching.
+- `src/core/services/profile.service.ts`: profile business rules and avatar validation.
+- `src/core/repositories/profile.repository.ts`: profile/avatar API data access.
 - `src/core/types/*.ts`: domain and API types.
 - `src/core/utils/blog.utils.ts`: legacy lexical helpers.
 - `src/core/utils/error.utils.ts`: error helpers.
@@ -284,6 +286,10 @@
 - `DELETE /posts/:id` for delete.
 - `GET /posts/search` for search.
 - `GET /users/me/posts` for current user posts.
+- `GET /users/me` for current user profile and avatar URL refresh.
+- `PATCH /users/me` for profile updates.
+- `POST /users/me/avatar` for avatar upload/replace.
+- `DELETE /users/me/avatar` for avatar removal.
 - `POST /images/upload` for image uploads.
 
 ### 9.5 API Data Shapes (Observed)
@@ -314,7 +320,8 @@
 - `AuthService.login` validates input.
 - Calls `POST /auth/login` with email and password.
 - Stores JWT in localStorage.
-- Decodes JWT for user profile.
+- Decodes JWT for initial user shape.
+- Refreshes full profile from `GET /users/me` when session is restored.
 - `AuthContext` updates status and user.
 
 ### 10.4 Register Flow

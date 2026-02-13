@@ -1,40 +1,56 @@
 import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Flex,
-  Stack,
   Avatar,
-  SimpleGrid,
-  Tag,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
+  Box,
+  Button,
+  Container,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Image,
+  Input,
   Menu,
   MenuButton,
-  MenuList,
   MenuItem,
-  IconButton,
-  Icon,
-  Image,
+  MenuList,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  SimpleGrid,
+  Spinner,
+  Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tag,
+  Text,
+  Textarea,
+  useDisclosure,
+  useToast,
+  VStack,
 } from '@chakra-ui/react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Link as RouterLink, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { FaUsers, FaPenNib, FaGithub, FaTwitter } from 'react-icons/fa'
+import { FiMoreVertical } from 'react-icons/fi'
 import { MotionWrapper, AnimatedCard, AnimatedGhostButton } from '../core'
 import PaginationControls from '../components/PaginationControls'
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { useParams, Link as RouterLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getBlogRepository } from '../core/di/container'
-import { FiMoreVertical } from 'react-icons/fi'
+import { getBlogRepository, getProfileService } from '../core/di/container'
+import { ApiError } from '../core/services/api.service'
+import { UserProfile } from '../core/types/profile.types'
 import { resolveMediaUrls } from '../features/media/media.api'
 
-// Local BlogPost type that matches the old format
 interface BlogPost {
   id: string
   title: string
@@ -44,16 +60,72 @@ interface BlogPost {
   featuredImage?: string
 }
 
+interface ProfileFormValues {
+  name: string
+  bio: string
+  website: string
+  location: string
+}
+
+const DEFAULT_PROFILE_FORM: ProfileFormValues = {
+  name: '',
+  bio: '',
+  website: '',
+  location: '',
+}
+
+const buildProfileFormValues = (profile: UserProfile | null): ProfileFormValues => {
+  if (!profile) {
+    return DEFAULT_PROFILE_FORM
+  }
+
+  return {
+    name: profile.name || '',
+    bio: profile.bio || '',
+    website: profile.website || '',
+    location: profile.location || '',
+  }
+}
+
+const getProfileErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof ApiError) {
+    if (error.status === 400) return 'Invalid profile data. Please check your inputs.'
+    if (error.status === 401) return 'Session expired. Please log in again.'
+    if (error.status === 413) return 'Max 5MB'
+    if (error.status === 415) return 'Use JPG/PNG'
+    if (error.status >= 500) return 'Something went wrong. Please try again.'
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return fallback
+}
+
 const Profile = () => {
   const { username } = useParams()
-  const { user, status } = useAuth()
+  const { user, status, refreshUserProfile } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const toast = useToast()
+  const { isOpen, onOpen, onClose } = useDisclosure()
+
   const [publishedBlogs, setPublishedBlogs] = useState<BlogPost[]>([])
   const [draftBlogs, setDraftBlogs] = useState<BlogPost[]>([])
-  const [loading, setLoading] = useState(true)
+  const [postsLoading, setPostsLoading] = useState(true)
   const [publishedPagination, setPublishedPagination] = useState({ page: 1, limit: 6, total: 0 })
   const [draftPagination, setDraftPagination] = useState({ page: 1, limit: 6, total: 0 })
+
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [profileForm, setProfileForm] = useState<ProfileFormValues>(DEFAULT_PROFILE_FORM)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
+  const [avatarRefreshAttempted, setAvatarRefreshAttempted] = useState(false)
+
+  const avatarInputRef = useRef<HTMLInputElement | null>(null)
 
   const resolveFeaturedImages = async (
     posts: Array<{ featuredImage?: string }>,
@@ -84,25 +156,65 @@ const Profile = () => {
     }
   }
 
+  const loadCurrentProfile = useCallback(
+    async (showErrorToast = false, resetAvatarRetry = true): Promise<UserProfile | null> => {
+      if (status !== 'authenticated') {
+        setProfile(null)
+        setProfileForm(DEFAULT_PROFILE_FORM)
+        setProfileLoading(false)
+        return null
+      }
+
+      setProfileLoading(true)
+
+      try {
+        const currentProfile = await getProfileService().getCurrentProfile()
+        setProfile(currentProfile)
+        setProfileForm(buildProfileFormValues(currentProfile))
+        if (resetAvatarRetry) {
+          setAvatarRefreshAttempted(false)
+        }
+        return currentProfile
+      } catch (error) {
+        if (showErrorToast) {
+          toast({
+            title: 'Failed to load profile',
+            description: getProfileErrorMessage(error, 'Unable to load your profile.'),
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          })
+        }
+
+        return null
+      } finally {
+        setProfileLoading(false)
+      }
+    },
+    [status, toast],
+  )
+
   useEffect(() => {
-    // Don't load posts if user is not authenticated or auth is still loading
+    void loadCurrentProfile(true)
+  }, [loadCurrentProfile])
+
+  useEffect(() => {
     if (status === 'loading' || status === 'unauthenticated' || !user) {
-      setLoading(false)
+      setPostsLoading(false)
       return
     }
 
-    // Load the current user's posts using /users/me/posts endpoint
     const loadUserPosts = async () => {
-      setLoading(true)
+      setPostsLoading(true)
       getBlogRepository().clearCache?.()
 
       try {
-        // Fetch published posts
         const publishedResult = await getBlogRepository().getCurrentUserPosts(
           'published',
           publishedPagination.page,
           publishedPagination.limit,
         )
+
         if (publishedResult.success && publishedResult.data) {
           const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
           const mappedPublished = publishedResult.data.map((post) => ({
@@ -116,7 +228,7 @@ const Profile = () => {
               : undefined,
           }))
           setPublishedBlogs(mappedPublished)
-          // Set total from metadata if available
+
           const publishedTotal = publishedResult.metadata?.total
           if (publishedTotal !== undefined) {
             setPublishedPagination((prev) => ({ ...prev, total: publishedTotal }))
@@ -125,12 +237,12 @@ const Profile = () => {
           }
         }
 
-        // Fetch draft posts
         const draftsResult = await getBlogRepository().getCurrentUserPosts(
           'draft',
           draftPagination.page,
           draftPagination.limit,
         )
+
         if (draftsResult.success && draftsResult.data) {
           const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
           const mappedDrafts = draftsResult.data.map((post) => ({
@@ -144,7 +256,7 @@ const Profile = () => {
               : undefined,
           }))
           setDraftBlogs(mappedDrafts)
-          // Set total from metadata if available
+
           const draftTotal = draftsResult.metadata?.total
           if (draftTotal !== undefined) {
             setDraftPagination((prev) => ({ ...prev, total: draftTotal }))
@@ -153,11 +265,11 @@ const Profile = () => {
       } catch (error) {
         console.error('Error loading user posts:', error)
       } finally {
-        setLoading(false)
+        setPostsLoading(false)
       }
     }
 
-    loadUserPosts()
+    void loadUserPosts()
   }, [
     location.pathname,
     user,
@@ -168,12 +280,13 @@ const Profile = () => {
     draftPagination.limit,
   ])
 
-  // Clear data when user becomes unauthenticated
   useEffect(() => {
     if (status === 'unauthenticated' || !user) {
       setPublishedBlogs([])
       setDraftBlogs([])
-      setLoading(false)
+      setPostsLoading(false)
+      setProfile(null)
+      setProfileForm(DEFAULT_PROFILE_FORM)
     }
   }, [status, user])
 
@@ -233,7 +346,6 @@ const Profile = () => {
         const result = await getBlogRepository().deletePost(blogId)
 
         if (result.success) {
-          // Refresh the blogs lists with current pagination
           await loadBlogs()
         }
       } catch (error) {
@@ -243,7 +355,6 @@ const Profile = () => {
   }
 
   const handleEdit = (blogId: string) => {
-    // Navigate with state to indicate authorized edit from profile
     navigate(`/blog-editor?id=${blogId}`, {
       state: { fromProfile: true, authorizedEdit: true },
     })
@@ -257,7 +368,153 @@ const Profile = () => {
     setDraftPagination((prev) => ({ ...prev, page }))
   }
 
-  // Format date to a more readable format
+  const handleOpenProfileEditor = () => {
+    setProfileForm(buildProfileFormValues(profile))
+    onOpen()
+  }
+
+  const handleProfileFormChange = (field: keyof ProfileFormValues, value: string) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSaveProfile = async () => {
+    if (!profile) return
+
+    setIsSavingProfile(true)
+    try {
+      const updatedProfile = await getProfileService().updateCurrentProfile(profile, profileForm)
+      setProfile(updatedProfile)
+      setProfileForm(buildProfileFormValues(updatedProfile))
+      setAvatarRefreshAttempted(false)
+      void refreshUserProfile()
+
+      toast({
+        title: 'Profile updated',
+        description: 'Your profile has been saved successfully.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+
+      onClose()
+    } catch (error) {
+      toast({
+        title: 'Profile update failed',
+        description: getProfileErrorMessage(error, 'Failed to update profile.'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
+  const handleSelectAvatar = () => {
+    avatarInputRef.current?.click()
+  }
+
+  const handleAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) {
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    try {
+      const updatedProfile = await getProfileService().uploadAvatar(file)
+      setProfile(updatedProfile)
+      setProfileForm(buildProfileFormValues(updatedProfile))
+      setAvatarRefreshAttempted(false)
+      void refreshUserProfile()
+
+      toast({
+        title: 'Avatar updated',
+        description: 'Your avatar has been updated successfully.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Avatar upload failed',
+        description: getProfileErrorMessage(error, 'Failed to upload avatar.'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!profile?.avatarUrl) {
+      return
+    }
+
+    setIsRemovingAvatar(true)
+    try {
+      await getProfileService().removeAvatar()
+      setProfile((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          avatarUrl: undefined,
+        }
+      })
+      setAvatarRefreshAttempted(false)
+      void refreshUserProfile()
+
+      toast({
+        title: 'Avatar removed',
+        description: 'Your avatar has been removed.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+    } catch (error) {
+      toast({
+        title: 'Avatar removal failed',
+        description: getProfileErrorMessage(error, 'Failed to remove avatar.'),
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      })
+    } finally {
+      setIsRemovingAvatar(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!profile?.avatarUrl || avatarRefreshAttempted) {
+      return
+    }
+
+    let isMounted = true
+    const imageProbe = new window.Image()
+    imageProbe.src = profile.avatarUrl
+    imageProbe.onerror = () => {
+      if (!isMounted) return
+
+      setAvatarRefreshAttempted(true)
+      void loadCurrentProfile(false, false).then((refreshedProfile) => {
+        if (refreshedProfile) {
+          void refreshUserProfile()
+        }
+      })
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [profile?.avatarUrl, avatarRefreshAttempted, loadCurrentProfile, refreshUserProfile])
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -280,13 +537,14 @@ const Profile = () => {
     onPageChange: (page: number) => void
   }) => {
     const dateMeta = 'text.tertiary'
+    const profileUsername = user?.username || username || ''
 
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1 }} spacing={4}>
           {blogs.map((blog, index) => (
             <Box key={blog.id} position="relative">
-              <RouterLink to={`/profile/${username}/blog/${blog.id}`}>
+              <RouterLink to={`/profile/${profileUsername}/blog/${blog.id}`}>
                 <Box height="100%" display="flex">
                   <AnimatedCard
                     maxW="100%"
@@ -388,10 +646,11 @@ const Profile = () => {
     )
   }
 
-  // Tab color mode values
   const tabColor = 'text.secondary'
   const tabSelectedColor = 'accent.primary'
   const tabBorderColor = 'accent.primary'
+
+  const profileName = profile?.name || user?.username || username || 'My Profile'
 
   return (
     <MotionWrapper>
@@ -399,84 +658,154 @@ const Profile = () => {
         <VStack spacing={8} align="stretch">
           <AnimatedCard overflow="hidden" intensity="medium">
             <Box p={8} overflow="hidden" pos="relative">
-              <Flex
-                direction={{ base: 'column', md: 'row' }}
-                align={{ base: 'center', md: 'flex-start' }}
-                gap={6}
-              >
-                <Box pos="relative">
-                  <Avatar
-                    size={{ base: 'xl', md: 'xl' }}
-                    src={user?.avatar}
-                    name={user?.username || username}
-                  />
-                </Box>
+              {profileLoading ? (
+                <Flex justify="center" align="center" minH="160px">
+                  <Spinner size="lg" />
+                </Flex>
+              ) : (
+                <Flex
+                  direction={{ base: 'column', md: 'row' }}
+                  align={{ base: 'center', md: 'flex-start' }}
+                  gap={6}
+                >
+                  <Box pos="relative">
+                    <Avatar
+                      size={{ base: 'xl', md: 'xl' }}
+                      src={profile?.avatarUrl || user?.avatar}
+                      name={profileName}
+                    />
+                  </Box>
 
-                <VStack flex={1} align={{ base: 'center', md: 'stretch' }} spacing={3}>
-                  <Heading size="3xl" color="text.primary">
-                    {user?.username || username}
-                  </Heading>
-                  <Text color="text.secondary" textAlign={{ base: 'center', md: 'left' }} maxW="lg">
-                    Passionate developer sharing insights about web development, UI/UX, and Python
-                    mastery.
-                  </Text>
+                  <VStack flex={1} align={{ base: 'center', md: 'stretch' }} spacing={3}>
+                    <Heading size="3xl" color="text.primary">
+                      {profileName}
+                    </Heading>
 
-                  <Stack direction="row" spacing={6} justify={{ base: 'center', md: 'flex-start' }}>
-                    <HStack spacing={2}>
-                      <Icon as={FaUsers} color="accent.primary" />
-                      <Text color="text.secondary">
-                        <Text as="span" fontWeight="bold" color="text.primary">
-                          1.2k
-                        </Text>{' '}
-                        Followers
+                    {profile?.email && (
+                      <Text color="text.tertiary" textAlign={{ base: 'center', md: 'left' }}>
+                        {profile.email}
                       </Text>
-                    </HStack>
-                    <HStack spacing={2}>
-                      <Icon as={FaPenNib} color="accent.primary" />
-                      <Text color="text.secondary">
-                        <Text as="span" fontWeight="bold" color="text.primary">
-                          {publishedPagination.total}
-                        </Text>{' '}
-                        Articles
-                      </Text>
-                    </HStack>
-                    <HStack
-                      spacing={3}
-                      ml={2}
-                      borderLeft="1px solid"
-                      borderColor="border.default"
-                      pl={4}
+                    )}
+
+                    <Text
+                      color="text.secondary"
+                      textAlign={{ base: 'center', md: 'left' }}
+                      maxW="lg"
                     >
-                      <IconButton
-                        as="a"
-                        href="#"
-                        aria-label="GitHub"
-                        icon={<Icon as={FaGithub} />}
-                        variant="ghost"
-                        size="sm"
-                        color="text.secondary"
-                        _hover={{ color: 'text.primary' }}
-                      />
-                      <IconButton
-                        as="a"
-                        href="#"
-                        aria-label="Twitter"
-                        icon={<Icon as={FaTwitter} />}
-                        variant="ghost"
-                        size="sm"
-                        color="text.secondary"
-                        _hover={{ color: '#1DA1F2' }}
-                      />
-                    </HStack>
-                  </Stack>
-                </VStack>
+                      {profile?.bio || 'Tell readers a bit about yourself.'}
+                    </Text>
 
-                <Box alignSelf={{ base: 'center', md: 'flex-start' }}>
-                  <AnimatedGhostButton disabled px={5} py={2}>
-                    Edit Profile
-                  </AnimatedGhostButton>
-                </Box>
-              </Flex>
+                    <HStack
+                      spacing={4}
+                      flexWrap="wrap"
+                      justify={{ base: 'center', md: 'flex-start' }}
+                    >
+                      {profile?.location && <Text color="text.secondary">{profile.location}</Text>}
+                      {profile?.website && (
+                        <Text
+                          as="a"
+                          href={profile.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          color="link.default"
+                          _hover={{ color: 'link.hover' }}
+                        >
+                          Website
+                        </Text>
+                      )}
+                    </HStack>
+
+                    <Stack
+                      direction="row"
+                      spacing={6}
+                      justify={{ base: 'center', md: 'flex-start' }}
+                    >
+                      <HStack spacing={2}>
+                        <Icon as={FaUsers} color="accent.primary" />
+                        <Text color="text.secondary">
+                          <Text as="span" fontWeight="bold" color="text.primary">
+                            1.2k
+                          </Text>{' '}
+                          Followers
+                        </Text>
+                      </HStack>
+                      <HStack spacing={2}>
+                        <Icon as={FaPenNib} color="accent.primary" />
+                        <Text color="text.secondary">
+                          <Text as="span" fontWeight="bold" color="text.primary">
+                            {publishedPagination.total}
+                          </Text>{' '}
+                          Articles
+                        </Text>
+                      </HStack>
+                      <HStack
+                        spacing={3}
+                        ml={2}
+                        borderLeft="1px solid"
+                        borderColor="border.default"
+                        pl={4}
+                      >
+                        <IconButton
+                          as="a"
+                          href="#"
+                          aria-label="GitHub"
+                          icon={<Icon as={FaGithub} />}
+                          variant="ghost"
+                          size="sm"
+                          color="text.secondary"
+                          _hover={{ color: 'text.primary' }}
+                        />
+                        <IconButton
+                          as="a"
+                          href="#"
+                          aria-label="Twitter"
+                          icon={<Icon as={FaTwitter} />}
+                          variant="ghost"
+                          size="sm"
+                          color="text.secondary"
+                          _hover={{ color: '#1DA1F2' }}
+                        />
+                      </HStack>
+                    </Stack>
+                  </VStack>
+
+                  <VStack alignSelf={{ base: 'center', md: 'flex-start' }} spacing={3}>
+                    <AnimatedGhostButton
+                      px={5}
+                      py={2}
+                      onClick={handleOpenProfileEditor}
+                      isDisabled={profileLoading}
+                    >
+                      Edit Profile
+                    </AnimatedGhostButton>
+                    <AnimatedGhostButton
+                      px={5}
+                      py={2}
+                      onClick={handleSelectAvatar}
+                      isLoading={isUploadingAvatar}
+                      isDisabled={profileLoading || isRemovingAvatar}
+                    >
+                      Change Avatar
+                    </AnimatedGhostButton>
+                    <AnimatedGhostButton
+                      px={5}
+                      py={2}
+                      onClick={handleRemoveAvatar}
+                      isLoading={isRemovingAvatar}
+                      isDisabled={profileLoading || isUploadingAvatar || !profile?.avatarUrl}
+                    >
+                      Remove Avatar
+                    </AnimatedGhostButton>
+                    <Input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png"
+                      onChange={handleAvatarChange}
+                      display="none"
+                    />
+                  </VStack>
+                </Flex>
+              )}
             </Box>
           </AnimatedCard>
 
@@ -484,7 +813,7 @@ const Profile = () => {
             <Heading size="md" color="text.primary" mb={4}>
               My Articles
             </Heading>
-            {loading ? (
+            {postsLoading ? (
               <Text textAlign="center">Loading articles...</Text>
             ) : (
               <Tabs>
@@ -541,6 +870,69 @@ const Profile = () => {
           </Box>
         </VStack>
       </Container>
+
+      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Profile</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              <FormControl isRequired>
+                <FormLabel>Name</FormLabel>
+                <Input
+                  value={profileForm.name}
+                  onChange={(event) => handleProfileFormChange('name', event.target.value)}
+                  placeholder="Your name"
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Bio</FormLabel>
+                <Textarea
+                  value={profileForm.bio}
+                  onChange={(event) => handleProfileFormChange('bio', event.target.value)}
+                  placeholder="Tell readers about you"
+                  rows={4}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Website</FormLabel>
+                <Input
+                  value={profileForm.website}
+                  onChange={(event) => handleProfileFormChange('website', event.target.value)}
+                  placeholder="https://example.com"
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Location</FormLabel>
+                <Input
+                  value={profileForm.location}
+                  onChange={(event) => handleProfileFormChange('location', event.target.value)}
+                  placeholder="City, Country"
+                />
+              </FormControl>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              bg="accent.primary"
+              color="white"
+              _hover={{ bg: 'accent.hover' }}
+              onClick={handleSaveProfile}
+              isLoading={isSavingProfile}
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </MotionWrapper>
   )
 }

@@ -158,7 +158,6 @@ export class AuthService implements IAuthService {
         id: decoded.user_id,
         username: decoded.name,
         email: decoded.email,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${decoded.name}`,
       }
     } catch (error) {
       console.error('Failed to decode JWT token:', error)
@@ -232,7 +231,6 @@ export class AuthService implements IAuthService {
       id: apiUser.id,
       username: apiUser.name, // API name -> FE username
       email: apiUser.email,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiUser.name}`, // Default avatar
     }
   }
 }

@@ -40,6 +40,7 @@ export interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
   logout: () => void
+  refreshUserProfile: () => Promise<User | null>
   clearError: () => void
 }
 

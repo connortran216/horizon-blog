@@ -34,7 +34,8 @@ export class AuthInterceptor {
     // Handle authentication errors ONLY for protected endpoints
     if (status === 401) {
       // Don't redirect if this is a login/register attempt (wrong credentials)
-      const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/users')
+      const normalizedEndpoint = endpoint.split('?')[0]
+      const isAuthEndpoint = normalizedEndpoint === '/auth/login' || normalizedEndpoint === '/users'
 
       if (!isAuthEndpoint) {
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)

@@ -7,10 +7,12 @@
 export * from './types/common.types'
 export * from './types/blog.types'
 export * from './types/auth.types'
+export * from './types/profile.types'
 
 // Services
 export * from './services/api.service'
 export * from './services/auth.service'
+export * from './services/profile.service'
 
 // DI Container
 export * from './di/container'

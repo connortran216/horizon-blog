@@ -15,6 +15,9 @@ export interface User {
   username: string
   avatar?: string
   email?: string
+  bio?: string
+  website?: string
+  location?: string
 }
 
 // Author information for blog posts

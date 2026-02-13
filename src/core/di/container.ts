@@ -11,6 +11,10 @@ import { IAuthService } from '../types/auth.types'
 import { authService } from '../services/auth.service'
 import { IBlogService } from '../types/blog-service.types'
 import { createBlogServiceInstance } from '../services/blog.service'
+import { IProfileRepository } from '../types/profile-repository.types'
+import { ApiProfileRepository } from '../repositories/profile.repository'
+import { IProfileService } from '../types/profile-service.types'
+import { createProfileServiceInstance } from '../services/profile.service'
 
 /**
  * Service factory function type
@@ -120,6 +124,10 @@ export class DIContainer {
 
     // Register blog service
     this.register('IBlogService', () => createBlogServiceInstance())
+
+    // Register profile repository and service
+    this.register('IProfileRepository', () => new ApiProfileRepository())
+    this.register('IProfileService', () => createProfileServiceInstance())
   }
 }
 
@@ -147,6 +155,8 @@ export const SERVICE_TOKENS = {
   BLOG_REPOSITORY: 'IBlogRepository' as const,
   AUTH_SERVICE: 'IAuthService' as const,
   BLOG_SERVICE: 'IBlogService' as const,
+  PROFILE_REPOSITORY: 'IProfileRepository' as const,
+  PROFILE_SERVICE: 'IProfileService' as const,
 } as const
 
 /**
@@ -156,6 +166,10 @@ export const getBlogRepository = (): IBlogRepository =>
   container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY)
 export const getAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE)
 export const getBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE)
+export const getProfileRepository = (): IProfileRepository =>
+  container.resolve(SERVICE_TOKENS.PROFILE_REPOSITORY)
+export const getProfileService = (): IProfileService =>
+  container.resolve(SERVICE_TOKENS.PROFILE_SERVICE)
 
 /**
  * Factory functions for service creation
@@ -164,3 +178,7 @@ export const createBlogRepository = (): IBlogRepository =>
   container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY)
 export const createAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE)
 export const createBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE)
+export const createProfileRepository = (): IProfileRepository =>
+  container.resolve(SERVICE_TOKENS.PROFILE_REPOSITORY)
+export const createProfileService = (): IProfileService =>
+  container.resolve(SERVICE_TOKENS.PROFILE_SERVICE)

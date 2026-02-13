@@ -13,6 +13,7 @@ export interface RepositoryResult<T> {
   success: boolean
   data?: T
   error?: string
+  statusCode?: number
   metadata?: {
     page?: number
     limit?: number
