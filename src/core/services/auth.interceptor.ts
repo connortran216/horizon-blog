@@ -28,7 +28,7 @@ export class AuthInterceptor {
   }
 
   /**
-   * Handle authentication errors and redirects
+   * Handle authentication errors and auth-state cleanup
    */
   handleAuthError(status: number, endpoint: string): void {
     // Handle authentication errors ONLY for protected endpoints
@@ -42,11 +42,6 @@ export class AuthInterceptor {
 
         // Dispatch custom event for auth context to handle
         window.dispatchEvent(new CustomEvent('auth:unauthorized'))
-
-        // Only redirect if not already on login page
-        if (!window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login'
-        }
       }
     }
   }

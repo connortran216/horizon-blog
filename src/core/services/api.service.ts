@@ -42,10 +42,19 @@ export class ApiService {
       Object.keys(params).forEach((key) => url.searchParams.append(key, String(params[key])))
     }
 
-    const response = await fetch(url.toString(), {
+    let response = await fetch(url.toString(), {
       method: 'GET',
       headers: this.getHeaders(),
     })
+
+    // If a stale token causes a 401 on a GET request, clear auth and retry once as guest.
+    if (response.status === 401 && authInterceptor.isAuthenticated()) {
+      authInterceptor.handleAuthError(response.status, endpoint)
+      response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: this.getHeaders(),
+      })
+    }
 
     return this.handleResponse<T>(response, endpoint)
   }
