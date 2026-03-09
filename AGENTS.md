@@ -117,6 +117,8 @@
 - `src/pages/Contact.tsx`: contact form.
 - `src/pages/Login.tsx`: login page.
 - `src/pages/Register.tsx`: registration page.
+- `src/pages/ForgotPassword.tsx`: forgot-password request page.
+- `src/pages/ResetPassword.tsx`: reset password page.
 
 ## 5. Architecture and Patterns
 
@@ -201,6 +203,8 @@
 - `/about` -> `About`
 - `/login` -> `Login`
 - `/register` -> `Register`
+- `/forgot-password` -> `ForgotPassword`
+- `/reset-password` -> `ResetPassword`
 - `/blog-editor` -> `BlogEditor` (protected)
 - `/profile/:username` -> `Profile` (protected)
 - `/profile/:username/blog/:id` -> `ProfileBlogDetail` (protected)
@@ -277,6 +281,8 @@
 
 ### 9.4 Observed Endpoints
 - `POST /auth/login` for login.
+- `POST /auth/forgot-password` for forgot-password requests.
+- `POST /auth/reset-password` for password reset submissions.
 - `POST /users` for registration.
 - `GET /posts` for list with query params.
 - `GET /posts/:id` for detail.
@@ -342,6 +348,12 @@
 - Password length >= 6.
 - Email format must be valid.
 - Password and confirm must match.
+
+### 10.7 Forgot and Reset Password Flow
+- Forgot-password uses `POST /auth/forgot-password`.
+- Reset-password uses `POST /auth/reset-password`.
+- Reset links land on `/reset-password?token=<token>`.
+- Keep the reset token in page state only; do not persist it.
 
 ## 11. Editor and Content Pipeline
 

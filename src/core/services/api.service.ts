@@ -127,8 +127,13 @@ export class ApiService {
       let errorMessage = `HTTP ${response.status}`
 
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorData = (await response.json()) as Record<string, unknown>
+
+        if (typeof errorData.message === 'string' && errorData.message.length > 0) {
+          errorMessage = errorData.message
+        } else if (typeof errorData.error === 'string' && errorData.error.length > 0) {
+          errorMessage = errorData.error
+        }
       } catch {
         // Response is not JSON, use status text
         errorMessage = response.statusText || errorMessage

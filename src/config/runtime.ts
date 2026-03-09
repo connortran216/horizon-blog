@@ -5,6 +5,13 @@
  */
 
 export const getRuntimeConfig = () => {
+  const envBeHost = import.meta.env.BE_HOST?.trim()
+  if (envBeHost) {
+    return {
+      beHost: envBeHost,
+    }
+  }
+
   const isLocalhost =
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||

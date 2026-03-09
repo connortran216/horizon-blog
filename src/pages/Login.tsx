@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Box,
   Container,
@@ -24,12 +24,30 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isLoading } = useAuth()
+  const locationState = location.state as { from?: string; resetPasswordSuccess?: boolean } | null
 
   // Dark mode color values
   const headingColor = useColorModeValue('gray.900', 'text.primary')
   const textColor = useColorModeValue('gray.600', 'text.secondary')
   const linkColor = useColorModeValue('black', 'link.default')
   const toastBg = useColorModeValue('black', 'bg.elevated')
+
+  useEffect(() => {
+    if (!locationState?.resetPasswordSuccess) {
+      return
+    }
+
+    toast({
+      title: 'Password reset successful',
+      description: 'Please sign in with your new password.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+
+    const nextState = locationState.from ? { from: locationState.from } : undefined
+    navigate(location.pathname, { replace: true, state: nextState })
+  }, [location.pathname, locationState, navigate, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,7 +79,7 @@ const Login = () => {
       })
 
       // Redirect to the intended destination or home page
-      const destination = location.state?.from || '/'
+      const destination = locationState?.from || '/'
       navigate(destination, { replace: true })
     } catch {
       toast({
@@ -115,6 +133,12 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </FormControl>
+
+              <Box textAlign="right">
+                <Link as={RouterLink} to="/forgot-password" color={linkColor}>
+                  Forgot password?
+                </Link>
+              </Box>
 
               <AnimatedPrimaryButton type="submit" size="lg" fontSize="md" isLoading={isLoading}>
                 Sign in

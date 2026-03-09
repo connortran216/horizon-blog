@@ -27,6 +27,12 @@ export interface RegisterData {
   confirmPassword: string
 }
 
+export interface ResetPasswordData {
+  token: string
+  newPassword: string
+  confirmPassword: string
+}
+
 // Authentication context state
 export interface AuthState {
   user: User | null
@@ -51,6 +57,8 @@ export interface AuthContextValue extends AuthState, AuthActions {}
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<User>
   register(data: RegisterData): Promise<User>
+  requestPasswordReset(email: string): Promise<string>
+  resetPassword(data: ResetPasswordData): Promise<string>
   logout(): Promise<void>
   getCurrentUser(): Promise<User | null>
   refreshToken(): Promise<User | null>

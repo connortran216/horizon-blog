@@ -2,6 +2,7 @@ import { User } from '../types/common.types'
 import {
   LoginCredentials,
   RegisterData,
+  ResetPasswordData,
   AuthError,
   InvalidCredentialsError,
   UserAlreadyExistsError,
@@ -25,6 +26,10 @@ interface ApiUserResponse {
 interface AuthResponse {
   token: string
   data: ApiUserResponse
+  message: string
+}
+
+interface MessageResponse {
   message: string
 }
 
@@ -129,6 +134,57 @@ export class AuthService implements IAuthService {
   }
 
   /**
+   * Request a password reset email for the provided address
+   */
+  async requestPasswordReset(email: string): Promise<string> {
+    try {
+      if (!email || !this.isValidEmail(email)) {
+        throw new AuthError('Please enter a valid email address', 'INVALID_EMAIL', 400)
+      }
+
+      const response = await apiService.post<MessageResponse>('/auth/forgot-password', { email })
+      return response.message
+    } catch (error: unknown) {
+      if (error instanceof AuthError) {
+        throw error
+      }
+
+      throw this.toAuthError(
+        error,
+        'Something went wrong. Please try again.',
+        'FORGOT_PASSWORD_FAILED',
+      )
+    }
+  }
+
+  /**
+   * Reset the current user's password using a reset token
+   */
+  async resetPassword(data: ResetPasswordData): Promise<string> {
+    try {
+      this.validateResetPasswordData(data)
+
+      const response = await apiService.post<MessageResponse>('/auth/reset-password', {
+        token: data.token,
+        new_password: data.newPassword,
+        confirm_password: data.confirmPassword,
+      })
+
+      return response.message
+    } catch (error: unknown) {
+      if (error instanceof AuthError) {
+        throw error
+      }
+
+      throw this.toAuthError(
+        error,
+        'Something went wrong. Please try again.',
+        'RESET_PASSWORD_FAILED',
+      )
+    }
+  }
+
+  /**
    * Logout user and clear session
    */
   async logout(): Promise<void> {
@@ -221,9 +277,39 @@ export class AuthService implements IAuthService {
     }
   }
 
+  private validateResetPasswordData(data: ResetPasswordData): void {
+    if (!data.token) {
+      throw new AuthError('Reset token is required', 'INVALID_RESET_TOKEN', 400)
+    }
+
+    if (!data.newPassword || data.newPassword.length < 6) {
+      throw new AuthError('Password must be at least 6 characters long', 'INVALID_PASSWORD', 400)
+    }
+
+    if (data.newPassword !== data.confirmPassword) {
+      throw new AuthError('Passwords do not match', 'PASSWORD_MISMATCH', 400)
+    }
+  }
+
   private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
+  }
+
+  private toAuthError(error: unknown, fallbackMessage: string, code: string): AuthError {
+    const statusCode =
+      typeof error === 'object' &&
+      error !== null &&
+      'status' in error &&
+      typeof (error as { status?: unknown }).status === 'number'
+        ? (error as { status: number }).status
+        : undefined
+
+    return new AuthError(
+      error instanceof Error && error.message ? error.message : fallbackMessage,
+      code,
+      statusCode,
+    )
   }
 
   private transformApiUserToUser(apiUser: ApiUserResponse): User {
