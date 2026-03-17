@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Box } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { useColorModeValue } from '@chakra-ui/react'
+import { createRoot } from 'react-dom/client'
 
 /**
  * Particle System Components
@@ -345,42 +346,37 @@ class ParticleSystem {
     }
 
     // Create and append React component to DOM
-    import('react-dom/client').then(({ createRoot }) => {
-      const root = createRoot(this.container!)
-      root.render(
-        <ParticleBurst
-          position={center}
-          colorScheme="success"
-          intensity="medium"
-          types={['star', 'spark', 'circle']}
-        />,
-      )
+    const root = createRoot(this.container!)
+    root.render(
+      <ParticleBurst
+        position={center}
+        colorScheme="success"
+        intensity="medium"
+        types={['star', 'spark', 'circle']}
+      />,
+    )
 
-      // Clean up after animation
-      setTimeout(() => {
-        root.unmount()
-      }, 5000)
-    })
+    setTimeout(() => {
+      root.unmount()
+    }, 5000)
   }
 
   showFloatingNotification(message: string, duration = 3000) {
     const container = document.createElement('div')
     document.body.appendChild(container)
 
-    import('react-dom/client').then(({ createRoot }) => {
-      const root = createRoot(container)
-      root.render(
-        <FloatingNotification
-          message={message}
-          onComplete={() => {
-            setTimeout(() => {
-              root.unmount()
-              container.remove()
-            }, 300)
-          }}
-        />,
-      )
-    })
+    const root = createRoot(container)
+    root.render(
+      <FloatingNotification
+        message={message}
+        onComplete={() => {
+          setTimeout(() => {
+            root.unmount()
+            container.remove()
+          }, 300)
+        }}
+      />,
+    )
 
     setTimeout(() => {
       if (container.parentNode) {

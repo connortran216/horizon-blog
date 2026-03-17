@@ -6,8 +6,8 @@
  */
 
 import { useEffect, useCallback, useRef, useState } from 'react'
-import { getBlogRepository } from '../core/di/container'
-import { BlogPost } from '../core/types/blog.types'
+import { getBlogRepository } from '../../../core/di/container'
+import { BlogPost } from '../../../core/types/blog.types'
 
 interface UseAutoSaveOptions {
   autoSaveDelay?: number // Auto-save delay in milliseconds (default: 5000)

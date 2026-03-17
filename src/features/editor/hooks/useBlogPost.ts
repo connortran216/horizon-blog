@@ -7,10 +7,10 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useToast } from '@chakra-ui/react'
-import { useAuth } from '../context/AuthContext'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { getBlogRepository } from '../core/di/container'
-import { BlogPost } from '../core/types/blog.types'
+import { useAuth } from '../../../context/AuthContext'
+import { getBlogRepository } from '../../../core/di/container'
+import { BlogPost } from '../../../core/types/blog.types'
 
 interface UseBlogPostOptions {
   redirectOnError?: boolean

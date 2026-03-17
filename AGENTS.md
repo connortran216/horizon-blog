@@ -60,7 +60,10 @@
 ### 4.1 Root Layout
 - `AGENT.md`: onboarding guide (this file).
 - `README.md`: project overview and quick start.
-- `DESIGN_SYSTEM.md`: design system reference and components.
+- `design-system/MASTER.md`: design system source of truth.
+- `design-system/components/`: shared component recipes and usage rules.
+- `design-system/pages/`: page-level design overrides and patterns.
+- `DESIGN_SYSTEM.md`: compatibility entry point that points to `design-system/`.
 - `api-docs.json`: backend API reference snapshot.
 - `index.html`: Vite entry HTML.
 - `vite.config.ts`: Vite config.
@@ -76,6 +79,7 @@
 
 ### 4.2 Source Tree (High Level)
 - `src/App.tsx`: app shell and providers.
+- `src/app/layouts/`: app-level chrome and shell components.
 - `src/Routes.tsx`: router definitions.
 - `src/index.css`: global styles.
 - `src/theme/`: Chakra theme.
@@ -83,7 +87,8 @@
 - `src/context/`: global React context (auth).
 - `src/core/`: DI, services, repositories, and domain types.
 - `src/components/`: shared UI components.
-- `src/pages/`: route-level pages.
+- `src/features/`: feature-owned pages, components, hooks, and types.
+- `src/pages/`: thin route entry points that re-export feature pages when applicable.
 - `src/utils/`: helper utilities (image upload).
 
 ### 4.3 Core Layer
@@ -99,26 +104,34 @@
 - `src/core/utils/error.utils.ts`: error helpers.
 
 ### 4.4 Components Layer
-- `src/components/layout/`: layout components (Navbar, Footer, Layout).
+- `src/components/layout/`: compatibility re-exports for layout components.
 - `src/components/editor/`: editor components and plugins.
 - `src/components/reader/`: reading components.
+- `src/components/ui/`: shared view primitives used across features.
 - `src/components/core/animations/`: animation primitives.
 - `src/components/ProtectedRoute.tsx`: auth gate for protected routes.
 - `src/components/Pagination*.tsx`: list pagination UI.
 
 ### 4.5 Pages Layer
-- `src/pages/Home.tsx`: landing page.
-- `src/pages/Blog.tsx`: list and search posts.
-- `src/pages/BlogDetail.tsx`: public blog detail.
-- `src/pages/BlogEditor.tsx`: create or edit blog post.
+- `src/pages/Home.tsx`: thin route wrapper for `src/features/home/pages/HomePage.tsx`.
+- `src/pages/Blog.tsx`: thin route wrapper for `src/features/blog/pages/BlogPage.tsx`.
+- `src/pages/BlogDetail.tsx`: thin route wrapper for `src/features/blog/pages/BlogDetailPage.tsx`.
+- `src/pages/BlogEditor.tsx`: thin route wrapper for `src/features/editor/pages/BlogEditorPage.tsx`.
 - `src/pages/Profile.tsx`: user profile and posts.
-- `src/pages/ProfileBlogDetail.tsx`: profile detail view.
-- `src/pages/About.tsx`: about page.
-- `src/pages/Contact.tsx`: contact form.
-- `src/pages/Login.tsx`: login page.
-- `src/pages/Register.tsx`: registration page.
-- `src/pages/ForgotPassword.tsx`: forgot-password request page.
-- `src/pages/ResetPassword.tsx`: reset password page.
+- `src/pages/ProfileBlogDetail.tsx`: thin route wrapper for `src/features/profile/pages/ProfileBlogDetailPage.tsx`.
+- `src/pages/About.tsx`: thin route wrapper for `src/features/about/pages/AboutPage.tsx`.
+- `src/pages/Contact.tsx`: thin route wrapper for `src/features/contact/pages/ContactPage.tsx`.
+- `src/pages/Login.tsx`: thin route wrapper for `src/features/auth/pages/LoginPage.tsx`.
+- `src/pages/Register.tsx`: thin route wrapper for `src/features/auth/pages/RegisterPage.tsx`.
+- `src/pages/ForgotPassword.tsx`: thin route wrapper for `src/features/auth/pages/ForgotPasswordPage.tsx`.
+- `src/pages/ResetPassword.tsx`: thin route wrapper for `src/features/auth/pages/ResetPasswordPage.tsx`.
+- `src/features/blog/`: archive page, blog-specific components, and archive utilities.
+- `src/features/home/`: landing page composition and shared home cards.
+- `src/features/about/`: about page composition and stat components.
+- `src/features/contact/`: contact page composition and card components.
+- `src/features/auth/`: auth page shells and form flows.
+- `src/features/editor/`: blog editor page composition and editor-specific helpers.
+- `src/features/profile/`: profile pages, profile detail, and profile-specific UI.
 
 ## 5. Architecture and Patterns
 
@@ -159,6 +172,7 @@
 
 ### 5.6 Feature-First Guidance (from lgk-fe)
 - New features should live in `src/features/<feature>/`.
+- Route wrappers in `src/pages/` should stay minimal and delegate to feature pages.
 - A feature should include:
 - `*.api.ts` for API calls.
 - `*.types.ts` for feature types.
@@ -264,8 +278,9 @@
 
 ### 9.1 Base URL
 - `getRuntimeConfig()` chooses API base URL at runtime.
-- Localhost uses `http://localhost:8080`.
-- Production uses `https://blog-api.connortran.io.vn`.
+- `BE_HOST` overrides the backend host when provided.
+- Local development is currently configured to use `https://blog-api.connortran.io.vn`.
+- Fallback behavior without env override uses `http://localhost:8080` on localhost and `https://blog-api.connortran.io.vn` otherwise.
 
 ### 9.2 API Service (`api.service.ts`)
 - Uses `fetch` with JSON by default.
@@ -430,14 +445,15 @@
 - Respect `useReducedMotion` when needed.
 
 ### 12.7 Design System Reference
-- See `DESIGN_SYSTEM.md` for detailed component patterns.
+- See `design-system/MASTER.md` and `design-system/components/README.md` for detailed component patterns.
 - Keep updates in sync with the design system doc.
 
 ## 13. Component Architecture
 
 ### 13.1 Shared Components
-- `src/components/layout/Layout.tsx` is the main shell.
-- `src/components/layout/Navbar.tsx` and `Footer.tsx` define nav.
+- `src/app/layouts/AppLayout.tsx` is the main shell.
+- `src/app/layouts/Navbar.tsx` and `Footer.tsx` define nav.
+- `src/components/layout/*` re-export the app layout layer for backward compatibility.
 - `Pagination` components handle list pagination UI.
 - `ProtectedRoute` gates protected routes.
 
@@ -572,7 +588,8 @@
 ## 21. Common Recipes
 
 ### 21.1 Add a New Page
-- Create a page component in `src/pages`.
+- Create the main implementation in `src/features/<feature>/pages/`.
+- Add or keep a thin wrapper in `src/pages` only when the route layer needs a stable entry file.
 - Add a route entry in `src/Routes.tsx`.
 - If the page is protected, wrap in `ProtectedRoute`.
 - Use `Layout` and existing UI components where possible.
@@ -596,7 +613,7 @@
 - Prefer Chakra primitives and theme tokens.
 - Put reusable UI into `src/components` or `src/components/core`.
 - Keep props typed and documented.
-- Update `DESIGN_SYSTEM.md` if the component is reusable.
+- Update `design-system/MASTER.md` or `design-system/components/README.md` if the component is reusable.
 
 ### 21.5 Add Editor Features
 - Update `editor.config.ts` for behavior changes.
