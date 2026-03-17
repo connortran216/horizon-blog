@@ -40,7 +40,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
           borderColor="border.subtle"
           borderRadius="3xl"
           overflow="hidden"
-          bg="whiteAlpha.900"
+          bg="bg.glass"
           backdropFilter="blur(18px)"
           boxShadow="lg"
         >
@@ -49,7 +49,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
             insetX={{ base: '-15%', lg: '45%' }}
             top="-25%"
             h="260px"
-            bg="purple.50"
+            bg="accent.glow"
             filter="blur(90px)"
             pointerEvents="none"
           />

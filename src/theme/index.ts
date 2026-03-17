@@ -86,6 +86,10 @@ const semanticTokens = {
       default: 'obsidian.light.bgElevated',
       _dark: 'obsidian.dark.bgElevated',
     },
+    'bg.glass': {
+      default: 'rgba(255, 255, 255, 0.92)',
+      _dark: 'rgba(42, 42, 42, 0.92)',
+    },
 
     // Borders
     'border.default': {
@@ -119,6 +123,10 @@ const semanticTokens = {
     'accent.hover': {
       default: 'obsidian.accent.hover',
       _dark: 'obsidian.accent.hover',
+    },
+    'accent.glow': {
+      default: 'rgba(139, 127, 199, 0.24)',
+      _dark: 'rgba(139, 127, 199, 0.3)',
     },
 
     // Links

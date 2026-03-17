@@ -128,7 +128,7 @@ const ContactPage = () => {
         transform="translateX(-50%)"
         w={{ base: '92%', md: '78%' }}
         h="320px"
-        bg="purple.50"
+        bg="accent.glow"
         filter="blur(130px)"
         opacity={0.72}
         pointerEvents="none"
@@ -145,7 +145,7 @@ const ContactPage = () => {
               border="1px solid"
               borderColor="border.subtle"
               borderRadius="3xl"
-              bg="whiteAlpha.900"
+              bg="bg.glass"
               backdropFilter="blur(18px)"
               px={{ base: 6, md: 10 }}
               py={{ base: 8, md: 10 }}
