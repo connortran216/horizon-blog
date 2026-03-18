@@ -1,29 +1,11 @@
-import {
-  Avatar,
-  Badge,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  Tag,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
+import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchivePost } from '../blog.types'
-import {
-  extractFirstImageUrl,
-  formatArchiveDate,
-  getExcerpt,
-  getPostEyebrow,
-  getReadingTime,
-} from '../blog.utils'
+import { extractFirstImageUrl, formatArchiveDate, getExcerpt, getReadingTime } from '../blog.utils'
 
 interface EditorialCardProps {
   post: BlogArchivePost
@@ -59,39 +41,12 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
           ) : (
             <DefaultPostCover
               title={post.title}
-              eyebrow={getPostEyebrow(index)}
+              eyebrow=""
               h="full"
               borderBottom="1px solid"
               borderColor="border.subtle"
             />
           )}
-
-          <HStack position="absolute" top={4} left={4} spacing={2}>
-            <Badge
-              px={3}
-              py={1}
-              borderRadius="full"
-              bg="bg.page"
-              color="text.secondary"
-              textTransform="uppercase"
-              letterSpacing="0.12em"
-              fontSize="10px"
-            >
-              {getPostEyebrow(index)}
-            </Badge>
-            <Badge
-              px={3}
-              py={1}
-              borderRadius="full"
-              bg="action.primary"
-              color="white"
-              textTransform="uppercase"
-              letterSpacing="0.12em"
-              fontSize="10px"
-            >
-              {post.status}
-            </Badge>
-          </HStack>
         </Box>
 
         <VStack align="stretch" spacing={5} p={6}>
@@ -131,9 +86,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
             align="center"
             justify="space-between"
           >
-            <Tag size="sm" borderRadius="full" bg="bg.tertiary" color="text.secondary">
-              Blog post
-            </Tag>
+            <Box />
             <HStack spacing={2} color="action.primary" fontWeight="semibold">
               <Text fontSize="sm">Read story</Text>
               <Icon as={FiArrowRight} />

@@ -144,7 +144,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
               ) : (
                 <DefaultPostCover
                   title={post.title}
-                  eyebrow="Editor's pick"
+                  eyebrow=""
                   h="full"
                   minH={{ base: '280px', lg: '100%' }}
                 />

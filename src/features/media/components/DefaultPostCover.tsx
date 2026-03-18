@@ -58,11 +58,12 @@ const buildParticleDrift = () =>
 
 const DefaultPostCover = ({
   title: _title,
-  eyebrow = 'Horizon blog',
+  eyebrow,
   styleName = DEFAULT_POST_COVER_STYLE,
   ...boxProps
 }: DefaultPostCoverProps) => {
   const prefersReducedMotion = useReducedMotion()
+  const eyebrowLabel = eyebrow === undefined ? 'Horizon blog' : eyebrow
   const [particleDrift] = useState(buildParticleDrift)
   const particleElements = particleDrift.map((particle, index) => (
     <motion.div
@@ -173,14 +174,18 @@ const DefaultPostCover = ({
           py={6}
           spacing={5}
         >
-          <Text
-            fontSize="xs"
-            textTransform="uppercase"
-            letterSpacing="0.16em"
-            color="whiteAlpha.700"
-          >
-            {eyebrow}
-          </Text>
+          {eyebrowLabel ? (
+            <Text
+              fontSize="xs"
+              textTransform="uppercase"
+              letterSpacing="0.16em"
+              color="whiteAlpha.700"
+            >
+              {eyebrowLabel}
+            </Text>
+          ) : (
+            <Box />
+          )}
           <Box alignSelf="flex-end" w="40%" h="2px" bg="whiteAlpha.300" />
         </VStack>
       </Box>
@@ -230,14 +235,18 @@ const DefaultPostCover = ({
           spacing={5}
         >
           <HStack justify="space-between">
-            <Text
-              fontSize="xs"
-              textTransform="uppercase"
-              letterSpacing="0.16em"
-              color="text.tertiary"
-            >
-              {eyebrow}
-            </Text>
+            {eyebrowLabel ? (
+              <Text
+                fontSize="xs"
+                textTransform="uppercase"
+                letterSpacing="0.16em"
+                color="text.tertiary"
+              >
+                {eyebrowLabel}
+              </Text>
+            ) : (
+              <Box />
+            )}
             <Box w="28px" h="2px" bg="action.primary" borderRadius="full" />
           </HStack>
           <Box alignSelf="flex-end" w="34%" h="2px" bg="rgba(255,255,255,0.12)" />
@@ -317,20 +326,27 @@ const DefaultPostCover = ({
       />
       {particleElements}
       {sweepBeam}
-      <Box
-        position="absolute"
-        top={5}
-        right={5}
-        px={3}
-        py={1.5}
-        borderRadius="full"
-        bg="rgba(255,255,255,0.08)"
-        border="1px solid rgba(255,255,255,0.08)"
-      >
-        <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.16em" color="whiteAlpha.700">
-          {eyebrow}
-        </Text>
-      </Box>
+      {eyebrowLabel ? (
+        <Box
+          position="absolute"
+          top={5}
+          right={5}
+          px={3}
+          py={1.5}
+          borderRadius="full"
+          bg="rgba(255,255,255,0.08)"
+          border="1px solid rgba(255,255,255,0.08)"
+        >
+          <Text
+            fontSize="xs"
+            textTransform="uppercase"
+            letterSpacing="0.16em"
+            color="whiteAlpha.700"
+          >
+            {eyebrowLabel}
+          </Text>
+        </Box>
+      ) : null}
       <VStack
         position="relative"
         align="stretch"
