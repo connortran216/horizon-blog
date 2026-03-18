@@ -63,6 +63,9 @@
 - `design-system/MASTER.md`: design system source of truth.
 - `design-system/components/`: shared component recipes and usage rules.
 - `design-system/pages/`: page-level design overrides and patterns.
+- `design-system/pages/about.md`: about page rules.
+- `design-system/pages/contact.md`: contact page rules.
+- `design-system/pages/profile.md`: profile page rules.
 - `DESIGN_SYSTEM.md`: compatibility entry point that points to `design-system/`.
 - `api-docs.json`: backend API reference snapshot.
 - `index.html`: Vite entry HTML.
@@ -417,16 +420,17 @@
 ### 12.2 Theme File (`src/theme/index.ts`)
 - `initialColorMode` is `light`.
 - `useSystemColorMode` is false.
-- Semantic tokens define `bg`, `text`, `border`, `accent`, `link`.
+- Semantic tokens define `bg`, `text`, `border`, `accent`, `action`, and `link`.
 - Card, Button, Input, Textarea, Menu, Modal, Link are overridden.
 - Typography uses Inter for heading and body.
 - Shadows and radii are custom.
 
 ### 12.3 Semantic Tokens (Quick List)
-- Background: `bg.page`, `bg.secondary`, `bg.tertiary`, `bg.elevated`.
+- Background: `bg.page`, `bg.secondary`, `bg.tertiary`, `bg.elevated`, `bg.glass`.
 - Borders: `border.default`, `border.subtle`.
 - Text: `text.primary`, `text.secondary`, `text.tertiary`.
-- Accents: `accent.primary`, `accent.hover`.
+- Accents: `accent.primary`, `accent.hover`, `accent.glow`.
+- Actions: `action.primary`, `action.hover`, `action.active`, `action.subtle`, `action.glow`.
 - Links: `link.default`, `link.hover`.
 
 ### 12.4 Color Palette Notes
@@ -445,7 +449,7 @@
 - Respect `useReducedMotion` when needed.
 
 ### 12.7 Design System Reference
-- See `design-system/MASTER.md` and `design-system/components/README.md` for detailed component patterns.
+- See `design-system/MASTER.md`, `design-system/components/README.md`, and `design-system/pages/README.md` for detailed component and route-family rules.
 - Keep updates in sync with the design system doc.
 
 ## 13. Component Architecture
@@ -469,8 +473,8 @@
 - Plugins include hashtag and wiki link support.
 
 ### 13.4 Reader Components
-- `MilkdownReader.tsx` is the read-only view.
-- Use it for post detail pages.
+- `MarkdownReader.tsx` is the primary read-only blog view.
+- `MilkdownReader.tsx` remains as legacy reader implementation and should not be the default for public reading surfaces.
 
 ## 14. Data Modeling
 
@@ -515,7 +519,8 @@
 ### 16.1 Chakra Usage
 - Use Chakra components for layout and UI.
 - Prefer theme tokens over hardcoded colors.
-- Use `bg.page`, `text.primary`, `accent.primary`, etc.
+- Use `bg.page`, `bg.glass`, `text.primary`, `action.primary`, `action.subtle`, and related semantic roles instead of hardcoded values.
+- `action.*` is for interactive controls; `accent.*` is decorative and should be used sparingly.
 - Avoid inline styles unless necessary.
 
 ### 16.2 CSS

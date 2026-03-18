@@ -2,46 +2,54 @@
 
 ## Intent
 
-Reader pages should optimize for immersion and comprehension. They are the highest-sensitivity surfaces in the product.
+Reader pages should optimize for immersion, clarity, and comfort.
+
+They are the highest-sensitivity surfaces in the product.
 
 ## Covered Routes
 
-- public blog detail
-- profile blog detail
+- `/blog/:id`
+- `/profile/:username/blog/:id`
 
 ## Primary Actions
 
-- read the article
-- navigate back to browse or profile context
+- read the blog
+- return to browsing or profile context
 
 ## Layout
 
-- narrow reading container for prose
-- metadata grouped near the title
-- clear separation between article header and article body
+- use a looser editorial shell rather than nested boxed cards
+- keep title and metadata compact and clear
+- keep the prose width stable and comfortable
 
 ## Hierarchy
 
+- back/context action
 - title
-- subtitle if present
-- author and reading metadata
-- article body
-- related navigation or next action
+- optional subtitle
+- author/date/reading time
+- body
+- follow-up navigation if needed
 
-## Components
+## Core Components
 
-- `PageHeader`
-- `AuthorMeta`
-- `ContentProse`
-- back navigation
+- `BlogReaderFrame`
+- `MarkdownReader`
+- optional shared back navigation
 
 ## Motion
 
-- almost no decorative motion once the article is visible
-- loading transitions should not disturb reading continuity
+- nearly static once the page is loaded
+- progress accents may move subtly
+- avoid decorative motion that distracts from reading
 
 ## Accessibility Notes
 
-- body text needs strong contrast and comfortable line height
-- code blocks, blockquotes, and tables must remain readable on mobile
-- linked text should remain identifiable without hover
+- prose contrast must stay strong in both color modes
+- code blocks, tables, and blockquotes must remain readable on mobile
+- links must be identifiable without hover
+
+## Content Notes
+
+- the page is about reading a blog, not browsing a system
+- avoid redundant state labels on public reading surfaces

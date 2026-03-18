@@ -2,49 +2,56 @@
 
 ## Intent
 
-Auth pages should feel trustworthy, calm, and minimal. Their job is to remove friction, not to showcase visual effects.
+Auth pages should feel trustworthy, clear, and low-friction.
+
+They are not marketing pages.
 
 ## Covered Routes
 
-- login
-- register
-- forgot-password
-- reset-password
+- `/login`
+- `/register`
+- `/forgot-password`
+- `/reset-password`
 
 ## Primary Actions
 
 - complete the form
-- move to the adjacent auth route when needed
+- move to the adjacent auth route when necessary
 
 ## Layout
 
-- centered `FormShell`
-- single `FormCard`
-- restrained copy
-- no unnecessary secondary visuals
+- centered auth shell
+- one calm form card
+- no loud promotional side content
 
 ## Hierarchy
 
-- clear form title
-- short helper text
-- form controls
+- clear title
+- short helper copy
+- fields
 - primary submit action
-- secondary link below or above the form
+- secondary route link
 
-## Components
+## Core Components
 
-- `PageHeader`
-- `FormCard`
-- shared field groups
-- inline validation and status messaging
+- `AuthShell`
+- Chakra `Input`
+- Chakra `Textarea` when needed
+- shared button variants
 
 ## Motion
 
-- almost none beyond default page entry and button feedback
-- no particles, glass effects, or attention-grabbing transitions in normal flows
+- minimal
+- default button and page-entry feedback is enough
+- no decorative particles in normal auth flow
 
 ## Accessibility Notes
 
-- every field needs a label
-- validation copy must be explicit
-- success and error states must not rely on color alone
+- every field has a visible label
+- validation must be explicit
+- success and error states cannot rely on color alone
+
+## Content Notes
+
+- keep copy direct and human
+- avoid product slogan language

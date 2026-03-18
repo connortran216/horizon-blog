@@ -2,44 +2,60 @@
 
 ## Intent
 
-The blog page is the main discovery surface. It should feel like an archive and search experience, not a second unrelated landing page.
+The blog page is the main browsing surface for public writing.
+
+It should feel like a clean index of blogs, with strong search and a clear path into deeper reading.
+
+## Covered Routes
+
+- `/blog`
 
 ## Primary Actions
 
-- search posts
-- scan recent posts
+- search blogs
+- scan current blogs
+- open a blog
 - paginate confidently
 
 ## Layout
 
-- bounded readable content width
-- strong search bar near the top
-- article cards or list items should align to one shared rhythm
+- one top hero shell with headline, short support copy, and search
+- the hero should not repeat the same metadata in multiple places
+- the content list should feel tighter and more utilitarian than the home hero
 
 ## Hierarchy
 
-- clear page title
-- supporting archive description
-- search and filter controls
-- content list
+- page label
+- page headline
+- one short supporting paragraph
+- search
+- compact state summary
+- featured or leading blog
+- standard blog cards
 - pagination
 
-## Components
+## Core Components
 
-- `PageHeader`
-- `SearchBar`
-- `ArticleCard` or `ArticleListItem`
-- `LoadingState`
-- `EmptyState`
+- `BlogArchiveHero`
+- `FeaturedStory`
+- `EditorialCard`
+- `Pagination`
+- `PaginationControls`
 
 ## Motion
 
-- list transitions should be subtle
-- hover should feel responsive, not bouncy
-- do not use unrelated gradients as image placeholders
+- subtle hover and entry transitions only
+- no bouncing cards
+- fallback cover motion may exist, but should remain ambient
 
 ## Accessibility Notes
 
-- search input needs a visible label or strong accessible name
-- pagination states must be obvious
-- status badges should remain readable in all color modes
+- search must have a strong accessible name
+- pagination states must be explicit
+- cards need visible focus treatment in both modes
+
+## Content Notes
+
+- use `blog` and `blogs`, not `posts`
+- public cards do not need `published` labels
+- the page should feel like a blog index, not a generic archive tool

@@ -2,42 +2,55 @@
 
 ## Intent
 
-The home page is the editorial front door. It should introduce the product, highlight discovery, and surface recent or featured writing without feeling like a marketing landing page overload.
+The home page is the blog front door.
+
+It should introduce Horizon as a personal blog, establish tone quickly, and move the reader toward real writing instead of marketing abstractions.
+
+## Covered Routes
+
+- `/`
 
 ## Primary Actions
 
-- read recent writing
-- browse the blog archive
-- start writing when authenticated
+- read featured writing
+- browse more blogs
+- write a blog when authenticated
 
 ## Layout
 
-- allow one strong hero section
-- use full-bleed or visually wide treatment for the hero only if the content still reads clearly
-- keep the article feed area more restrained and readable
+- one premium hero shell near the top
+- hero split is acceptable when one side is message and the other side is a real blog preview
+- below the hero, blog previews should tighten into a cleaner reading rhythm
 
 ## Hierarchy
 
-- one clear value proposition
-- one supporting sentence
-- one primary CTA
-- one secondary discovery path
+- product label
+- concise headline
+- short supporting paragraph
+- primary CTA
+- secondary CTA
+- real featured/preview writing
 
-## Components
+## Core Components
 
-- `PageHeader`
-- `SearchBar` or discovery prompt
-- `ArticleListItem` or `ArticleCard`
-- `EmptyState`
+- `HeroArchivePreview`
+- `StoryCard`
+- optional `StatChip` only when it adds real context
 
 ## Motion
 
-- subtle reveal on hero content
-- subtle entrance on article lists
-- avoid constant parallax or decorative movement competing with reading
+- restrained hero reveal
+- ambient fallback-cover motion is allowed
+- avoid feature-card stacks and novelty effects competing with content
 
 ## Accessibility Notes
 
-- hero text contrast must stay high in light mode
-- buttons and linked article blocks need visible focus states
-- hover treatment cannot be the only sign that an article card is clickable
+- hero CTA contrast must hold in both color modes
+- article cards must remain obviously clickable without hover
+- large headline line breaks must stay readable on mobile
+
+## Content Notes
+
+- call the content `blogs` or `writing`
+- do not sell the product like a notebook/archive platform
+- avoid generic product-value blocks that repeat the same idea

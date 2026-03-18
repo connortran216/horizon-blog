@@ -1,160 +1,363 @@
 # Component Recipes
 
-This file defines the shared UI recipes that pages should compose before inventing new layouts.
+This file defines the reusable component system for Horizon Blog.
 
-## Shared Foundations
+Use this document to decide:
+- what should stay shared
+- what should stay feature-owned
+- how repeated UI should behave visually
 
-### Layout
+## Ownership Model
 
-- `Layout`
+### Shared App Shell
+
+Lives in:
+- `src/app/layouts/`
+- compatibility re-exports may still exist in `src/components/layout/`
+
+Includes:
+- `AppLayout`
 - `Navbar`
 - `Footer`
-
-Intent:
-- provide stable navigation
-- maintain shared page framing
-- avoid page-specific shell reinvention
-
-### Motion and Feedback
-
-- `MotionWrapper`
-- `AnimatedButton`
-- `AnimatedCard`
-- `ShimmerLoader`
-
-Intent:
-- establish one motion language
-- keep async feedback consistent
-- avoid per-page animation experiments
+- `NavLinkButton`
+- `UserMenu`
 
 Rules:
-- prefer subtle translate and opacity over large scale transforms
-- use skeleton loading before spinners for content blocks
-- reserve particles and novelty effects for explicit success moments only
+- navigation should stay consistent across public and protected routes
+- navbar actions should use the action token family
+- shell chrome should not compete with content
 
-## Core Recipes
+### Shared Core Components
 
-### PageHeader
+Lives in:
+- `src/components/`
+
+Includes:
+- `ProtectedRoute`
+- `Pagination`
+- `PaginationControls`
+- reader and editor primitives
+- animation primitives
+
+Use shared components when the UI is not tied to one domain concept.
+
+### Feature Components
+
+Lives in:
+- `src/features/<feature>/components`
+
+Use feature ownership when the component understands the domain:
+- blog cards
+- blog hero
+- profile header
+- auth shell
+- contact cards
+- about stat cards
+
+## Shared Visual Primitives
+
+### AnimatedCard
+
+Implementation:
+- `src/components/core/animations/AnimatedCard.tsx`
 
 Purpose:
-- title
-- supporting copy
-- optional primary action
+- base interactive or premium card surface
 
-Use on:
-- Home section intros
-- Blog listing header
-- About and Contact intros
-- Auth screens
+Rules:
+- one card surface should own its border, shadow, and halo
+- prefer subtle hover feedback
+- allow per-surface overrides when a page needs calmer chrome
+- do not create fake nested borders unless intentionally documented
 
-### ArticleListItem
+### AnimatedButton
+
+Implementation:
+- `src/components/core/animations/AnimatedButton.tsx`
 
 Purpose:
-- dense editorial preview for reading-first surfaces
+- expressive CTA wrapper over the Chakra button system
+
+Rules:
+- primary fill uses `action.*`
+- use purple accent only for rare decorative emphasis, not default action styling
+- button sizing should feel calm and premium, not oversized by default
+
+### MotionWrapper
+
+Implementation:
+- `src/components/core/animations/MotionWrapper.tsx`
+
+Purpose:
+- standardized reveal and motion orchestration
+
+Rules:
+- prefer opacity and translate
+- avoid stacking motion wrappers without purpose
+
+### ShimmerLoader
+
+Implementation:
+- `src/components/core/animations/ShimmerLoader.tsx`
+
+Purpose:
+- skeleton-style loading treatment
+
+Rules:
+- use it for loading content blocks before falling back to spinners
+
+## Blog Discovery Components
+
+### BlogArchiveHero
+
+Implementation:
+- `src/features/blog/components/BlogArchiveHero.tsx`
+
+Purpose:
+- top-level blog index hero
 
 Contains:
-- title
-- subtitle or excerpt
-- author/date/reading-time metadata
-- optional thumbnail
-- optional primary tag
+- page label
+- headline
+- short supporting copy
+- search
+- compact state summary
 
 Rules:
-- same metadata order everywhere
-- same thumbnail ratio everywhere
-- same title clamping behavior everywhere
+- keep it simpler than a landing page hero
+- do not repeat metadata in multiple rows
+- search is the utility focus of the right column
 
-### ArticleCard
+### FeaturedStory
+
+Implementation:
+- `src/features/blog/components/FeaturedStory.tsx`
 
 Purpose:
-- roomier preview for grids and feature sections
+- high-emphasis blog preview on the blog index
 
 Rules:
-- should share the same semantic content model as `ArticleListItem`
-- visual variation is allowed, information architecture is not
+- feature only one dominant blog at a time
+- public visible blogs do not need a `published` badge
+- cover, title, excerpt, and action must read as one coherent unit
 
-### AuthorMeta
+### EditorialCard
+
+Implementation:
+- `src/features/blog/components/EditorialCard.tsx`
 
 Purpose:
-- standardize avatar + author + date + reading time treatment
+- standard blog discovery card
 
 Rules:
-- treat it as a reusable unit, not inline ad hoc page markup
-- metadata colors must remain secondary or tertiary
+- use shared metadata order
+- excerpts should be plain readable text
+- action links use the action token family
 
-### TagPill
+### StoryCard
+
+Implementation:
+- `src/features/home/components/StoryCard.tsx`
 
 Purpose:
-- lightweight content classification
+- home-page blog preview card
 
 Rules:
-- use quiet backgrounds
-- avoid saturated pills unless communicating state
-- do not use tag styling for status unless the meaning is actually status
+- same content model as blog cards
+- may vary in layout, not in metadata meaning
 
-### SearchBar
+### HeroArchivePreview
+
+Implementation:
+- `src/features/home/components/HeroArchivePreview.tsx`
 
 Purpose:
-- unify search input behavior across discovery surfaces
+- home hero companion preview
 
 Rules:
-- consistent icon placement
-- consistent padding and container width
-- clear empty state when no results match
+- show a real blog preview, not abstract marketing feature blocks
+- keep the decorative layer secondary to the content
 
-### FormCard
+## Reading Components
+
+### BlogReaderFrame
+
+Implementation:
+- `src/features/blog/components/BlogReaderFrame.tsx`
 
 Purpose:
-- reusable shell for login, register, forgot-password, reset-password, and contact
-
-Contains:
-- title
-- helper copy
-- form body
-- footer links or secondary actions
+- shared reader shell for public and profile blog detail routes
 
 Rules:
-- do not repeat custom card wrappers on each auth page
-- all form pages should share spacing, padding, border radius, and elevation
+- avoid box-in-box claustrophobic layouts
+- keep header and prose separated without over-framing
+- progress accents use action tokens, not purple defaults
 
-### StatusBadge
+### MarkdownReader
+
+Implementation:
+- `src/components/reader/MarkdownReader.tsx`
 
 Purpose:
-- communicate publishing state or lightweight system state
+- lightweight read path for blog content
 
 Rules:
-- use semantic meaning, not arbitrary color schemes
-- status color should not overpower page content
+- stable prose width
+- strong heading rhythm
+- code blocks, blockquotes, tables, and lists remain legible in both color modes
+- the prose component should not add an unnecessary second card shell
 
-### EmptyState
+## Form and Auth Components
+
+### AuthShell
+
+Implementation:
+- `src/features/auth/components/AuthShell.tsx`
 
 Purpose:
-- explain absence of content and suggest the next action
+- shared structure for login, register, forgot-password, and reset-password pages
 
 Rules:
-- one sentence for context
-- one clear CTA when applicable
-- no decorative clutter
+- trustworthy, quiet, minimal
+- no heavy hero marketing language
+- one consistent spacing, border, and action pattern across auth routes
 
-### ContentProse
+## Profile Components
+
+### ProfileHeaderCard
+
+Implementation:
+- `src/features/profile/components/ProfileHeaderCard.tsx`
 
 Purpose:
-- standardize long-form reading presentation
+- author identity and owner actions
 
 Rules:
-- stable measure
-- predictable heading rhythm
-- consistent inline code, code block, list, blockquote, and table treatment
+- reads as one outer surface, not nested framed cards
+- avatar interactions stay clipped to the avatar target
+- use action tokens for primary author actions
+- drafts may be shown here because this is an owner surface
 
-## Ownership Rules
+### ProfilePostsSection
 
-- If a component is used in multiple routes, move it into shared UI.
-- If a component represents business-specific composition, keep it in a feature module.
-- If a styling rule is global and semantic, move it into the Chakra theme.
+Implementation:
+- `src/features/profile/components/ProfilePostsSection.tsx`
+
+Purpose:
+- section shell for owned blogs and drafts
+
+Rules:
+- distinguish live blogs and drafts clearly
+- do not use public-surface copy patterns blindly here
+
+### ProfileBlogGrid
+
+Implementation:
+- `src/features/profile/components/ProfileBlogGrid.tsx`
+
+Purpose:
+- owner-facing grid of blogs and drafts
+
+Rules:
+- draft state can be explicit here
+- menus and poppers must not widen the page horizontally
+
+## About and Contact Components
+
+### AboutStatCard
+
+Implementation:
+- `src/features/about/components/AboutStatCard.tsx`
+
+Purpose:
+- quiet signal/metric card for About
+
+Rules:
+- icons use the action family, not default purple
+- stats support the narrative, they do not become dashboard widgets
+
+### ContactInfoCard
+
+Implementation:
+- `src/features/contact/components/ContactInfoCard.tsx`
+
+### ContactPromptCard
+
+Implementation:
+- `src/features/contact/components/ContactPromptCard.tsx`
+
+Purpose:
+- structured contact and conversation prompts
+
+Rules:
+- calm informational cards, not flashy promo boxes
+
+## Media Components
+
+### DefaultPostCover
+
+Implementation:
+- `src/features/media/components/DefaultPostCover.tsx`
+
+Supported styles:
+- `editorial`
+- `aurora`
+- `notebook`
+
+Purpose:
+- decorative fallback cover for blogs without an uploaded image
+
+Rules:
+- cover art is decorative, not content duplication
+- do not render the full title again inside the fallback cover
+- do not show large initials as pseudo-avatars
+- motion should be ambient and respect reduced motion
+- keep the fallback family visually related across Home, Blog, and Profile
+
+## Shared Content Rules
+
+### Metadata
+
+Preferred order on public preview surfaces:
+- author
+- date
+- reading time
+
+Rules:
+- metadata remains secondary to the title
+- public cards do not need `published` state labels
+- owner-only surfaces may include draft status where useful
+
+### Badges and Pills
+
+Use pills for:
+- page label
+- light emphasis
+- state only when the state matters
+
+Rules:
+- do not use saturated pills for decorative noise
+- avoid labeling everything with the same redundant state
+
+### CTA Links
+
+Rules:
+- text CTAs that behave like actions should use `action.primary`
+- inline prose links should use `link.default`
+- secondary CTA styling should be quieter than primary buttons
+
+### Empty States
+
+Rules:
+- one sentence of context
+- one real next action
+- avoid decorative filler or generic motivational copy
 
 ## Anti-Patterns
 
-- page-specific card recipes with the same structure but different styling
-- repeated auth forms with minor wrapper differences
-- motion wrappers added everywhere without interaction purpose
-- icons, colors, and typography overridden locally for stylistic experimentation
+- blog cards that repeat the title inside the cover and below it
+- public cards with default `published` badges everywhere
+- hero sections built from three generic feature cards
+- hover overlays that escape their intended bounds
+- menu poppers that create horizontal page scroll
+- decorative motion that continues aggressively on reading surfaces

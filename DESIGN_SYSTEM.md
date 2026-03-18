@@ -1,6 +1,6 @@
 # Horizon Blog Design System
 
-The design system now lives in the dedicated `design-system/` folder.
+The design system lives in the dedicated `design-system/` folder.
 
 Start here:
 - `design-system/MASTER.md`
@@ -9,7 +9,8 @@ Start here:
 
 Implementation references:
 - `src/theme/index.ts`
+- `src/app/layouts/`
 - `src/components/`
-- `src/pages/`
+- `src/features/`
 
 This file remains as a compatibility entry point for older references.

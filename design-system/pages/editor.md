@@ -2,44 +2,55 @@
 
 ## Intent
 
-The editor should maximize focus and confidence while writing. Tooling is secondary to content.
+The editor should feel focused, reliable, and confidence-building.
+
+The writing surface is more important than the tooling around it.
+
+## Covered Routes
+
+- `/blog-editor`
 
 ## Primary Actions
 
-- draft
-- edit
-- publish
+- draft a blog
+- edit a blog
+- save confidently
+- publish when ready
 
 ## Layout
 
-- wide but controlled authoring shell
-- strong separation between metadata inputs and editor surface
-- publish action should be visible without overwhelming the page
+- wide, focused authoring shell
+- metadata and save state near the top
+- the editor workspace remains visually dominant
 
 ## Hierarchy
 
-- title input first
-- metadata and save state second
-- writing surface third
-- publish controls visible but calm
-
-## Components
-
-- `EditorShell`
-- title input
-- tag input
-- save status text
+- title and metadata
+- save state and controls
 - editor surface
-- publish action
+- publish and preview affordances
+
+## Core Components
+
+- `EditorWorkspace`
+- `EditorMetaBar`
+- `EditorTagField`
+- `CrepeEditor`
+- `CrepePreview`
 
 ## Motion
 
-- avoid busy motion in the writing area
-- async save feedback should be subtle and reliable
-- success feedback on publish can be slightly richer than normal interactions
+- almost none inside the writing area
+- save/publish feedback should be calm and reliable
+- do not add decorative motion near the text cursor or editing flow
 
 ## Accessibility Notes
 
-- keyboard navigation should work across metadata and editor controls
-- toolbar controls need labels and visible focus states
-- code block and editor selections must remain legible in both color modes
+- keyboard navigation across metadata and editor controls must work
+- editor actions need visible focus and clear labels
+- code blocks and selection states must remain legible in both color modes
+
+## Content Notes
+
+- editor labels should say `blog`, not `post`
+- draft state matters here and may be explicit
