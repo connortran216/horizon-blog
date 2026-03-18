@@ -20,7 +20,7 @@ const BlogDetailPage = () => {
       resolvedContent={resolvedContent}
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
-      emptyLabel="Post not found"
+      emptyLabel="Blog not found"
       showReadingProgress={true}
       bottomPadding={true}
     />

@@ -15,6 +15,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchivePost } from '../blog.types'
 import {
   extractFirstImageUrl,
@@ -56,32 +57,13 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
               <Box position="absolute" inset={0} bg="blackAlpha.300" />
             </>
           ) : (
-            <Flex
+            <DefaultPostCover
+              title={post.title}
+              eyebrow={getPostEyebrow(index)}
               h="full"
-              bg="bg.tertiary"
-              align="center"
-              justify="center"
               borderBottom="1px solid"
               borderColor="border.subtle"
-            >
-              <Box
-                px={5}
-                py={4}
-                borderRadius="2xl"
-                border="1px solid"
-                borderColor="border.subtle"
-                bg="bg.page"
-              >
-                <Text
-                  fontSize="2xl"
-                  fontWeight="bold"
-                  letterSpacing="-0.04em"
-                  color="accent.primary"
-                >
-                  {post.title.substring(0, 2).toUpperCase()}
-                </Text>
-              </Box>
-            </Flex>
+            />
           )}
 
           <HStack position="absolute" top={4} left={4} spacing={2}>
@@ -101,7 +83,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
               px={3}
               py={1}
               borderRadius="full"
-              bg="accent.primary"
+              bg="action.primary"
               color="white"
               textTransform="uppercase"
               letterSpacing="0.12em"
@@ -150,9 +132,9 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
             justify="space-between"
           >
             <Tag size="sm" borderRadius="full" bg="bg.tertiary" color="text.secondary">
-              Notebook entry
+              Blog post
             </Tag>
-            <HStack spacing={2} color="accent.primary" fontWeight="semibold">
+            <HStack spacing={2} color="action.primary" fontWeight="semibold">
               <Text fontSize="sm">Read story</Text>
               <Icon as={FiArrowRight} />
             </HStack>

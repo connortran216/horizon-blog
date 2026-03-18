@@ -1,4 +1,4 @@
-import { Container, VStack, useDisclosure } from '@chakra-ui/react'
+import { Box, Container, VStack, useDisclosure } from '@chakra-ui/react'
 import { MotionWrapper } from '../core'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
@@ -73,40 +73,56 @@ const Profile = () => {
 
   return (
     <MotionWrapper>
-      <Container maxW="container.xl" py={8}>
-        <VStack spacing={8} align="stretch">
-          <ProfileHeaderCard
-            profile={profile}
-            profileName={profileName}
-            avatarSrc={avatarSrc}
-            profileLoading={profileLoading}
-            isUploadingAvatar={isUploadingAvatar}
-            articleCount={publishedPagination.total}
-            avatarInputRef={avatarInputRef}
-            onOpenProfileEditor={handleOpenProfileEditor}
-            onOpenAvatarPreview={onOpenAvatarPreview}
-            onSelectAvatar={selectAvatar}
-            onAvatarChange={(event) => {
-              void onAvatarChange(event)
-            }}
-          />
+      <Box position="relative" pb={12} overflowX="hidden">
+        <Box
+          position="absolute"
+          top={0}
+          left="50%"
+          transform="translateX(-50%)"
+          w={{ base: '92%', md: '76%' }}
+          h="280px"
+          bg="action.glow"
+          filter="blur(130px)"
+          opacity={0.68}
+          pointerEvents="none"
+        />
 
-          <ProfilePostsSection
-            postsLoading={postsLoading}
-            profileUsername={profileUsername}
-            publishedBlogs={publishedBlogs}
-            draftBlogs={draftBlogs}
-            publishedPagination={publishedPagination}
-            draftPagination={draftPagination}
-            onPublishedPageChange={handlePublishedPageChange}
-            onDraftPageChange={handleDraftPageChange}
-            onEdit={handleEdit}
-            onDelete={(blogId) => {
-              void handleDelete(blogId)
-            }}
-          />
-        </VStack>
-      </Container>
+        <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
+          <VStack spacing={{ base: 8, md: 10 }} align="stretch">
+            <ProfileHeaderCard
+              profile={profile}
+              profileName={profileName}
+              avatarSrc={avatarSrc}
+              profileLoading={profileLoading}
+              isUploadingAvatar={isUploadingAvatar}
+              articleCount={publishedPagination.total}
+              draftCount={draftPagination.total}
+              avatarInputRef={avatarInputRef}
+              onOpenProfileEditor={handleOpenProfileEditor}
+              onOpenAvatarPreview={onOpenAvatarPreview}
+              onSelectAvatar={selectAvatar}
+              onAvatarChange={(event) => {
+                void onAvatarChange(event)
+              }}
+            />
+
+            <ProfilePostsSection
+              postsLoading={postsLoading}
+              profileUsername={profileUsername}
+              publishedBlogs={publishedBlogs}
+              draftBlogs={draftBlogs}
+              publishedPagination={publishedPagination}
+              draftPagination={draftPagination}
+              onPublishedPageChange={handlePublishedPageChange}
+              onDraftPageChange={handleDraftPageChange}
+              onEdit={handleEdit}
+              onDelete={(blogId) => {
+                void handleDelete(blogId)
+              }}
+            />
+          </VStack>
+        </Container>
+      </Box>
 
       <EditProfileModal
         isOpen={isProfileEditorOpen}

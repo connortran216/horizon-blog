@@ -6,23 +6,17 @@ import {
   Container,
   Flex,
   Heading,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  InputRightElement,
   SimpleGrid,
   Stack,
   Text,
   VStack,
-  Wrap,
 } from '@chakra-ui/react'
-import { SearchIcon } from '@chakra-ui/icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 import { apiService } from '../../../core/services/api.service'
 import { FadeInShimmer, MotionWrapper, ShimmerLoader } from '../../../core'
 import PaginationControls from '../../../components/PaginationControls'
-import StatChip from '../../../components/ui/StatChip'
+import BlogArchiveHero from '../components/BlogArchiveHero'
 import EditorialCard from '../components/EditorialCard'
 import FeaturedStory from '../components/FeaturedStory'
 import { BlogArchivePost } from '../blog.types'
@@ -81,7 +75,7 @@ const BlogPage = () => {
   const remainingPosts = filteredPosts.slice(1)
   const resultLabel = trimmedQuery
     ? `${filteredPosts.length} result${filteredPosts.length === 1 ? '' : 's'} for "${searchQuery.trim()}"`
-    : `${total} published stor${total === 1 ? 'y' : 'ies'}`
+    : `${total} blog${total === 1 ? '' : 's'}`
 
   return (
     <Box position="relative" pb={12}>
@@ -105,87 +99,14 @@ const BlogPage = () => {
             animate={{ opacity: 1, y: 0 }}
             duration={0.7}
           >
-            <Box
-              position="relative"
-              overflow="hidden"
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius="3xl"
-              bg="bg.glass"
-              backdropFilter="blur(18px)"
-              px={{ base: 6, md: 10 }}
-              py={{ base: 8, md: 10 }}
-              boxShadow="md"
-            >
-              <Stack spacing={8}>
-                <Stack spacing={5} maxW="4xl">
-                  <Text
-                    fontSize="sm"
-                    textTransform="uppercase"
-                    letterSpacing="0.16em"
-                    color="text.tertiary"
-                  >
-                    Horizon archive
-                  </Text>
-                  <Heading
-                    fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-                    lineHeight={{ base: 1.05, md: 0.98 }}
-                    letterSpacing="-0.06em"
-                    color="text.primary"
-                  >
-                    Essays, build notes, and sharp observations from the notebook.
-                  </Heading>
-                  <Text
-                    maxW="3xl"
-                    color="text.secondary"
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    lineHeight="tall"
-                  >
-                    This archive is designed for slow reading and fast scanning. Browse recent
-                    entries, search for a specific idea, and jump into the pieces worth your full
-                    attention.
-                  </Text>
-                </Stack>
-
-                <Wrap spacing={3}>
-                  <StatChip label="Archive" value={resultLabel} />
-                  <StatChip label="Page" value={`${page}/${Math.max(totalPages, 1)}`} />
-                  <StatChip label="Focus" value={trimmedQuery ? 'Search mode' : 'Latest writing'} />
-                </Wrap>
-
-                <Box maxW="2xl">
-                  <InputGroup size="lg">
-                    <InputLeftElement pointerEvents="none" h="full">
-                      <SearchIcon color="text.tertiary" />
-                    </InputLeftElement>
-                    <Input
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder="Search titles, ideas, and notes"
-                      pl={12}
-                      pr={searchQuery ? 12 : 4}
-                      bg="bg.page"
-                      borderColor="border.default"
-                      _hover={{ borderColor: 'accent.primary' }}
-                      _focus={{ borderColor: 'accent.primary', boxShadow: 'outline' }}
-                    />
-                    {searchQuery && (
-                      <InputRightElement h="full" width="auto" pr={2}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          color="text.secondary"
-                          _hover={{ bg: 'bg.tertiary', color: 'text.primary' }}
-                          onClick={() => setSearchQuery('')}
-                        >
-                          Clear
-                        </Button>
-                      </InputRightElement>
-                    )}
-                  </InputGroup>
-                </Box>
-              </Stack>
-            </Box>
+            <BlogArchiveHero
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              resultLabel={resultLabel}
+              page={page}
+              totalPages={totalPages}
+              hasActiveSearch={Boolean(trimmedQuery)}
+            />
           </MotionWrapper>
 
           <AnimatePresence mode="wait">
@@ -225,11 +146,11 @@ const BlogPage = () => {
                     </Heading>
                     <Text maxW="2xl" color="text.secondary" lineHeight="tall">
                       Try a broader keyword, a title fragment, or clear the search to return to the
-                      latest archive entries.
+                      latest blogs.
                     </Text>
                     <Button
                       variant="ghost"
-                      color="accent.primary"
+                      color="action.primary"
                       _hover={{ bg: 'bg.tertiary' }}
                       onClick={() => setSearchQuery('')}
                     >
@@ -259,15 +180,15 @@ const BlogPage = () => {
                         letterSpacing="0.14em"
                         color="text.tertiary"
                       >
-                        Curated archive
+                        Latest blogs
                       </Text>
                       <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                        {trimmedQuery ? 'Search results' : 'Stories worth opening next'}
+                        {trimmedQuery ? 'Search results' : 'Blogs worth reading next'}
                       </Heading>
                     </Stack>
                     <Text color="text.secondary" fontSize="sm">
                       {trimmedQuery
-                        ? `Showing ${filteredPosts.length} matching entries on this page.`
+                        ? `Showing ${filteredPosts.length} matching blogs on this page.`
                         : `Showing page ${page} of ${Math.max(totalPages, 1)}.`}
                     </Text>
                   </Flex>

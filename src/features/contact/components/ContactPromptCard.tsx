@@ -16,7 +16,7 @@ const ContactPromptCard = ({ prompt }: ContactPromptCardProps) => (
         justify="center"
         borderRadius="2xl"
         bg="bg.tertiary"
-        color="accent.primary"
+        color="action.primary"
       >
         <Icon as={prompt.icon} boxSize={5} />
       </Flex>

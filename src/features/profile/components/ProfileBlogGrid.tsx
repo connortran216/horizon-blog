@@ -1,7 +1,10 @@
 import {
+  Badge,
   Box,
+  Flex,
   Heading,
   HStack,
+  Icon,
   IconButton,
   Image,
   Menu,
@@ -15,9 +18,10 @@ import {
 } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { Link as RouterLink } from 'react-router-dom'
-import { FiMoreVertical } from 'react-icons/fi'
+import { FiArrowRight, FiMoreVertical } from 'react-icons/fi'
 import PaginationControls from '../../../components/PaginationControls'
 import { AnimatedCard } from '../../../core'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { ProfileBlogPost } from '../profile.types'
 import { formatBlogDate } from '../profile.utils'
 
@@ -43,81 +47,97 @@ const ProfileBlogGrid = ({
   profileUsername,
 }: ProfileBlogGridProps) => {
   const dateMeta = 'text.tertiary'
+  const getStatusLabel = (status: string) => (status === 'published' ? 'Blog' : 'Draft')
+  const getStatusStyles = (status: string) =>
+    status === 'published'
+      ? { bg: 'action.primary', color: 'white' }
+      : { bg: 'bg.tertiary', color: 'text.secondary' }
+  const getSupportText = (status: string) =>
+    status === 'published'
+      ? 'Live on the blog and ready to revisit.'
+      : 'Still being shaped before publication.'
 
   return (
     <VStack spacing={6} align="stretch">
-      <SimpleGrid columns={{ base: 1 }} spacing={4}>
+      <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
         {blogs.map((blog, index) => (
           <Box key={blog.id} position="relative">
-            <RouterLink to={`/profile/${profileUsername}/blog/${blog.id}`}>
+            <Box as={RouterLink} to={`/profile/${profileUsername}/blog/${blog.id}`} display="block">
               <Box height="100%" display="flex">
                 <AnimatedCard
                   maxW="100%"
                   overflow="hidden"
-                  intensity="medium"
-                  staggerDelay={0.15}
+                  intensity="light"
+                  staggerDelay={0.12}
                   index={index}
                   animation="fadeInUp"
                 >
-                  <HStack minHeight="140px" align="stretch">
-                    {blog.featuredImage ? (
-                      <Box
-                        width="100px"
-                        overflow="hidden"
-                        borderTopLeftRadius="md"
-                        borderBottomLeftRadius="md"
-                      >
+                  <VStack align="stretch" spacing={0}>
+                    <Box h="210px" overflow="hidden" position="relative">
+                      {blog.featuredImage ? (
                         <Image
                           src={blog.featuredImage}
                           alt={blog.title}
-                          width="100%"
-                          height="100%"
+                          w="full"
+                          h="full"
                           objectFit="cover"
                         />
-                      </Box>
-                    ) : (
-                      <Box
-                        width="100px"
-                        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        color="white"
-                        fontSize="xl"
-                        fontWeight="bold"
-                        borderTopLeftRadius="md"
-                        borderBottomLeftRadius="md"
-                      >
-                        {blog.title.substring(0, 2).toUpperCase()}
-                      </Box>
-                    )}
-                    <VStack p={4} spacing={2} align="stretch" flex={1} justify="space-between">
-                      <Tag
-                        colorScheme={blog.status === 'published' ? 'green' : 'gray'}
-                        size="sm"
-                        w="fit-content"
-                        variant="subtle"
-                      >
-                        {blog.status}
-                      </Tag>
+                      ) : (
+                        <DefaultPostCover title={blog.title} eyebrow={blog.status} h="full" />
+                      )}
+                    </Box>
 
-                      <Heading size="sm" color="text.primary" noOfLines={2} lineHeight="1.3">
-                        {blog.title}
-                      </Heading>
-
-                      <HStack spacing={2} align="center" flex={1}>
-                        <Text fontSize="xs" color={dateMeta}>
+                    <VStack p={5} spacing={4} align="stretch" flex={1}>
+                      <HStack justify="space-between" align="center" spacing={4}>
+                        <Badge
+                          px={3}
+                          py={1}
+                          borderRadius="full"
+                          fontSize="10px"
+                          textTransform="uppercase"
+                          letterSpacing="0.12em"
+                          {...getStatusStyles(blog.status)}
+                        >
+                          {getStatusLabel(blog.status)}
+                        </Badge>
+                        <Text fontSize="sm" color={dateMeta}>
                           {formatBlogDate(blog.createdAt)}
                         </Text>
                       </HStack>
+
+                      <Heading size="md" color="text.primary" noOfLines={3} lineHeight="1.15">
+                        {blog.title}
+                      </Heading>
+
+                      <Text color="text.secondary" lineHeight="tall" noOfLines={2}>
+                        {getSupportText(blog.status)}
+                      </Text>
+
+                      <Flex
+                        pt={3}
+                        mt="auto"
+                        borderTop="1px solid"
+                        borderColor="border.subtle"
+                        align="center"
+                        justify="space-between"
+                        gap={4}
+                      >
+                        <Tag size="sm" borderRadius="full" bg="bg.tertiary" color="text.secondary">
+                          {blog.status === 'published' ? 'Live blog' : 'Private draft'}
+                        </Tag>
+                        <HStack spacing={2} color="action.primary" fontWeight="semibold">
+                          <Text fontSize="sm">Open blog</Text>
+                          <Icon as={FiArrowRight} />
+                        </HStack>
+                      </Flex>
                     </VStack>
-                  </HStack>
+                  </VStack>
                 </AnimatedCard>
               </Box>
-            </RouterLink>
+            </Box>
 
             <Box position="absolute" top={1} right={1} zIndex="10">
-              <Menu>
+              <Menu isLazy lazyBehavior="unmount" placement="bottom-end">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <MenuButton
                     as={IconButton}

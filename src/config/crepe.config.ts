@@ -40,7 +40,7 @@ export interface CrepeConfig {
  * - Basic formatting (bold, italic, headings, lists, links, block quotes)
  * - Code blocks with syntax highlighting
  * - Tables
- * - Theme integration with Obsidian purple accent
+ * - Theme integration with the Horizon action color system
  */
 export const CREPE_CONFIG: CrepeConfig = {
   features: {
@@ -57,7 +57,7 @@ export const CREPE_CONFIG: CrepeConfig = {
   },
 
   theme: {
-    accentColor: '#8b7fc7', // Obsidian purple accent
+    accentColor: '#5f7294', // Horizon action accent
     useFrame: true, // Use Crepe's frame theme
   },
 

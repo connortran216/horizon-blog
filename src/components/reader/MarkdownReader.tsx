@@ -8,7 +8,6 @@ interface MarkdownReaderProps {
 }
 
 const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
-  const bgColor = useColorModeValue('white', 'obsidian.dark.bgSecondary')
   const textColor = useColorModeValue('obsidian.text.lightPrimary', 'obsidian.text.primary')
   const codeBlockBg = useColorModeValue('#f6f8fa', '#0d1117')
   const codeBg = useColorModeValue('#f0f1f3', '#2d2d2d')
@@ -63,48 +62,50 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
 
   return (
     <Box
-      bg={bgColor}
       color={textColor}
+      maxW="46rem"
+      mx="auto"
+      w="full"
       className="markdown-reader"
       dangerouslySetInnerHTML={renderedHTML}
       sx={{
         fontFamily: 'body',
-        fontSize: 'lg',
-        lineHeight: 'tall',
+        fontSize: { base: 'md', md: 'lg' },
+        lineHeight: '1.9',
 
         '& h1': {
-          fontSize: '2.8em',
+          fontSize: { base: '2.2em', md: '2.6em' },
           fontWeight: 'bold',
-          mb: 4,
-          mt: 6,
+          mb: 5,
+          mt: 8,
           color: textColor,
-          borderBottom: '2px solid',
-          borderColor: 'border.default',
-          paddingBottom: 2,
+          letterSpacing: '-0.04em',
         },
         '& h2': {
-          fontSize: '2.2em',
+          fontSize: { base: '1.8em', md: '2em' },
           fontWeight: 'bold',
-          mb: 3,
-          mt: 5,
+          mb: 4,
+          mt: 10,
           color: textColor,
+          letterSpacing: '-0.03em',
         },
         '& h3': {
-          fontSize: '1.8em',
+          fontSize: { base: '1.45em', md: '1.65em' },
           fontWeight: 'semibold',
-          mb: 2,
-          mt: 4,
+          mb: 3,
+          mt: 8,
           color: textColor,
+          letterSpacing: '-0.02em',
         },
         '& h4, & h5, & h6': {
           fontWeight: 'semibold',
-          mb: 2,
-          mt: 3,
+          mb: 3,
+          mt: 6,
           color: textColor,
         },
         '& p': {
-          mb: 4,
-          lineHeight: '1.8',
+          mb: 6,
+          lineHeight: '1.95',
         },
         '& a': {
           color: 'link.default',
@@ -116,19 +117,19 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
         },
         '& code': {
           bg: codeBg,
-          px: 2,
+          px: 2.5,
           py: 1,
-          borderRadius: 'sm',
+          borderRadius: 'md',
           fontSize: '0.875em',
           fontFamily: 'mono',
           color: textColor,
         },
         '& pre': {
           bg: codeBlockBg,
-          p: 4,
-          borderRadius: 'md',
+          p: { base: 4, md: 5 },
+          borderRadius: 'xl',
           overflow: 'auto',
-          my: 4,
+          my: 8,
           border: '1px solid',
           borderColor: 'border.subtle',
         },
@@ -142,18 +143,19 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
           display: 'block',
           maxW: '100%',
           height: 'auto',
-          borderRadius: 'md',
+          borderRadius: 'xl',
           mx: 'auto',
-          my: 4,
+          my: 8,
           border: '1px solid',
           borderColor: 'border.subtle',
         },
         '& ul, & ol': {
           pl: 6,
-          my: 4,
+          my: 6,
         },
         '& li': {
-          mb: 2,
+          mb: 3,
+          lineHeight: '1.85',
         },
         '& ul': {
           listStyleType: 'disc',
@@ -166,18 +168,20 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
         },
         '& blockquote': {
           borderLeft: '4px solid',
-          borderColor: 'accent.primary',
-          pl: 4,
+          borderColor: 'action.primary',
+          pl: 5,
           ml: 0,
-          my: 4,
+          my: 8,
           color: 'text.secondary',
-          fontStyle: 'italic',
-          py: 2,
+          py: 1,
+          pr: 2,
+          fontSize: { base: 'lg', md: 'xl' },
+          lineHeight: '1.75',
         },
         '& table': {
           borderCollapse: 'collapse',
           width: '100%',
-          my: 4,
+          my: 8,
           fontSize: '0.9375rem',
           border: '1px solid',
           borderColor: 'border.default',
@@ -205,7 +209,7 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
           border: 'none',
           borderTop: '2px solid',
           borderColor: 'border.subtle',
-          my: 6,
+          my: 10,
         },
         '& strong': {
           fontWeight: 'bold',

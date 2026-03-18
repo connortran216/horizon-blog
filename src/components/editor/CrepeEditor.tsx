@@ -408,8 +408,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         },
         // Focus state styling
         '&:focus-within': {
-          borderColor: 'accent.primary',
-          boxShadow: `0 0 0 1px var(--chakra-colors-accent-primary)`,
+          borderColor: 'action.primary',
+          boxShadow: `0 0 0 1px var(--chakra-colors-action-primary)`,
         },
       }}
     />

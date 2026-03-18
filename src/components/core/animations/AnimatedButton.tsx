@@ -106,20 +106,31 @@ export const AnimatedButton = ({
 /**
  * Primary variant - uses design system semantic tokens
  */
-export const AnimatedPrimaryButton = (props: AnimatedButtonProps & Partial<LinkProps>) => (
-  <AnimatedButton
-    bg="accent.primary"
-    color="white"
-    _hover={{ bg: 'accent.hover' }}
-    _active={{ bg: 'accent.active' }}
-    fontWeight="medium"
-    transition="all 0.2s"
-    // Explicit width control (no min-w or auto sizing that could conflict)
-    minW="0"
-    w="auto"
-    {...props}
-  />
-)
+export const AnimatedPrimaryButton = ({
+  variant = 'solid',
+  ...props
+}: AnimatedButtonProps & Partial<LinkProps>) => {
+  const isSolidLike = variant === 'solid'
+
+  return (
+    <AnimatedButton
+      variant={variant}
+      fontWeight="semibold"
+      transition="all 0.2s"
+      minW="0"
+      w="auto"
+      {...(isSolidLike
+        ? {
+            bg: 'action.primary',
+            color: 'white',
+            _hover: { bg: 'action.hover' },
+            _active: { bg: 'action.active' },
+          }
+        : {})}
+      {...props}
+    />
+  )
+}
 
 /**
  * Ghost variant

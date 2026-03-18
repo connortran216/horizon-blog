@@ -125,7 +125,6 @@ const PaginationControls = ({
               <FocusRing>
                 <AnimatedPrimaryButton
                   onClick={() => handlePageClick(page)}
-                  colorScheme={isActive ? 'purple' : undefined}
                   variant={isActive ? 'solid' : 'outline'}
                   size="sm"
                   px={3}
@@ -172,8 +171,11 @@ const PaginationControls = ({
               max={totalPages}
               bg="background.secondary"
               borderRadius="md"
-              _hover={{ borderColor: 'accent.primary' }}
-              _focus={{ borderColor: 'accent.primary', boxShadow: '0 0 0 1px purple.500' }}
+              _hover={{ borderColor: 'action.primary' }}
+              _focus={{
+                borderColor: 'action.primary',
+                boxShadow: '0 0 0 1px var(--chakra-colors-action-primary)',
+              }}
               size="sm"
             />
             <InputRightElement>
@@ -183,7 +185,7 @@ const PaginationControls = ({
                 size="sm"
                 variant="ghost"
                 onClick={handleJumpSubmit}
-                _hover={{ bg: 'accent.primary', color: 'white' }}
+                _hover={{ bg: 'action.primary', color: 'white' }}
                 borderRadius="md"
                 h="full"
               />

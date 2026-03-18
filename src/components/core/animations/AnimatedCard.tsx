@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState, ReactNode } from 'react'
 import { motion, useAnimation, useInView, Variants } from 'framer-motion'
 import { GlassCard } from './Glassmorphism'
 import { useColorModeValue } from '@chakra-ui/react'
+import type { BoxProps } from '@chakra-ui/react'
 
-interface AnimatedCardProps {
+interface AnimatedCardProps extends Omit<BoxProps, 'blur'> {
   children: ReactNode
   /** Animation variant: 'fadeInUp', 'slideFromLeft', 'slideFromRight', 'scaleIn' */
   animation?: 'fadeInUp' | 'slideFromLeft' | 'slideFromRight' | 'scaleIn'
@@ -111,8 +112,8 @@ export const AnimatedCard = ({
   const hoverEffects = whileHover || {
     scale: 1.02,
     boxShadow: useColorModeValue(
-      '0 4px 12px rgba(139, 127, 199, 0.5), 0 0 0 1px rgba(139, 127, 199, 0.1)',
-      '0 4px 12px rgba(139, 127, 199, 0.6), 0 0 0 1px rgba(139, 127, 199, 0.2)',
+      '0 4px 12px rgba(95, 114, 148, 0.38), 0 0 0 1px rgba(95, 114, 148, 0.08)',
+      '0 4px 12px rgba(109, 130, 167, 0.34), 0 0 0 1px rgba(109, 130, 167, 0.12)',
     ),
     transition: { type: 'spring', stiffness: 300, damping: 20 },
   }

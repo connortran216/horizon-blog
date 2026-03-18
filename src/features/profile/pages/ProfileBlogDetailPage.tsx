@@ -16,7 +16,7 @@ const ProfileBlogDetailPage = () => {
     redirectPath,
     validatePost: (foundPost) => {
       if (foundPost.user?.name !== username) {
-        return 'This post does not belong to this user.'
+        return 'This blog does not belong to this user.'
       }
 
       return null
@@ -36,7 +36,7 @@ const ProfileBlogDetailPage = () => {
       resolvedContent={resolvedContent}
       onBack={() => navigate(redirectPath)}
       backLabel="Back to Profile"
-      emptyLabel="Post not found"
+      emptyLabel="Blog not found"
       bottomPadding={false}
       titleSection={
         post ? (
@@ -66,7 +66,7 @@ const ProfileBlogDetailPage = () => {
             transition={{ duration: 0.4, delay: 0.7 }}
           >
             <Text fontSize="sm" color="text.secondary" fontStyle="italic">
-              This is a read-only view. To edit this post, go back to your profile and use the Edit
+              This is a read-only view. To edit this blog, go back to your profile and use the Edit
               option from the menu.
             </Text>
           </motion.div>

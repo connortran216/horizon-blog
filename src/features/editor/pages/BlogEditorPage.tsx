@@ -1,28 +1,36 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Box, Container, Input, Text, VStack, useToast, useColorModeValue } from '@chakra-ui/react'
+import {
+  Badge,
+  Box,
+  Container,
+  Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Heading,
+  HStack,
+  Input,
+  Spinner,
+  Text,
+  VStack,
+  Stack,
+  useToast,
+} from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatedCard } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import { useAutoSave } from '../hooks/useAutoSave'
 import { useBlogPost } from '../hooks/useBlogPost'
 import { useEditorContent } from '../hooks/useEditorContent'
-import EditorMetaBar from '../components/EditorMetaBar'
 import EditorTagField from '../components/EditorTagField'
 import EditorWorkspace from '../components/EditorWorkspace'
 import '../editor.window'
 
 const BlogEditorPage = () => {
-  const { user } = useAuth()
+  useAuth()
   const navigate = useNavigate()
   const toast = useToast()
   const [tabIndex, setTabIndex] = useState(0)
-
-  const textTertiary = useColorModeValue('gray.500', 'text.tertiary')
-  const bgPrimary = useColorModeValue('white', 'bg.secondary')
-  const borderColor = useColorModeValue('gray.200', 'border.subtle')
-  const tabColor = useColorModeValue('text.secondary', 'text.secondary')
-  const tabHoverColor = useColorModeValue('text.primary', 'text.primary')
-  const tabSelectedColor = useColorModeValue('accent.primary', 'accent.primary')
-  const tabBorderColor = useColorModeValue('accent.primary', 'accent.primary')
 
   const { post, isLoading, postId } = useBlogPost()
   const editorContent = useEditorContent({
@@ -57,7 +65,7 @@ const BlogEditorPage = () => {
 
       toast({
         title: 'Success',
-        description: `Blog post ${postId ? 'updated' : 'published'} successfully`,
+        description: postId ? 'Blog updated successfully' : 'Blog is now live',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -95,78 +103,211 @@ const BlogEditorPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxW="container.xl" p={5}>
-        <VStack spacing={6} align="stretch">
-          <Box
-            border="1px"
-            borderColor={borderColor}
-            borderRadius="md"
-            minH="500px"
-            bg={bgPrimary}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
+      <Box position="relative">
+        <Box
+          position="absolute"
+          top="2rem"
+          right="4%"
+          w={{ base: '220px', md: '380px' }}
+          h={{ base: '220px', md: '380px' }}
+          bg="action.glow"
+          filter="blur(120px)"
+          opacity={0.8}
+          pointerEvents="none"
+        />
+
+        <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
+          <AnimatedCard
+            overflow="visible"
+            intensity="light"
+            border="1px solid"
+            borderColor="border.subtle"
+            boxShadow="0 20px 44px rgba(0, 0, 0, 0.22)"
           >
-            <Text color={textTertiary}>Loading editor...</Text>
-          </Box>
-        </VStack>
-      </Container>
+            <Flex minH="320px" align="center" justify="center" direction="column" gap={4}>
+              <Spinner color="action.primary" size="lg" />
+              <Text color="text.tertiary">Loading editor...</Text>
+            </Flex>
+          </AnimatedCard>
+        </Container>
+      </Box>
     )
   }
 
-  const saveTone =
-    autoSave.saveStatus === 'error'
-      ? 'red.500'
-      : autoSave.saveStatus === 'saving' || autoSave.isSaving
-        ? 'blue.500'
-        : 'accent.primary'
+  const hasExistingDraft = Boolean(postId || autoSave.currentPostId)
+  const draftLabel = hasExistingDraft ? 'Editing draft' : 'New draft'
 
   return (
-    <Container maxW="container.xl" p={5}>
-      <VStack spacing={6} align="stretch">
-        <EditorMetaBar user={user} saveStatus={autoSave.getSaveStatusText()} saveTone={saveTone} />
+    <Box position="relative">
+      <Box
+        position="absolute"
+        top="3rem"
+        right="4%"
+        w={{ base: '220px', md: '420px' }}
+        h={{ base: '220px', md: '420px' }}
+        bg="action.glow"
+        filter="blur(120px)"
+        opacity={0.75}
+        pointerEvents="none"
+      />
 
-        <Input
-          id="blog-title"
-          name="blogTitle"
-          placeholder="Blog Title"
-          size="lg"
-          fontSize="2xl"
-          fontWeight="bold"
-          border="none"
-          _focus={{ border: 'none', boxShadow: 'none' }}
-          _hover={{ border: 'none' }}
-          value={editorContent.title}
-          onChange={(event) => editorContent.setTitle(event.target.value)}
-          isDisabled={isLoading}
-        />
+      <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
+        <AnimatedCard
+          overflow="visible"
+          intensity="light"
+          border="1px solid"
+          borderColor="border.subtle"
+          bg="bg.glass"
+          backdropFilter="blur(18px)"
+          boxShadow="0 20px 44px rgba(0, 0, 0, 0.22)"
+        >
+          <Box position="relative">
+            <Box
+              position="absolute"
+              top="-16%"
+              right="-4%"
+              w={{ base: '220px', md: '360px' }}
+              h={{ base: '220px', md: '360px' }}
+              bg="action.glow"
+              filter="blur(110px)"
+              opacity={0.9}
+              pointerEvents="none"
+            />
 
-        <EditorTagField
-          tagInput={editorContent.tagInput}
-          tags={editorContent.tags}
-          isDisabled={isLoading}
-          onTagInputChange={editorContent.setTagInput}
-          onTagKeyDown={editorContent.handleAddTagByEnter}
-          onRemoveTag={editorContent.removeTag}
-        />
+            <Box position="relative" zIndex={1}>
+              <Box px={{ base: 6, md: 8 }} pt={{ base: 6, md: 8 }} pb={{ base: 7, md: 8 }}>
+                <Stack spacing={4} maxW="3xl">
+                  <HStack spacing={3} flexWrap="wrap">
+                    <Badge
+                      alignSelf="flex-start"
+                      px={3}
+                      py={1.5}
+                      borderRadius="full"
+                      bg="bg.tertiary"
+                      color="text.secondary"
+                      textTransform="uppercase"
+                      letterSpacing="0.16em"
+                      fontSize="10px"
+                    >
+                      Writing studio
+                    </Badge>
 
-        <EditorWorkspace
-          tabIndex={tabIndex}
-          onTabChange={setTabIndex}
-          borderColor={borderColor}
-          tabColor={tabColor}
-          tabHoverColor={tabHoverColor}
-          tabSelectedColor={tabSelectedColor}
-          tabBorderColor={tabBorderColor}
-          editorKey={postId || autoSave.currentPostId || 'new-post'}
-          initialContent={editorContent.contentMarkdown}
-          previewContent={editorContent.contentMarkdown}
-          postId={autoSave.currentPostId}
-          ensurePostId={ensurePostId}
-          onEditorChange={editorContent.handleEditorChange}
-        />
-      </VStack>
-    </Container>
+                    <Badge
+                      px={3}
+                      py={1.5}
+                      borderRadius="full"
+                      bg="action.subtle"
+                      color="action.primary"
+                      textTransform="uppercase"
+                      letterSpacing="0.16em"
+                      fontSize="10px"
+                    >
+                      {draftLabel}
+                    </Badge>
+                  </HStack>
+
+                  <Heading
+                    fontSize={{ base: '3xl', md: '5xl' }}
+                    lineHeight={{ base: 1.08, md: 0.98 }}
+                    letterSpacing="-0.05em"
+                    color="text.primary"
+                  >
+                    {hasExistingDraft
+                      ? 'Refine the draft before it goes live.'
+                      : 'Write a blog with clarity.'}
+                  </Heading>
+
+                  <Text
+                    maxW="2xl"
+                    color="text.secondary"
+                    fontSize={{ base: 'md', md: 'lg' }}
+                    lineHeight="tall"
+                  >
+                    Drafts save automatically while you work. Use tags to keep related writing
+                    connected, then switch to preview to check the final reading rhythm before you
+                    publish.
+                  </Text>
+                </Stack>
+              </Box>
+
+              <Box borderTop="1px solid" borderColor="border.subtle" />
+
+              <VStack
+                spacing={{ base: 6, md: 8 }}
+                align="stretch"
+                px={{ base: 6, md: 8 }}
+                py={{ base: 6, md: 8 }}
+              >
+                <FormControl>
+                  <FormLabel
+                    htmlFor="blog-title"
+                    mb={1.5}
+                    fontSize="sm"
+                    fontWeight="semibold"
+                    color="text.primary"
+                  >
+                    Title
+                  </FormLabel>
+                  <FormHelperText mt={0} mb={3} color="text.tertiary">
+                    Lead with a clear promise or idea readers will understand at a glance.
+                  </FormHelperText>
+
+                  <Box
+                    border="1px solid"
+                    borderColor="border.default"
+                    borderRadius="2xl"
+                    bg="bg.page"
+                    px={{ base: 4, md: 5 }}
+                    py={{ base: 4, md: 5 }}
+                    transition="border-color 0.2s ease, box-shadow 0.2s ease"
+                    _focusWithin={{
+                      borderColor: 'action.primary',
+                      boxShadow: '0 0 0 1px var(--chakra-colors-action-primary)',
+                    }}
+                  >
+                    <Input
+                      id="blog-title"
+                      name="blogTitle"
+                      variant="unstyled"
+                      placeholder="Give your blog a clear, specific title"
+                      fontSize={{ base: '2xl', md: '4xl' }}
+                      fontWeight="bold"
+                      letterSpacing="-0.04em"
+                      lineHeight={{ base: 1.12, md: 1.02 }}
+                      color="text.primary"
+                      value={editorContent.title}
+                      onChange={(event) => editorContent.setTitle(event.target.value)}
+                      isDisabled={isLoading}
+                      _placeholder={{ color: 'text.tertiary' }}
+                    />
+                  </Box>
+                </FormControl>
+
+                <EditorTagField
+                  tagInput={editorContent.tagInput}
+                  tags={editorContent.tags}
+                  isDisabled={isLoading}
+                  onTagInputChange={editorContent.setTagInput}
+                  onTagKeyDown={editorContent.handleAddTagByEnter}
+                  onRemoveTag={editorContent.removeTag}
+                />
+
+                <EditorWorkspace
+                  tabIndex={tabIndex}
+                  onTabChange={setTabIndex}
+                  editorKey={postId || autoSave.currentPostId || 'new-post'}
+                  initialContent={editorContent.contentMarkdown}
+                  previewContent={editorContent.contentMarkdown}
+                  postId={autoSave.currentPostId}
+                  ensurePostId={ensurePostId}
+                  onEditorChange={editorContent.handleEditorChange}
+                />
+              </VStack>
+            </Box>
+          </Box>
+        </AnimatedCard>
+      </Container>
+    </Box>
   )
 }
 

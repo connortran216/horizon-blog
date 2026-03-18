@@ -8,7 +8,6 @@ import {
   Icon,
   Image,
   SimpleGrid,
-  Tag,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -17,6 +16,7 @@ import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { BlogPost } from '../../../core'
 import { AnimatedCard } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
@@ -40,7 +40,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
         index={index}
         animation="fadeInUp"
       >
-        <SimpleGrid columns={{ base: 1, md: coverImage ? 2 : 1 }} spacing={0}>
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={0}>
           <VStack align="stretch" spacing={4} p={6} justify="space-between">
             <VStack align="stretch" spacing={4}>
               <HStack spacing={3} flexWrap="wrap">
@@ -54,7 +54,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
                   letterSpacing="0.12em"
                   fontSize="10px"
                 >
-                  {index === 0 ? 'Lead note' : 'Recent note'}
+                  {index === 0 ? 'Lead blog' : 'Recent blog'}
                 </Badge>
                 <Text fontSize="sm" color="text.tertiary">
                   {formatDate(post.createdAt)}
@@ -72,7 +72,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
               </Heading>
 
               <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-                {post.excerpt || post.subtitle || 'A new note from the archive.'}
+                {post.excerpt || post.subtitle || 'A new blog from the site.'}
               </Text>
             </VStack>
 
@@ -96,7 +96,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
                   <Icon as={FiClock} />
                   <Text>{post.readingTime || 1} min read</Text>
                 </HStack>
-                <HStack spacing={1.5} color="accent.primary" fontWeight="semibold">
+                <HStack spacing={1.5} color="action.primary" fontWeight="semibold">
                   <Text>Read</Text>
                   <Icon as={FiArrowRight} />
                 </HStack>
@@ -113,19 +113,14 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
               <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
             </Box>
           ) : (
-            <Flex
+            <DefaultPostCover
+              title={post.title}
+              eyebrow={index === 0 ? 'Lead blog' : 'Recent blog'}
               minH="220px"
-              align="center"
-              justify="center"
-              bg="bg.tertiary"
               borderTop={{ base: '1px solid', md: 'none' }}
               borderLeft={{ base: 'none', md: '1px solid' }}
               borderColor="border.subtle"
-            >
-              <Tag size="lg" borderRadius="full" bg="bg.page" color="accent.primary">
-                Quiet thinking, shipped clearly
-              </Tag>
-            </Flex>
+            />
           )}
         </SimpleGrid>
       </AnimatedCard>

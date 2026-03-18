@@ -57,6 +57,11 @@ const colors = {
       hover: '#9d8fd9', // Hover state
       active: '#7a6eb5', // Active state
     },
+    action: {
+      primary: '#5f7294', // Primary action (slate blue)
+      hover: '#6d82a7', // Hover state
+      active: '#51637f', // Active state
+    },
 
     // Semantic colors
     link: '#5b9cf6', // Link color
@@ -128,6 +133,26 @@ const semanticTokens = {
       default: 'rgba(139, 127, 199, 0.24)',
       _dark: 'rgba(139, 127, 199, 0.3)',
     },
+    'action.primary': {
+      default: 'obsidian.action.primary',
+      _dark: 'obsidian.action.primary',
+    },
+    'action.hover': {
+      default: 'obsidian.action.hover',
+      _dark: 'obsidian.action.hover',
+    },
+    'action.active': {
+      default: 'obsidian.action.active',
+      _dark: 'obsidian.action.active',
+    },
+    'action.subtle': {
+      default: 'rgba(95, 114, 148, 0.1)',
+      _dark: 'rgba(109, 130, 167, 0.16)',
+    },
+    'action.glow': {
+      default: 'rgba(95, 114, 148, 0.18)',
+      _dark: 'rgba(109, 130, 167, 0.22)',
+    },
 
     // Links
     'link.default': {
@@ -172,6 +197,7 @@ const components = {
   Button: {
     baseStyle: {
       transition: 'all 0.2s ease-in-out',
+      fontWeight: 'semibold',
     },
     variants: {
       ghost: {
@@ -182,13 +208,28 @@ const components = {
         },
       },
       solid: {
-        bg: 'accent.primary',
+        bg: 'action.primary',
         color: 'white',
+        boxShadow: 'sm',
         _hover: {
-          bg: 'accent.hover',
+          bg: 'action.hover',
+          boxShadow: 'md',
         },
         _active: {
-          bg: 'accent.active',
+          bg: 'action.active',
+        },
+      },
+      outline: {
+        borderColor: 'action.primary',
+        color: 'action.primary',
+        bg: 'transparent',
+        _hover: {
+          bg: 'action.subtle',
+          borderColor: 'action.hover',
+        },
+        _active: {
+          bg: 'action.subtle',
+          borderColor: 'action.active',
         },
       },
     },

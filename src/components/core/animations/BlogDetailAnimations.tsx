@@ -88,7 +88,7 @@ export const AuthorAnimation = ({
             {post.user?.name || 'Anonymous'}
           </Text>
           <Text fontSize="sm" color={dateColor}>
-            Published on {new Date(post.created_at).toLocaleDateString()}
+            {new Date(post.created_at).toLocaleDateString()}
             {post.created_at !== post.updated_at &&
               ` • Updated on ${new Date(post.updated_at).toLocaleDateString()}`}
           </Text>

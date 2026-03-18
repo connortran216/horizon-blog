@@ -10,9 +10,9 @@
    ========================================= */
 
 .crepe-editor-wrapper {
-  --crepe-accent-primary: var(--chakra-colors-accent-primary);
-  --crepe-accent-hover: var(--chakra-colors-accent-hover);
-  --crepe-accent-active: var(--chakra-colors-accent-primary);
+  --crepe-accent-primary: var(--chakra-colors-action-primary);
+  --crepe-accent-hover: var(--chakra-colors-action-hover);
+  --crepe-accent-active: var(--chakra-colors-action-active);
 
   --crepe-link: var(--chakra-colors-link-default);
   --crepe-link-hover: var(--chakra-colors-link-hover);
@@ -470,7 +470,7 @@
 .crepe-editor-wrapper .milkdown-block-menu [role='tab'][aria-selected='true'] {
   background-color: var(--crepe-accent-primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(139, 127, 199, 0.3);
+  box-shadow: 0 2px 8px rgba(95, 114, 148, 0.26);
 }
 
 /* Menu items */
@@ -489,7 +489,7 @@
   background-color: var(--crepe-accent-primary);
   color: white;
   transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(139, 127, 199, 0.2);
+  box-shadow: 0 2px 8px rgba(95, 114, 148, 0.18);
 }
 
 /* Menu item icons */

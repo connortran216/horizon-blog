@@ -12,7 +12,7 @@ const AboutStatCard = ({ icon, label, value }: AboutStatItem) => (
         justify="center"
         borderRadius="2xl"
         bg="bg.tertiary"
-        color="accent.primary"
+        color="action.primary"
       >
         <Icon as={icon} boxSize={5} />
       </Flex>

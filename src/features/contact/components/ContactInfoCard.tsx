@@ -16,7 +16,7 @@ const ContactInfoCard = ({ info }: ContactInfoCardProps) => (
         justify="center"
         borderRadius="2xl"
         bg="bg.tertiary"
-        color="accent.primary"
+        color="action.primary"
       >
         <Icon as={info.icon} boxSize={5} />
       </Flex>

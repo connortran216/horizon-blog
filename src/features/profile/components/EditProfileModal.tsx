@@ -295,9 +295,9 @@ const EditProfileModal = ({
             Cancel
           </Button>
           <Button
-            bg="accent.primary"
+            bg="action.primary"
             color="white"
-            _hover={{ bg: 'accent.hover' }}
+            _hover={{ bg: 'action.hover' }}
             onClick={onSaveProfile}
             isLoading={isSavingProfile}
           >

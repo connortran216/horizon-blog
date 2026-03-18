@@ -24,7 +24,7 @@ import AboutStatCard from '../components/AboutStatCard'
 import { AboutPrinciple, AboutStatItem } from '../about.types'
 
 const stats: AboutStatItem[] = [
-  { label: 'Articles published', value: '47+', icon: FaBook },
+  { label: 'Articles written', value: '47+', icon: FaBook },
   { label: 'Readers reached', value: '2.5K+', icon: FaUsers },
   { label: 'Lines shipped', value: '8.9K+', icon: FaCode },
   { label: 'Moments that resonated', value: '1.2K+', icon: FaHeart },
@@ -35,7 +35,7 @@ const principles: AboutPrinciple[] = [
     icon: FiFeather,
     title: 'Write with a point of view',
     description:
-      'Every post should feel deliberate. Strong titles, clear structure, and useful takeaways matter more than volume.',
+      'Every blog should feel deliberate. Strong titles, clear structure, and useful takeaways matter more than volume.',
   },
   {
     icon: FiLayers,
@@ -61,7 +61,7 @@ const AboutPage = () => {
         transform="translateX(-50%)"
         w={{ base: '92%', md: '78%' }}
         h="320px"
-        bg="accent.glow"
+        bg="action.glow"
         filter="blur(130px)"
         opacity={0.72}
         pointerEvents="none"
@@ -124,12 +124,12 @@ const AboutPage = () => {
                     <Button
                       as={RouterLink}
                       to="/blog"
-                      bg="accent.primary"
+                      bg="action.primary"
                       color="white"
-                      _hover={{ bg: 'accent.hover' }}
+                      _hover={{ bg: 'action.hover' }}
                       rightIcon={<FiArrowRight />}
                     >
-                      Read the archive
+                      Read the blog
                     </Button>
                     <Button
                       as={RouterLink}
@@ -243,7 +243,7 @@ const AboutPage = () => {
                       justify="center"
                       borderRadius="2xl"
                       bg="bg.tertiary"
-                      color="accent.primary"
+                      color="action.primary"
                     >
                       <Icon as={principle.icon} boxSize={5} />
                     </Flex>
@@ -298,14 +298,14 @@ const AboutPage = () => {
                     letterSpacing="0.14em"
                     fontSize="10px"
                   >
-                    Founder note
+                    Founder story
                   </Badge>
                   <Stack spacing={2}>
                     <Heading size="xl" color="text.primary" letterSpacing="-0.03em">
                       Connor Tran
                     </Heading>
                     <Text
-                      color="accent.primary"
+                      color="action.primary"
                       fontWeight="semibold"
                       letterSpacing="0.08em"
                       textTransform="uppercase"

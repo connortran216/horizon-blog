@@ -128,7 +128,7 @@ const ContactPage = () => {
         transform="translateX(-50%)"
         w={{ base: '92%', md: '78%' }}
         h="320px"
-        bg="accent.glow"
+        bg="action.glow"
         filter="blur(130px)"
         opacity={0.72}
         pointerEvents="none"
@@ -174,7 +174,7 @@ const ContactPage = () => {
                       letterSpacing="-0.06em"
                       color="text.primary"
                     >
-                      Send a thoughtful note, not just a form submission.
+                      Send a thoughtful message about the blog, not just a form submission.
                     </Heading>
 
                     <Text
@@ -191,9 +191,9 @@ const ContactPage = () => {
                       <Button
                         as={Link}
                         href="mailto:canhtran210699@gmail.com"
-                        bg="accent.primary"
+                        bg="action.primary"
                         color="white"
-                        _hover={{ bg: 'accent.hover' }}
+                        _hover={{ bg: 'action.hover' }}
                         rightIcon={<FiArrowRight />}
                       >
                         Email directly

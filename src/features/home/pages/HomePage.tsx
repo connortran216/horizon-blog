@@ -11,11 +11,10 @@ import {
   Stack,
   Text,
   VStack,
-  Wrap,
 } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
-import { FiArrowRight, FiEdit3, FiFeather, FiSearch } from 'react-icons/fi'
+import { FiArrowRight } from 'react-icons/fi'
 import {
   BlogPost,
   FadeInShimmer,
@@ -23,9 +22,8 @@ import {
   ShimmerLoader,
   getBlogRepository,
 } from '../../../core'
-import StatChip from '../../../components/ui/StatChip'
 import { useAuth } from '../../../context/AuthContext'
-import PromiseCard from '../components/PromiseCard'
+import HeroArchivePreview from '../components/HeroArchivePreview'
 import StoryCard from '../components/StoryCard'
 
 const formatDate = (dateString: string) =>
@@ -116,7 +114,7 @@ const HomePage = () => {
                     letterSpacing="0.14em"
                     fontSize="10px"
                   >
-                    Horizon notebook
+                    Horizon blog
                   </Badge>
 
                   <Heading
@@ -125,7 +123,7 @@ const HomePage = () => {
                     letterSpacing="-0.06em"
                     color="text.primary"
                   >
-                    Human stories, build notes, and deliberate writing for curious readers.
+                    Human stories, blogs, and thoughtful writing for curious readers.
                   </Heading>
 
                   <Text
@@ -138,66 +136,44 @@ const HomePage = () => {
                     work that feels intentional. Less noise, more clarity.
                   </Text>
 
-                  <HStack spacing={4} flexWrap="wrap">
+                  <HStack spacing={{ base: 3, md: 6 }} flexWrap="wrap" align="center">
                     <Button
                       as={RouterLink}
                       to="/blog"
-                      size="lg"
-                      bg="accent.primary"
+                      size="md"
+                      bg="action.primary"
                       color="white"
-                      _hover={{ bg: 'accent.hover' }}
+                      borderRadius="full"
+                      px={6}
+                      _hover={{ bg: 'action.hover', transform: 'translateY(-1px)' }}
                       rightIcon={<FiArrowRight />}
                     >
-                      Explore the archive
+                      Explore the blog
                     </Button>
-                    <Button
+                    <Link
                       as={RouterLink}
                       to={user ? '/blog-editor' : '/register'}
-                      size="lg"
-                      variant="ghost"
-                      color="text.primary"
-                      _hover={{ bg: 'bg.tertiary' }}
+                      color="text.secondary"
+                      fontSize={{ base: 'lg', md: 'xl' }}
+                      fontWeight="semibold"
+                      textDecoration="none"
+                      _hover={{ color: 'text.primary', textDecoration: 'none' }}
                     >
-                      {user ? 'Write your next note' : 'Create an account'}
-                    </Button>
+                      {user ? 'Write your next blog' : 'Create an account'}
+                    </Link>
                   </HStack>
 
-                  <Wrap spacing={3}>
-                    <StatChip
-                      label="Focus"
-                      value={user ? 'Read and publish' : 'Read and discover'}
-                      minWidth={{ base: 'auto', md: '150px' }}
-                    />
-                    <StatChip
-                      label="Format"
-                      value="Essays, notes, and field reports"
-                      minWidth={{ base: 'auto', md: '150px' }}
-                    />
-                    <StatChip
-                      label="Tone"
-                      value="Calm, useful, and human"
-                      minWidth={{ base: 'auto', md: '150px' }}
-                    />
-                  </Wrap>
+                  <Text
+                    fontSize="sm"
+                    textTransform="uppercase"
+                    letterSpacing="0.14em"
+                    color="text.tertiary"
+                  >
+                    Read with focus. Publish with intent. Keep the blog human.
+                  </Text>
                 </Stack>
 
-                <Stack spacing={4} justify="space-between">
-                  <PromiseCard
-                    icon={FiFeather}
-                    title="Writing with intent"
-                    description="Posts are presented like a notebook archive, with room for strong titles, thoughtful summaries, and sustained reading."
-                  />
-                  <PromiseCard
-                    icon={FiSearch}
-                    title="Built for discovery"
-                    description="The archive surfaces clear entry points so readers can scan quickly, then settle into the pieces worth opening."
-                  />
-                  <PromiseCard
-                    icon={FiEdit3}
-                    title="Made for publishing"
-                    description="The same product supports drafting and authoring, so writers and readers live inside one coherent system."
-                  />
-                </Stack>
+                <HeroArchivePreview post={featuredPost} formatDate={formatDate} />
               </SimpleGrid>
             </Box>
           </MotionWrapper>
@@ -223,19 +199,18 @@ const HomePage = () => {
                   bg="bg.secondary"
                 >
                   <Heading size="lg" color="text.primary">
-                    The notebook is still empty.
+                    The blog is still empty.
                   </Heading>
                   <Text mt={4} color="text.secondary" maxW="2xl" mx="auto" lineHeight="tall">
-                    Start the archive with a first post and establish the tone of the blog from the
-                    very first note.
+                    Publish the first blog and set the tone for the blog from the very beginning.
                   </Text>
                   <Button
                     as={RouterLink}
                     to={user ? '/blog-editor' : '/register'}
                     mt={6}
-                    bg="accent.primary"
+                    bg="action.primary"
                     color="white"
-                    _hover={{ bg: 'accent.hover' }}
+                    _hover={{ bg: 'action.hover' }}
                   >
                     {user ? 'Start writing' : 'Join Horizon'}
                   </Button>
@@ -262,16 +237,16 @@ const HomePage = () => {
                             Latest highlight
                           </Text>
                           <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                            Start with the freshest note from the archive
+                            Start with the latest writing on the blog
                           </Heading>
                         </Stack>
                         <Link
                           as={RouterLink}
                           to="/blog"
-                          color="accent.primary"
+                          color="action.primary"
                           fontWeight="semibold"
                         >
-                          See full archive
+                          See all blogs
                         </Link>
                       </HStack>
                       <StoryCard post={featuredPost} index={0} formatDate={formatDate} />
@@ -287,10 +262,10 @@ const HomePage = () => {
                           letterSpacing="0.14em"
                           color="text.tertiary"
                         >
-                          Recent entries
+                          Recent blogs
                         </Text>
                         <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                          Keep browsing through the notebook
+                          Keep reading through the blog
                         </Heading>
                       </Stack>
 

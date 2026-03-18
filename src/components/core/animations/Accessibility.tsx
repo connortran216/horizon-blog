@@ -270,7 +270,13 @@ export const AccessibilityPanel: React.FC<AccessibilityPanelProps> = ({
           </HStack>
         </VStack>
 
-        <Button size="sm" colorScheme="purple" onClick={onClose}>
+        <Button
+          size="sm"
+          bg="action.primary"
+          color="white"
+          _hover={{ bg: 'action.hover' }}
+          onClick={onClose}
+        >
           Done
         </Button>
       </VStack>

@@ -1,7 +1,6 @@
 import {
   Badge,
   Box,
-  Flex,
   Heading,
   HStack,
   Icon,
@@ -16,6 +15,7 @@ import { FiArrowRight, FiFileText } from 'react-icons/fi'
 import { MotionWrapper } from '../../../core'
 import StatChip from '../../../components/ui/StatChip'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchivePost } from '../blog.types'
 import { extractFirstImageUrl, formatArchiveDate, getExcerpt, getReadingTime } from '../blog.utils'
 
@@ -61,7 +61,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   px={3}
                   py={1}
                   borderRadius="full"
-                  bg="accent.primary"
+                  bg="action.primary"
                   color="white"
                   textTransform="uppercase"
                   letterSpacing="0.12em"
@@ -112,7 +112,6 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   label="Reading time"
                   value={`${getReadingTime(post.content_markdown)} min`}
                 />
-                <StatChip label="Status" value={post.status} />
               </Wrap>
 
               <HStack pt={2} spacing={4} flexWrap="wrap">
@@ -121,7 +120,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   px={4}
                   py={3}
                   borderRadius="full"
-                  bg="accent.primary"
+                  bg="action.primary"
                   color="white"
                   fontWeight="semibold"
                 >
@@ -130,7 +129,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                 </HStack>
                 <HStack spacing={2} color="text.secondary">
                   <Icon as={FiFileText} />
-                  <Text fontSize="sm">Long-form notes, essays, and technical writing</Text>
+                  <Text fontSize="sm">Long-form blog posts, essays, and technical writing</Text>
                 </HStack>
               </HStack>
             </Stack>
@@ -143,33 +142,12 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
               {coverImage ? (
                 <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
               ) : (
-                <Flex
+                <DefaultPostCover
+                  title={post.title}
+                  eyebrow="Editor's pick"
                   h="full"
                   minH={{ base: '280px', lg: '100%' }}
-                  align="center"
-                  justify="center"
-                  bg="bg.secondary"
-                >
-                  <Box
-                    maxW="sm"
-                    px={8}
-                    py={10}
-                    border="1px solid"
-                    borderColor="border.subtle"
-                    borderRadius="2xl"
-                    bg="bg.page"
-                    textAlign="center"
-                  >
-                    <Text
-                      fontSize={{ base: '2xl', md: '3xl' }}
-                      fontWeight="bold"
-                      color="accent.primary"
-                      letterSpacing="-0.05em"
-                    >
-                      {post.title}
-                    </Text>
-                  </Box>
-                </Flex>
+                />
               )}
             </Box>
           </SimpleGrid>

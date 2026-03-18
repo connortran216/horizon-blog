@@ -97,7 +97,7 @@ const Navbar = () => {
 
       toast({
         title: 'Success',
-        description: 'Your story has been published.',
+        description: 'Your blog is now live.',
         status: 'success',
         duration: 3000,
         isClosable: true,
