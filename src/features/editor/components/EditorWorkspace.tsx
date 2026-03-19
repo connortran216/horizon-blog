@@ -1,9 +1,7 @@
-import { Suspense, lazy } from 'react'
 import { Box, Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text, VStack } from '@chakra-ui/react'
 import CrepeEditor from '../../../components/editor/CrepeEditor'
+import CrepePreview from '../../../components/editor/CrepePreview'
 import { ErrorBoundary } from '../../../core'
-
-const LazyCrepePreview = lazy(() => import('../../../components/editor/CrepePreview'))
 
 interface EditorWorkspaceProps {
   tabIndex: number
@@ -111,9 +109,7 @@ const EditorWorkspace = ({
             <ErrorBoundary>
               <Box px={{ base: 6, md: 8 }} py={{ base: 6, md: 8 }} minH="460px">
                 {previewContent.trim() ? (
-                  <Suspense fallback={<Text color="text.tertiary">Loading preview...</Text>}>
-                    <LazyCrepePreview content={previewContent} />
-                  </Suspense>
+                  <CrepePreview content={previewContent} />
                 ) : (
                   <Flex
                     minH="320px"

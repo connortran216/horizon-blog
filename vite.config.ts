@@ -21,6 +21,10 @@ export default defineConfig({
             return 'editor-code'
           }
 
+          if (id.includes('shiki') || id.includes('@shikijs')) {
+            return 'code-highlight'
+          }
+
           if (
             id.includes('react-markdown') ||
             id.includes('remark-') ||

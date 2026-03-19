@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Box, useColorModeValue } from '@chakra-ui/react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
+import type { ReaderCodeTheme } from './shiki'
 
 interface MarkdownReaderProps {
   content?: string
@@ -11,54 +12,87 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
   const textColor = useColorModeValue('obsidian.text.lightPrimary', 'obsidian.text.primary')
   const codeBlockBg = useColorModeValue('#f6f8fa', '#0d1117')
   const codeBg = useColorModeValue('#f0f1f3', '#2d2d2d')
+  const codeTheme: ReaderCodeTheme = useColorModeValue('github-light', 'github-dark')
 
-  const renderedHTML = useMemo(() => {
+  const [renderedHTML, setRenderedHTML] = useState<{ __html: string }>({ __html: '' })
+
+  const sanitizeReaderHtml = (html: string, allowStyle: boolean) =>
+    DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        's',
+        'del',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'ul',
+        'ol',
+        'li',
+        'a',
+        'img',
+        'blockquote',
+        'pre',
+        'code',
+        'span',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'th',
+        'td',
+        'hr',
+      ],
+      ALLOWED_ATTR: allowStyle
+        ? ['href', 'src', 'alt', 'title', 'class', 'id', 'style', 'tabindex']
+        : ['href', 'src', 'alt', 'title', 'class', 'id', 'tabindex'],
+    })
+
+  const rawHTML = useMemo(() => {
     try {
-      const rawHTML = marked.parse(content, {
+      return marked.parse(content, {
         gfm: true,
         breaks: true,
       }) as string
-
-      const sanitizedHTML = DOMPurify.sanitize(rawHTML, {
-        ALLOWED_TAGS: [
-          'p',
-          'br',
-          'strong',
-          'em',
-          'u',
-          's',
-          'del',
-          'h1',
-          'h2',
-          'h3',
-          'h4',
-          'h5',
-          'h6',
-          'ul',
-          'ol',
-          'li',
-          'a',
-          'img',
-          'blockquote',
-          'pre',
-          'code',
-          'table',
-          'thead',
-          'tbody',
-          'tr',
-          'th',
-          'td',
-          'hr',
-        ],
-        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id'],
-      })
-
-      return { __html: sanitizedHTML }
     } catch (error) {
       console.error('Error rendering markdown:', error)
-      return { __html: '<p>Error rendering content</p>' }
+      return '<p>Error rendering content</p>'
     }
   }, [content])
+
+  const sanitizedBaseHTML = useMemo(() => sanitizeReaderHtml(rawHTML, false), [rawHTML])
+
+  useEffect(() => {
+    let isActive = true
+
+    setRenderedHTML({ __html: sanitizedBaseHTML })
+
+    const renderWithShiki = async () => {
+      if (!rawHTML.includes('<pre><code')) return
+
+      try {
+        const { highlightMarkdownCodeBlocks } = await import('./shiki')
+        const highlightedHTML = await highlightMarkdownCodeBlocks(rawHTML, codeTheme)
+        if (!isActive || highlightedHTML === rawHTML) return
+
+        setRenderedHTML({ __html: sanitizeReaderHtml(highlightedHTML, true) })
+      } catch (error) {
+        console.error('Error applying Shiki highlighting:', error)
+      }
+    }
+
+    void renderWithShiki()
+
+    return () => {
+      isActive = false
+    }
+  }, [codeTheme, rawHTML, sanitizedBaseHTML])
 
   return (
     <Box
@@ -138,6 +172,17 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
           p: 0,
           fontSize: '0.875rem',
           lineHeight: '1.6',
+        },
+        '& pre.shiki': {
+          bg: codeBlockBg,
+        },
+        '& pre.shiki code': {
+          display: 'grid',
+          gap: 0,
+        },
+        '& pre.shiki .line': {
+          display: 'block',
+          minH: '1.6em',
         },
         '& img': {
           display: 'block',
