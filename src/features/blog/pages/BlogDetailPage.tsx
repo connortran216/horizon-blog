@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
-import { getPostAuthorArchivePath } from '../blog.utils'
+import { getPostAuthorArchivePath, getPostAuthorArchiveState } from '../blog.utils'
 import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 
 const BlogDetailPage = () => {
@@ -14,6 +14,7 @@ const BlogDetailPage = () => {
     postId: post?.id ?? null,
   })
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
+  const authorArchiveState = post ? getPostAuthorArchiveState(post) : undefined
 
   return (
     <BlogReaderFrame
@@ -24,6 +25,7 @@ const BlogDetailPage = () => {
       backLabel="Back to Blog"
       emptyLabel="Blog not found"
       authorArchivePath={authorArchivePath}
+      authorArchiveState={authorArchiveState}
       showReadingProgress={true}
       bottomPadding={true}
     />

@@ -34,6 +34,7 @@ interface BlogReaderFrameProps {
   backLabel: string
   emptyLabel: string
   authorArchivePath?: string | null
+  authorArchiveState?: { authorId: number } | undefined
   showReadingProgress?: boolean
   titleSection?: ReactNode
   helperSection?: ReactNode
@@ -48,6 +49,7 @@ const BlogReaderFrame = ({
   backLabel,
   emptyLabel,
   authorArchivePath,
+  authorArchiveState,
   showReadingProgress = false,
   titleSection,
   helperSection,
@@ -115,6 +117,7 @@ const BlogReaderFrame = ({
     <Link
       as={RouterLink}
       to={authorArchivePath}
+      state={authorArchiveState}
       display="inline-flex"
       alignItems="center"
       gap={3}
@@ -220,6 +223,7 @@ const BlogReaderFrame = ({
                       <Link
                         as={RouterLink}
                         to={authorArchivePath}
+                        state={authorArchiveState}
                         color="action.primary"
                         fontWeight="semibold"
                         _hover={{ color: 'action.hover', textDecoration: 'none' }}

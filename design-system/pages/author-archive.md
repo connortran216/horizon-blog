@@ -8,7 +8,10 @@ It should feel editorial and personal, not like the protected profile workspace.
 
 ## Covered Routes
 
-- `/authors/:id`
+- `/authors/:authorName`
+
+The page resolves the backend id from internal navigation state and a same-session slug cache.
+Legacy numeric links like `/authors/:id` should still resolve through the page hook fallback.
 
 ## Primary Actions
 
@@ -19,33 +22,34 @@ It should feel editorial and personal, not like the protected profile workspace.
 
 ## Layout
 
-- one dominant author hero shell
-- featured leading blog followed by standard public blog cards
-- pagination below the writing list
-- hero should foreground author identity without feeling like a dashboard
+- sticky author rail on desktop and stacked identity block on mobile
+- one designed author panel on the left and one chronological archive list on the right
+- the list should feel quiet and scan-first, with thin dividers and minimal metadata
+- pagination belongs under the archive list, not under a generic card grid
 
 ## Hierarchy
 
-- page label
+- avatar
 - author name
-- short bio or safe fallback copy
-- high-level counts
-- leading published blog
-- remaining published blogs
+- optional subtitle
+- optional bio
+- article count row
+- follower row
+- following row
+- archive list rows
 - pagination
 
 ## Core Components
 
 - `AuthorArchiveHero`
-- `FeaturedStory`
-- `EditorialCard`
+- `AuthorArchiveStoryListItem`
 - `PaginationControls`
 
 ## Motion
 
 - subtle fade and rise on entry
-- ambient halo behind the hero shell only
-- no large decorative motion on the avatar or stats
+- ambient halo behind the rail only
+- list hover motion should be subtle and non-disruptive
 
 ## Accessibility Notes
 
@@ -53,9 +57,12 @@ It should feel editorial and personal, not like the protected profile workspace.
 - empty and error states need explicit headings and next actions
 - pagination should remain shareable via query params
 - private profile fields must never appear on this route
+- sticky rail must not overlap the navbar or first archive item
 
 ## Content Notes
 
 - use `author`, `writing`, and `blogs`
 - never show drafts or owner-management actions
-- fallback bio copy should stay generic and public-safe
+- omit empty bio instead of adding filler copy
+- the archive should read like a calm index, not a dashboard or marketing page
+- follower and following values are mocked until the backend exposes public social stats

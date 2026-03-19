@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError, getBlogService } from '../../core'
 import {
   AuthorArchiveData,
@@ -9,10 +9,73 @@ import {
 } from './authors.types'
 
 const DEFAULT_PAGE_SIZE = 6
+const AUTHOR_ROUTE_ID_CACHE_KEY = 'horizon_blog_author_route_ids'
 
 const parsePage = (value: string | null) => {
   const parsed = Number(value)
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 1
+}
+
+const toAuthorIdString = (value: unknown) => {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return String(value)
+  }
+
+  if (typeof value === 'string' && /^\d+$/.test(value)) {
+    return value
+  }
+
+  return ''
+}
+
+const readCachedAuthorId = (authorName: string | undefined) => {
+  if (!authorName || typeof window === 'undefined') {
+    return ''
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(AUTHOR_ROUTE_ID_CACHE_KEY)
+    if (!raw) {
+      return ''
+    }
+
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    return toAuthorIdString(parsed[authorName])
+  } catch {
+    return ''
+  }
+}
+
+const writeCachedAuthorId = (authorName: string | undefined, authorId: string) => {
+  if (!authorName || !authorId || typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(AUTHOR_ROUTE_ID_CACHE_KEY)
+    const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {}
+    parsed[authorName] = authorId
+    window.sessionStorage.setItem(AUTHOR_ROUTE_ID_CACHE_KEY, JSON.stringify(parsed))
+  } catch {
+    // Ignore cache persistence failures and rely on in-memory route state instead.
+  }
+}
+
+const parseAuthorId = (
+  routeValue: string | undefined,
+  stateValue: unknown,
+  cachedValue: string,
+) => {
+  const fromState = toAuthorIdString(stateValue)
+  if (fromState) {
+    return fromState
+  }
+
+  if (cachedValue) {
+    return cachedValue
+  }
+
+  return toAuthorIdString(routeValue)
 }
 
 const mapPageError = (error: unknown): AuthorArchiveErrorState => {
@@ -61,7 +124,8 @@ const mapPostsError = (error: unknown): AuthorArchiveErrorState => {
 }
 
 export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
-  const { id } = useParams<{ id: string }>()
+  const { authorName } = useParams<{ authorName: string }>()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [profile, setProfile] = useState<AuthorArchiveUser | null>(null)
   const [postsPage, setPostsPage] = useState<AuthorPostsPage | null>(null)
@@ -72,9 +136,21 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const [postsRequestVersion, setPostsRequestVersion] = useState(0)
 
   const currentPage = useMemo(() => parsePage(searchParams.get('page')), [searchParams])
+  const routeState = location.state as { authorId?: number | string } | null
+  const cachedAuthorId = useMemo(() => readCachedAuthorId(authorName), [authorName])
+  const authorId = useMemo(
+    () => parseAuthorId(authorName, routeState?.authorId, cachedAuthorId),
+    [authorName, cachedAuthorId, routeState?.authorId],
+  )
 
   useEffect(() => {
-    if (!id) {
+    if (authorName && authorId && !/^\d+$/.test(authorName)) {
+      writeCachedAuthorId(authorName, authorId)
+    }
+  }, [authorId, authorName])
+
+  useEffect(() => {
+    if (!authorId) {
       setProfile(null)
       setPostsPage(null)
       setPageErrorState({
@@ -95,7 +171,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     setPostsErrorState(null)
 
     void getBlogService()
-      .getPublicAuthorProfile(id)
+      .getPublicAuthorProfile(authorId)
       .then((data) => {
         if (isCancelled) return
         setProfile(data)
@@ -114,10 +190,10 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [id])
+  }, [authorId])
 
   useEffect(() => {
-    if (!id) {
+    if (!authorId) {
       return
     }
 
@@ -128,7 +204,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     setPostsErrorState(null)
 
     void getBlogService()
-      .getPublicAuthorPosts(id, currentPage, pageSize)
+      .getPublicAuthorPosts(authorId, currentPage, pageSize)
       .then((data) => {
         if (isCancelled) return
         setPostsPage(data)
@@ -154,7 +230,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [currentPage, id, pageSize, postsRequestVersion])
+  }, [authorId, currentPage, pageSize, postsRequestVersion])
 
   const setPage = useCallback(
     (page: number) => {
@@ -194,7 +270,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
 
   return {
     archive,
-    authorId: id || '',
+    authorId,
     currentPage,
     totalPages,
     profileLoading,

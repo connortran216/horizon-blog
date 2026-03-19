@@ -1,5 +1,13 @@
 import { BlogArchiveOwner, BlogArchivePost } from './blog.types'
 
+const slugifyAuthorName = (name: string) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
 export const extractFirstImageUrl = (content: string): string | undefined => {
   if (!content) return undefined
 
@@ -21,6 +29,8 @@ export const getExcerpt = (markdown: string): string => {
   if (!markdown) return 'Fresh thoughts are on the way.'
 
   const plainText = markdown
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<\/?[^>]+>/g, ' ')
     .replace(/#{1,6}\s+/g, '')
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
@@ -31,7 +41,7 @@ export const getExcerpt = (markdown: string): string => {
     .replace(/```[\s\S]*?```/g, '')
     .replace(/>\s+/g, '')
     .replace(/[-*+]\s+/g, '')
-    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
 
   if (!plainText) return 'Fresh thoughts are on the way.'
@@ -78,11 +88,24 @@ export const getPostAuthorAvatar = (post: Pick<BlogArchivePost, 'owner' | 'user'
 export const getPostAuthorId = (post: Pick<BlogArchivePost, 'owner' | 'user' | 'user_id'>) =>
   getPostAuthor(post)?.id
 
-export const getAuthorArchivePath = (authorId?: number | null) =>
-  typeof authorId === 'number' && Number.isFinite(authorId) ? `/authors/${authorId}` : null
+export const getAuthorArchivePath = (authorId?: number | null, authorName?: string | null) => {
+  if (typeof authorId !== 'number' || !Number.isFinite(authorId)) {
+    return null
+  }
+
+  const slug = authorName ? slugifyAuthorName(authorName) : ''
+
+  return slug ? `/authors/${slug}` : `/authors/${authorId}`
+}
+
+export const getAuthorArchiveState = (authorId?: number | null) =>
+  typeof authorId === 'number' && Number.isFinite(authorId) ? { authorId } : undefined
 
 export const getPostAuthorArchivePath = (post: BlogArchivePost) =>
-  getAuthorArchivePath(getPostAuthorId(post))
+  getAuthorArchivePath(getPostAuthorId(post), getPostAuthorName(post))
+
+export const getPostAuthorArchiveState = (post: BlogArchivePost) =>
+  getAuthorArchiveState(getPostAuthorId(post))
 
 export const formatArchiveDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString('en-US', {
