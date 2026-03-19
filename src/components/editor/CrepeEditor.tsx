@@ -195,7 +195,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         [CrepeFeature.Toolbar]: CREPE_CONFIG.features.toolbar,
         [CrepeFeature.CodeMirror]: CREPE_CONFIG.features.codeBlocks,
         [CrepeFeature.BlockEdit]: true,
-        [CrepeFeature.Cursor]: true,
         [CrepeFeature.LinkTooltip]: true,
         [CrepeFeature.ListItem]: true,
         [CrepeFeature.Table]: CREPE_CONFIG.features.tables,
@@ -207,12 +206,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         defaultValue: convertedContent,
         features,
         featureConfigs: {
-          // Crepe enables a virtual ProseMirror cursor overlay by default.
-          // In this editor shell the native caret is already visible, so the
-          // extra overlay reads like a broken second caret while typing.
-          [CrepeFeature.Cursor]: {
-            virtual: false,
-          },
           // Placeholder configuration
           [CrepeFeature.Placeholder]: {
             text: placeholder || CREPE_CONFIG.behavior.placeholder,

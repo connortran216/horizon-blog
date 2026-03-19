@@ -413,6 +413,15 @@
   caret-color: var(--crepe-accent-primary);
 }
 
+/* Guard against Crepe's virtual cursor overlay showing a second caret. */
+.crepe-editor-wrapper .milkdown .ProseMirror.virtual-cursor-enabled {
+  caret-color: var(--crepe-accent-primary) !important;
+}
+
+.crepe-editor-wrapper .milkdown .prosemirror-virtual-cursor {
+  display: none !important;
+}
+
 .crepe-editor-wrapper .milkdown .ProseMirror:focus {
   caret-color: var(--crepe-accent-primary);
   outline: none;
