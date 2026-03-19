@@ -10,9 +10,21 @@ import {
   RepositoryConfig,
   RepositoryCacheConfig,
 } from '../types/blog-repository.types'
-import { BlogPost, BlogPostSummary, BlogSearchOptions, BlogStatus } from '../types/blog.types'
-import { ApiBlogPost, ApiListPostsResponse } from '../types/blog-service.types'
-import { apiService } from '../services/api.service'
+import {
+  BlogPost,
+  BlogPostSummary,
+  BlogSearchOptions,
+  BlogStatus,
+  PublicAuthor,
+  PublicAuthorPostsPage,
+} from '../types/blog.types'
+import {
+  ApiBlogPost,
+  ApiListPostsResponse,
+  ApiPublicAuthorProfileResponse,
+  ApiPublicAuthorPostsResponse,
+} from '../types/blog-service.types'
+import { ApiError, apiService } from '../services/api.service'
 
 /**
  * Default configuration for blog repository
@@ -123,26 +135,81 @@ export class ApiBlogRepository implements IBlogRepository {
   }
 
   /**
+   * Normalize public API posts so consumer code can rely on stable optional fields.
+   */
+  private normalizePublicPost(post: ApiBlogPost): ApiBlogPost {
+    return {
+      ...post,
+      owner: post.owner
+        ? {
+            ...post.owner,
+            avatar_url: post.owner.avatar_url || undefined,
+          }
+        : undefined,
+      user: post.user
+        ? {
+            ...post.user,
+            avatar_url: post.user.avatar_url || undefined,
+          }
+        : undefined,
+      tags: post.tags ? [...post.tags] : [],
+    }
+  }
+
+  private normalizePublicAuthorProfile(profile: PublicAuthor): PublicAuthor {
+    return {
+      ...profile,
+      bio: profile.bio || undefined,
+      avatar_url: profile.avatar_url || undefined,
+    }
+  }
+
+  private normalizePublicAuthorPosts(
+    response: ApiPublicAuthorPostsResponse,
+  ): PublicAuthorPostsPage {
+    return {
+      posts: response.data.map((post) => this.normalizePublicPost(post)),
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+    }
+  }
+
+  private getPostOwnerName(post: ApiBlogPost): string {
+    return post.owner?.name || post.user?.name || 'Anonymous'
+  }
+
+  private getPostOwnerAvatar(post: ApiBlogPost): string | undefined {
+    return post.owner?.avatar_url || post.user?.avatar_url || undefined
+  }
+
+  private getPostOwnerId(post: ApiBlogPost): number | undefined {
+    return post.owner?.id ?? post.user_id
+  }
+
+  /**
    * Transform API post for display (summary view)
    */
   private transformPostForDisplay(post: ApiBlogPost): BlogPostSummary {
-    const featuredImage = this.extractFirstImageFromMarkdown(post.content_markdown)
+    const normalizedPost = this.normalizePublicPost(post)
+    const featuredImage = this.extractFirstImageFromMarkdown(normalizedPost.content_markdown)
 
     return {
-      id: post.id.toString(),
-      title: post.title,
-      excerpt: this.generateExcerpt(post.content_markdown),
+      id: normalizedPost.id.toString(),
+      title: normalizedPost.title,
+      excerpt: this.generateExcerpt(normalizedPost.content_markdown),
       author: {
-        username: post.user?.name || 'Anonymous',
-        avatar: undefined,
+        id: this.getPostOwnerId(normalizedPost),
+        username: this.getPostOwnerName(normalizedPost),
+        avatar: this.getPostOwnerAvatar(normalizedPost),
       },
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
-      readingTime: this.calculateReadingTime(post.content_markdown),
-      tags: [],
+      createdAt: normalizedPost.created_at,
+      updatedAt: normalizedPost.updated_at,
+      readingTime: this.calculateReadingTime(normalizedPost.content_markdown),
+      tags: normalizedPost.tags?.map((tag) => tag.name) || [],
       featuredImage,
-      status: post.status as BlogStatus,
-      slug: post.id.toString(),
+      status: normalizedPost.status as BlogStatus,
+      slug: normalizedPost.id.toString(),
     }
   }
 
@@ -438,6 +505,102 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to retrieve current user posts',
+      }
+    }
+  }
+
+  /**
+   * Get public author profile data for the author page header.
+   */
+  async getPublicAuthorProfile(authorId: string): Promise<RepositoryResult<PublicAuthor>> {
+    try {
+      const cacheKey = this.generateCacheKey('public-author-profile', { authorId })
+      const cached = this.getFromCache(cacheKey) as PublicAuthor | null
+
+      if (cached) {
+        return {
+          success: true,
+          data: cached,
+        }
+      }
+
+      const response = await apiService.get<ApiPublicAuthorProfileResponse>(
+        `/users/${authorId}/public-profile`,
+      )
+      const profile = this.normalizePublicAuthorProfile(response.data)
+
+      this.setCache(cacheKey, profile)
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: profile,
+      }
+    } catch (error: unknown) {
+      console.error(`Failed to fetch public profile for author ${authorId}:`, error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to retrieve public author profile',
+        statusCode: error instanceof ApiError ? error.status : undefined,
+      }
+    }
+  }
+
+  /**
+   * Get paginated public posts for a specific author.
+   */
+  async getPublicAuthorPosts(
+    authorId: string,
+    page: number = 1,
+    limit: number = 6,
+  ): Promise<RepositoryResult<PublicAuthorPostsPage>> {
+    try {
+      const cacheKey = this.generateCacheKey('public-author-posts', { authorId, page, limit })
+      const cached = this.getFromCache(cacheKey) as PublicAuthorPostsPage | null
+
+      if (cached) {
+        return {
+          success: true,
+          data: cached,
+          metadata: {
+            page: cached.page,
+            limit: cached.limit,
+            total: cached.total,
+            hasNext: cached.page * cached.limit < cached.total,
+            hasPrev: cached.page > 1,
+          },
+        }
+      }
+
+      const response = await apiService.get<ApiPublicAuthorPostsResponse>(
+        `/users/${authorId}/posts`,
+        {
+          page,
+          limit,
+        },
+      )
+      const postsPage = this.normalizePublicAuthorPosts(response)
+
+      this.setCache(cacheKey, postsPage)
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: postsPage,
+        metadata: {
+          page: postsPage.page,
+          limit: postsPage.limit,
+          total: postsPage.total,
+          hasNext: postsPage.page * postsPage.limit < postsPage.total,
+          hasPrev: postsPage.page > 1,
+        },
+      }
+    } catch (error: unknown) {
+      console.error(`Failed to fetch public posts for author ${authorId}:`, error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to retrieve public author posts',
+        statusCode: error instanceof ApiError ? error.status : undefined,
       }
     }
   }

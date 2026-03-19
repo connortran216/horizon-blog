@@ -1,3 +1,5 @@
+import { BlogArchiveOwner, BlogArchivePost } from './blog.types'
+
 export const extractFirstImageUrl = (content: string): string | undefined => {
   if (!content) return undefined
 
@@ -41,6 +43,46 @@ export const getReadingTime = (markdown: string): number => {
   const words = markdown.split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(words / 200))
 }
+
+export const getPostAuthor = (
+  post: Pick<BlogArchivePost, 'owner' | 'user' | 'user_id'>,
+): BlogArchiveOwner | undefined => {
+  if (post.owner?.name) {
+    return post.owner
+  }
+
+  if (post.user?.name) {
+    return {
+      id: typeof post.user_id === 'number' ? post.user_id : undefined,
+      name: post.user.name,
+      avatar_url: post.user.avatar_url || undefined,
+    }
+  }
+
+  if (typeof post.user_id === 'number') {
+    return {
+      id: post.user_id,
+      name: 'Anonymous',
+    }
+  }
+
+  return undefined
+}
+
+export const getPostAuthorName = (post: Pick<BlogArchivePost, 'owner' | 'user' | 'user_id'>) =>
+  getPostAuthor(post)?.name || 'Anonymous'
+
+export const getPostAuthorAvatar = (post: Pick<BlogArchivePost, 'owner' | 'user' | 'user_id'>) =>
+  getPostAuthor(post)?.avatar_url || undefined
+
+export const getPostAuthorId = (post: Pick<BlogArchivePost, 'owner' | 'user' | 'user_id'>) =>
+  getPostAuthor(post)?.id
+
+export const getAuthorArchivePath = (authorId?: number | null) =>
+  typeof authorId === 'number' && Number.isFinite(authorId) ? `/authors/${authorId}` : null
+
+export const getPostAuthorArchivePath = (post: BlogArchivePost) =>
+  getAuthorArchivePath(getPostAuthorId(post))
 
 export const formatArchiveDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString('en-US', {

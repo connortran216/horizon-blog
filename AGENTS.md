@@ -63,6 +63,7 @@
 - `design-system/MASTER.md`: design system source of truth.
 - `design-system/components/`: shared component recipes and usage rules.
 - `design-system/pages/`: page-level design overrides and patterns.
+- `design-system/pages/author-archive.md`: public author archive rules.
 - `design-system/pages/about.md`: about page rules.
 - `design-system/pages/contact.md`: contact page rules.
 - `design-system/pages/profile.md`: profile page rules.
@@ -119,6 +120,7 @@
 - `src/pages/Home.tsx`: thin route wrapper for `src/features/home/pages/HomePage.tsx`.
 - `src/pages/Blog.tsx`: thin route wrapper for `src/features/blog/pages/BlogPage.tsx`.
 - `src/pages/BlogDetail.tsx`: thin route wrapper for `src/features/blog/pages/BlogDetailPage.tsx`.
+- `src/pages/AuthorArchive.tsx`: thin route wrapper for `src/features/authors/pages/AuthorArchivePage.tsx`.
 - `src/pages/BlogEditor.tsx`: thin route wrapper for `src/features/editor/pages/BlogEditorPage.tsx`.
 - `src/pages/Profile.tsx`: user profile and posts.
 - `src/pages/ProfileBlogDetail.tsx`: thin route wrapper for `src/features/profile/pages/ProfileBlogDetailPage.tsx`.
@@ -129,6 +131,7 @@
 - `src/pages/ForgotPassword.tsx`: thin route wrapper for `src/features/auth/pages/ForgotPasswordPage.tsx`.
 - `src/pages/ResetPassword.tsx`: thin route wrapper for `src/features/auth/pages/ResetPasswordPage.tsx`.
 - `src/features/blog/`: archive page, blog-specific components, and archive utilities.
+- `src/features/authors/`: public author archive pages, hooks, and hero composition.
 - `src/features/home/`: landing page composition and shared home cards.
 - `src/features/about/`: about page composition and stat components.
 - `src/features/contact/`: contact page composition and card components.
@@ -216,6 +219,7 @@
 - `/` -> `Home`
 - `/blog` -> `Blog`
 - `/blog/:id` -> `BlogDetail`
+- `/authors/:id` -> `AuthorArchive`
 - `/contact` -> `Contact`
 - `/about` -> `About`
 - `/login` -> `Login`
@@ -304,6 +308,8 @@
 - `POST /users` for registration.
 - `GET /posts` for list with query params.
 - `GET /posts/:id` for detail.
+- `GET /users/:id/public-profile` for public author header data.
+- `GET /users/:id/posts` for paginated public author blogs.
 - `POST /posts` for create.
 - `PUT /posts/:id` for update.
 - `PATCH /posts/:id` for patch update.
@@ -319,14 +325,17 @@
 ### 9.5 API Data Shapes (Observed)
 - `ApiBlogPost` fields include:
 - `id`, `title`, `content_markdown`, `content_json`, `status`.
-- `user_id`, `created_at`, `updated_at`, `user`.
+- `user_id`, `created_at`, `updated_at`, `owner`, optional legacy `user`, and `tags`.
 - `ApiListPostsResponse` includes `data`, `page`, `limit`, `total`.
+- `PublicAuthorProfileResponse` includes `data.id`, `data.name`, `data.bio`, and `data.avatar_url`.
+- `PublicAuthorPostsResponse` includes `data`, `page`, `limit`, and `total`.
 
 ### 9.6 Frontend Data Shapes
 - `BlogPost` extends `BaseEntity` and `BlogMetadata`.
 - `BlogMetadata` includes title, subtitle, excerpt, tags, status.
 - `BlogContent` includes `content_markdown` and `content_json`.
 - `BlogPostSummary` is used for listings.
+- `PublicAuthorArchive` is used for public author identity plus published blogs.
 
 ## 10. Authentication Model
 

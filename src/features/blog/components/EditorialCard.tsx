@@ -5,7 +5,14 @@ import { AnimatedCard } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchivePost } from '../blog.types'
-import { extractFirstImageUrl, formatArchiveDate, getExcerpt, getReadingTime } from '../blog.utils'
+import {
+  extractFirstImageUrl,
+  formatArchiveDate,
+  getExcerpt,
+  getPostAuthorAvatar,
+  getPostAuthorName,
+  getReadingTime,
+} from '../blog.utils'
 
 interface EditorialCardProps {
   post: BlogArchivePost
@@ -14,6 +21,8 @@ interface EditorialCardProps {
 
 const EditorialCard = ({ post, index }: EditorialCardProps) => {
   const coverImage = useResolvedCoverImage(extractFirstImageUrl(post.content_markdown))
+  const authorName = getPostAuthorName(post)
+  const authorAvatar = getPostAuthorAvatar(post)
 
   return (
     <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
@@ -52,8 +61,8 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
         <VStack align="stretch" spacing={5} p={6}>
           <HStack spacing={3} color="text.tertiary" fontSize="sm" flexWrap="wrap">
             <HStack spacing={2}>
-              <Avatar size="2xs" name={post.user?.name || 'Anonymous'} />
-              <Text color="text.secondary">{post.user?.name || 'Anonymous'}</Text>
+              <Avatar size="2xs" name={authorName} src={authorAvatar} />
+              <Text color="text.secondary">{authorName}</Text>
             </HStack>
             <Text>•</Text>
             <Text>{formatArchiveDate(post.created_at)}</Text>

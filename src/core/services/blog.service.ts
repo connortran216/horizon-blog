@@ -5,10 +5,18 @@
  */
 
 import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types'
-import { BlogPost, BlogPostSummary, BlogSearchOptions, BlogStatus } from '../types/blog.types'
+import {
+  BlogPost,
+  BlogPostSummary,
+  BlogSearchOptions,
+  BlogStatus,
+  PublicAuthor,
+  PublicAuthorPostsPage,
+} from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
 import { getBlogRepository } from '../di/container'
 import { RepositoryResult } from '../types/blog-repository.types'
+import { ApiError } from './api.service'
 
 /**
  * Default configuration for blog service
@@ -50,6 +58,18 @@ export class BlogService implements IBlogService {
     if (htmlMatch?.[1]) return htmlMatch[1]
 
     return undefined
+  }
+
+  private getPostOwnerName(post: ApiBlogPost): string {
+    return post.owner?.name || post.user?.name || 'Anonymous'
+  }
+
+  private getPostOwnerAvatar(post: ApiBlogPost): string | undefined {
+    return post.owner?.avatar_url || post.user?.avatar_url || undefined
+  }
+
+  private getPostOwnerId(post: ApiBlogPost): number | undefined {
+    return post.owner?.id ?? post.user_id
   }
 
   /**
@@ -100,13 +120,14 @@ export class BlogService implements IBlogService {
       title: post.title,
       excerpt: this.generateExcerpt(post.content_markdown),
       author: {
-        username: post.user?.name || 'Anonymous',
-        avatar: undefined, // API doesn't provide avatar
+        id: this.getPostOwnerId(post),
+        username: this.getPostOwnerName(post),
+        avatar: this.getPostOwnerAvatar(post),
       },
       createdAt: post.created_at,
       updatedAt: post.updated_at,
       readingTime: this.calculateReadingTime(post.content_markdown),
-      tags: [], // API doesn't provide tags in list view
+      tags: post.tags?.map((tag) => tag.name) || [],
       featuredImage,
       status: post.status as BlogStatus,
       slug: post.id.toString(),
@@ -140,6 +161,41 @@ export class BlogService implements IBlogService {
       console.error(`Failed to fetch post ${id}:`, error)
       return null
     }
+  }
+
+  async getPublicAuthorProfile(authorId: string): Promise<PublicAuthor> {
+    const result = await this.repository.getPublicAuthorProfile(authorId)
+
+    if (!result.success || !result.data) {
+      if (result.statusCode) {
+        throw new ApiError(
+          result.error || 'Failed to fetch public author profile',
+          result.statusCode,
+        )
+      }
+
+      throw new Error(result.error || 'Failed to fetch public author profile')
+    }
+
+    return result.data
+  }
+
+  async getPublicAuthorPosts(
+    authorId: string,
+    page: number = 1,
+    limit: number = 6,
+  ): Promise<PublicAuthorPostsPage> {
+    const result = await this.repository.getPublicAuthorPosts(authorId, page, limit)
+
+    if (!result.success || !result.data) {
+      if (result.statusCode) {
+        throw new ApiError(result.error || 'Failed to fetch public author posts', result.statusCode)
+      }
+
+      throw new Error(result.error || 'Failed to fetch public author posts')
+    }
+
+    return result.data
   }
 
   /**

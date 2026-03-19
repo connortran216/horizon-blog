@@ -1,14 +1,5 @@
-export interface BlogArchivePost {
-  id: number
-  title: string
-  content_markdown: string
-  content_json: string
-  status: string
-  user_id: number
-  created_at: string
-  updated_at: string
-  user?: {
-    name: string
-    email: string
-  }
-}
+import { PublicPostOwner, PublicPostRecord, PublicPostTag } from '../../core/types/blog.types'
+
+export type BlogArchivePost = PublicPostRecord
+export type BlogArchiveOwner = PublicPostOwner
+export type BlogArchiveTag = PublicPostTag

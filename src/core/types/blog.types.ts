@@ -63,6 +63,58 @@ export interface BlogContent {
   content_json: string
 }
 
+export interface PublicPostOwner {
+  id?: number
+  name: string
+  avatar_url?: string | null
+}
+
+export interface PublicPostTag {
+  id: number
+  name: string
+  usage_count?: number
+}
+
+export interface PublicPostRecord {
+  id: number
+  title: string
+  content_markdown: string
+  content_json: string
+  status: string
+  user_id: number
+  created_at: string
+  updated_at: string
+  owner?: PublicPostOwner
+  user?: {
+    name: string
+    email?: string
+    avatar_url?: string | null
+  }
+  tags?: PublicPostTag[]
+}
+
+export interface PublicAuthor {
+  id: number
+  name: string
+  bio?: string
+  avatar_url?: string | null
+}
+
+export interface PublicAuthorPostsPage {
+  posts: PublicPostRecord[]
+  page: number
+  limit: number
+  total: number
+}
+
+export interface PublicAuthorArchive {
+  user: PublicAuthor
+  posts: PublicPostRecord[]
+  page: number
+  limit: number
+  total: number
+}
+
 // Blog author interface (extends base Author)
 export interface BlogAuthor extends Author {
   bio?: string

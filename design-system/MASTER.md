@@ -21,6 +21,7 @@ Implementation lives in code. This folder defines the intent, language, and cons
 - `pages/auth.md`: login, register, forgot-password, reset-password rules
 - `pages/editor.md`: writing and editing rules
 - `pages/reader.md`: public and profile blog reading rules
+- `pages/author-archive.md`: public author archive rules
 - `pages/about.md`: about page rules
 - `pages/contact.md`: contact page rules
 - `pages/profile.md`: author profile rules
@@ -54,6 +55,7 @@ The design system is implemented across these layers:
 - `src/components/`: shared motion, reader, editor, pagination, and route utilities
 - `src/features/home/`: landing page compositions
 - `src/features/blog/`: blog index and blog detail compositions
+- `src/features/authors/`: public author archive composition
 - `src/features/auth/`: auth shells and auth routes
 - `src/features/about/`: about page compositions
 - `src/features/contact/`: contact page compositions
@@ -368,6 +370,7 @@ Map new work to one of these shells before inventing a new layout.
 
 - Home
 - Blog
+- Author archive
 - Blog detail
 - About
 - Contact

@@ -17,7 +17,13 @@ import StatChip from '../../../components/ui/StatChip'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchivePost } from '../blog.types'
-import { extractFirstImageUrl, formatArchiveDate, getExcerpt, getReadingTime } from '../blog.utils'
+import {
+  extractFirstImageUrl,
+  formatArchiveDate,
+  getExcerpt,
+  getPostAuthorName,
+  getReadingTime,
+} from '../blog.utils'
 
 interface FeaturedStoryProps {
   post: BlogArchivePost
@@ -25,6 +31,7 @@ interface FeaturedStoryProps {
 
 const FeaturedStory = ({ post }: FeaturedStoryProps) => {
   const coverImage = useResolvedCoverImage(extractFirstImageUrl(post.content_markdown))
+  const authorName = getPostAuthorName(post)
 
   return (
     <MotionWrapper
@@ -107,7 +114,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
               </Stack>
 
               <Wrap spacing={3}>
-                <StatChip label="Author" value={post.user?.name || 'Anonymous'} />
+                <StatChip label="Author" value={authorName} />
                 <StatChip
                   label="Reading time"
                   value={`${getReadingTime(post.content_markdown)} min`}

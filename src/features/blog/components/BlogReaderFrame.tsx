@@ -1,7 +1,18 @@
 import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { ArrowBackIcon } from '@chakra-ui/icons'
-import { Avatar, Box, Container, HStack, Progress, Stack, Text, VStack } from '@chakra-ui/react'
+import {
+  Avatar,
+  Box,
+  Container,
+  HStack,
+  Link,
+  Progress,
+  Stack,
+  Text,
+  VStack,
+} from '@chakra-ui/react'
 import { motion } from 'framer-motion'
+import { Link as RouterLink } from 'react-router-dom'
 import {
   AnimatedPrimaryButton,
   BackButtonAnimation,
@@ -11,6 +22,7 @@ import {
   TitleAnimation,
 } from '../../../core'
 import { BlogArchivePost } from '../blog.types'
+import { getPostAuthorAvatar, getPostAuthorName } from '../blog.utils'
 
 const LazyMarkdownReader = lazy(() => import('../../../components/reader/MarkdownReader'))
 
@@ -21,6 +33,7 @@ interface BlogReaderFrameProps {
   onBack: () => void
   backLabel: string
   emptyLabel: string
+  authorArchivePath?: string | null
   showReadingProgress?: boolean
   titleSection?: ReactNode
   helperSection?: ReactNode
@@ -34,6 +47,7 @@ const BlogReaderFrame = ({
   onBack,
   backLabel,
   emptyLabel,
+  authorArchivePath,
   showReadingProgress = false,
   titleSection,
   helperSection,
@@ -94,6 +108,32 @@ const BlogReaderFrame = ({
       </Container>
     )
   }
+
+  const authorName = getPostAuthorName(post)
+  const authorAvatar = getPostAuthorAvatar(post)
+  const authorIdentity = authorArchivePath ? (
+    <Link
+      as={RouterLink}
+      to={authorArchivePath}
+      display="inline-flex"
+      alignItems="center"
+      gap={3}
+      color="inherit"
+      _hover={{ color: 'text.primary', textDecoration: 'none' }}
+    >
+      <Avatar size="sm" name={authorName} src={authorAvatar} />
+      <Text fontWeight="semibold" color="text.primary">
+        {authorName}
+      </Text>
+    </Link>
+  ) : (
+    <HStack spacing={3}>
+      <Avatar size="sm" name={authorName} src={authorAvatar} />
+      <Text fontWeight="semibold" color="text.primary">
+        {authorName}
+      </Text>
+    </HStack>
+  )
 
   return (
     <MotionWrapper>
@@ -161,10 +201,7 @@ const BlogReaderFrame = ({
                 {titleSection || <TitleAnimation title={post.title} />}
 
                 <HStack spacing={4} flexWrap="wrap" align="center" color="text.secondary">
-                  <Avatar size="sm" name={post.user?.name || 'Anonymous'} />
-                  <Text fontWeight="semibold" color="text.primary">
-                    {post.user?.name || 'Anonymous'}
-                  </Text>
+                  {authorIdentity}
                   <Text color="text.tertiary">•</Text>
                   <Text color="text.secondary">
                     {new Date(post.created_at).toLocaleDateString()}
@@ -175,6 +212,20 @@ const BlogReaderFrame = ({
                       <Text color="text.secondary">
                         Updated {new Date(post.updated_at).toLocaleDateString()}
                       </Text>
+                    </>
+                  ) : null}
+                  {authorArchivePath ? (
+                    <>
+                      <Text color="text.tertiary">•</Text>
+                      <Link
+                        as={RouterLink}
+                        to={authorArchivePath}
+                        color="action.primary"
+                        fontWeight="semibold"
+                        _hover={{ color: 'action.hover', textDecoration: 'none' }}
+                      >
+                        View archive
+                      </Link>
                     </>
                   ) : null}
                 </HStack>

@@ -22,6 +22,7 @@ export interface User {
 
 // Author information for blog posts
 export interface Author {
+  id?: number
   username: string
   avatar?: string
 }

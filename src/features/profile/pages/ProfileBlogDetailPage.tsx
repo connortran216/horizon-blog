@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 import BlogReaderFrame from '../../blog/components/BlogReaderFrame'
+import { getPostAuthorName } from '../../blog/blog.utils'
 import { useBlogPostDetail } from '../../blog/useBlogPostDetail'
 
 const ProfileBlogDetailPage = () => {
@@ -15,7 +16,7 @@ const ProfileBlogDetailPage = () => {
   const { post, loading } = useBlogPostDetail({
     redirectPath,
     validatePost: (foundPost) => {
-      if (foundPost.user?.name !== username) {
+      if (getPostAuthorName(foundPost) !== username) {
         return 'This blog does not belong to this user.'
       }
 

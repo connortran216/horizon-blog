@@ -15,6 +15,7 @@ Override order:
 
 - `home.md`
 - `blog.md`
+- `author-archive.md`
 - `reader.md`
 - `about.md`
 - `contact.md`

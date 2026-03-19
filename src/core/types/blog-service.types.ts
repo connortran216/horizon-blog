@@ -3,30 +3,35 @@
  * Defines the contract for blog business logic operations
  */
 
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from './blog.types'
+import {
+  BlogPost,
+  BlogPostSummary,
+  BlogSearchOptions,
+  PublicAuthor,
+  PublicAuthorPostsPage,
+  PublicPostRecord,
+} from './blog.types'
 
 /**
  * API response format for blog posts (matches backend API)
  */
-export interface ApiBlogPost {
-  id: number
-  title: string
-  content_markdown: string
-  content_json: string
-  status: string
-  user_id: number
-  created_at: string
-  updated_at: string
-  user?: {
-    name: string
-    email: string
-  }
-}
+export type ApiBlogPost = PublicPostRecord
 
 /**
  * API response for list posts endpoint
  */
 export interface ApiListPostsResponse {
+  data: ApiBlogPost[]
+  page: number
+  limit: number
+  total: number
+}
+
+export interface ApiPublicAuthorProfileResponse {
+  data: PublicAuthor
+}
+
+export interface ApiPublicAuthorPostsResponse {
   data: ApiBlogPost[]
   page: number
   limit: number
@@ -46,6 +51,12 @@ export interface IBlogService {
   // Data operations (delegated to repositories)
   getPublishedPosts(options?: BlogSearchOptions): Promise<BlogPostSummary[]>
   getPostById(id: string): Promise<BlogPost | null>
+  getPublicAuthorProfile(authorId: string): Promise<PublicAuthor>
+  getPublicAuthorPosts(
+    authorId: string,
+    page?: number,
+    limit?: number,
+  ): Promise<PublicAuthorPostsPage>
   searchPosts(query: string): Promise<BlogPostSummary[]>
 }
 

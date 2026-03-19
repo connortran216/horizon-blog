@@ -4,7 +4,13 @@
  * Follows Repository Pattern for SOLID principles
  */
 
-import { BlogPost, BlogPostSummary, BlogSearchOptions } from './blog.types'
+import {
+  BlogPost,
+  BlogPostSummary,
+  BlogSearchOptions,
+  PublicAuthor,
+  PublicAuthorPostsPage,
+} from './blog.types'
 
 /**
  * Repository result wrapper
@@ -48,6 +54,12 @@ export interface IBlogRepository {
     page?: number,
     limit?: number,
   ): Promise<RepositoryResult<BlogPostSummary[]>>
+  getPublicAuthorProfile(authorId: string): Promise<RepositoryResult<PublicAuthor>>
+  getPublicAuthorPosts(
+    authorId: string,
+    page?: number,
+    limit?: number,
+  ): Promise<RepositoryResult<PublicAuthorPostsPage>>
 
   // Search operations
   searchPosts(
