@@ -196,6 +196,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         [CrepeFeature.CodeMirror]: CREPE_CONFIG.features.codeBlocks,
         [CrepeFeature.BlockEdit]: true,
         [CrepeFeature.LinkTooltip]: true,
+        [CrepeFeature.Cursor]: false,
         [CrepeFeature.ListItem]: true,
         [CrepeFeature.Table]: CREPE_CONFIG.features.tables,
         ...(CREPE_CONFIG.features.imageBlock ? { [CrepeFeature.ImageBlock]: true } : {}),
@@ -336,7 +337,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
               editorInput.setAttribute('name', inputName)
             }
 
-            const slashMenuInput = document.querySelector('input.input-area')
+            const slashMenuInput = editorRef.current?.querySelector('input.input-area')
             if (slashMenuInput) {
               slashMenuInput.setAttribute('id', `${inputId}-command`)
               slashMenuInput.setAttribute('name', `${inputName}Command`)
