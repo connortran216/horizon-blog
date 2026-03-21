@@ -622,16 +622,24 @@ export class ApiBlogRepository implements IBlogRepository {
       }
 
       const params: Record<string, unknown> = { q: query, ...options }
-      const response = await apiService.get<{ data: ApiBlogPost[] }>('/posts/search', params)
+      const response = await apiService.get<ApiListPostsResponse>('/search/posts', params)
 
-      const posts = response.data
-        .filter((post) => post.status === 'published')
-        .map((post) => this.transformPostForDisplay(post))
+      const posts = response.data.map((post) => this.transformPostForDisplay(post))
 
       // Cache the result
       this.setCache(cacheKey, posts)
 
-      return { success: true, data: posts }
+      return {
+        success: true,
+        data: posts,
+        metadata: {
+          page: response.page,
+          limit: response.limit,
+          total: response.total,
+          hasNext: response.page * response.limit < response.total,
+          hasPrev: response.page > 1,
+        },
+      }
     } catch (error: unknown) {
       console.error(`Failed to search posts with query "${query}":`, error)
       return {

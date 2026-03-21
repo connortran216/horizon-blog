@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   Badge,
   Box,
@@ -12,70 +11,43 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useLocation } from 'react-router-dom'
-import { apiService } from '../../../core/services/api.service'
 import { FadeInShimmer, MotionWrapper, ShimmerLoader } from '../../../core'
 import PaginationControls from '../../../components/PaginationControls'
 import BlogArchiveHero from '../components/BlogArchiveHero'
+import BlogFilterToolbar from '../components/BlogFilterToolbar'
 import EditorialCard from '../components/EditorialCard'
 import FeaturedStory from '../components/FeaturedStory'
-import { BlogArchivePost } from '../blog.types'
+import { useBlogArchive } from '../useBlogArchive'
 
 const BlogPage = () => {
-  const location = useLocation()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [blogPosts, setBlogPosts] = useState<BlogArchivePost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
   const limit = 6
+  const {
+    searchInput,
+    setSearchInput,
+    query,
+    posts,
+    popularTags,
+    loading,
+    tagsLoading,
+    page,
+    totalPages,
+    total,
+    activeTags,
+    hasActiveFilters,
+    setPage,
+    toggleTag,
+    clearQuery,
+    removeTag,
+    clearAllFilters,
+  } = useBlogArchive(limit)
 
-  useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        setLoading(true)
-        const response = await apiService.get<{
-          data: BlogArchivePost[]
-          page: number
-          limit: number
-          total: number
-        }>('/posts', { page, limit, status: 'published' })
-
-        setBlogPosts(response.data)
-        if (response.total !== undefined) {
-          setTotal(response.total)
-          setTotalPages(Math.ceil(response.total / limit))
-        } else {
-          setTotal(0)
-          setTotalPages(1)
-        }
-      } catch (error) {
-        console.error('Failed to load blog posts:', error)
-        setBlogPosts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    void loadPosts()
-  }, [page, location.pathname])
-
-  const trimmedQuery = searchQuery.trim().toLowerCase()
-  const filteredPosts = blogPosts.filter((post) => {
-    if (!trimmedQuery) return true
-
-    return (
-      post.title.toLowerCase().includes(trimmedQuery) ||
-      post.content_markdown.toLowerCase().includes(trimmedQuery)
-    )
-  })
-
-  const featuredPost = filteredPosts[0]
-  const remainingPosts = filteredPosts.slice(1)
-  const resultLabel = trimmedQuery
-    ? `${filteredPosts.length} result${filteredPosts.length === 1 ? '' : 's'} for "${searchQuery.trim()}"`
-    : `${total} blog${total === 1 ? '' : 's'}`
+  const featuredPost = posts[0]
+  const remainingPosts = posts.slice(1)
+  const resultLabel = query
+    ? `${total} result${total === 1 ? '' : 's'} for "${query}"`
+    : hasActiveFilters
+      ? `${total} result${total === 1 ? '' : 's'}`
+      : `${total} blog${total === 1 ? '' : 's'}`
 
   return (
     <Box position="relative" pb={12}>
@@ -100,12 +72,29 @@ const BlogPage = () => {
             duration={0.7}
           >
             <BlogArchiveHero
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              searchQuery={searchInput}
+              setSearchQuery={setSearchInput}
               resultLabel={resultLabel}
               page={page}
               totalPages={totalPages}
-              hasActiveSearch={Boolean(trimmedQuery)}
+              hasActiveSearch={hasActiveFilters}
+            />
+          </MotionWrapper>
+
+          <MotionWrapper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            duration={0.5}
+          >
+            <BlogFilterToolbar
+              popularTags={popularTags}
+              activeTags={activeTags}
+              activeQuery={query}
+              loading={tagsLoading}
+              onToggleTag={toggleTag}
+              onClearQuery={clearQuery}
+              onRemoveTag={removeTag}
+              onClearAll={clearAllFilters}
             />
           </MotionWrapper>
 
@@ -114,7 +103,7 @@ const BlogPage = () => {
               <FadeInShimmer key="loading" delay={0.2}>
                 <ShimmerLoader variant="blog" count={6} />
               </FadeInShimmer>
-            ) : filteredPosts.length === 0 ? (
+            ) : posts.length === 0 ? (
               <MotionWrapper
                 key="empty"
                 initial={{ opacity: 0, y: 24 }}
@@ -145,16 +134,16 @@ const BlogPage = () => {
                       No stories found for that search.
                     </Heading>
                     <Text maxW="2xl" color="text.secondary" lineHeight="tall">
-                      Try a broader keyword, a title fragment, or clear the search to return to the
-                      latest blogs.
+                      Try a broader keyword, remove a topic filter, or clear the search to return to
+                      the latest blogs.
                     </Text>
                     <Button
                       variant="ghost"
                       color="action.primary"
                       _hover={{ bg: 'bg.tertiary' }}
-                      onClick={() => setSearchQuery('')}
+                      onClick={clearAllFilters}
                     >
-                      Reset search
+                      Reset filters
                     </Button>
                   </VStack>
                 </Box>
@@ -183,12 +172,12 @@ const BlogPage = () => {
                         Latest blogs
                       </Text>
                       <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                        {trimmedQuery ? 'Search results' : 'Blogs worth reading next'}
+                        {hasActiveFilters ? 'Search results' : 'Blogs worth reading next'}
                       </Heading>
                     </Stack>
                     <Text color="text.secondary" fontSize="sm">
-                      {trimmedQuery
-                        ? `Showing ${filteredPosts.length} matching blogs on this page.`
+                      {hasActiveFilters
+                        ? `Showing page ${page} of ${Math.max(totalPages, 1)}.`
                         : `Showing page ${page} of ${Math.max(totalPages, 1)}.`}
                     </Text>
                   </Flex>
@@ -207,7 +196,7 @@ const BlogPage = () => {
             )}
           </AnimatePresence>
 
-          {!loading && totalPages > 1 && !trimmedQuery && (
+          {!loading && totalPages > 1 && (
             <PaginationControls
               currentPage={page}
               totalPages={totalPages}
