@@ -39,7 +39,13 @@ export class ApiService {
   async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
     const url = new URL(endpoint, this.baseUrl)
     if (params) {
-      Object.keys(params).forEach((key) => url.searchParams.append(key, String(params[key])))
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+          return
+        }
+
+        url.searchParams.append(key, String(value))
+      })
     }
 
     let response = await fetch(url.toString(), {
