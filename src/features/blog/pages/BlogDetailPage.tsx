@@ -10,9 +10,7 @@ const BlogDetailPage = () => {
     redirectPath: '/blog',
   })
 
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '', {
-    postId: post?.id ?? null,
-  })
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
   const authorArchiveState = post ? getPostAuthorArchiveState(post) : undefined
 

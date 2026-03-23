@@ -1,9 +1,11 @@
+import { useCallback } from 'react'
 import { Badge, Heading, HStack, Text } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 import BlogReaderFrame from '../../blog/components/BlogReaderFrame'
+import { BlogArchivePost } from '../../blog/blog.types'
 import { getPostAuthorName } from '../../blog/blog.utils'
 import { useBlogPostDetail } from '../../blog/useBlogPostDetail'
 
@@ -13,20 +15,23 @@ const ProfileBlogDetailPage = () => {
   const { user } = useAuth()
 
   const redirectPath = `/profile/${username}`
-  const { post, loading } = useBlogPostDetail({
-    redirectPath,
-    validatePost: (foundPost) => {
+  const validatePost = useCallback(
+    (foundPost: BlogArchivePost) => {
       if (getPostAuthorName(foundPost) !== username) {
         return 'This blog does not belong to this user.'
       }
 
       return null
     },
+    [username],
+  )
+
+  const { post, loading } = useBlogPostDetail({
+    redirectPath,
+    validatePost,
   })
 
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '', {
-    postId: post?.id ?? null,
-  })
+  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
 
   const isOwnProfile = user && username === user.username
 

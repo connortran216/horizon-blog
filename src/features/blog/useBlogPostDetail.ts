@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@chakra-ui/react'
 import { apiService } from '../../core/services/api.service'
 import { BlogArchivePost } from './blog.types'
@@ -12,21 +12,34 @@ interface UseBlogPostDetailOptions {
 export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDetailOptions) => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation()
   const toast = useToast()
   const [post, setPost] = useState<BlogArchivePost | null>(null)
   const [loading, setLoading] = useState(true)
+  const validatePostRef = useRef(validatePost)
+
+  useEffect(() => {
+    validatePostRef.current = validatePost
+  }, [validatePost])
 
   useEffect(() => {
     if (!id) {
+      setPost(null)
       setLoading(false)
       return
     }
+
+    let isCancelled = false
+    setLoading(true)
+    setPost(null)
 
     const fetchPost = async () => {
       try {
         const response = await apiService.get<{ data: BlogArchivePost }>(`/posts/${id}`)
         const foundPost = response.data
+
+        if (isCancelled) {
+          return
+        }
 
         if (!foundPost) {
           toast({
@@ -40,7 +53,7 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
           return
         }
 
-        const validationError = validatePost?.(foundPost)
+        const validationError = validatePostRef.current?.(foundPost)
         if (validationError) {
           toast({
             title: 'Access denied',
@@ -55,6 +68,10 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
 
         setPost(foundPost)
       } catch (error: unknown) {
+        if (isCancelled) {
+          return
+        }
+
         console.error('Error fetching post:', error)
         toast({
           title: 'Error',
@@ -65,12 +82,18 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
         })
         navigate(redirectPath)
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     void fetchPost()
-  }, [id, navigate, redirectPath, toast, validatePost, location.pathname])
+
+    return () => {
+      isCancelled = true
+    }
+  }, [id, navigate, redirectPath, toast])
 
   return {
     post,

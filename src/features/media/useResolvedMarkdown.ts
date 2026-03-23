@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
-  normalizeMarkdownToMediaTokens,
   parseMediaIdsFromMarkdown,
   replaceMediaTokensWithUrls,
 } from './media.tokens'
-import { getPostMedia, resolveMediaUrls } from './media.api'
+import { resolveMediaUrls } from './media.api'
 
-interface UseResolvedMarkdownOptions {
-  postId?: number | null
-}
-
-export const useResolvedMarkdown = (
-  markdown: string,
-  options: UseResolvedMarkdownOptions = {},
-): string => {
-  const { postId } = options
+export const useResolvedMarkdown = (markdown: string): string => {
   const [resolvedMarkdown, setResolvedMarkdown] = useState(markdown)
 
   useEffect(() => {
@@ -26,38 +17,20 @@ export const useResolvedMarkdown = (
         return
       }
 
-      let normalizedMarkdown = markdown
-
-      if (postId) {
-        try {
-          const postMedia = await getPostMedia(postId)
-          const urlToMediaId = postMedia.reduce<Record<string, string>>((acc, item) => {
-            if (item.url) {
-              acc[item.url] = item.mediaId
-            }
-            return acc
-          }, {})
-
-          normalizedMarkdown = normalizeMarkdownToMediaTokens(markdown, urlToMediaId)
-        } catch {
-          // Keep content as-is if media metadata cannot be loaded.
-        }
-      }
-
-      const mediaIds = parseMediaIdsFromMarkdown(normalizedMarkdown)
+      const mediaIds = parseMediaIdsFromMarkdown(markdown)
       if (mediaIds.length === 0) {
-        setResolvedMarkdown(normalizedMarkdown)
+        setResolvedMarkdown(markdown)
         return
       }
 
       try {
         const mediaMap = await resolveMediaUrls(mediaIds)
         if (!active) return
-        setResolvedMarkdown(replaceMediaTokensWithUrls(normalizedMarkdown, mediaMap))
+        setResolvedMarkdown(replaceMediaTokensWithUrls(markdown, mediaMap))
       } catch (error) {
         console.error('Failed to resolve media URLs:', error)
         if (!active) return
-        setResolvedMarkdown(normalizedMarkdown)
+        setResolvedMarkdown(markdown)
       }
     }
 
@@ -66,7 +39,7 @@ export const useResolvedMarkdown = (
     return () => {
       active = false
     }
-  }, [markdown, postId])
+  }, [markdown])
 
   return resolvedMarkdown
 }
