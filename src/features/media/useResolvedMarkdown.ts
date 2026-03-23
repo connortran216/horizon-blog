@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  parseMediaIdsFromMarkdown,
-  replaceMediaTokensWithUrls,
-} from './media.tokens'
+import { parseMediaIdsFromMarkdown, replaceMediaTokensWithUrls } from './media.tokens'
 import { resolveMediaUrls } from './media.api'
 
 export const useResolvedMarkdown = (markdown: string): string => {
