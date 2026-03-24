@@ -25,6 +25,7 @@ import {
   ApiPublicAuthorPostsResponse,
 } from '../types/blog-service.types'
 import { ApiError, apiService } from '../services/api.service'
+import { buildExcerptFromMarkdown } from '../utils/markdown-preview.utils'
 
 /**
  * Default configuration for blog repository
@@ -237,23 +238,7 @@ export class ApiBlogRepository implements IBlogRepository {
    * Generate excerpt from markdown content
    */
   private generateExcerpt(content: string, maxLength: number = 150): string {
-    if (!content) return 'No content'
-
-    const plainText = content
-      .replace(/#{1,6}\s+/g, '') // Remove headings
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove image markdown
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-      .replace(/\*([^*]+)\*/g, '$1') // Remove italic
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
-      .replace(/<img[^>]*>/gi, '') // Remove html images
-      .replace(/`([^`]+)`/g, '$1') // Remove inline code
-      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/>\s+/g, '') // Remove blockquotes
-      .replace(/[-*+]\s+/g, '') // Remove list markers
-      .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim()
-
-    return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText
+    return buildExcerptFromMarkdown(content, maxLength)
   }
 
   /**

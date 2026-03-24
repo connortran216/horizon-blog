@@ -1,3 +1,4 @@
+import { buildExcerptFromMarkdown } from '../../core/utils/markdown-preview.utils'
 import { BlogArchiveOwner, BlogArchivePost } from './blog.types'
 
 const slugifyAuthorName = (name: string) =>
@@ -26,27 +27,7 @@ export const extractFirstImageUrl = (content: string): string | undefined => {
 }
 
 export const getExcerpt = (markdown: string): string => {
-  if (!markdown) return 'Fresh thoughts are on the way.'
-
-  const plainText = markdown
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/?[^>]+>/g, ' ')
-    .replace(/#{1,6}\s+/g, '')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/<img[^>]*>/gi, '')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/>\s+/g, '')
-    .replace(/[-*+]\s+/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  if (!plainText) return 'Fresh thoughts are on the way.'
-
-  return plainText.substring(0, 180) + (plainText.length > 180 ? '...' : '')
+  return buildExcerptFromMarkdown(markdown, 180, 'Fresh thoughts are on the way.')
 }
 
 export const getReadingTime = (markdown: string): number => {

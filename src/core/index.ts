@@ -20,6 +20,7 @@ export * from './di/container'
 // Utils
 export * from './utils/blog.utils'
 export * from './utils/error.utils'
+export * from './utils/markdown-preview.utils'
 
 // Components
 export * from './components/ErrorBoundary'

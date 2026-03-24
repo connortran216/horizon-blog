@@ -17,6 +17,7 @@ import { IBlogRepository } from '../types/blog-repository.types'
 import { getBlogRepository } from '../di/container'
 import { RepositoryResult } from '../types/blog-repository.types'
 import { ApiError } from './api.service'
+import { buildExcerptFromMarkdown } from '../utils/markdown-preview.utils'
 
 /**
  * Default configuration for blog service
@@ -77,26 +78,8 @@ export class BlogService implements IBlogService {
    * Removes markdown syntax and truncates to specified length
    */
   generateExcerpt(content: string, maxLength?: number): string {
-    if (!content) return 'No content'
-
     const length = maxLength || this.config.defaultExcerptLength
-
-    // Remove markdown syntax (simple approach)
-    const plainText = content
-      .replace(/#{1,6}\s+/g, '') // Remove headings
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove image markdown
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-      .replace(/\*([^*]+)\*/g, '$1') // Remove italic
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
-      .replace(/<img[^>]*>/gi, '') // Remove html images
-      .replace(/`([^`]+)`/g, '$1') // Remove inline code
-      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/>\s+/g, '') // Remove blockquotes
-      .replace(/[-*+]\s+/g, '') // Remove list markers
-      .replace(/\n+/g, ' ') // Replace newlines with spaces
-      .trim()
-
-    return plainText.length > length ? plainText.substring(0, length) + '...' : plainText
+    return buildExcerptFromMarkdown(content, length)
   }
 
   /**

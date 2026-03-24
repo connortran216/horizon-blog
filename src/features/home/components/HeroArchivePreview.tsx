@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowUpRight, FiClock } from 'react-icons/fi'
-import { BlogPost } from '../../../core'
+import { BlogPost, extractPreviewText } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
@@ -24,16 +24,10 @@ interface HeroArchivePreviewProps {
   formatDate: (dateString: string) => string
 }
 
-const stripPreviewText = (value?: string) =>
-  (value || '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
 const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
   const coverImage = useResolvedCoverImage(post?.featuredImage)
   const previewText =
-    stripPreviewText(post?.excerpt || post?.subtitle) ||
+    extractPreviewText(post?.excerpt || post?.subtitle || '') ||
     'Blogs, essays, and technical writing shared with a calmer rhythm.'
   const previewContent = (
     <>

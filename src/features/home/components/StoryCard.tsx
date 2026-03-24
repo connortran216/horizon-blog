@@ -13,8 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { BlogPost } from '../../../core'
-import { AnimatedCard } from '../../../core'
+import { AnimatedCard, BlogPost, extractPreviewText } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
@@ -29,6 +28,8 @@ interface StoryCardProps {
 
 const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
   const coverImage = useResolvedCoverImage(post.featuredImage)
+  const previewText =
+    extractPreviewText(post.excerpt || post.subtitle || '') || 'A new blog from the site.'
 
   return (
     <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
@@ -72,7 +73,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
               </Heading>
 
               <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-                {post.excerpt || post.subtitle || 'A new blog from the site.'}
+                {previewText}
               </Text>
             </VStack>
 

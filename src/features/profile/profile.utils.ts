@@ -2,6 +2,7 @@ import { BlogPostSummary } from '../../core/types/blog.types'
 import { User } from '../../core/types/common.types'
 import { ApiError } from '../../core/services/api.service'
 import { UserProfile } from '../../core/types/profile.types'
+import { extractPreviewText } from '../../core/utils/markdown-preview.utils'
 import { ProfileBlogPost, ProfileFormValues } from './profile.types'
 
 export const DEFAULT_PROFILE_FORM: ProfileFormValues = {
@@ -87,7 +88,7 @@ export const mapBlogSummaryToProfilePost = (
   ),
   id: String(post.id),
   title: post.title,
-  subtitle: post.subtitle || post.excerpt,
+  subtitle: extractPreviewText(post.subtitle || post.excerpt || ''),
   createdAt: post.createdAt,
   status: post.status,
 })
