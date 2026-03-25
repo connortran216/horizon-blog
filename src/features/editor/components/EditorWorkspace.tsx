@@ -107,7 +107,7 @@ const EditorWorkspace = ({
 
           <TabPanel p={0}>
             <ErrorBoundary>
-              <Box px={{ base: 6, md: 8 }} py={{ base: 6, md: 8 }} minH="460px">
+              <Box px={{ base: 3, md: 4 }} pb={{ base: 4, md: 6 }}>
                 {previewContent.trim() ? (
                   <CrepePreview content={previewContent} />
                 ) : (

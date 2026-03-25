@@ -24,7 +24,7 @@ import {
 import { BlogArchivePost } from '../blog.types'
 import { getPostAuthorAvatar, getPostAuthorName } from '../blog.utils'
 
-const LazyMarkdownReader = lazy(() => import('../../../components/reader/MarkdownReader'))
+const LazyCrepeEditor = lazy(() => import('../../../components/editor/CrepeEditor'))
 
 interface BlogReaderFrameProps {
   post: BlogArchivePost | null
@@ -238,23 +238,18 @@ const BlogReaderFrame = ({
               </Stack>
             </Box>
 
-            <Box
-              maxW="5xl"
-              mx="auto"
-              w="full"
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius={{ base: '2xl', md: '3xl' }}
-              bg="bg.glass"
-              backdropFilter="blur(18px)"
-              px={{ base: 5, md: 10, lg: 14 }}
-              py={{ base: 7, md: 10, lg: 12 }}
-              boxShadow="md"
-            >
+            <Box maxW="5xl" mx="auto" w="full">
               <ContentAnimation hasPaddingBottom={bottomPadding}>
                 {resolvedContent ? (
                   <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>
-                    <LazyMarkdownReader content={resolvedContent} />
+                    <Box px={{ base: 3, md: 4 }} pb={{ base: 4, md: 6 }}>
+                      <LazyCrepeEditor
+                        initialContent={resolvedContent}
+                        readOnly
+                        inputId="blog-content-reader"
+                        inputName="blogContentReader"
+                      />
+                    </Box>
                   </Suspense>
                 ) : (
                   <Text color="text.secondary">No content available</Text>

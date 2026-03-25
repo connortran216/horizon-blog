@@ -13,6 +13,7 @@
   --crepe-accent-primary: var(--chakra-colors-action-primary);
   --crepe-accent-hover: var(--chakra-colors-action-hover);
   --crepe-accent-active: var(--chakra-colors-action-active);
+  --crepe-media-radius: 1.5rem;
 
   --crepe-link: var(--chakra-colors-link-default);
   --crepe-link-hover: var(--chakra-colors-link-hover);
@@ -20,7 +21,7 @@
   --crepe-code-bg: var(--chakra-colors-bg-tertiary);
   --crepe-code-fg: var(--chakra-colors-text-primary);
 
-  --crepe-bg-primary: var(--chakra-colors-bg-secondary);
+  --crepe-bg-primary: var(--chakra-colors-bg-glass);
   --crepe-bg-secondary: var(--chakra-colors-bg-tertiary);
   --crepe-border: var(--chakra-colors-border-default);
   --crepe-border-subtle: var(--chakra-colors-border-subtle);
@@ -29,7 +30,7 @@
   --crepe-text-tertiary: var(--chakra-colors-text-tertiary);
 
   /* Map Chakra theme variables to Milkdown/Crepe */
-  --milkdown-color-background: var(--chakra-colors-bg-secondary);
+  --milkdown-color-background: var(--chakra-colors-bg-glass);
   --milkdown-color-surface: var(--chakra-colors-bg-tertiary);
   --milkdown-color-text: var(--chakra-colors-text-primary);
   --milkdown-color-secondary: var(--chakra-colors-text-secondary);
@@ -119,7 +120,7 @@
    ========================================= */
 
 .crepe-editor-wrapper .image-block-container {
-  border-radius: 0.5rem;
+  border-radius: var(--crepe-media-radius);
   border: 2px dashed var(--crepe-border);
   transition: all 0.2s ease-in-out;
 }
@@ -130,7 +131,7 @@
 }
 
 .crepe-editor-wrapper .image-block-container img {
-  border-radius: 0.5rem;
+  border-radius: var(--crepe-media-radius);
   max-width: 100%;
   opacity: 1 !important;
   filter: none !important;
@@ -141,6 +142,7 @@
 .crepe-editor-wrapper .milkdown .ProseMirror img,
 .crepe-editor-wrapper .milkdown .ProseMirror .ProseMirror-selectednode img,
 .crepe-editor-wrapper .milkdown .ProseMirror img.ProseMirror-selectednode {
+  border-radius: var(--crepe-media-radius);
   opacity: 1 !important;
   filter: none !important;
   mix-blend-mode: normal !important;
@@ -160,10 +162,14 @@
 /* Center block images in editor content area. */
 .crepe-editor-wrapper .milkdown .milkdown-image-block > .image-wrapper {
   margin: 0 auto !important;
+  border-radius: var(--crepe-media-radius);
+  overflow: hidden;
 }
 
 .crepe-editor-wrapper .milkdown .milkdown-image-block .image-wrapper {
   justify-content: center !important;
+  border-radius: var(--crepe-media-radius);
+  overflow: hidden;
 }
 
 /* =========================================

@@ -13,7 +13,7 @@ import { Crepe, CrepeFeature } from '@milkdown/crepe'
 import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
 import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
-import { Box, useColorModeValue, useToast } from '@chakra-ui/react'
+import { Box, useToast } from '@chakra-ui/react'
 import { CREPE_CONFIG } from '../../config/crepe.config'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
@@ -140,9 +140,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     }
   }
 
-  // Chakra UI theme integration
-  const bgColor = useColorModeValue('white', 'obsidian.dark.bgSecondary')
-  const borderColor = useColorModeValue('gray.200', 'border.default')
+  const editorRadius = { base: '2xl', md: '3xl' } as const
+  const surfaceShadow = '0 4px 8px 0 rgba(0, 0, 0, 0.25)'
 
   useEffect(() => {
     isMountedRef.current = true
@@ -395,21 +394,28 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   return (
     <Box
       ref={editorRef}
-      bg={bgColor}
+      bg="bg.glass"
       borderWidth="1px"
-      borderColor={borderColor}
-      borderRadius="md"
+      borderColor="border.subtle"
+      borderRadius={editorRadius}
+      backdropFilter="blur(18px)"
+      boxShadow={surfaceShadow}
+      overflow="hidden"
       minH="500px"
       className="crepe-editor-wrapper"
       sx={{
         // Ensure proper height and scrolling
         '& .milkdown': {
           minHeight: '500px',
+          borderRadius: 'inherit',
+        },
+        '& .milkdown .ProseMirror': {
+          borderRadius: 'inherit',
         },
         // Focus state styling
         '&:focus-within': {
           borderColor: 'action.primary',
-          boxShadow: `0 0 0 1px var(--chakra-colors-action-primary)`,
+          boxShadow: `${surfaceShadow}, 0 0 0 1px var(--chakra-colors-action-primary)`,
         },
       }}
     />

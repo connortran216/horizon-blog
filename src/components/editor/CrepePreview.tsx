@@ -1,7 +1,7 @@
 import React from 'react'
 import { Flex, Text } from '@chakra-ui/react'
 import { useResolvedMarkdown } from '../../features/media/useResolvedMarkdown'
-import MarkdownReader from '../reader/MarkdownReader'
+import CrepeEditor from './CrepeEditor'
 
 interface CrepePreviewProps {
   content: string
@@ -18,7 +18,14 @@ export const CrepePreview: React.FC<CrepePreviewProps> = ({ content }) => {
     )
   }
 
-  return <MarkdownReader content={resolvedContent} />
+  return (
+    <CrepeEditor
+      initialContent={resolvedContent}
+      readOnly
+      inputId="blog-content-preview"
+      inputName="blogContentPreview"
+    />
+  )
 }
 
 export default CrepePreview
