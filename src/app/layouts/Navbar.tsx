@@ -17,6 +17,7 @@ import { getBlogRepository } from '../../core/di/container'
 import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
 import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
 import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
+import BrandLogo from '../../components/ui/BrandLogo'
 import '../../features/editor/editor.window'
 import NavLinkButton from './NavLinkButton'
 import UserMenu from './UserMenu'
@@ -139,9 +140,18 @@ const Navbar = () => {
           </MotionWrapper>
 
           <MotionWrapper variant="fadeInUp" delay={0.2}>
-            <HStack spacing={8} alignItems="center">
-              <Box fontWeight="bold" fontSize="xl">
-                <RouterLink to="/">Horizon</RouterLink>
+            <HStack spacing={{ base: 4, md: 8 }} alignItems="center">
+              <Box
+                as={RouterLink}
+                to="/"
+                aria-label="Horizon home"
+                display="inline-flex"
+                alignItems="center"
+                lineHeight="0"
+                flexShrink={0}
+              >
+                <BrandLogo variant="icon" display={{ base: 'block', md: 'none' }} />
+                <BrandLogo variant="full" display={{ base: 'none', md: 'block' }} />
               </Box>
               <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
                 {SITE_LINKS.map((link, index) => (

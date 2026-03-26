@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Routes from './Routes'
 import AppLayout from './app/layouts/AppLayout'
+import BrandFaviconSync from './components/ui/BrandFaviconSync'
 import theme from './theme'
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <ChakraProvider theme={theme}>
+        <BrandFaviconSync />
         <AuthProvider>
           <Router>
             <AppLayout>

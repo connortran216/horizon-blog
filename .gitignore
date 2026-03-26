@@ -37,6 +37,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.swift-module-cache/
 
 
 .codex/
