@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, VStack, HStack, SimpleGrid } from '@chakra-ui/react'
+import { Box, HStack, SimpleGrid, VStack, usePrefersReducedMotion } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
 /**
@@ -27,6 +27,8 @@ export const Shimmer: React.FC<ShimmerProps> = ({
   height,
   borderRadius = 'md',
 }) => {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   // Size configurations
   const heights = {
     xs: '8px',
@@ -37,6 +39,14 @@ export const Shimmer: React.FC<ShimmerProps> = ({
   }
 
   const skeletonHeight = height || heights[size]
+  const lineStyle = {
+    height: skeletonHeight,
+    borderRadius,
+    background: prefersReducedMotion
+      ? 'var(--chakra-colors-loading-base)'
+      : 'linear-gradient(90deg, var(--chakra-colors-loading-base) 20%, var(--chakra-colors-loading-highlight) 50%, var(--chakra-colors-loading-base) 80%)',
+    backgroundSize: '220px 100%',
+  }
 
   // Animated gradient for shimmer effect
   const shimmerVariants = {
@@ -59,22 +69,23 @@ export const Shimmer: React.FC<ShimmerProps> = ({
     delay?: number
   }) => (
     <motion.div
-      variants={shimmerVariants}
-      initial="initial"
-      animate="animate"
+      variants={prefersReducedMotion ? undefined : shimmerVariants}
+      initial={prefersReducedMotion ? false : 'initial'}
+      animate={prefersReducedMotion ? undefined : 'animate'}
       style={{
+        ...lineStyle,
         width,
-        height: skeletonHeight,
-        borderRadius,
-        background: 'linear-gradient(90deg, #e2e8f0 25%, #f7fafc 50%, #e2e8f0 75%)',
-        backgroundSize: '200px 100%',
       }}
-      transition={{
-        delay,
-        repeat: Infinity,
-        duration: 1.5,
-        ease: 'easeInOut',
-      }}
+      transition={
+        prefersReducedMotion
+          ? undefined
+          : {
+              delay,
+              repeat: Infinity,
+              duration: 1.5,
+              ease: 'easeInOut',
+            }
+      }
     />
   )
 
@@ -95,12 +106,12 @@ export const Shimmer: React.FC<ShimmerProps> = ({
 export const BlogCardSkeleton = () => (
   <Box
     maxW="100%"
-    bg="white"
+    bg="bg.secondary"
     boxShadow="xl"
     rounded="md"
     overflow="hidden"
     borderWidth="1px"
-    borderColor="gray.200"
+    borderColor="border.default"
     p={6}
   >
     {/* Image placeholder */}
@@ -149,7 +160,7 @@ export const BlogListSkeleton = ({ count = 6 }: { count?: number }) => (
 
 // Compact horizontal blog cards for trending/featured sections
 export const CompactBlogSkeleton = () => (
-  <HStack align="start" spacing={4} p={4} borderBottom="1px" borderColor="gray.200">
+  <HStack align="start" spacing={4} p={4} borderBottom="1px" borderColor="border.subtle">
     <Shimmer width="48px" height="48px" borderRadius="full" />
     <Box flex="1">
       <VStack spacing={1} align="stretch">
@@ -232,14 +243,18 @@ export const FadeInShimmer = ({
 }: {
   children: React.ReactNode
   delay?: number
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay }}
-  >
-    {children}
-  </motion.div>
-)
+}) => {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? undefined : { duration: 0.4, delay }}
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 export default ShimmerLoader

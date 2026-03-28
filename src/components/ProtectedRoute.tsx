@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import { LoadingScreen } from './core/animations/LoadingState'
 import { useAuth } from '../context/AuthContext'
-import { Spinner, Center } from '@chakra-ui/react'
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -11,12 +11,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { status, user } = useAuth()
   const location = useLocation()
 
-  // Show loading spinner while determining auth status
+  // Show the shared loading surface while determining auth status
   if (status === 'loading') {
     return (
-      <Center minH="100vh">
-        <Spinner size="xl" color="accent.primary" />
-      </Center>
+      <LoadingScreen
+        label="Checking your session"
+        description="Preparing your protected workspace."
+      />
     )
   }
 

@@ -154,6 +154,28 @@ const semanticTokens = {
       _dark: 'rgba(109, 130, 167, 0.22)',
     },
 
+    // Loading
+    'loading.base': {
+      default: 'rgba(90, 108, 125, 0.12)',
+      _dark: 'rgba(185, 187, 190, 0.12)',
+    },
+    'loading.highlight': {
+      default: 'rgba(255, 255, 255, 0.88)',
+      _dark: 'rgba(255, 255, 255, 0.14)',
+    },
+    'loading.track': {
+      default: 'rgba(95, 114, 148, 0.12)',
+      _dark: 'rgba(109, 130, 167, 0.18)',
+    },
+    'loading.stroke': {
+      default: 'rgba(95, 114, 148, 0.88)',
+      _dark: 'rgba(140, 160, 196, 0.92)',
+    },
+    'loading.glow': {
+      default: 'rgba(95, 114, 148, 0.16)',
+      _dark: 'rgba(109, 130, 167, 0.24)',
+    },
+
     // Links
     'link.default': {
       default: 'obsidian.link',

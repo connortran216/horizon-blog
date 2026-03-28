@@ -18,6 +18,7 @@ import {
   BackButtonAnimation,
   ContentAnimation,
   FocusRing,
+  LoadingState,
   MotionWrapper,
   TitleAnimation,
 } from '../../../core'
@@ -97,8 +98,13 @@ const BlogReaderFrame = ({
 
   if (loading) {
     return (
-      <Container maxW="container.lg" py={10}>
-        <Text color="text.secondary">Loading...</Text>
+      <Container maxW="container.lg" py={{ base: 8, md: 12 }}>
+        <LoadingState
+          variant="page"
+          minH="40vh"
+          label="Loading blog"
+          description="Preparing the reading view."
+        />
       </Container>
     )
   }

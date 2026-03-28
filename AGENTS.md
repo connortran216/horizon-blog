@@ -255,7 +255,7 @@
 ### 7.2 Protected Routes
 
 - `ProtectedRoute` checks auth status and user.
-- If `status === loading`, show a Chakra `Spinner`.
+- If `status === loading`, show the shared `LoadingState` screen instead of a raw spinner.
 - If unauthenticated, redirect to `/login` and preserve destination.
 - Protected routes are for authoring and profile content.
 
@@ -481,7 +481,7 @@
 
 - `initialColorMode` is `light`.
 - `useSystemColorMode` is false.
-- Semantic tokens define `bg`, `text`, `border`, `accent`, `action`, and `link`.
+- Semantic tokens define `bg`, `text`, `border`, `accent`, `action`, `loading`, and `link`.
 - Card, Button, Input, Textarea, Menu, Modal, Link are overridden.
 - Typography uses Inter for heading and body.
 - Shadows and radii are custom.
@@ -493,6 +493,7 @@
 - Text: `text.primary`, `text.secondary`, `text.tertiary`.
 - Accents: `accent.primary`, `accent.hover`, `accent.glow`.
 - Actions: `action.primary`, `action.hover`, `action.active`, `action.subtle`, `action.glow`.
+- Loading: `loading.base`, `loading.highlight`, `loading.track`, `loading.stroke`, `loading.glow`.
 - Links: `link.default`, `link.hover`.
 
 ### 12.4 Color Palette Notes
@@ -510,7 +511,7 @@
 ### 12.6 Animation and Motion
 
 - Use `framer-motion` for complex motion.
-- Use design system components like `MotionWrapper` and `ShimmerLoader`.
+- Use design system components like `MotionWrapper`, `ShimmerLoader`, and `LoadingState`.
 - Respect `useReducedMotion` when needed.
 
 ### 12.7 Design System Reference
@@ -533,6 +534,7 @@
 - `AnimatedButton` variants are preferred for CTA buttons.
 - `AnimatedCard` for interactive cards.
 - `ShimmerLoader` for skeleton states.
+- `LoadingState` for screen, page, and panel loading surfaces.
 - `ParticleSystem` and `Glassmorphism` are optional visuals.
 
 ### 13.3 Editor Components
@@ -586,7 +588,7 @@
 
 ### 15.3 ProtectedRoute Behavior
 
-- Shows loading spinner while status is loading.
+- Shows the shared loading screen while status is loading.
 - Redirects to `/login` when unauthenticated.
 - Preserves `location.pathname` for redirect back.
 

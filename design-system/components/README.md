@@ -104,7 +104,23 @@ Purpose:
 - skeleton-style loading treatment
 
 Rules:
-- use it for loading content blocks before falling back to spinners
+- use it for content-shaped placeholders that should preserve the final layout
+- keep cards, lists, and prose blocks recognizable while data is loading
+- use `LoadingState` instead of raw spinners when a whole page, panel, or route is blocked
+
+### LoadingState
+
+Implementation:
+- `src/components/core/animations/LoadingState.tsx`
+
+Purpose:
+- shared loading surface for screen, page, panel, and inline blocking states
+
+Rules:
+- use it for route suspense, auth hydration, editor boot, and other full-surface loading moments
+- keep copy concise and specific to the task being prepared
+- prefer the calm signal animation and action-token glow over ad hoc animated icons
+- use inline actions with raw spinners only when the UI is too compact for a loading surface
 
 ## Blog Discovery Components
 

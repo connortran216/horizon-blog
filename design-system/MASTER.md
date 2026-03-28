@@ -225,6 +225,18 @@ Rule:
 - inline text links use link tokens
 - CTA-style links may use `action.primary` when they are acting like actions rather than prose links
 
+#### Loading
+
+- `loading.base`
+- `loading.highlight`
+- `loading.track`
+- `loading.stroke`
+- `loading.glow`
+
+Rule:
+- `loading.*` is reserved for skeletons and shared loading surfaces
+- use `ShimmerLoader` for layout-preserving placeholders and `LoadingState` for blocked page or panel loads
+
 ### Action vs Accent Rule
 
 This distinction must stay explicit:

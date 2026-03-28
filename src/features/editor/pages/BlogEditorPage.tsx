@@ -3,21 +3,19 @@ import {
   Badge,
   Box,
   Container,
-  Flex,
   FormControl,
   FormHelperText,
   FormLabel,
   Heading,
   HStack,
   Input,
-  Spinner,
-  Text,
   VStack,
   Stack,
+  Text,
   useToast,
 } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatedCard } from '../../../core'
+import { AnimatedCard, LoadingPanel } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import { useAutoSave } from '../hooks/useAutoSave'
 import { useBlogPost } from '../hooks/useBlogPost'
@@ -117,18 +115,10 @@ const BlogEditorPage = () => {
         />
 
         <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
-          <AnimatedCard
-            overflow="visible"
-            intensity="light"
-            border="1px solid"
-            borderColor="border.subtle"
-            boxShadow="0 20px 44px rgba(0, 0, 0, 0.22)"
-          >
-            <Flex minH="320px" align="center" justify="center" direction="column" gap={4}>
-              <Spinner color="action.primary" size="lg" />
-              <Text color="text.tertiary">Loading editor...</Text>
-            </Flex>
-          </AnimatedCard>
+          <LoadingPanel
+            label="Loading editor"
+            description="Restoring the draft and preparing the workspace."
+          />
         </Container>
       </Box>
     )

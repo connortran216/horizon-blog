@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { Center, Spinner } from '@chakra-ui/react'
 import { Routes as RouterRoutes, Route } from 'react-router-dom'
+import { LoadingScreen } from './core'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -21,9 +21,11 @@ const Routes = () => {
   return (
     <Suspense
       fallback={
-        <Center minH="50vh">
-          <Spinner size="lg" color="accent.primary" />
-        </Center>
+        <LoadingScreen
+          label="Loading page"
+          description="Preparing the next reading surface."
+          minH="50vh"
+        />
       }
     >
       <RouterRoutes>
