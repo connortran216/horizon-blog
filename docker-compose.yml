@@ -5,6 +5,7 @@ services:
     build: .
     image: connortran216/horizon-blog:latest
     container_name: horizon-blog-fe
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
