@@ -6,9 +6,7 @@ import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 
 const BlogDetailPage = () => {
   const navigate = useNavigate()
-  const { post, loading } = useBlogPostDetail({
-    redirectPath: '/blog',
-  })
+  const { post, loading, emptyStateMessage } = useBlogPostDetail()
 
   const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
@@ -21,7 +19,7 @@ const BlogDetailPage = () => {
       resolvedContent={resolvedContent}
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
-      emptyLabel="Blog not found"
+      emptyLabel={emptyStateMessage}
       authorArchivePath={authorArchivePath}
       authorArchiveState={authorArchiveState}
       showReadingProgress={true}

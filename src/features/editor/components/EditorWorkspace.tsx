@@ -12,6 +12,7 @@ interface EditorWorkspaceProps {
   postId: number | null
   ensurePostId: () => Promise<number | null>
   onEditorChange: (contentMarkdown: string) => void
+  validationMessage?: string
 }
 
 const EditorWorkspace = ({
@@ -23,6 +24,7 @@ const EditorWorkspace = ({
   postId,
   ensurePostId,
   onEditorChange,
+  validationMessage,
 }: EditorWorkspaceProps) => {
   return (
     <Box
@@ -62,6 +64,11 @@ const EditorWorkspace = ({
             <Text fontSize="sm" color="text.tertiary">
               Draft in the editor, then switch to preview to check the final reading rhythm.
             </Text>
+            {validationMessage ? (
+              <Text fontSize="sm" color="red.400">
+                {validationMessage}
+              </Text>
+            ) : null}
           </VStack>
 
           <TabList p={1} bg="bg.tertiary" borderRadius="full">

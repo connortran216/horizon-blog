@@ -8,6 +8,8 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { getBlogRepository } from '../../../core/di/container'
 import { BlogPost } from '../../../core/types/blog.types'
+import { ApiError } from '../../../core/services/api.service'
+import { RepositoryResult } from '../../../core/types/blog-repository.types'
 
 interface UseAutoSaveOptions {
   autoSaveDelay?: number // Auto-save delay in milliseconds (default: 5000)
@@ -19,6 +21,7 @@ interface AutoSaveState {
   isSaving: boolean
   saveStatus: 'saved' | 'saving' | 'error'
   lastSaved?: Date
+  validationMessage?: string
 }
 
 export function useAutoSave(
@@ -44,6 +47,25 @@ export function useAutoSave(
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const toRepositoryError = useCallback(
+    <T>(result: RepositoryResult<T>, fallback: string): Error => {
+      if (result.statusCode) {
+        return new ApiError(result.error || fallback, result.statusCode)
+      }
+
+      return new Error(result.error || fallback)
+    },
+    [],
+  )
+
+  const setValidationState = useCallback((error: unknown) => {
+    setState((prev) => ({
+      ...prev,
+      validationMessage:
+        error instanceof ApiError && error.status === 400 ? error.message : undefined,
+    }))
+  }, [])
+
   useEffect(() => {
     if (postId) {
       setCurrentPostId(postId)
@@ -54,6 +76,10 @@ export function useAutoSave(
   useEffect(() => {
     postIdRef.current = currentPostId ?? postId
   }, [currentPostId, postId])
+
+  useEffect(() => {
+    setState((prev) => (prev.validationMessage ? { ...prev, validationMessage: undefined } : prev))
+  }, [contentMarkdown, title])
 
   // Local storage backup
   const saveToLocalStorage = useCallback(() => {
@@ -82,6 +108,7 @@ export function useAutoSave(
     setState((prev) => ({ ...prev, saveStatus: 'saving', isSaving: true }))
 
     try {
+      setValidationState(undefined)
       const postData = {
         title: title.trim(),
         content_markdown: contentMarkdown,
@@ -101,7 +128,7 @@ export function useAutoSave(
         // Update existing post
         const result = await repository.updatePost(updatedPostId.toString(), postData)
         if (!result.success) {
-          throw new Error(result.error || 'Failed to update post')
+          throw toRepositoryError(result, 'Failed to update post')
         }
       } else {
         const createPromise = (async () => {
@@ -118,10 +145,10 @@ export function useAutoSave(
           } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
 
           if (!result.success || !result.data?.id) {
-            throw new Error(result.error || 'Failed to create post')
+            throw toRepositoryError(result, 'Failed to create post')
           }
 
-          const createdPostId = parseInt(result.data.id)
+          const createdPostId = Number(result.data.id)
           setCurrentPostId(createdPostId)
           postIdRef.current = createdPostId
           return createdPostId
@@ -141,6 +168,7 @@ export function useAutoSave(
         isSaving: false,
         saveStatus: 'saved',
         lastSaved: new Date(),
+        validationMessage: undefined,
       })
 
       console.log('✅ Auto-saved to backend')
@@ -149,6 +177,7 @@ export function useAutoSave(
       return updatedPostId
     } catch (error) {
       console.error('Error auto-saving to backend:', error)
+      setValidationState(error)
       setState((prev) => ({
         ...prev,
         saveStatus: 'error',
@@ -158,7 +187,7 @@ export function useAutoSave(
       // Don't show toast for auto-save errors to avoid interrupting user
       return null
     }
-  }, [title, contentMarkdown, contentJSON, tags])
+  }, [contentMarkdown, contentJSON, setValidationState, tags, title, toRepositoryError])
 
   // Manual publish function (extracted from original component)
   const publishPost = useCallback(async () => {
@@ -181,6 +210,7 @@ export function useAutoSave(
     const repository = getBlogRepository()
 
     try {
+      setValidationState(undefined)
       let targetPostId = postIdRef.current
 
       if (!targetPostId && createInFlightRef.current) {
@@ -191,8 +221,12 @@ export function useAutoSave(
         // Update existing post
         const result = await repository.updatePost(targetPostId.toString(), postData)
         if (!result.success) {
-          throw new Error(result.error || 'Failed to update blog post')
+          throw toRepositoryError(result, 'Failed to update blog post')
         }
+        setState((prev) => ({
+          ...prev,
+          validationMessage: undefined,
+        }))
         return result.data
       } else {
         // Create new post
@@ -209,23 +243,29 @@ export function useAutoSave(
         } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
 
         if (!result.success) {
-          throw new Error(result.error || 'Failed to create blog post')
+          throw toRepositoryError(result, 'Failed to create blog post')
         }
 
         if (result.data?.id) {
-          setCurrentPostId(parseInt(result.data.id))
+          setCurrentPostId(Number(result.data.id))
         }
+
+        setState((prev) => ({
+          ...prev,
+          validationMessage: undefined,
+        }))
 
         return result.data
       }
     } catch (error: unknown) {
-      throw new Error(
-        error instanceof Error
-          ? error.message
-          : `Failed to ${postIdRef.current ? 'update' : 'publish'} blog post`,
-      )
+      setValidationState(error)
+      if (error instanceof Error) {
+        throw error
+      }
+
+      throw new Error(`Failed to ${postIdRef.current ? 'update' : 'publish'} blog post`)
     }
-  }, [title, contentMarkdown, contentJSON, tags])
+  }, [contentMarkdown, contentJSON, setValidationState, tags, title, toRepositoryError])
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {
@@ -265,6 +305,7 @@ export function useAutoSave(
     saveStatus: state.saveStatus,
     lastSaved: state.lastSaved,
     currentPostId,
+    validationMessage: state.validationMessage,
 
     // Methods
     saveToBackend,

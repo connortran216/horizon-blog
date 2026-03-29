@@ -10,6 +10,7 @@ import {
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostRecord,
 } from './blog.types'
 
 /**
@@ -54,6 +55,7 @@ export interface IBlogRepository {
     page?: number,
     limit?: number,
   ): Promise<RepositoryResult<BlogPostSummary[]>>
+  getCurrentUserPostById(id: string): Promise<RepositoryResult<PublicPostRecord>>
   getPublicAuthorProfile(authorId: string): Promise<RepositoryResult<PublicAuthor>>
   getPublicAuthorPosts(
     authorId: string,

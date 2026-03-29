@@ -17,6 +17,7 @@ import {
   BlogStatus,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostRecord,
 } from '../types/blog.types'
 import {
   ApiBlogPost,
@@ -107,6 +108,10 @@ export class ApiBlogRepository implements IBlogRepository {
     this.cache.delete(key)
   }
 
+  private getStatusCode(error: unknown): number | undefined {
+    return error instanceof ApiError ? error.status : undefined
+  }
+
   /**
    * Clear all related caches
    */
@@ -186,6 +191,12 @@ export class ApiBlogRepository implements IBlogRepository {
 
   private getPostOwnerId(post: ApiBlogPost): number | undefined {
     return post.owner?.id ?? post.user_id
+  }
+
+  private cacheCurrentUserPostRecords(posts: ApiBlogPost[]): void {
+    posts.forEach((post) => {
+      this.setCache(`current-user-post_${post.id}`, this.normalizePublicPost(post))
+    })
   }
 
   /**
@@ -328,6 +339,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch blog post',
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -353,6 +365,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create blog post',
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -377,6 +390,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update blog post',
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -398,6 +412,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to delete blog post',
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -466,6 +481,7 @@ export class ApiBlogRepository implements IBlogRepository {
       if (status) params.status = status
 
       const response = await apiService.get<ApiListPostsResponse>('/users/me/posts', params)
+      this.cacheCurrentUserPostRecords(response.data)
 
       const posts = response.data.map((post) => this.transformPostForDisplay(post))
 
@@ -490,6 +506,61 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to retrieve current user posts',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
+  async getCurrentUserPostById(id: string): Promise<RepositoryResult<PublicPostRecord>> {
+    try {
+      const cacheKey = `current-user-post_${id}`
+      const cached = this.getFromCache(cacheKey) as PublicPostRecord | null
+      if (cached) {
+        return { success: true, data: cached }
+      }
+
+      const pageSize = 50
+
+      for (const status of ['draft', 'published'] as const) {
+        let page = 1
+        let hasNext = true
+
+        while (hasNext) {
+          const response = await apiService.get<ApiListPostsResponse>('/users/me/posts', {
+            status,
+            page,
+            limit: pageSize,
+          })
+
+          this.cacheCurrentUserPostRecords(response.data)
+
+          const foundPost = response.data.find((post) => String(post.id) === id)
+          if (foundPost) {
+            const normalizedPost = this.normalizePublicPost(foundPost)
+            this.setCache(cacheKey, normalizedPost)
+
+            return {
+              success: true,
+              data: normalizedPost,
+            }
+          }
+
+          hasNext = response.page * response.limit < response.total
+          page += 1
+        }
+      }
+
+      return {
+        success: false,
+        error: 'Post not found',
+        statusCode: 404,
+      }
+    } catch (error: unknown) {
+      console.error(`Failed to fetch current user post ${id}:`, error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to retrieve current user post',
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -526,7 +597,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to retrieve public author profile',
-        statusCode: error instanceof ApiError ? error.status : undefined,
+        statusCode: this.getStatusCode(error),
       }
     }
   }
@@ -585,7 +656,7 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to retrieve public author posts',
-        statusCode: error instanceof ApiError ? error.status : undefined,
+        statusCode: this.getStatusCode(error),
       }
     }
   }

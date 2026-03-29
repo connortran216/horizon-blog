@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { AnimatedCard, LoadingPanel } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
+import { ApiError } from '../../../core/services/api.service'
 import { useAutoSave } from '../hooks/useAutoSave'
 import { useBlogPost } from '../hooks/useBlogPost'
 import { useEditorContent } from '../hooks/useEditorContent'
@@ -77,7 +78,7 @@ const BlogEditorPage = () => {
     } catch (error) {
       console.error('Error publishing blog post:', error)
       toast({
-        title: 'Error',
+        title: error instanceof ApiError && error.status === 400 ? 'Validation error' : 'Error',
         description: error instanceof Error ? error.message : 'Failed to publish blog post',
         status: 'error',
         duration: 3000,
@@ -291,6 +292,7 @@ const BlogEditorPage = () => {
                   postId={autoSave.currentPostId}
                   ensurePostId={ensurePostId}
                   onEditorChange={editorContent.handleEditorChange}
+                  validationMessage={autoSave.validationMessage}
                 />
               </VStack>
             </Box>

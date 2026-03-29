@@ -1,34 +1,22 @@
-import { useCallback } from 'react'
 import { Badge, Heading, HStack, Text } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 import BlogReaderFrame from '../../blog/components/BlogReaderFrame'
-import { BlogArchivePost } from '../../blog/blog.types'
-import { getPostAuthorName } from '../../blog/blog.utils'
-import { useBlogPostDetail } from '../../blog/useBlogPostDetail'
+import { useOwnerBlogPostDetail } from '../useOwnerBlogPostDetail'
 
 const ProfileBlogDetailPage = () => {
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const redirectPath = `/profile/${username}`
-  const validatePost = useCallback(
-    (foundPost: BlogArchivePost) => {
-      if (getPostAuthorName(foundPost) !== username) {
-        return 'This blog does not belong to this user.'
-      }
+  const redirectPath = user?.username ? `/profile/${user.username}` : `/profile/${username}`
 
-      return null
-    },
-    [username],
-  )
-
-  const { post, loading } = useBlogPostDetail({
+  const { post, loading } = useOwnerBlogPostDetail({
     redirectPath,
-    validatePost,
+    routeUsername: username,
+    authenticatedUsername: user?.username,
   })
 
   const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')

@@ -10,14 +10,14 @@ import { useToast } from '@chakra-ui/react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
 import { getBlogRepository } from '../../../core/di/container'
-import { BlogPost } from '../../../core/types/blog.types'
+import { PublicPostRecord } from '../../../core/types/blog.types'
 
 interface UseBlogPostOptions {
   redirectOnError?: boolean
 }
 
 interface UseBlogPostState {
-  post: BlogPost | null
+  post: PublicPostRecord | null
   isLoading: boolean
   error: string | null
   postId: number | null
@@ -29,10 +29,11 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
   const navigate = useNavigate()
   const location = useLocation()
   const toast = useToast()
+  const redirectPath = user?.username ? `/profile/${user.username}` : '/'
 
   // Parse URL parameters and router state
   const postIdParam = new URLSearchParams(location.search).get('id')
-  const routerPost = location.state?.blog
+  const routerPost = location.state?.blog as PublicPostRecord | undefined
   const authorizedEdit = location.state?.authorizedEdit || false
 
   // State management
@@ -65,7 +66,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
         })
 
         if (redirectOnError) {
-          navigate(`/blog/${postIdParam}`)
+          navigate(redirectPath, { replace: true })
         }
 
         return false
@@ -90,7 +91,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
         })
 
         if (redirectOnError) {
-          navigate(`/blog/${postIdParam}`)
+          navigate(redirectPath, { replace: true })
         }
 
         return false
@@ -98,7 +99,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
 
       return true
     },
-    [user, authorizedEdit, toast, navigate, postIdParam, redirectOnError],
+    [authorizedEdit, navigate, redirectOnError, redirectPath, toast, user],
   )
 
   // Load post data
@@ -119,10 +120,17 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
       if (postIdParam && !post) {
         console.log('🔗 Loading post by ID:', postIdParam)
         const repository = getBlogRepository()
-        const result = await repository.getPostById(postIdParam)
+        const result = await repository.getCurrentUserPostById(postIdParam)
 
         if (!result.success || !result.data) {
-          const errorMsg = 'Post not found'
+          const errorMsg =
+            result.statusCode === 404
+              ? 'This post is not available in your workspace.'
+              : result.statusCode === 401
+                ? 'Your session has expired. Please sign in again.'
+                : result.statusCode === 403
+                  ? 'You do not have permission to edit this post.'
+                  : 'Failed to load post'
 
           setState({
             post: null,
@@ -140,7 +148,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
           })
 
           if (redirectOnError) {
-            navigate('/')
+            navigate(redirectPath, { replace: true })
           }
 
           return
@@ -165,7 +173,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
 
         setState({
           post,
-          postId: post.id ? parseInt(post.id) : null,
+          postId: post.id ? Number(post.id) : null,
           isLoading: false,
           error: null,
         })
@@ -200,10 +208,10 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
       })
 
       if (redirectOnError) {
-        navigate('/')
+        navigate(redirectPath, { replace: true })
       }
     }
-  }, [postIdParam, routerPost, toast, navigate, checkAuthorization, redirectOnError])
+  }, [checkAuthorization, navigate, postIdParam, redirectOnError, redirectPath, routerPost, toast])
 
   // Load post on mount and when parameters change
   useEffect(() => {

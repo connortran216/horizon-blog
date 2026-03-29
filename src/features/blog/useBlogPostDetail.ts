@@ -1,36 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useToast } from '@chakra-ui/react'
-import { apiService } from '../../core/services/api.service'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { ApiError, apiService } from '../../core/services/api.service'
 import { BlogArchivePost } from './blog.types'
 
-interface UseBlogPostDetailOptions {
-  redirectPath: string
-  validatePost?: (post: BlogArchivePost) => string | null
-}
+const PUBLIC_NOT_FOUND_MESSAGE = 'This post is not published or is no longer available.'
 
-export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDetailOptions) => {
+export const useBlogPostDetail = () => {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const toast = useToast()
   const [post, setPost] = useState<BlogArchivePost | null>(null)
   const [loading, setLoading] = useState(true)
-  const validatePostRef = useRef(validatePost)
-
-  useEffect(() => {
-    validatePostRef.current = validatePost
-  }, [validatePost])
+  const [emptyStateMessage, setEmptyStateMessage] = useState(PUBLIC_NOT_FOUND_MESSAGE)
+  const [statusCode, setStatusCode] = useState<number | undefined>()
 
   useEffect(() => {
     if (!id) {
       setPost(null)
       setLoading(false)
+      setStatusCode(404)
+      setEmptyStateMessage(PUBLIC_NOT_FOUND_MESSAGE)
       return
     }
 
     let isCancelled = false
     setLoading(true)
     setPost(null)
+    setStatusCode(undefined)
+    setEmptyStateMessage(PUBLIC_NOT_FOUND_MESSAGE)
 
     const fetchPost = async () => {
       try {
@@ -42,27 +37,8 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
         }
 
         if (!foundPost) {
-          toast({
-            title: 'Post not found',
-            description: 'The blog post you are looking for does not exist.',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          })
-          navigate(redirectPath)
-          return
-        }
-
-        const validationError = validatePostRef.current?.(foundPost)
-        if (validationError) {
-          toast({
-            title: 'Access denied',
-            description: validationError,
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          })
-          navigate(redirectPath)
+          setStatusCode(404)
+          setEmptyStateMessage(PUBLIC_NOT_FOUND_MESSAGE)
           return
         }
 
@@ -73,14 +49,15 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
         }
 
         console.error('Error fetching post:', error)
-        toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Failed to load blog post.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        })
-        navigate(redirectPath)
+        setPost(null)
+        setStatusCode(error instanceof ApiError ? error.status : undefined)
+        setEmptyStateMessage(
+          error instanceof ApiError && error.status === 404
+            ? PUBLIC_NOT_FOUND_MESSAGE
+            : error instanceof Error
+              ? error.message
+              : 'Failed to load blog post.',
+        )
       } finally {
         if (!isCancelled) {
           setLoading(false)
@@ -93,10 +70,12 @@ export const useBlogPostDetail = ({ redirectPath, validatePost }: UseBlogPostDet
     return () => {
       isCancelled = true
     }
-  }, [id, navigate, redirectPath, toast])
+  }, [id])
 
   return {
     post,
     loading,
+    emptyStateMessage,
+    statusCode,
   }
 }
