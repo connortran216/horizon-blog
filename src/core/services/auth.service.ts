@@ -62,7 +62,7 @@ export class AuthService implements IAuthService {
       const response: AuthResponse = await apiService.post('/auth/login', credentials)
 
       // Store the JWT token
-      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token)
+      this.storeToken(response.token)
 
       // Transform API user to FE format
       const user = this.transformApiUserToUser(response.data)
@@ -107,7 +107,7 @@ export class AuthService implements IAuthService {
       const response: AuthResponse = await apiService.post('/users', registrationData)
 
       // Store the JWT token
-      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, response.token)
+      this.storeToken(response.token)
 
       // Transform API user to FE format
       const user = this.transformApiUserToUser(response.data)
@@ -131,6 +131,23 @@ export class AuthService implements IAuthService {
         'REGISTRATION_FAILED',
       )
     }
+  }
+
+  /**
+   * Complete an OAuth/OIDC login by storing the app token and returning the local user shape
+   */
+  async completeOAuthLogin(token: string): Promise<User | null> {
+    if (!token) {
+      return null
+    }
+
+    const user = this.decodeToken(token)
+    if (!user) {
+      return null
+    }
+
+    this.storeToken(token)
+    return user
   }
 
   /**
@@ -318,6 +335,10 @@ export class AuthService implements IAuthService {
       username: apiUser.name, // API name -> FE username
       email: apiUser.email,
     }
+  }
+
+  private storeToken(token: string): void {
+    localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, token)
   }
 }
 

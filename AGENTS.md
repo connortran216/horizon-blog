@@ -245,6 +245,7 @@
 - `/contact` -> `Contact`
 - `/about` -> `About`
 - `/login` -> `Login`
+- `/login/callback` -> `LoginCallback`
 - `/register` -> `Register`
 - `/forgot-password` -> `ForgotPassword`
 - `/reset-password` -> `ResetPassword`
@@ -338,6 +339,7 @@
 ### 9.4 Observed Endpoints
 
 - `POST /auth/login` for login.
+- `GET /auth/providers/google/start` to start Google OpenID login.
 - `POST /auth/forgot-password` for forgot-password requests.
 - `POST /auth/reset-password` for password reset submissions.
 - `POST /users` for registration.
@@ -397,6 +399,9 @@
 - Decodes JWT for initial user shape.
 - Refreshes full profile from `GET /users/me` when session is restored.
 - `AuthContext` updates status and user.
+- Google OpenID starts from `GET /auth/providers/google/start`.
+- Google returns to `/login/callback` with `token`, `redirect_to`, and optional `error` in the URL hash.
+- `AuthContext.completeOAuthLogin` stores the token first, then refreshes `/users/me`.
 
 ### 10.4 Register Flow
 

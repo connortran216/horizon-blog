@@ -136,6 +136,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const completeOAuthLogin = useCallback(
+    async (token: string): Promise<User | null> => {
+      setIsLoading(true)
+      setStatus(AuthStatus.LOADING)
+      setError(null)
+
+      try {
+        const initialUser = await authService.completeOAuthLogin(token)
+        if (!initialUser) {
+          setUser(null)
+          setStatus(AuthStatus.UNAUTHENTICATED)
+          setError('Could not complete sign-in. Please try again.')
+          return null
+        }
+
+        setUser(initialUser)
+        setStatus(AuthStatus.AUTHENTICATED)
+
+        const refreshedUser = await refreshUserProfile()
+        if (refreshedUser) {
+          return refreshedUser
+        }
+
+        if (!localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)) {
+          setUser(null)
+          setStatus(AuthStatus.UNAUTHENTICATED)
+          return null
+        }
+
+        return initialUser
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'OAuth sign-in failed'
+        setError(errorMessage)
+        setStatus(AuthStatus.UNAUTHENTICATED)
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [refreshUserProfile],
+  )
+
   const logout = () => {
     authService.logout()
     setUser(null)
@@ -156,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error,
         login,
         register,
+        completeOAuthLogin,
         logout,
         refreshUserProfile,
         clearError,

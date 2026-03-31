@@ -11,7 +11,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
 import { authService } from '../../../core/services/auth.service'
 import { AuthError } from '../../../core/types/auth.types'
@@ -22,6 +22,8 @@ const ForgotPasswordPage = () => {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const location = useLocation()
+  const locationState = location.state as { from?: string } | null
 
   const validateEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 
@@ -76,13 +78,22 @@ const ForgotPasswordPage = () => {
           </Text>
 
           <Stack spacing="3">
-            <AnimatedPrimaryButton as={RouterLink} to="/login" size="lg" fontSize="md">
+            <AnimatedPrimaryButton
+              as={RouterLink}
+              to="/login"
+              state={locationState?.from ? { from: locationState.from } : undefined}
+              size="lg"
+              fontSize="md"
+              w="full"
+            >
               Back to login
             </AnimatedPrimaryButton>
             <Link
               as="button"
               type="button"
-              color="link.default"
+              color="action.primary"
+              fontWeight="semibold"
+              _hover={{ color: 'action.hover', textDecoration: 'underline' }}
               onClick={() => {
                 setEmail('')
                 setError('')
@@ -117,7 +128,13 @@ const ForgotPasswordPage = () => {
             </AnimatedPrimaryButton>
 
             <Text color="text.secondary" textAlign="center">
-              Remembered your password? <AuthInlineLink to="/login">Back to login</AuthInlineLink>
+              Remembered your password?{' '}
+              <AuthInlineLink
+                to="/login"
+                state={locationState?.from ? { from: locationState.from } : undefined}
+              >
+                Back to login
+              </AuthInlineLink>
             </Text>
           </Stack>
         </form>

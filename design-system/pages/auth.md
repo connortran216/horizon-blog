@@ -23,11 +23,14 @@ They are not marketing pages.
 - centered auth shell
 - one calm form card
 - no loud promotional side content
+- provider auth belongs in the same card as the email form
 
 ## Hierarchy
 
 - clear title
 - short helper copy
+- provider action first when offered
+- labeled divider between provider auth and email/password
 - fields
 - primary submit action
 - secondary route link

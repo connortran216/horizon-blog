@@ -45,6 +45,7 @@ export interface AuthState {
 export interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
+  completeOAuthLogin: (token: string) => Promise<User | null>
   logout: () => void
   refreshUserProfile: () => Promise<User | null>
   clearError: () => void
@@ -57,6 +58,7 @@ export interface AuthContextValue extends AuthState, AuthActions {}
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<User>
   register(data: RegisterData): Promise<User>
+  completeOAuthLogin(token: string): Promise<User | null>
   requestPasswordReset(email: string): Promise<string>
   resetPassword(data: ResetPasswordData): Promise<string>
   logout(): Promise<void>

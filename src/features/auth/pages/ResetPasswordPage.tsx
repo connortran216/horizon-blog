@@ -28,6 +28,7 @@ const ResetPasswordPage = () => {
 
   const location = useLocation()
   const navigate = useNavigate()
+  const locationState = location.state as { from?: string } | null
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
@@ -79,7 +80,10 @@ const ResetPasswordPage = () => {
 
       navigate('/login', {
         replace: true,
-        state: { resetPasswordSuccess: true },
+        state: {
+          resetPasswordSuccess: true,
+          ...(locationState?.from ? { from: locationState.from } : {}),
+        },
       })
     } catch (resetError) {
       if (
@@ -112,11 +116,22 @@ const ResetPasswordPage = () => {
           </Alert>
 
           <Stack spacing="3">
-            <AnimatedPrimaryButton as={RouterLink} to="/forgot-password" size="lg" fontSize="md">
+            <AnimatedPrimaryButton
+              as={RouterLink}
+              to="/forgot-password"
+              size="lg"
+              fontSize="md"
+              w="full"
+            >
               Request a new link
             </AnimatedPrimaryButton>
             <Text>
-              <AuthInlineLink to="/login">Back to login</AuthInlineLink>
+              <AuthInlineLink
+                to="/login"
+                state={locationState?.from ? { from: locationState.from } : undefined}
+              >
+                Back to login
+              </AuthInlineLink>
             </Text>
           </Stack>
         </Stack>

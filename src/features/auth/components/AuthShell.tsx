@@ -10,19 +10,33 @@ interface AuthShellProps {
 
 const AuthShell = ({ title, description, children }: AuthShellProps) => {
   return (
-    <Container maxW="lg" py={{ base: '12', md: '24' }}>
-      <Stack spacing="8">
-        <Stack spacing="6" textAlign="center">
-          <Heading color="text.primary">{title}</Heading>
-          <Text color="text.secondary">{description}</Text>
+    <Container maxW="md" py={{ base: '10', md: '20' }}>
+      <Stack spacing={{ base: '8', md: '10' }}>
+        <Stack spacing="3" textAlign="center" align="center">
+          <Text
+            color="text.tertiary"
+            fontSize="xs"
+            fontWeight="semibold"
+            letterSpacing="0.18em"
+            textTransform="uppercase"
+          >
+            Account
+          </Text>
+          <Heading color="text.primary" size="lg" letterSpacing="-0.02em">
+            {title}
+          </Heading>
+          <Text color="text.secondary" maxW="28rem">
+            {description}
+          </Text>
         </Stack>
 
         <Box
           py={{ base: '0', sm: '8' }}
-          px={{ base: '4', sm: '10' }}
-          bg={{ base: 'transparent', sm: 'bg.secondary' }}
-          boxShadow={{ base: 'none', sm: 'md' }}
-          borderRadius={{ base: 'none', sm: 'xl' }}
+          px={{ base: '0', sm: '8', md: '10' }}
+          bg={{ base: 'transparent', sm: 'bg.glass' }}
+          backdropFilter={{ base: 'none', sm: 'blur(18px)' }}
+          boxShadow={{ base: 'none', sm: 'xl' }}
+          borderRadius={{ base: 'none', sm: '2xl' }}
           border="1px solid"
           borderColor={{ base: 'transparent', sm: 'border.subtle' }}
         >
@@ -33,8 +47,23 @@ const AuthShell = ({ title, description, children }: AuthShellProps) => {
   )
 }
 
-export const AuthInlineLink = ({ to, children }: { to: string; children: ReactNode }) => (
-  <Link as={RouterLink} to={to} color="link.default">
+export const AuthInlineLink = ({
+  to,
+  children,
+  state,
+}: {
+  to: string
+  children: ReactNode
+  state?: unknown
+}) => (
+  <Link
+    as={RouterLink}
+    to={to}
+    state={state}
+    color="action.primary"
+    fontWeight="semibold"
+    _hover={{ color: 'action.hover', textDecoration: 'underline' }}
+  >
     {children}
   </Link>
 )
