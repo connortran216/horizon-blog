@@ -40,6 +40,12 @@
 - Keep parsing and transform logic in services or utilities.
 - Avoid side effects inside rendering paths.
 
+### 1.3 When you touch CV or resume content
+
+- Treat user-provided resume text or PDFs as the factual source of truth.
+- Improve wording, structure, and readability, but do not invent employers, dates, responsibilities, metrics, or outcomes.
+- If current public CV content conflicts with newer user-provided experience, update the CV to reflect the latest role and remove outdated "current job" claims.
+
 ## 2. Essential Commands (Yarn Only)
 
 - Install dependencies: `yarn install`
@@ -73,6 +79,7 @@
 - `design-system/pages/author-archive.md`: public author archive rules.
 - `design-system/pages/about.md`: about page rules.
 - `design-system/pages/contact.md`: contact page rules.
+- `design-system/pages/cv.md`: CV page rules.
 - `design-system/pages/profile.md`: profile page rules.
 - `DESIGN_SYSTEM.md`: compatibility entry point that points to `design-system/`.
 - `api-docs.json`: backend API reference snapshot.
@@ -136,6 +143,7 @@
 - `src/pages/Profile.tsx`: user profile and posts.
 - `src/pages/ProfileBlogDetail.tsx`: thin route wrapper for `src/features/profile/pages/ProfileBlogDetailPage.tsx`.
 - `src/pages/About.tsx`: thin route wrapper for `src/features/about/pages/AboutPage.tsx`.
+- `src/pages/Cv.tsx`: thin route wrapper for `src/features/cv/pages/CvPage.tsx`.
 - `src/pages/Contact.tsx`: thin route wrapper for `src/features/contact/pages/ContactPage.tsx`.
 - `src/pages/Login.tsx`: thin route wrapper for `src/features/auth/pages/LoginPage.tsx`.
 - `src/pages/Register.tsx`: thin route wrapper for `src/features/auth/pages/RegisterPage.tsx`.
@@ -145,6 +153,7 @@
 - `src/features/authors/`: public author archive pages, hooks, and hero composition.
 - `src/features/home/`: landing page composition and shared home cards.
 - `src/features/about/`: about page composition and stat components.
+- `src/features/cv/`: CV page composition, typed resume data, and export actions.
 - `src/features/contact/`: contact page composition and card components.
 - `src/features/auth/`: auth page shells and form flows.
 - `src/features/editor/`: blog editor page composition and editor-specific helpers.

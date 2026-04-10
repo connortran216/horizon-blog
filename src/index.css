@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap');
+
 :root {
   font-family: system-ui, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -172,4 +174,188 @@ body {
 
 .markdown-preview a:hover {
   text-decoration: underline;
+}
+
+.cv-page {
+  font-family: 'Public Sans', sans-serif;
+}
+
+.cv-document {
+  position: relative;
+}
+
+.cv-document-header {
+  border-bottom: 1px solid;
+  border-color: var(--chakra-colors-border-subtle);
+}
+
+.cv-section {
+  padding-top: 0.25rem;
+}
+
+.cv-section + .cv-section {
+  border-top: 1px solid;
+  border-color: var(--chakra-colors-border-subtle);
+  padding-top: 2rem;
+}
+
+.cv-contact-list,
+.cv-actions {
+  align-items: center;
+}
+
+.cv-contact-item,
+.cv-contact-link,
+.cv-body-text,
+.cv-entry-link {
+  font-size: 0.98rem;
+}
+
+.cv-contact-link,
+.cv-entry-link {
+  text-decoration: none;
+}
+
+.cv-entry + .cv-entry {
+  border-top: 1px solid;
+  border-color: var(--chakra-colors-border-subtle);
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.cv-entry-title,
+.cv-entry-kicker,
+.cv-entry-label {
+  letter-spacing: -0.01em;
+}
+
+.cv-entry-period {
+  white-space: nowrap;
+}
+
+.cv-bullet-list {
+  margin: 0;
+}
+
+.cv-avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body::before {
+    display: none !important;
+  }
+
+  .app-navbar,
+  .app-footer,
+  .cv-no-print {
+    display: none !important;
+  }
+
+  .cv-page {
+    --chakra-colors-bg-page: #ffffff !important;
+    --chakra-colors-bg-secondary: #ffffff !important;
+    --chakra-colors-bg-tertiary: #ffffff !important;
+    --chakra-colors-bg-elevated: #ffffff !important;
+    --chakra-colors-bg-glass: #ffffff !important;
+    --chakra-colors-border-default: #cfd8e3 !important;
+    --chakra-colors-border-subtle: #dbe3ec !important;
+    --chakra-colors-text-primary: #18212f !important;
+    --chakra-colors-text-secondary: #445267 !important;
+    --chakra-colors-text-tertiary: #6d7987 !important;
+    --chakra-colors-accent-primary: #35517a !important;
+    --chakra-colors-accent-hover: #2f496e !important;
+    --chakra-colors-accent-glow: transparent !important;
+    --chakra-colors-action-primary: #35517a !important;
+    --chakra-colors-action-hover: #2f496e !important;
+    --chakra-colors-action-active: #243956 !important;
+    --chakra-colors-action-subtle: transparent !important;
+    --chakra-colors-action-glow: transparent !important;
+    background: #ffffff !important;
+    color: #18212f !important;
+    padding: 0 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .cv-page * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .cv-page .chakra-container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .cv-document {
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .cv-document-header {
+    border-bottom-color: #dbe3ec !important;
+    padding-bottom: 0.85rem !important;
+  }
+
+  .cv-section {
+    padding-top: 0.75rem !important;
+  }
+
+  .cv-section + .cv-section,
+  .cv-entry + .cv-entry {
+    border-top-color: #e7edf4 !important;
+  }
+
+  .cv-section + .cv-section {
+    padding-top: 1rem !important;
+  }
+
+  .cv-entry + .cv-entry {
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+  }
+
+  .cv-contact-item,
+  .cv-contact-link,
+  .cv-body-text,
+  .cv-entry-link,
+  .cv-bullet-list li {
+    color: #445267 !important;
+    font-size: 0.88rem !important;
+  }
+
+  .cv-role,
+  .cv-entry-link {
+    color: #35517a !important;
+  }
+
+  .cv-section-label,
+  .cv-entry-period {
+    color: #6d7987 !important;
+  }
+
+  .cv-entry,
+  .cv-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .cv-page a {
+    text-decoration: none !important;
+  }
 }

@@ -7,7 +7,6 @@ import {
   Heading,
   HStack,
   Icon,
-  Image,
   Link,
   SimpleGrid,
   Stack,
@@ -17,17 +16,17 @@ import {
   WrapItem,
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
-import { FaBook, FaCode, FaGithub, FaHeart, FaLinkedin, FaUsers } from 'react-icons/fa'
+import { FaCode, FaGithub, FaLinkedin, FaRegCompass, FaUsers } from 'react-icons/fa'
 import { FiArrowRight, FiFeather, FiLayers, FiMessageSquare } from 'react-icons/fi'
 import { AnimatedCard, MotionWrapper } from '../../../core'
 import AboutStatCard from '../components/AboutStatCard'
 import { AboutPrinciple, AboutStatItem } from '../about.types'
 
 const stats: AboutStatItem[] = [
-  { label: 'Articles written', value: '47+', icon: FaBook },
-  { label: 'Readers reached', value: '2.5K+', icon: FaUsers },
-  { label: 'Lines shipped', value: '8.9K+', icon: FaCode },
-  { label: 'Moments that resonated', value: '1.2K+', icon: FaHeart },
+  { label: 'Experience across backend work', value: '5+ years', icon: FaUsers },
+  { label: 'Primary craft', value: 'Python + Django', icon: FaCode },
+  { label: 'Working lane', value: 'Logistics systems', icon: FaRegCompass },
+  { label: 'Writing direction', value: 'Engineering + life', icon: FaUsers },
 ]
 
 const principles: AboutPrinciple[] = [
@@ -35,19 +34,19 @@ const principles: AboutPrinciple[] = [
     icon: FiFeather,
     title: 'Write with a point of view',
     description:
-      'Every blog should feel deliberate. Strong titles, clear structure, and useful takeaways matter more than volume.',
+      'The writing should feel grounded in lived engineering work, not inflated into generic startup copy.',
   },
   {
     icon: FiLayers,
     title: 'Build the system carefully',
     description:
-      'Horizon is also a frontend playground, so design, code structure, and content presentation evolve together.',
+      'Horizon is also a place to shape product surfaces carefully, where content, code structure, and layout all support each other.',
   },
   {
     icon: FiMessageSquare,
     title: 'Keep the tone human',
     description:
-      'The product should feel personal and readable, not corporate. It should support thoughtful publishing and slow reading.',
+      'The product should stay readable and personal. It should carry experience clearly without turning into a resume template or marketing page.',
   },
 ]
 
@@ -106,7 +105,7 @@ const AboutPage = () => {
                     letterSpacing="-0.06em"
                     color="text.primary"
                   >
-                    A personal blog shaped like an intentional product.
+                    Writing about engineering, systems, and the craft behind the work.
                   </Heading>
 
                   <Text
@@ -115,9 +114,9 @@ const AboutPage = () => {
                     color="text.secondary"
                     lineHeight="tall"
                   >
-                    Horizon exists to hold writing about life, experience, and technology inside a
-                    frontend system that is equally thoughtful. It is both a publishing space and a
-                    craft exercise in building clear interfaces.
+                    Horizon is where personal writing, backend experience, and interface craft meet.
+                    It is both a publishing space and a deliberate product surface for ideas that
+                    come from real work.
                   </Text>
 
                   <HStack spacing={4} flexWrap="wrap">
@@ -190,11 +189,11 @@ const AboutPage = () => {
                     </Wrap>
                     <Text color="text.secondary" lineHeight="tall">
                       The ambition is simple: make the content worth reading, then make the
-                      interface worthy of holding it.
+                      interface precise enough to hold it without noise.
                     </Text>
                     <Text color="text.secondary" lineHeight="tall">
                       That means strong hierarchy, calm spacing, clean architecture, and a product
-                      that never forgets the reader is the main character.
+                      that stays personal even when the subject turns technical.
                     </Text>
                   </Stack>
                 </AnimatedCard>
@@ -272,14 +271,75 @@ const AboutPage = () => {
               overflow="hidden"
             >
               <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={0}>
-                <Box minH={{ base: '320px', lg: '100%' }}>
-                  <Image
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&auto=format&fit=crop&q=60"
-                    alt="Connor Tran"
-                    w="full"
-                    h="full"
-                    objectFit="cover"
+                <Box
+                  position="relative"
+                  minH={{ base: '320px', lg: '100%' }}
+                  bgGradient="linear(to-br, bg.page, bg.secondary)"
+                  borderRight={{ base: 'none', lg: '1px solid' }}
+                  borderColor="border.subtle"
+                  overflow="hidden"
+                >
+                  <Box
+                    position="absolute"
+                    inset="auto auto 16px 16px"
+                    w="160px"
+                    h="160px"
+                    bg="action.glow"
+                    filter="blur(56px)"
+                    opacity={0.9}
                   />
+                  <Stack
+                    position="relative"
+                    h="100%"
+                    justify="space-between"
+                    px={{ base: 6, md: 8 }}
+                    py={{ base: 7, md: 8 }}
+                  >
+                    <Badge
+                      alignSelf="flex-start"
+                      px={3}
+                      py={1}
+                      borderRadius="full"
+                      bg="bg.tertiary"
+                      color="text.secondary"
+                      textTransform="uppercase"
+                      letterSpacing="0.14em"
+                      fontSize="10px"
+                    >
+                      Professional profile
+                    </Badge>
+                    <Stack spacing={4}>
+                      <Heading
+                        fontSize={{ base: '5xl', md: '6xl' }}
+                        lineHeight={0.9}
+                        letterSpacing="-0.08em"
+                        color="text.primary"
+                      >
+                        Tran
+                        <br />
+                        Tuan Canh
+                      </Heading>
+                      <Text color="text.secondary" maxW="md" lineHeight="tall">
+                        Backend engineering, systems thinking, and writing shaped by real product
+                        and platform work.
+                      </Text>
+                    </Stack>
+                    <Wrap spacing={3}>
+                      {['Python', 'Django', 'Kafka', 'Scala', 'Flink'].map((item) => (
+                        <WrapItem key={item}>
+                          <Badge
+                            px={3}
+                            py={1}
+                            borderRadius="full"
+                            bg="bg.tertiary"
+                            color="text.secondary"
+                          >
+                            {item}
+                          </Badge>
+                        </WrapItem>
+                      ))}
+                    </Wrap>
+                  </Stack>
                 </Box>
                 <Stack
                   spacing={6}
@@ -302,7 +362,7 @@ const AboutPage = () => {
                   </Badge>
                   <Stack spacing={2}>
                     <Heading size="xl" color="text.primary" letterSpacing="-0.03em">
-                      Connor Tran
+                      Tran Tuan Canh
                     </Heading>
                     <Text
                       color="action.primary"
@@ -310,19 +370,30 @@ const AboutPage = () => {
                       letterSpacing="0.08em"
                       textTransform="uppercase"
                     >
-                      Founder and Lead Developer
+                      Founder and Backend Engineer
                     </Text>
                   </Stack>
                   <Text color="text.secondary" lineHeight="tall">
-                    I built Horizon as a place to think in public, sharpen my frontend craft, and
-                    keep the product honest. If a page cannot support the writing, it is not done
-                    yet.
+                    I built Horizon as a place to think in public, write with more intent, and keep
+                    the product surface honest. If a page cannot support the writing or the person
+                    behind it, it is not done yet.
                   </Text>
                   <Text color="text.secondary" lineHeight="tall">
-                    The long-term goal is a blog that feels both personal and rigorously designed:
-                    useful to read, satisfying to write in, and clean to maintain.
+                    Most of my day-to-day work lives in backend systems, APIs, event flows, and
+                    product infrastructure. The dedicated CV page pulls that professional side into
+                    the same editorial world as the writing.
                   </Text>
                   <HStack spacing={4} flexWrap="wrap">
+                    <Button
+                      as={RouterLink}
+                      to="/cv"
+                      bg="action.primary"
+                      color="white"
+                      _hover={{ bg: 'action.hover' }}
+                      rightIcon={<FiArrowRight />}
+                    >
+                      View CV
+                    </Button>
                     <Button
                       as={Link}
                       href="https://github.com/connortran216"

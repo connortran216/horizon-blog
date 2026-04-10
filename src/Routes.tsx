@@ -7,6 +7,7 @@ const Home = lazy(() => import('./pages/Home'))
 const Blog = lazy(() => import('./pages/Blog'))
 const Contact = lazy(() => import('./pages/Contact'))
 const About = lazy(() => import('./pages/About'))
+const Cv = lazy(() => import('./pages/Cv'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const LoginCallback = lazy(() => import('./features/auth/pages/LoginCallbackPage'))
@@ -36,6 +37,7 @@ const Routes = () => {
         <Route path="/authors/:authorName" element={<AuthorArchive />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
+        <Route path="/cv" element={<Cv />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/callback" element={<LoginCallback />} />
         <Route path="/register" element={<Register />} />

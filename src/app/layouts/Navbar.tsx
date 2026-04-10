@@ -120,6 +120,7 @@ const Navbar = () => {
 
   return (
     <Glassmorphism
+      className="app-navbar"
       px={4}
       intensity="light"
       position="sticky"

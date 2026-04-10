@@ -8,7 +8,13 @@ const Footer = () => {
   const linkHoverColor = useColorModeValue('black', 'text.primary')
 
   return (
-    <Box bg={footerBg} color={textColor} borderTop="1px" borderColor="border.subtle">
+    <Box
+      className="app-footer"
+      bg={footerBg}
+      color={textColor}
+      borderTop="1px"
+      borderColor="border.subtle"
+    >
       <Container as={Stack} maxW="container.xl" py={4} spacing={4} justify="center" align="center">
         <Stack direction="row" spacing={6}>
           <Link href="/" color={linkColor} _hover={{ color: linkHoverColor }}>
