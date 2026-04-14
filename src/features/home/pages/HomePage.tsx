@@ -66,7 +66,7 @@ const HomePage = () => {
     void loadBlogPosts()
   }, [location.pathname])
 
-  const featuredPost = blogPosts[0]
+  const latestPost = blogPosts[0]
   const recentPosts = blogPosts.slice(1)
 
   return (
@@ -173,7 +173,7 @@ const HomePage = () => {
                   </Text>
                 </Stack>
 
-                <HeroArchivePreview post={featuredPost} formatDate={formatDate} />
+                <HeroArchivePreview post={latestPost} formatDate={formatDate} />
               </SimpleGrid>
             </Box>
           </MotionWrapper>
@@ -224,7 +224,7 @@ const HomePage = () => {
                 exit={{ opacity: 0 }}
               >
                 <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-                  {featuredPost && (
+                  {recentPosts.length > 0 && (
                     <Stack spacing={4}>
                       <HStack justify="space-between" align="flex-end" flexWrap="wrap">
                         <Stack spacing={2}>
@@ -234,10 +234,10 @@ const HomePage = () => {
                             letterSpacing="0.14em"
                             color="text.tertiary"
                           >
-                            Latest highlight
+                            Recent blogs
                           </Text>
                           <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                            Start with the latest writing on the blog
+                            Keep reading beyond the latest post
                           </Heading>
                         </Stack>
                         <Link
@@ -249,25 +249,6 @@ const HomePage = () => {
                           See all blogs
                         </Link>
                       </HStack>
-                      <StoryCard post={featuredPost} index={0} formatDate={formatDate} />
-                    </Stack>
-                  )}
-
-                  {recentPosts.length > 0 && (
-                    <Stack spacing={4}>
-                      <Stack spacing={2}>
-                        <Text
-                          fontSize="sm"
-                          textTransform="uppercase"
-                          letterSpacing="0.14em"
-                          color="text.tertiary"
-                        >
-                          Recent blogs
-                        </Text>
-                        <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                          Keep reading through the blog
-                        </Heading>
-                      </Stack>
 
                       <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={8}>
                         {recentPosts.map((post, index) => (

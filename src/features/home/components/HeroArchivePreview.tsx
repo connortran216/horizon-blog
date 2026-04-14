@@ -34,15 +34,15 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
       {coverImage ? (
         <Image
           src={coverImage}
-          alt={post?.title || 'Featured blog'}
+          alt={post?.title || 'Latest blog'}
           w="full"
           h="220px"
           objectFit="cover"
         />
       ) : (
         <DefaultPostCover
-          title={post?.title || 'A better way to browse the blog'}
-          eyebrow="Featured blog"
+          title={post?.title || 'Start with the latest story'}
+          eyebrow="Latest blog"
           h="220px"
           borderBottom="1px solid"
           borderColor="border.subtle"
@@ -61,7 +61,7 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
             letterSpacing="0.14em"
             fontSize="10px"
           >
-            Featured blog
+            Latest blog
           </Badge>
           <Icon as={FiArrowUpRight} color="action.primary" boxSize={5} />
         </HStack>
@@ -73,7 +73,7 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
             letterSpacing="0.14em"
             color="text.tertiary"
           >
-            {post ? formatDate(post.createdAt) : 'Latest blog'}
+            {post ? formatDate(post.createdAt) : 'Latest published'}
           </Text>
           <Heading
             size="lg"
@@ -82,7 +82,7 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
             letterSpacing="-0.03em"
             noOfLines={3}
           >
-            {post?.title || 'A better way to browse the blog'}
+            {post?.title || 'Start with the latest story'}
           </Heading>
           <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
             {previewText}
