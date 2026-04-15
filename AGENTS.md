@@ -46,6 +46,12 @@
 - Improve wording, structure, and readability, but do not invent employers, dates, responsibilities, metrics, or outcomes.
 - If current public CV content conflicts with newer user-provided experience, update the CV to reflect the latest role and remove outdated "current job" claims.
 
+### 1.4 When you touch About page content
+
+- Frame Horizon around curiosity, useful notes, and endless learning.
+- Avoid manifesto or defensive language such as "protect", "guard", or overly fixed philosophy claims unless the user asks for that tone.
+- Keep About copy personal, exploratory, and helpful rather than corporate or authoritative.
+
 ## 2. Essential Commands (Yarn Only)
 
 - Install dependencies: `yarn install`

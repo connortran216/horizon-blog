@@ -4,9 +4,11 @@ import {
   Button,
   Container,
   Flex,
+  Grid,
   Heading,
   HStack,
   Icon,
+  Image,
   Link,
   SimpleGrid,
   Stack,
@@ -14,255 +16,265 @@ import {
   VStack,
   Wrap,
   WrapItem,
+  useColorModeValue,
 } from '@chakra-ui/react'
+import { useReducedMotion } from 'framer-motion'
 import { Link as RouterLink } from 'react-router-dom'
 import { FaCode, FaGithub, FaLinkedin, FaRegCompass, FaUsers } from 'react-icons/fa'
-import { FiArrowRight, FiFeather, FiLayers, FiMessageSquare } from 'react-icons/fi'
-import { AnimatedCard, MotionWrapper } from '../../../core'
+import { FiArrowRight, FiBookOpen, FiFeather, FiLayers, FiMessageSquare } from 'react-icons/fi'
+import { MotionWrapper } from '../../../core'
+import AboutHero from '../components/AboutHero'
 import AboutStatCard from '../components/AboutStatCard'
-import { AboutPrinciple, AboutStatItem } from '../about.types'
+import { AboutFocusThread, AboutPrinciple, AboutStatItem } from '../about.types'
 
 const stats: AboutStatItem[] = [
-  { label: 'Experience across backend work', value: '5+ years', icon: FaUsers },
-  { label: 'Primary craft', value: 'Python + Django', icon: FaCode },
-  { label: 'Working lane', value: 'Logistics systems', icon: FaRegCompass },
-  { label: 'Writing direction', value: 'Engineering + life', icon: FaUsers },
+  {
+    label: 'Experience across backend work',
+    value: '5+ years',
+    description: 'Grounded in real delivery work across systems, APIs, and product surfaces.',
+    icon: FaUsers,
+  },
+  {
+    label: 'Primary craft',
+    value: 'Python + Django',
+    description:
+      'The stack behind most of the day-to-day engineering practice that feeds the blog.',
+    icon: FaCode,
+  },
+  {
+    label: 'Working lane',
+    value: 'Backend systems',
+    description:
+      'Daily work centered on APIs, event flows, reliability, and product infrastructure.',
+    icon: FaRegCompass,
+  },
+  {
+    label: 'Writing direction',
+    value: 'Engineering + life',
+    description: 'Notes about technical work, product craft, and the human side of building.',
+    icon: FiBookOpen,
+  },
 ]
 
 const principles: AboutPrinciple[] = [
   {
     icon: FiFeather,
-    title: 'Write with a point of view',
+    title: 'Stay curious',
     description:
-      'The writing should feel grounded in lived engineering work, not inflated into generic startup copy.',
+      'Horizon starts from curiosity, not certainty. It is a place to follow questions, notice patterns, and keep learning in public.',
   },
   {
     icon: FiLayers,
-    title: 'Build the system carefully',
+    title: 'Write down what helps',
     description:
-      'Horizon is also a place to shape product surfaces carefully, where content, code structure, and layout all support each other.',
+      'I write about ideas, lessons, and technical details that have helped me think better or work better, hoping they stay useful to someone else too.',
   },
   {
     icon: FiMessageSquare,
-    title: 'Keep the tone human',
+    title: 'Leave room for the unknown',
     description:
-      'The product should stay readable and personal. It should carry experience clearly without turning into a resume template or marketing page.',
+      'Knowledge does not end. The more we learn, the more clearly we see how much is still missing, and the page should stay open to that.',
+  },
+]
+
+const focusThreads: AboutFocusThread[] = [
+  {
+    label: 'Build',
+    title: 'Backend systems with real constraints',
+    description: 'Most of the daily work lives in APIs, event flows, and product infrastructure.',
+  },
+  {
+    label: 'Write',
+    title: 'Notes that come from practice',
+    description: 'The writing focuses on lessons that hold up better after doing the work.',
+  },
+  {
+    label: 'Shape',
+    title: 'Interfaces that stay quiet',
+    description:
+      'Layout, motion, and hierarchy should support the writing instead of competing with it.',
   },
 ]
 
 const AboutPage = () => {
+  const prefersReducedMotion = useReducedMotion()
+  const founderBadgeBg = useColorModeValue('rgba(255, 255, 255, 0.82)', 'rgba(37, 37, 37, 0.82)')
+  const founderBadgeColor = useColorModeValue(
+    'obsidian.text.lightSecondary',
+    'obsidian.text.primary',
+  )
+  const portraitOverlay = useColorModeValue(
+    'linear(to-t, rgba(248, 249, 250, 0.08), rgba(248, 249, 250, 0.01) 42%, transparent 72%)',
+    'linear(to-t, rgba(30, 30, 30, 0.16), rgba(30, 30, 30, 0.04) 42%, transparent 72%)',
+  )
+  const sectionRevealProps = prefersReducedMotion
+    ? {
+        initial: { opacity: 1, y: 0 },
+        animate: { opacity: 1, y: 0 },
+        duration: 0,
+      }
+    : {
+        initial: { opacity: 0, y: 24 },
+        animate: { opacity: 1, y: 0 },
+        duration: 0.6,
+      }
+
   return (
-    <Box position="relative" pb={12}>
+    <Box position="relative" overflow="hidden" pb={{ base: 10, md: 14 }}>
       <Box
         position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '78%' }}
-        h="320px"
+        top={{ base: 12, md: 16 }}
+        left={{ base: '-12%', md: '6%' }}
+        w={{ base: '220px', md: '360px' }}
+        h={{ base: '220px', md: '360px' }}
         bg="action.glow"
         filter="blur(130px)"
-        opacity={0.72}
+        opacity={0.7}
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        top={{ base: '42%', md: '38%' }}
+        right={{ base: '-14%', md: '2%' }}
+        w={{ base: '240px', md: '340px' }}
+        h={{ base: '240px', md: '340px' }}
+        bg="accent.glow"
+        filter="blur(150px)"
+        opacity={0.42}
         pointerEvents="none"
       />
 
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
+      <Container maxW="container.xl" py={{ base: 8, md: 10 }} position="relative">
         <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-          <MotionWrapper
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            duration={0.7}
-          >
-            <Box
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius="3xl"
-              bg="bg.glass"
-              backdropFilter="blur(18px)"
-              px={{ base: 6, md: 10 }}
-              py={{ base: 8, md: 10 }}
-              boxShadow="md"
-            >
-              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={10}>
-                <Stack spacing={6}>
-                  <Badge
-                    alignSelf="flex-start"
-                    px={3}
-                    py={1}
-                    borderRadius="full"
-                    bg="bg.tertiary"
-                    color="text.secondary"
-                    textTransform="uppercase"
-                    letterSpacing="0.14em"
-                    fontSize="10px"
-                  >
-                    About Horizon
-                  </Badge>
+          <AboutHero focusThreads={focusThreads} />
 
-                  <Heading
-                    fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-                    lineHeight={{ base: 1.06, md: 0.98 }}
-                    letterSpacing="-0.06em"
-                    color="text.primary"
-                  >
-                    Writing about engineering, systems, and the craft behind the work.
-                  </Heading>
-
-                  <Text
-                    maxW="2xl"
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    color="text.secondary"
-                    lineHeight="tall"
-                  >
-                    Horizon is where personal writing, backend experience, and interface craft meet.
-                    It is both a publishing space and a deliberate product surface for ideas that
-                    come from real work.
-                  </Text>
-
-                  <HStack spacing={4} flexWrap="wrap">
-                    <Button
-                      as={RouterLink}
-                      to="/blog"
-                      bg="action.primary"
-                      color="white"
-                      _hover={{ bg: 'action.hover' }}
-                      rightIcon={<FiArrowRight />}
-                    >
-                      Read the blog
-                    </Button>
-                    <Button
-                      as={RouterLink}
-                      to="/contact"
-                      variant="ghost"
-                      color="text.primary"
-                      _hover={{ bg: 'bg.tertiary' }}
-                    >
-                      Get in touch
-                    </Button>
-                  </HStack>
-                </Stack>
-
-                <AnimatedCard intensity="light" maxW="100%" animation="fadeInUp">
-                  <Stack spacing={5} p={6}>
-                    <Text
-                      fontSize="sm"
-                      textTransform="uppercase"
-                      letterSpacing="0.14em"
-                      color="text.tertiary"
-                    >
-                      What drives the project
-                    </Text>
-                    <Wrap spacing={3}>
-                      <WrapItem>
-                        <Badge
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          bg="bg.tertiary"
-                          color="text.secondary"
-                        >
-                          Writing with clarity
-                        </Badge>
-                      </WrapItem>
-                      <WrapItem>
-                        <Badge
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          bg="bg.tertiary"
-                          color="text.secondary"
-                        >
-                          Building with intention
-                        </Badge>
-                      </WrapItem>
-                      <WrapItem>
-                        <Badge
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          bg="bg.tertiary"
-                          color="text.secondary"
-                        >
-                          Reading without noise
-                        </Badge>
-                      </WrapItem>
-                    </Wrap>
-                    <Text color="text.secondary" lineHeight="tall">
-                      The ambition is simple: make the content worth reading, then make the
-                      interface precise enough to hold it without noise.
-                    </Text>
-                    <Text color="text.secondary" lineHeight="tall">
-                      That means strong hierarchy, calm spacing, clean architecture, and a product
-                      that stays personal even when the subject turns technical.
-                    </Text>
-                  </Stack>
-                </AnimatedCard>
+          <MotionWrapper {...sectionRevealProps}>
+            <Stack spacing={4}>
+              <Stack spacing={2}>
+                <Text
+                  fontSize="sm"
+                  textTransform="uppercase"
+                  letterSpacing="0.14em"
+                  color="text.tertiary"
+                >
+                  Signals
+                </Text>
+                <Text maxW="2xl" color="text.secondary" lineHeight="tall">
+                  Enough context to understand the background behind the writing without turning the
+                  page into a resume.
+                </Text>
+              </Stack>
+              <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing={5}>
+                {stats.map((stat) => (
+                  <AboutStatCard key={stat.label} {...stat} />
+                ))}
               </SimpleGrid>
-            </Box>
+            </Stack>
           </MotionWrapper>
 
-          <Stack spacing={4}>
-            <Text
-              fontSize="sm"
-              textTransform="uppercase"
-              letterSpacing="0.14em"
-              color="text.tertiary"
-            >
-              Signals
-            </Text>
-            <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing={6}>
-              {stats.map((stat) => (
-                <AboutStatCard key={stat.label} {...stat} />
-              ))}
-            </SimpleGrid>
-          </Stack>
-
-          <Stack spacing={4}>
-            <Text
-              fontSize="sm"
-              textTransform="uppercase"
-              letterSpacing="0.14em"
-              color="text.tertiary"
-            >
-              Principles
-            </Text>
-            <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
-              {principles.map((principle) => (
-                <AnimatedCard
-                  key={principle.title}
-                  intensity="light"
-                  maxW="100%"
-                  animation="fadeInUp"
+          <MotionWrapper {...sectionRevealProps}>
+            <Stack spacing={5}>
+              <Stack spacing={2}>
+                <Text
+                  fontSize="sm"
+                  textTransform="uppercase"
+                  letterSpacing="0.14em"
+                  color="text.tertiary"
                 >
-                  <Stack spacing={4} p={6}>
-                    <Flex
-                      w={12}
-                      h={12}
-                      align="center"
-                      justify="center"
-                      borderRadius="2xl"
-                      bg="bg.tertiary"
-                      color="action.primary"
+                  Approach
+                </Text>
+                <Heading size="lg" letterSpacing="-0.03em" color="text.primary">
+                  Why Horizon stays open
+                </Heading>
+              </Stack>
+
+              <Grid templateColumns={{ base: '1fr', xl: '1.05fr 0.95fr' }} gap={6}>
+                <Box
+                  border="1px solid"
+                  borderColor="border.subtle"
+                  borderRadius="3xl"
+                  bg="bg.secondary"
+                  px={{ base: 6, md: 8 }}
+                  py={{ base: 7, md: 8 }}
+                >
+                  <Stack spacing={6}>
+                    <Heading
+                      fontSize={{ base: '2xl', md: '3xl' }}
+                      lineHeight="1.12"
+                      letterSpacing="-0.04em"
+                      color="text.primary"
                     >
-                      <Icon as={principle.icon} boxSize={5} />
-                    </Flex>
-                    <Heading size="md" color="text.primary" letterSpacing="-0.02em">
-                      {principle.title}
+                      The more I learn, the more I realize how much I still do not know.
                     </Heading>
                     <Text color="text.secondary" lineHeight="tall">
-                      {principle.description}
+                      Horizon is a place to stay curious, follow ideas that keep pulling at me, and
+                      write down the things that have helped me a lot. Some of them come from
+                      backend systems, some from writing, and some from those small moments where a
+                      confusing piece of work suddenly becomes a little clearer.
                     </Text>
+                    <Text color="text.secondary" lineHeight="tall">
+                      Knowledge feels endless. The more we learn, the more aware we become of how
+                      much is still missing, and Horizon should feel open enough to keep making room
+                      for that. I do not want this page to sound final. I want it to feel like an
+                      honest record of things I am still learning, revisiting, and understanding
+                      more slowly over time.
+                    </Text>
+                    <Wrap spacing={3}>
+                      {principles.map((principle) => (
+                        <WrapItem key={principle.title}>
+                          <Badge
+                            px={3}
+                            py={1}
+                            borderRadius="full"
+                            bg="action.subtle"
+                            color="action.primary"
+                          >
+                            {principle.title}
+                          </Badge>
+                        </WrapItem>
+                      ))}
+                    </Wrap>
                   </Stack>
-                </AnimatedCard>
-              ))}
-            </SimpleGrid>
-          </Stack>
+                </Box>
 
-          <MotionWrapper
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            duration={0.6}
-          >
+                <Stack spacing={5}>
+                  {principles.map((principle) => (
+                    <Box
+                      key={principle.title}
+                      border="1px solid"
+                      borderColor="border.subtle"
+                      borderRadius="2xl"
+                      bg="bg.secondary"
+                      px={5}
+                      py={6}
+                    >
+                      <Stack spacing={4}>
+                        <Flex
+                          w={11}
+                          h={11}
+                          align="center"
+                          justify="center"
+                          borderRadius="2xl"
+                          bg="bg.tertiary"
+                          color="action.primary"
+                        >
+                          <Icon as={principle.icon} boxSize={4.5} />
+                        </Flex>
+                        <Heading size="md" color="text.primary" letterSpacing="-0.02em">
+                          {principle.title}
+                        </Heading>
+                        <Text color="text.secondary" lineHeight="tall">
+                          {principle.description}
+                        </Text>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Grid>
+            </Stack>
+          </MotionWrapper>
+
+          <MotionWrapper {...sectionRevealProps}>
             <Box
               border="1px solid"
               borderColor="border.subtle"
@@ -270,97 +282,64 @@ const AboutPage = () => {
               bg="bg.secondary"
               overflow="hidden"
             >
-              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={0}>
+              <Grid templateColumns={{ base: '1fr', lg: '0.72fr 1.28fr' }} gap={0}>
                 <Box
                   position="relative"
-                  minH={{ base: '320px', lg: '100%' }}
-                  bgGradient="linear(to-br, bg.page, bg.secondary)"
-                  borderRight={{ base: 'none', lg: '1px solid' }}
-                  borderColor="border.subtle"
-                  overflow="hidden"
+                  px={{ base: 6, md: 8 }}
+                  pt={{ base: 6, md: 8 }}
+                  pb={{ base: 0, lg: 7 }}
                 >
                   <Box
-                    position="absolute"
-                    inset="auto auto 16px 16px"
-                    w="160px"
-                    h="160px"
-                    bg="action.glow"
-                    filter="blur(56px)"
-                    opacity={0.9}
-                  />
-                  <Stack
                     position="relative"
-                    h="100%"
-                    justify="space-between"
-                    px={{ base: 6, md: 8 }}
-                    py={{ base: 7, md: 8 }}
+                    minH={{ base: '320px', md: '420px', lg: '100%' }}
+                    borderRadius="2xl"
+                    overflow="hidden"
+                    bg="bg.tertiary"
                   >
+                    <Image
+                      src="https://minio.connortran.io.vn/horizon-blog-public-bucket/connortran-avatar.jpg"
+                      alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
+                      position="absolute"
+                      inset={0}
+                      w="100%"
+                      h="100%"
+                      objectFit="cover"
+                      objectPosition="center top"
+                    />
+                    <Box
+                      position="absolute"
+                      inset={0}
+                      bgGradient={portraitOverlay}
+                      pointerEvents="none"
+                    />
                     <Badge
-                      alignSelf="flex-start"
+                      position="absolute"
+                      top={5}
+                      left={5}
                       px={3}
                       py={1}
                       borderRadius="full"
-                      bg="bg.tertiary"
-                      color="text.secondary"
+                      bg={founderBadgeBg}
+                      color={founderBadgeColor}
+                      border="1px solid"
+                      borderColor="border.subtle"
+                      backdropFilter="blur(8px)"
                       textTransform="uppercase"
                       letterSpacing="0.14em"
                       fontSize="10px"
                     >
-                      Professional profile
+                      Founder note
                     </Badge>
-                    <Stack spacing={4}>
-                      <Heading
-                        fontSize={{ base: '5xl', md: '6xl' }}
-                        lineHeight={0.9}
-                        letterSpacing="-0.08em"
-                        color="text.primary"
-                      >
-                        Tran
-                        <br />
-                        Tuan Canh
-                      </Heading>
-                      <Text color="text.secondary" maxW="md" lineHeight="tall">
-                        Backend engineering, systems thinking, and writing shaped by real product
-                        and platform work.
-                      </Text>
-                    </Stack>
-                    <Wrap spacing={3}>
-                      {['Python', 'Django', 'Kafka', 'Scala', 'Flink'].map((item) => (
-                        <WrapItem key={item}>
-                          <Badge
-                            px={3}
-                            py={1}
-                            borderRadius="full"
-                            bg="bg.tertiary"
-                            color="text.secondary"
-                          >
-                            {item}
-                          </Badge>
-                        </WrapItem>
-                      ))}
-                    </Wrap>
-                  </Stack>
+                  </Box>
                 </Box>
+
                 <Stack
-                  spacing={6}
-                  px={{ base: 6, md: 8 }}
-                  py={{ base: 8, md: 10 }}
+                  spacing={5}
+                  px={{ base: 6, md: 8, lg: 10 }}
+                  py={{ base: 7, md: 8 }}
                   justify="center"
                 >
-                  <Badge
-                    alignSelf="flex-start"
-                    px={3}
-                    py={1}
-                    borderRadius="full"
-                    bg="bg.tertiary"
-                    color="text.secondary"
-                    textTransform="uppercase"
-                    letterSpacing="0.14em"
-                    fontSize="10px"
-                  >
-                    Founder story
-                  </Badge>
-                  <Stack spacing={2}>
+                  <Stack spacing={3}>
                     <Heading size="xl" color="text.primary" letterSpacing="-0.03em">
                       Tran Tuan Canh
                     </Heading>
@@ -370,9 +349,10 @@ const AboutPage = () => {
                       letterSpacing="0.08em"
                       textTransform="uppercase"
                     >
-                      Founder and Backend Engineer
+                      Founder and Engineer
                     </Text>
                   </Stack>
+
                   <Text color="text.secondary" lineHeight="tall">
                     I built Horizon as a place to think in public, write with more intent, and keep
                     the product surface honest. If a page cannot support the writing or the person
@@ -383,15 +363,45 @@ const AboutPage = () => {
                     product infrastructure. The dedicated CV page pulls that professional side into
                     the same editorial world as the writing.
                   </Text>
+
+                  <Wrap spacing={3}>
+                    <WrapItem>
+                      <Badge
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                        bg="bg.tertiary"
+                        color="text.secondary"
+                      >
+                        Backend systems
+                      </Badge>
+                    </WrapItem>
+                    <WrapItem>
+                      <Badge
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                        bg="bg.tertiary"
+                        color="text.secondary"
+                      >
+                        Product infrastructure
+                      </Badge>
+                    </WrapItem>
+                    <WrapItem>
+                      <Badge
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                        bg="bg.tertiary"
+                        color="text.secondary"
+                      >
+                        Writing in public
+                      </Badge>
+                    </WrapItem>
+                  </Wrap>
+
                   <HStack spacing={4} flexWrap="wrap">
-                    <Button
-                      as={RouterLink}
-                      to="/cv"
-                      bg="action.primary"
-                      color="white"
-                      _hover={{ bg: 'action.hover' }}
-                      rightIcon={<FiArrowRight />}
-                    >
+                    <Button as={RouterLink} to="/cv" rightIcon={<FiArrowRight />}>
                       View CV
                     </Button>
                     <Button
@@ -401,7 +411,6 @@ const AboutPage = () => {
                       leftIcon={<FaGithub />}
                       variant="ghost"
                       color="text.primary"
-                      _hover={{ bg: 'bg.tertiary' }}
                     >
                       GitHub
                     </Button>
@@ -412,13 +421,12 @@ const AboutPage = () => {
                       leftIcon={<FaLinkedin />}
                       variant="ghost"
                       color="text.primary"
-                      _hover={{ bg: 'bg.tertiary' }}
                     >
                       LinkedIn
                     </Button>
                   </HStack>
                 </Stack>
-              </SimpleGrid>
+              </Grid>
             </Box>
           </MotionWrapper>
         </VStack>
