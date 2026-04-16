@@ -53,7 +53,7 @@ export const CREPE_CONFIG: CrepeConfig = {
   upload: {
     endpoint: '/posts/{post_id}/media',
     maxFileSize: 5, // 5MB max
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
   },
 
   theme: {

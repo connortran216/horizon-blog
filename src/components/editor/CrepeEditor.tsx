@@ -136,7 +136,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     }
 
     if (!CREPE_CONFIG.upload.allowedTypes.includes(file.type)) {
-      throw new Error('Unsupported image format')
+      throw new Error('Unsupported media format. Allowed: JPEG, PNG, WebP, SVG')
     }
   }
 

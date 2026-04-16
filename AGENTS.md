@@ -470,7 +470,7 @@
 ### 11.3 Crepe Configuration (`crepe.config.ts`)
 
 - Features: toolbar, imageBlock, codeBlocks, tables; latex/textColor/highlight/alignment/videoEmbed are disabled (phase 2).
-- Upload: endpoint `/images/upload`, maxFileSize 10 MB, allowedTypes jpeg/png/gif/webp.
+- Upload: endpoint `/posts/{post_id}/media`, maxFileSize 5 MB, allowedTypes jpeg/png/webp/svg.
 - Theme: accentColor `#8b7fc7`, useFrame true.
 - Behavior: placeholder text, readOnly false, spellCheck true.
 

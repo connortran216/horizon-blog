@@ -77,7 +77,7 @@ export class ImageUploadHandler {
     // Check file type
     if (!CREPE_CONFIG.upload.allowedTypes.includes(file.type)) {
       const allowedTypesStr = CREPE_CONFIG.upload.allowedTypes
-        .map((type) => type.split('/')[1])
+        .map((type) => (type === 'image/svg+xml' ? 'svg' : type.split('/')[1]))
         .join(', ')
       throw new Error(`Invalid file type (${file.type}). Allowed types: ${allowedTypesStr}`)
     }
