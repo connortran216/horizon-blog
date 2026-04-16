@@ -175,7 +175,13 @@ export const uploadPostMedia = async (postId: number, file: File): Promise<Uploa
     throw new Error('Upload succeeded but no media_id was returned')
   }
 
-  const url = getString(uploadPayload, ['signed_url', 'signedUrl', 'presigned_url', 'url', 'media_url'])
+  const url = getString(uploadPayload, [
+    'signed_url',
+    'signedUrl',
+    'presigned_url',
+    'url',
+    'media_url',
+  ])
   const expiresAt = getString(uploadPayload, ['expires_at', 'expiresAt'])
 
   if (url) {
