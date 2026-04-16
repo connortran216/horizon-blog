@@ -400,7 +400,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       borderRadius={editorRadius}
       backdropFilter="blur(18px)"
       boxShadow={surfaceShadow}
-      overflow="hidden"
+      overflow="visible"
       minH="500px"
       className="crepe-editor-wrapper"
       sx={{
@@ -408,9 +408,11 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         '& .milkdown': {
           minHeight: '500px',
           borderRadius: 'inherit',
+          overflow: 'visible',
         },
         '& .milkdown .ProseMirror': {
           borderRadius: 'inherit',
+          overflow: 'visible',
         },
         // Focus state styling
         '&:focus-within': {

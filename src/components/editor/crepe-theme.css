@@ -368,6 +368,9 @@
   background-color: var(--crepe-accent-primary) !important;
   color: white;
   border-radius: 0.25rem;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease !important;
   /* DO NOT SET position - Crepe uses absolute positioning internally */
 }
 
