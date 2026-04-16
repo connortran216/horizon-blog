@@ -79,9 +79,9 @@ const resolveViaApi = async (mediaIds: string[]): Promise<ResolveMediaResult> =>
   const result: ResolveMediaResult = {}
 
   items.forEach((item) => {
-    const mediaId = getString(item, ['media_id', 'id', 'token'])
-    const url = getString(item, ['signed_url', 'url'])
-    const expiresAt = getString(item, ['expires_at'])
+    const mediaId = getString(item, ['media_id', 'mediaId', 'id', 'token'])
+    const url = getString(item, ['signed_url', 'signedUrl', 'presigned_url', 'url', 'media_url'])
+    const expiresAt = getString(item, ['expires_at', 'expiresAt'])
 
     if (mediaId && url) {
       result[mediaId] = { url, expiresAt }
@@ -117,6 +117,25 @@ export const resolveMediaUrls = async (mediaIds: string[]): Promise<ResolveMedia
 }
 
 export const mapMediaApiError = (error: unknown, fallback: string): string => {
+  if (error instanceof ApiError) {
+    if (error.status === 413) {
+      return 'Image is larger than 5MB. Please compress it or choose a smaller file.'
+    }
+    if (error.status === 415) {
+      return 'Unsupported media format. Backend rejected this upload.'
+    }
+    if (error.status === 403) {
+      return "You don't have permission to modify this post media"
+    }
+    if (error.status === 404) {
+      return 'Image not found or already removed'
+    }
+    if (error.status >= 500) {
+      return 'Upload failed. Please retry'
+    }
+    return error.message || fallback
+  }
+
   if (error instanceof Error && error.message) {
     return error.message
   }
@@ -125,13 +144,7 @@ export const mapMediaApiError = (error: unknown, fallback: string): string => {
     return fallback
   }
 
-  if (error.status === 413)
-    return 'Image is larger than 5MB. Please compress it or choose a smaller file.'
-  if (error.status === 415) return 'Unsupported image format'
-  if (error.status === 403) return "You don't have permission to modify this post media"
-  if (error.status === 404) return 'Image not found or already removed'
-  if (error.status >= 500) return 'Upload failed. Please retry'
-  return error.message || fallback
+  return fallback
 }
 
 export const uploadPostMedia = async (postId: number, file: File): Promise<UploadMediaResult> => {
@@ -157,13 +170,13 @@ export const uploadPostMedia = async (postId: number, file: File): Promise<Uploa
     throw new Error('Invalid upload response')
   }
 
-  const mediaId = getString(uploadPayload, ['media_id', 'id', 'token'])
+  const mediaId = getString(uploadPayload, ['media_id', 'mediaId', 'id', 'token'])
   if (!mediaId) {
     throw new Error('Upload succeeded but no media_id was returned')
   }
 
-  const url = getString(uploadPayload, ['signed_url', 'url'])
-  const expiresAt = getString(uploadPayload, ['expires_at'])
+  const url = getString(uploadPayload, ['signed_url', 'signedUrl', 'presigned_url', 'url', 'media_url'])
+  const expiresAt = getString(uploadPayload, ['expires_at', 'expiresAt'])
 
   if (url) {
     mediaCache.set(mediaId, { url, expiresAt })
@@ -188,9 +201,9 @@ export const getPostMedia = async (postId: number): Promise<PostMediaItem[]> => 
 
   return items
     .map((item) => ({
-      mediaId: getString(item, ['media_id', 'id', 'token']) || '',
-      url: getString(item, ['signed_url', 'url']),
-      expiresAt: getString(item, ['expires_at']),
+      mediaId: getString(item, ['media_id', 'mediaId', 'id', 'token']) || '',
+      url: getString(item, ['signed_url', 'signedUrl', 'presigned_url', 'url', 'media_url']),
+      expiresAt: getString(item, ['expires_at', 'expiresAt']),
     }))
     .filter((item) => !!item.mediaId)
 }

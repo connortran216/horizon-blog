@@ -29,6 +29,7 @@ import {
   parseMediaIdsFromMarkdown,
   replaceMediaTokensWithUrls,
 } from '../../features/media/media.tokens'
+import { isAllowedMediaUpload } from '../../features/media/media.upload'
 import '@milkdown/crepe/theme/common/style.css'
 import './crepe-theme.css'
 
@@ -135,7 +136,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       )
     }
 
-    if (!CREPE_CONFIG.upload.allowedTypes.includes(file.type)) {
+    if (!isAllowedMediaUpload(file)) {
       throw new Error('Unsupported media format. Allowed: JPEG, PNG, WebP, SVG')
     }
   }

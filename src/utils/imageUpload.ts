@@ -10,6 +10,7 @@
 
 import { CREPE_CONFIG } from '../config/crepe.config'
 import { apiService } from '../core/services/api.service'
+import { getAllowedMediaTypeLabel, isAllowedMediaUpload } from '../features/media/media.upload'
 
 /**
  * Response structure from Go backend /images/upload endpoint
@@ -75,9 +76,9 @@ export class ImageUploadHandler {
     }
 
     // Check file type
-    if (!CREPE_CONFIG.upload.allowedTypes.includes(file.type)) {
+    if (!isAllowedMediaUpload(file)) {
       const allowedTypesStr = CREPE_CONFIG.upload.allowedTypes
-        .map((type) => (type === 'image/svg+xml' ? 'svg' : type.split('/')[1]))
+        .map(getAllowedMediaTypeLabel)
         .join(', ')
       throw new Error(`Invalid file type (${file.type}). Allowed types: ${allowedTypesStr}`)
     }
