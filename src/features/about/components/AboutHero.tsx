@@ -69,12 +69,9 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
   const lineOffsetX = useTransform(smoothPointerX, [-1, 1], [-8, 8])
   const lineOffsetY = useTransform(smoothPointerY, [-1, 1], [6, -6])
 
-  const accentPalette = useColorModeValue(
-    ['#5f7294', '#7280a2', '#6a86bc'],
-    ['#7aa2f7', '#9aa3ff', '#8fc2ff'],
-  ) as string[]
-  const activeAccent = accentPalette[activeIndex] ?? accentPalette[0]
   const activeProfile = ambientProfiles[activeIndex] ?? ambientProfiles[0]
+  const activeAccent = 'var(--chakra-colors-action-primary)'
+  const activeAccentGlow = 'var(--chakra-colors-action-glow)'
 
   const heroShellBg = useColorModeValue('rgba(255, 255, 255, 0.88)', 'rgba(35, 35, 38, 0.94)')
   const heroShellShadow = useColorModeValue(
@@ -91,18 +88,12 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
   )
   const eyebrowColor = useColorModeValue('obsidian.text.lightTertiary', 'obsidian.text.tertiary')
 
-  const leftGlowGradient = useColorModeValue(
-    'radial-gradient(circle at center, rgba(122, 162, 247, 0.28), transparent 64%)',
-    'radial-gradient(circle at center, rgba(122, 162, 247, 0.22), transparent 64%)',
-  )
+  const leftGlowGradient = `radial-gradient(circle at center, ${activeAccentGlow}, transparent 64%)`
   const rightGlowGradient = useColorModeValue(
     'radial-gradient(circle at center, rgba(255, 255, 255, 0.16), transparent 62%)',
-    'radial-gradient(circle at center, rgba(111, 140, 199, 0.18), transparent 62%)',
+    `radial-gradient(circle at center, ${activeAccentGlow}, transparent 62%)`,
   )
-  const floorGlowGradient = useColorModeValue(
-    'radial-gradient(circle at center, rgba(95, 114, 148, 0.14), transparent 68%)',
-    'radial-gradient(circle at center, rgba(71, 91, 130, 0.18), transparent 68%)',
-  )
+  const floorGlowGradient = `radial-gradient(circle at center, ${activeAccentGlow}, transparent 68%)`
   const sceneSweep = useColorModeValue(
     'linear-gradient(106deg, transparent 22%, rgba(255, 255, 255, 0.12) 46%, transparent 68%)',
     'linear-gradient(106deg, transparent 22%, rgba(255, 255, 255, 0.08) 46%, transparent 68%)',
@@ -408,7 +399,7 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
               </Text>
               <Text
                 fontSize={{ base: '4xl', md: '5xl', xl: '6xl' }}
-                lineHeight={{ base: 1.02, md: 0.98 }}
+                lineHeight={{ base: 1.08, md: 1.04 }}
                 letterSpacing="-0.065em"
                 fontWeight="bold"
                 color="text.primary"
@@ -419,6 +410,7 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
                     as="span"
                     display="block"
                     overflow="hidden"
+                    pb="0.06em"
                     whiteSpace={{ base: 'normal', md: 'nowrap' }}
                   >
                     <motion.span
@@ -459,9 +451,9 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
               <Link
                 as={RouterLink}
                 to="/contact"
-                color="link.default"
+                color="action.primary"
                 fontWeight="semibold"
-                _hover={{ color: 'link.hover', textDecoration: 'none' }}
+                _hover={{ color: 'action.hover', textDecoration: 'none' }}
               >
                 Get in touch
               </Link>
