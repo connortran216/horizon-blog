@@ -31,6 +31,7 @@
 - Keep layout in pages and logic in features or core services.
 - Use responsive Chakra props for layout and spacing.
 - Preserve a consistent visual language; do not mix new styles ad hoc.
+- Keep primary editor surfaces spatially stable on hover; do not add lift or scale effects to the main writing workspace.
 
 ### 1.2 When you touch business logic
 
@@ -663,6 +664,12 @@
 
 - If backend support is missing, do not stub or mock.
 - Wait for backend support before wiring UI.
+
+### 17.5 Recent Change Summaries
+
+- When asked what changed recently, verify from the repo first.
+- Use `git status`, recent `git log`, and targeted `git show --stat` summaries instead of relying on conversational memory.
+- Summarize changes by user-facing feature area when possible, not only by commit titles.
 
 ## 18. Testing Strategy
 

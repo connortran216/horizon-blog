@@ -144,6 +144,7 @@ const BlogEditorPage = () => {
 
       <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
         <AnimatedCard
+          whileHover={{}}
           overflow="visible"
           intensity="light"
           border="1px solid"
