@@ -41,3 +41,5 @@ dist-ssr
 
 
 .codex/
+# Added by code-review-graph
+.code-review-graph/

@@ -328,6 +328,9 @@
 - Wiki links and hashtags are supported in editor config.
 - Editor supports code blocks, lists, headings, and tables.
 - Image support is enabled via Crepe and the image upload handler.
+- Prefer extending Crepe's existing code-block preview pipeline for diagram features such as Mermaid instead of introducing custom block nodes for V1.
+- Keep diagram content in raw fenced markdown (for example, ` ```mermaid ` blocks); do not persist rendered SVG or HTML.
+- Reuse the read-only Crepe path for preview and public reader surfaces so authoring and reading stay behaviorally aligned.
 
 ## 9. API Integration
 
