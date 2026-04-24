@@ -368,6 +368,80 @@
 }
 
 /* =========================================
+   Mermaid Preview
+   ========================================= */
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel {
+  margin-top: 0.5rem;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview svg {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview__title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--crepe-text-secondary);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview__body {
+  margin: 0;
+  color: var(--crepe-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview--loading,
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview--error {
+  width: min(100%, 40rem);
+  min-width: 100%;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--crepe-border-subtle);
+  border-radius: 1rem;
+  text-align: left;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview--loading {
+  background: var(--crepe-bg-secondary);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .preview-panel .preview .mermaid-preview--error {
+  background: color-mix(in srgb, var(--crepe-accent-primary) 10%, var(--crepe-bg-secondary));
+}
+
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block .tools {
+  display: none;
+}
+
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block.selected {
+  outline: none;
+}
+
+/* =========================================
    Link Styling
    ========================================= */
 

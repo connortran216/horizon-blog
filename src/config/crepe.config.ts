@@ -13,6 +13,7 @@ export interface CrepeConfig {
     imageBlock: boolean
     codeBlocks: boolean
     tables: boolean
+    mermaid: boolean
   }
 
   upload: {
@@ -31,6 +32,11 @@ export interface CrepeConfig {
     readOnly: boolean
     spellCheck: boolean
   }
+
+  mermaid: {
+    defaultTemplate: string
+    previewLoadingText: string
+  }
 }
 
 /**
@@ -48,6 +54,7 @@ export const CREPE_CONFIG: CrepeConfig = {
     imageBlock: true,
     codeBlocks: true,
     tables: true,
+    mermaid: true,
   },
 
   upload: {
@@ -65,5 +72,10 @@ export const CREPE_CONFIG: CrepeConfig = {
     placeholder: 'Start writing your blog post...',
     readOnly: false,
     spellCheck: true,
+  },
+
+  mermaid: {
+    defaultTemplate: 'flowchart TD\n  A[Start] --> B[End]',
+    previewLoadingText: 'Rendering Mermaid diagram...',
   },
 }

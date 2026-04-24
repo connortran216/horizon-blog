@@ -13,10 +13,11 @@ import { Crepe, CrepeFeature } from '@milkdown/crepe'
 import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
 import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
-import { Box, useToast } from '@chakra-ui/react'
+import { Box, useColorMode, useToast } from '@chakra-ui/react'
 import { CREPE_CONFIG } from '../../config/crepe.config'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
+import { createMermaidFeatureConfigs } from './mermaid'
 import {
   deletePostMedia,
   getPostMedia,
@@ -68,7 +69,9 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const pendingExternalContentRef = useRef<string | null>(null)
   const postIdRef = useRef<number | null>(postId)
   const ensurePostIdRef = useRef<typeof ensurePostId>(ensurePostId)
+  const { colorMode } = useColorMode()
   const toast = useToast()
+  const mermaidTheme = colorMode === 'dark' ? 'dark' : 'neutral'
 
   useEffect(() => {
     postIdRef.current = postId
@@ -148,6 +151,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     isMountedRef.current = true
     if (!editorRef.current) return
     let observer: MutationObserver | null = null
+    let cancelled = false
 
     const initialize = async () => {
       if (postIdRef.current) {
@@ -164,11 +168,14 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         }
       }
 
+      if (cancelled) return
+
+      const sourceInitialContent = lastContentRef.current
       const normalizedInitialContent = normalizeMarkdownToMediaTokens(
-        initialContent,
+        sourceInitialContent,
         urlToMediaIdRef.current,
       )
-      if (onChange && normalizedInitialContent !== initialContent) {
+      if (onChange && normalizedInitialContent !== sourceInitialContent) {
         onChange(normalizedInitialContent)
       }
       const tokenIds = parseMediaIdsFromMarkdown(normalizedInitialContent)
@@ -186,6 +193,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
           console.error('Failed to resolve media URLs for editor:', error)
         }
       }
+
+      if (cancelled) return
 
       // Convert custom syntax (wiki links, hashtags) to standard markdown
       const convertedContent = parseWikiLinks(parseHashtags(resolvedInitialContent))
@@ -211,6 +220,13 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
           [CrepeFeature.Placeholder]: {
             text: placeholder || CREPE_CONFIG.behavior.placeholder,
           },
+          ...(CREPE_CONFIG.features.mermaid
+            ? createMermaidFeatureConfigs({
+                defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
+                previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
+                theme: mermaidTheme,
+              })
+            : {}),
           ...(CREPE_CONFIG.features.imageBlock
             ? {
                 [CrepeFeature.ImageBlock]: {
@@ -308,10 +324,15 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
 
       // Create editor and apply readonly mode
       crepe.create().then(() => {
+        if (cancelled) {
+          crepe.destroy()
+          return
+        }
+
         try {
           // Defer readiness until editor contexts are fully injected.
           setTimeout(() => {
-            if (!isMountedRef.current) return
+            if (!isMountedRef.current || cancelled) return
             isEditorReadyRef.current = true
             previousTokenIdsRef.current = new Set(
               parseMediaIdsFromMarkdown(normalizedInitialContent),
@@ -364,14 +385,16 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
 
     // Cleanup on unmount
     return () => {
+      cancelled = true
       isMountedRef.current = false
       isEditorReadyRef.current = false
       observer?.disconnect()
       if (crepeRef.current) {
         crepeRef.current.destroy()
+        crepeRef.current = null
       }
     }
-  }, []) // Empty deps - only run on mount
+  }, [mermaidTheme])
 
   // Update content when initialContent changes (e.g., edit existing post after async load)
   useEffect(() => {
@@ -404,6 +427,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       overflow="visible"
       minH="500px"
       className="crepe-editor-wrapper"
+      data-readonly={readOnly ? 'true' : 'false'}
       sx={{
         // Ensure proper height and scrolling
         '& .milkdown': {
