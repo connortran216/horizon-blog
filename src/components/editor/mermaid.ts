@@ -69,7 +69,7 @@ const ensureMermaidConfigured = async (theme: MermaidTheme): Promise<MermaidInst
   if (configuredTheme !== theme) {
     const config: MermaidConfig = {
       startOnLoad: false,
-      securityLevel: 'strict',
+      securityLevel: 'antiscript',
       theme,
     }
 
@@ -116,7 +116,31 @@ export const sanitizeMermaidSvg = (svg: string): string =>
       svg: true,
       svgFilters: true,
     },
-    ADD_TAGS: ['foreignObject', 'foreignobject', 'div', 'span', 'p', 'br'],
+    ADD_TAGS: [
+      'foreignObject',
+      'foreignobject',
+      'div',
+      'span',
+      'p',
+      'br',
+      'b',
+      'i',
+      'u',
+      's',
+      'del',
+      'ins',
+      'strong',
+      'em',
+      'a',
+      'code',
+      'kbd',
+      'samp',
+      'small',
+      'sub',
+      'sup',
+      'mark',
+      'abbr',
+    ],
     ADD_ATTR: [
       'alignment-baseline',
       'aria-label',
@@ -171,6 +195,9 @@ export const sanitizeMermaidSvg = (svg: string): string =>
       'y',
       'y1',
       'y2',
+      'target',
+      'rel',
+      'title',
     ],
   })
 

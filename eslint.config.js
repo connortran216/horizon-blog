@@ -74,6 +74,7 @@ export default [
       'dist/',
       'build/',
       '*.min.js',
+      'evaluate/',
     ],
   },
 ];
