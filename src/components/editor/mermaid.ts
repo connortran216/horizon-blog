@@ -116,7 +116,7 @@ export const sanitizeMermaidSvg = (svg: string): string =>
       svg: true,
       svgFilters: true,
     },
-    ADD_TAGS: ['foreignObject'],
+    ADD_TAGS: ['foreignObject', 'foreignobject', 'div', 'span', 'p', 'br'],
     ADD_ATTR: [
       'alignment-baseline',
       'aria-label',
