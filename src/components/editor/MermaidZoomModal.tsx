@@ -12,7 +12,7 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import DOMPurify from 'dompurify'
+import { sanitizeMermaidSvg } from './mermaid'
 
 interface MermaidZoomModalProps {
   isOpen: boolean
@@ -26,7 +26,7 @@ const ZOOM_STEP = 0.25
 
 export const MermaidZoomModal: React.FC<MermaidZoomModalProps> = ({ isOpen, onClose, svg }) => {
   const [zoom, setZoom] = useState(1)
-  const sanitizedSvg = DOMPurify.sanitize(svg ?? '')
+  const sanitizedSvg = sanitizeMermaidSvg(svg ?? '')
 
   useEffect(() => {
     if (isOpen) {

@@ -7,6 +7,7 @@ import type { Ctx } from '@milkdown/ctx'
 import type { NodeType } from '@milkdown/prose/model'
 import { TextSelection } from '@milkdown/prose/state'
 import type { EditorView } from '@milkdown/prose/view'
+import DOMPurify from 'dompurify'
 import type { Mermaid as MermaidInstance, MermaidConfig } from 'mermaid'
 
 const MERMAID_LANGUAGE = 'mermaid'
@@ -17,6 +18,12 @@ let configuredTheme: MermaidTheme | null = null
 let mermaidRenderSequence = 0
 
 type PreviewValue = null | string | HTMLElement
+
+interface MermaidRenderResult {
+  preview: HTMLElement
+  targetId: string
+  svg: string
+}
 
 export type MermaidTheme = 'dark' | 'neutral'
 
@@ -102,6 +109,71 @@ const createMermaidErrorPreview = (error: unknown): HTMLElement => {
 const createMermaidLoadingPreview = (message: string): HTMLElement =>
   createPreviewShell('mermaid-preview--loading', 'Diagram preview', message)
 
+export const sanitizeMermaidSvg = (svg: string): string =>
+  DOMPurify.sanitize(svg, {
+    USE_PROFILES: {
+      html: true,
+      svg: true,
+      svgFilters: true,
+    },
+    ADD_TAGS: ['foreignObject'],
+    ADD_ATTR: [
+      'alignment-baseline',
+      'aria-label',
+      'aria-roledescription',
+      'background-color',
+      'class',
+      'clip-path',
+      'color',
+      'd',
+      'data-id',
+      'dominant-baseline',
+      'dx',
+      'dy',
+      'fill',
+      'font-family',
+      'font-size',
+      'font-weight',
+      'height',
+      'href',
+      'id',
+      'lengthAdjust',
+      'marker-end',
+      'marker-mid',
+      'marker-start',
+      'markerHeight',
+      'markerUnits',
+      'markerWidth',
+      'orient',
+      'preserveAspectRatio',
+      'refX',
+      'refY',
+      'role',
+      'rx',
+      'ry',
+      'stroke',
+      'stroke-dasharray',
+      'stroke-dashoffset',
+      'stroke-linecap',
+      'stroke-linejoin',
+      'stroke-width',
+      'style',
+      'text-anchor',
+      'transform',
+      'viewBox',
+      'width',
+      'x',
+      'x1',
+      'x2',
+      'xlink:href',
+      'xmlns',
+      'xmlns:xlink',
+      'y',
+      'y1',
+      'y2',
+    ],
+  })
+
 const createMermaidZoomButton = (): HTMLButtonElement => {
   const button = document.createElement('button')
   button.type = 'button'
@@ -113,7 +185,7 @@ const createMermaidZoomButton = (): HTMLButtonElement => {
   return button
 }
 
-const createMermaidPreview = (svg: string, readOnly: boolean): HTMLElement => {
+const createMermaidPreview = (targetId: string, readOnly: boolean): HTMLElement => {
   const shell = document.createElement('div')
   shell.className = 'mermaid-preview'
 
@@ -123,7 +195,8 @@ const createMermaidPreview = (svg: string, readOnly: boolean): HTMLElement => {
 
   const diagram = document.createElement('div')
   diagram.className = 'mermaid-preview__diagram'
-  diagram.innerHTML = svg
+  diagram.id = targetId
+  diagram.dataset.mermaidPreviewTarget = 'true'
 
   if (readOnly) {
     const toolbar = document.createElement('div')
@@ -135,6 +208,23 @@ const createMermaidPreview = (svg: string, readOnly: boolean): HTMLElement => {
   }
 
   return shell
+}
+
+const mountSanitizedMermaidSvg = (targetId: string, svg: string, attempts = 12): void => {
+  const target = document.getElementById(targetId)
+
+  if (target) {
+    target.innerHTML = sanitizeMermaidSvg(svg)
+    return
+  }
+
+  if (attempts <= 0) {
+    return
+  }
+
+  requestAnimationFrame(() => {
+    mountSanitizedMermaidSvg(targetId, svg, attempts - 1)
+  })
 }
 
 const getMermaidCursorOffset = (template: string): number => {
@@ -183,12 +273,16 @@ const renderMermaidSvg = async (
   source: string,
   theme: MermaidTheme,
   readOnly: boolean,
-): Promise<PreviewValue> => {
+): Promise<MermaidRenderResult> => {
   const mermaid = await ensureMermaidConfigured(theme)
   const renderId = `horizon-mermaid-${++mermaidRenderSequence}`
   const { svg } = await mermaid.render(renderId, source)
 
-  return createMermaidPreview(svg, readOnly)
+  return {
+    preview: createMermaidPreview(`${renderId}-preview`, readOnly),
+    targetId: `${renderId}-preview`,
+    svg,
+  }
 }
 
 export const isMermaidLanguage = (language: string | null | undefined): boolean =>
@@ -270,8 +364,9 @@ export const createMermaidPreviewRenderer = ({
     applyPreview(createMermaidLoadingPreview(previewLoadingText))
 
     void renderMermaidSvg(source, theme, readOnly)
-      .then((preview) => {
+      .then(({ preview, targetId, svg }) => {
         applyPreview(preview)
+        mountSanitizedMermaidSvg(targetId, svg)
       })
       .catch((error) => {
         applyPreview(createMermaidErrorPreview(error))
