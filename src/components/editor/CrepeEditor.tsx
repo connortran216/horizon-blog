@@ -8,7 +8,7 @@
  * - Theme integration with Obsidian design system
  */
 
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Crepe, CrepeFeature } from '@milkdown/crepe'
 import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
@@ -18,6 +18,7 @@ import { CREPE_CONFIG } from '../../config/crepe.config'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
 import { createMermaidFeatureConfigs } from './mermaid'
+import MermaidZoomModal from './MermaidZoomModal'
 import {
   deletePostMedia,
   getPostMedia,
@@ -69,6 +70,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const pendingExternalContentRef = useRef<string | null>(null)
   const postIdRef = useRef<number | null>(postId)
   const ensurePostIdRef = useRef<typeof ensurePostId>(ensurePostId)
+  const [mermaidZoomSvg, setMermaidZoomSvg] = useState<string | null>(null)
   const { colorMode } = useColorMode()
   const toast = useToast()
   const mermaidTheme = colorMode === 'dark' ? 'dark' : 'neutral'
@@ -147,6 +149,30 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const editorRadius = { base: '2xl', md: '3xl' } as const
   const surfaceShadow = '0 4px 8px 0 rgba(0, 0, 0, 0.25)'
 
+  const handleMermaidPreviewClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target
+
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    const zoomButton = target.closest<HTMLButtonElement>('[data-mermaid-zoom-trigger="true"]')
+
+    if (!zoomButton || !editorRef.current?.contains(zoomButton)) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const preview = zoomButton.closest<HTMLElement>('.mermaid-preview')
+    const diagramSvg = preview?.querySelector<SVGSVGElement>('.mermaid-preview__diagram svg')
+
+    if (diagramSvg) {
+      setMermaidZoomSvg(diagramSvg.outerHTML)
+    }
+  }, [])
+
   useEffect(() => {
     isMountedRef.current = true
     if (!editorRef.current) return
@@ -224,6 +250,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             ? createMermaidFeatureConfigs({
                 defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
                 previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
+                readOnly,
                 theme: mermaidTheme,
               })
             : {}),
@@ -416,36 +443,44 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   }, [readOnly])
 
   return (
-    <Box
-      ref={editorRef}
-      bg="bg.glass"
-      borderWidth="1px"
-      borderColor="border.subtle"
-      borderRadius={editorRadius}
-      backdropFilter="blur(18px)"
-      boxShadow={surfaceShadow}
-      overflow="visible"
-      minH="500px"
-      className="crepe-editor-wrapper"
-      data-readonly={readOnly ? 'true' : 'false'}
-      sx={{
-        // Ensure proper height and scrolling
-        '& .milkdown': {
-          minHeight: '500px',
-          borderRadius: 'inherit',
-          overflow: 'visible',
-        },
-        '& .milkdown .ProseMirror': {
-          borderRadius: 'inherit',
-          overflow: 'visible',
-        },
-        // Focus state styling
-        '&:focus-within': {
-          borderColor: 'action.primary',
-          boxShadow: `${surfaceShadow}, 0 0 0 1px var(--chakra-colors-action-primary)`,
-        },
-      }}
-    />
+    <>
+      <Box
+        ref={editorRef}
+        bg="bg.glass"
+        borderWidth="1px"
+        borderColor="border.subtle"
+        borderRadius={editorRadius}
+        backdropFilter="blur(18px)"
+        boxShadow={surfaceShadow}
+        overflow="visible"
+        minH="500px"
+        className="crepe-editor-wrapper"
+        data-readonly={readOnly ? 'true' : 'false'}
+        onClick={handleMermaidPreviewClick}
+        sx={{
+          // Ensure proper height and scrolling
+          '& .milkdown': {
+            minHeight: '500px',
+            borderRadius: 'inherit',
+            overflow: 'visible',
+          },
+          '& .milkdown .ProseMirror': {
+            borderRadius: 'inherit',
+            overflow: 'visible',
+          },
+          // Focus state styling
+          '&:focus-within': {
+            borderColor: 'action.primary',
+            boxShadow: `${surfaceShadow}, 0 0 0 1px var(--chakra-colors-action-primary)`,
+          },
+        }}
+      />
+      <MermaidZoomModal
+        isOpen={Boolean(mermaidZoomSvg)}
+        onClose={() => setMermaidZoomSvg(null)}
+        svg={mermaidZoomSvg}
+      />
+    </>
   )
 }
 

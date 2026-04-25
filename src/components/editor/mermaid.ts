@@ -26,6 +26,7 @@ export interface MermaidInsertOptions {
 
 export interface MermaidPreviewRendererOptions {
   previewLoadingText: string
+  readOnly: boolean
   theme: MermaidTheme
 }
 
@@ -101,10 +102,37 @@ const createMermaidErrorPreview = (error: unknown): HTMLElement => {
 const createMermaidLoadingPreview = (message: string): HTMLElement =>
   createPreviewShell('mermaid-preview--loading', 'Diagram preview', message)
 
-const createMermaidPreview = (svg: string): HTMLElement => {
+const createMermaidZoomButton = (): HTMLButtonElement => {
+  const button = document.createElement('button')
+  button.type = 'button'
+  button.className = 'mermaid-preview__zoom-button'
+  button.dataset.mermaidZoomTrigger = 'true'
+  button.textContent = 'Zoom'
+  button.setAttribute('aria-label', 'Open Mermaid diagram zoom view')
+
+  return button
+}
+
+const createMermaidPreview = (svg: string, readOnly: boolean): HTMLElement => {
   const shell = document.createElement('div')
   shell.className = 'mermaid-preview'
-  shell.innerHTML = svg
+
+  if (readOnly) {
+    shell.classList.add('mermaid-preview--read')
+  }
+
+  const diagram = document.createElement('div')
+  diagram.className = 'mermaid-preview__diagram'
+  diagram.innerHTML = svg
+
+  if (readOnly) {
+    const toolbar = document.createElement('div')
+    toolbar.className = 'mermaid-preview__toolbar'
+    toolbar.append(createMermaidZoomButton())
+    shell.append(toolbar, diagram)
+  } else {
+    shell.append(diagram)
+  }
 
   return shell
 }
@@ -151,12 +179,16 @@ const focusMermaidCodeEditor = (view: EditorView, nodeStartPos: number): void =>
   })
 }
 
-const renderMermaidSvg = async (source: string, theme: MermaidTheme): Promise<PreviewValue> => {
+const renderMermaidSvg = async (
+  source: string,
+  theme: MermaidTheme,
+  readOnly: boolean,
+): Promise<PreviewValue> => {
   const mermaid = await ensureMermaidConfigured(theme)
   const renderId = `horizon-mermaid-${++mermaidRenderSequence}`
   const { svg } = await mermaid.render(renderId, source)
 
-  return createMermaidPreview(svg)
+  return createMermaidPreview(svg, readOnly)
 }
 
 export const isMermaidLanguage = (language: string | null | undefined): boolean =>
@@ -210,6 +242,7 @@ export const insertMermaidBlock = (ctx: Ctx, { defaultTemplate }: MermaidInsertO
 
 export const createMermaidPreviewRenderer = ({
   previewLoadingText,
+  readOnly,
   theme,
 }: MermaidPreviewRendererOptions) => {
   return (
@@ -236,7 +269,7 @@ export const createMermaidPreviewRenderer = ({
 
     applyPreview(createMermaidLoadingPreview(previewLoadingText))
 
-    void renderMermaidSvg(source, theme)
+    void renderMermaidSvg(source, theme, readOnly)
       .then((preview) => {
         applyPreview(preview)
       })
@@ -249,6 +282,7 @@ export const createMermaidPreviewRenderer = ({
 export const createMermaidFeatureConfigs = ({
   defaultTemplate,
   previewLoadingText,
+  readOnly,
   theme,
 }: MermaidCrepeFeatureConfigOptions) => {
   const insertDefaultMermaidBlock = (ctx: Ctx): void => {
@@ -257,10 +291,12 @@ export const createMermaidFeatureConfigs = ({
   const codeMirrorConfig: CodeMirrorFeatureConfig = {
     renderPreview: createMermaidPreviewRenderer({
       previewLoadingText,
+      readOnly,
       theme,
     }),
     previewLabel: 'Diagram',
     previewLoading: previewLoadingText,
+    previewOnlyByDefault: readOnly,
     previewToggleText: (previewOnlyMode) => (previewOnlyMode ? 'Show code' : 'Show diagram'),
   }
   const blockEditConfig: BlockEditFeatureConfig = {
