@@ -22,7 +22,6 @@ import {
   PublicPostsPage,
 } from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
-import { getBlogRepository } from '../di/container'
 import { RepositoryResult } from '../types/blog-repository.types'
 import { ApiError } from './api.service'
 import {
@@ -49,9 +48,9 @@ export class BlogService implements IBlogService {
   private config: BlogServiceConfig
   private repository: IBlogRepository
 
-  constructor(config: Partial<BlogServiceConfig> = {}, repository?: IBlogRepository) {
+  constructor(repository: IBlogRepository, config: Partial<BlogServiceConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
-    this.repository = repository || getBlogRepository()
+    this.repository = repository
   }
 
   private toServiceError<T>(result: RepositoryResult<T>, fallback: string): Error {
@@ -386,4 +385,5 @@ export class BlogService implements IBlogService {
 }
 
 // Export singleton instance factory to avoid circular dependency
-export const createBlogServiceInstance = (): BlogService => new BlogService()
+export const createBlogServiceInstance = (repository: IBlogRepository): BlogService =>
+  new BlogService(repository)

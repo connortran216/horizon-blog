@@ -90,3 +90,14 @@ Focus Area: dependency inversion. The container should own object wiring, while 
 - Migrated UI flows do not retrieve repositories directly.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- `BlogService` now requires an explicit `IBlogRepository` constructor dependency.
+- `ProfileService` now requires an explicit `IProfileRepository` constructor dependency.
+- DI container service factories now resolve repositories and pass them into service factory functions.
+- Existing exported getters remain compatible.
+- Avoided `SERVICE_TOKENS` in constructor-time default registration to prevent temporal initialization issues before the constant is declared.
+- Validation: constructor/dependency search confirmed explicit repository constructor parameters and no service fallback getter calls.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

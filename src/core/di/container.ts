@@ -123,11 +123,13 @@ export class DIContainer {
     this.register('IAuthService', () => authService)
 
     // Register blog service
-    this.register('IBlogService', () => createBlogServiceInstance())
+    this.register('IBlogService', () => createBlogServiceInstance(this.resolve('IBlogRepository')))
 
     // Register profile repository and service
     this.register('IProfileRepository', () => new ApiProfileRepository())
-    this.register('IProfileService', () => createProfileServiceInstance())
+    this.register('IProfileService', () =>
+      createProfileServiceInstance(this.resolve('IProfileRepository')),
+    )
   }
 }
 

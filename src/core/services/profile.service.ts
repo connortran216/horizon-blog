@@ -1,4 +1,3 @@
-import { getProfileRepository } from '../di/container'
 import { ApiError } from './api.service'
 import { IProfileRepository } from '../types/profile-repository.types'
 import { IProfileService, ProfileUpdateInput } from '../types/profile-service.types'
@@ -19,8 +18,8 @@ const EDITABLE_PROFILE_FIELDS: (keyof ProfileUpdateInput)[] = ['name', 'bio', 'w
 export class ProfileService implements IProfileService {
   private repository: IProfileRepository
 
-  constructor(repository?: IProfileRepository) {
-    this.repository = repository || getProfileRepository()
+  constructor(repository: IProfileRepository) {
+    this.repository = repository
   }
 
   async getCurrentProfile(): Promise<UserProfile> {
@@ -132,4 +131,5 @@ export class ProfileService implements IProfileService {
   }
 }
 
-export const createProfileServiceInstance = (): ProfileService => new ProfileService()
+export const createProfileServiceInstance = (repository: IProfileRepository): ProfileService =>
+  new ProfileService(repository)
