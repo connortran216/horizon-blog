@@ -107,6 +107,20 @@ export interface PublicAuthorPostsPage {
   total: number
 }
 
+export interface PublicPostsPage {
+  posts: PublicPostRecord[]
+  page: number
+  limit: number
+  total: number
+}
+
+export interface BlogArchiveOptions {
+  q?: string
+  tags?: string[]
+  page: number
+  limit: number
+}
+
 export interface PublicAuthorArchive {
   user: PublicAuthor
   posts: PublicPostRecord[]

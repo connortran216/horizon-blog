@@ -4,11 +4,14 @@
  */
 
 import {
+  BlogArchiveOptions,
   BlogPost,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostTag,
+  PublicPostsPage,
   PublicPostRecord,
 } from './blog.types'
 
@@ -50,7 +53,10 @@ export interface IBlogService {
 
   // Data operations (delegated to repositories)
   getPublishedPosts(options?: BlogSearchOptions): Promise<BlogPostSummary[]>
+  getPublishedArchivePosts(options: BlogArchiveOptions): Promise<PublicPostsPage>
   getPostById(id: string): Promise<BlogPost | null>
+  getPublicPostDetail(id: string): Promise<PublicPostRecord>
+  getPopularTags(limit?: number): Promise<PublicPostTag[]>
   getPublicAuthorProfile(authorId: string): Promise<PublicAuthor>
   getPublicAuthorPosts(
     authorId: string,
@@ -58,6 +64,23 @@ export interface IBlogService {
     limit?: number,
   ): Promise<PublicAuthorPostsPage>
   searchPosts(query: string): Promise<BlogPostSummary[]>
+  getCurrentUserPostsPage(
+    status: 'draft' | 'published',
+    page: number,
+    limit: number,
+  ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }>
+  getEditablePostById(id: string, currentUserId: number): Promise<PublicPostRecord>
+  createDraft(input: BlogServicePostInput): Promise<BlogPost>
+  updateDraft(id: string, input: BlogServicePostInput): Promise<BlogPost>
+  publishPost(id: string | null, input: BlogServicePostInput): Promise<BlogPost>
+  deletePostOrThrow(id: string): Promise<void>
+}
+
+export interface BlogServicePostInput {
+  title: string
+  content_markdown: string
+  content_json?: string
+  tag_names?: string[]
 }
 
 /**

@@ -12,10 +12,13 @@ import {
 } from '../types/blog-repository.types'
 import {
   BlogPost,
+  BlogArchiveOptions,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostTag,
+  PublicPostsPage,
   PublicPostRecord,
 } from '../types/blog.types'
 import {
@@ -160,6 +163,15 @@ export class ApiBlogRepository implements IBlogRepository {
     }
   }
 
+  private normalizePublicPostsPage(response: ApiListPostsResponse): PublicPostsPage {
+    return {
+      posts: response.data.map((post) => this.normalizePublicPost(post)),
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+    }
+  }
+
   private cacheCurrentUserPostRecords(posts: ApiBlogPost[]): void {
     posts.forEach((post) => {
       this.setCache(`current-user-post_${post.id}`, this.normalizePublicPost(post))
@@ -244,6 +256,58 @@ export class ApiBlogRepository implements IBlogRepository {
     }
   }
 
+  async getPublishedPostRecords(
+    options: BlogArchiveOptions,
+  ): Promise<RepositoryResult<PublicPostsPage>> {
+    try {
+      const cacheKey = this.generateCacheKey('published-records', options)
+      const cached = this.getFromCache(cacheKey) as PublicPostsPage | null
+
+      if (cached) {
+        return {
+          success: true,
+          data: cached,
+          metadata: {
+            page: cached.page,
+            limit: cached.limit,
+            total: cached.total,
+            hasNext: cached.page * cached.limit < cached.total,
+            hasPrev: cached.page > 1,
+          },
+        }
+      }
+
+      const response = await apiService.get<ApiListPostsResponse>('/posts', {
+        page: options.page,
+        limit: options.limit,
+        status: 'published',
+      })
+      const postsPage = this.normalizePublicPostsPage(response)
+
+      this.setCache(cacheKey, postsPage)
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: postsPage,
+        metadata: {
+          page: postsPage.page,
+          limit: postsPage.limit,
+          total: postsPage.total,
+          hasNext: postsPage.page * postsPage.limit < postsPage.total,
+          hasPrev: postsPage.page > 1,
+        },
+      }
+    } catch (error: unknown) {
+      console.error('Failed to fetch published post records:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch published posts',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
   /**
    * Get blog post by ID
    */
@@ -270,6 +334,32 @@ export class ApiBlogRepository implements IBlogRepository {
       return { success: true, data: post }
     } catch (error: unknown) {
       console.error(`Failed to fetch post ${id}:`, error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch blog post',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
+  async getPublicPostRecordById(id: string): Promise<RepositoryResult<PublicPostRecord>> {
+    try {
+      const cacheKey = `public-post-record_${id}`
+      const cached = this.getFromCache(cacheKey) as PublicPostRecord | null
+
+      if (cached) {
+        return { success: true, data: cached }
+      }
+
+      const response = await apiService.get<{ data: ApiBlogPost }>(`/posts/${id}`)
+      const post = this.normalizePublicPost(response.data)
+
+      this.setCache(cacheKey, post)
+      this.lastUpdate = new Date()
+
+      return { success: true, data: post }
+    } catch (error: unknown) {
+      console.error(`Failed to fetch public post record ${id}:`, error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch blog post',
@@ -635,6 +725,85 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to search blog posts',
+      }
+    }
+  }
+
+  async searchPostRecords(options: BlogArchiveOptions): Promise<RepositoryResult<PublicPostsPage>> {
+    try {
+      const cacheKey = this.generateCacheKey('search-records', options)
+      const cached = this.getFromCache(cacheKey) as PublicPostsPage | null
+
+      if (cached) {
+        return {
+          success: true,
+          data: cached,
+          metadata: {
+            page: cached.page,
+            limit: cached.limit,
+            total: cached.total,
+            hasNext: cached.page * cached.limit < cached.total,
+            hasPrev: cached.page > 1,
+          },
+        }
+      }
+
+      const response = await apiService.get<ApiListPostsResponse>('/search/posts', {
+        q: options.q || undefined,
+        tags: options.tags?.join(',') || undefined,
+        page: options.page,
+        limit: options.limit,
+      })
+      const postsPage = this.normalizePublicPostsPage(response)
+
+      this.setCache(cacheKey, postsPage)
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: postsPage,
+        metadata: {
+          page: postsPage.page,
+          limit: postsPage.limit,
+          total: postsPage.total,
+          hasNext: postsPage.page * postsPage.limit < postsPage.total,
+          hasPrev: postsPage.page > 1,
+        },
+      }
+    } catch (error: unknown) {
+      console.error('Failed to search public post records:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to search blog posts',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
+  async getPopularTags(limit: number = 8): Promise<RepositoryResult<PublicPostTag[]>> {
+    try {
+      const cacheKey = this.generateCacheKey('popular-tags', { limit })
+      const cached = this.getFromCache(cacheKey) as PublicPostTag[] | null
+
+      if (cached) {
+        return { success: true, data: cached }
+      }
+
+      const response = await apiService.get<{ data: PublicPostTag[]; total: number }>(
+        '/tags/popular',
+        { limit },
+      )
+
+      this.setCache(cacheKey, response.data)
+      this.lastUpdate = new Date()
+
+      return { success: true, data: response.data }
+    } catch (error: unknown) {
+      console.error('Failed to fetch popular tags:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch popular tags',
+        statusCode: this.getStatusCode(error),
       }
     }
   }

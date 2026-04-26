@@ -4,13 +4,22 @@
  * Uses Repository Pattern through DI for data access
  */
 
-import { IBlogService, BlogServiceConfig, ApiBlogPost } from '../types/blog-service.types'
 import {
+  IBlogService,
+  BlogServiceConfig,
+  ApiBlogPost,
+  BlogServicePostInput,
+} from '../types/blog-service.types'
+import {
+  BlogArchiveOptions,
   BlogPost,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostRecord,
+  PublicPostTag,
+  PublicPostsPage,
 } from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
 import { getBlogRepository } from '../di/container'
@@ -43,6 +52,40 @@ export class BlogService implements IBlogService {
   constructor(config: Partial<BlogServiceConfig> = {}, repository?: IBlogRepository) {
     this.config = { ...DEFAULT_CONFIG, ...config }
     this.repository = repository || getBlogRepository()
+  }
+
+  private toServiceError<T>(result: RepositoryResult<T>, fallback: string): Error {
+    if (result.statusCode) {
+      return new ApiError(result.error || fallback, result.statusCode)
+    }
+
+    return new Error(result.error || fallback)
+  }
+
+  private unwrapResult<T>(result: RepositoryResult<T>, fallback: string): T {
+    if (!result.success || result.data === undefined) {
+      throw this.toServiceError(result, fallback)
+    }
+
+    return result.data
+  }
+
+  private toPostPayload(
+    input: BlogServicePostInput,
+    status: 'draft' | 'published',
+  ): Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'> & { tag_names?: string[] } {
+    return {
+      title: input.title.trim(),
+      content_markdown: input.content_markdown,
+      content_json: input.content_json || '{}',
+      status,
+      tag_names: input.tag_names,
+      tags: input.tag_names || [],
+      author: { username: '', avatar: undefined },
+      excerpt: '',
+      slug: '',
+      readingTime: 1,
+    }
   }
 
   /**
@@ -88,6 +131,15 @@ export class BlogService implements IBlogService {
     }
   }
 
+  async getPublishedArchivePosts(options: BlogArchiveOptions): Promise<PublicPostsPage> {
+    const hasSearchFilters = Boolean(options.q || options.tags?.length)
+    const result = hasSearchFilters
+      ? await this.repository.searchPostRecords(options)
+      : await this.repository.getPublishedPostRecords(options)
+
+    return this.unwrapResult(result, 'Failed to fetch published posts')
+  }
+
   /**
    * Get blog post by ID
    * Delegates to repository for data access
@@ -100,6 +152,16 @@ export class BlogService implements IBlogService {
       console.error(`Failed to fetch post ${id}:`, error)
       return null
     }
+  }
+
+  async getPublicPostDetail(id: string): Promise<PublicPostRecord> {
+    const result = await this.repository.getPublicPostRecordById(id)
+    return this.unwrapResult(result, 'Failed to fetch blog post')
+  }
+
+  async getPopularTags(limit: number = 8): Promise<PublicPostTag[]> {
+    const result = await this.repository.getPopularTags(limit)
+    return this.unwrapResult(result, 'Failed to fetch popular tags')
   }
 
   async getPublicAuthorProfile(authorId: string): Promise<PublicAuthor> {
@@ -193,6 +255,33 @@ export class BlogService implements IBlogService {
     }
   }
 
+  async getCurrentUserPostsPage(
+    status: 'draft' | 'published',
+    page: number,
+    limit: number,
+  ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }> {
+    const result = await this.repository.getCurrentUserPosts(status, page, limit)
+    const posts = this.unwrapResult(result, 'Failed to fetch current user posts')
+
+    return {
+      posts,
+      page: result.metadata?.page ?? page,
+      limit: result.metadata?.limit ?? limit,
+      total: result.metadata?.total ?? posts.length,
+    }
+  }
+
+  async getEditablePostById(id: string, currentUserId: number): Promise<PublicPostRecord> {
+    const result = await this.repository.getCurrentUserPostById(id)
+    const post = this.unwrapResult(result, 'Failed to load post')
+
+    if (post.user_id !== currentUserId) {
+      throw new ApiError('You do not have permission to edit this post.', 403)
+    }
+
+    return post
+  }
+
   /**
    * Create new blog post
    * Delegates to repository for data access
@@ -209,6 +298,11 @@ export class BlogService implements IBlogService {
     }
   }
 
+  async createDraft(input: BlogServicePostInput): Promise<BlogPost> {
+    const result = await this.repository.createPost(this.toPostPayload(input, 'draft'))
+    return this.unwrapResult(result, 'Failed to create draft')
+  }
+
   /**
    * Update blog post
    * Delegates to repository for data access
@@ -223,6 +317,29 @@ export class BlogService implements IBlogService {
     }
   }
 
+  async updateDraft(id: string, input: BlogServicePostInput): Promise<BlogPost> {
+    const updates = this.toPostPayload(input, 'draft') as Partial<BlogPost> & {
+      tag_names?: string[]
+    }
+    const result = await this.repository.updatePost(id, updates)
+    return this.unwrapResult(result, 'Failed to update draft')
+  }
+
+  async publishPost(id: string | null, input: BlogServicePostInput): Promise<BlogPost> {
+    const payload = this.toPostPayload(input, 'published')
+
+    if (id) {
+      const result = await this.repository.updatePost(
+        id,
+        payload as Partial<BlogPost> & { tag_names?: string[] },
+      )
+      return this.unwrapResult(result, 'Failed to publish blog post')
+    }
+
+    const result = await this.repository.createPost(payload)
+    return this.unwrapResult(result, 'Failed to publish blog post')
+  }
+
   /**
    * Delete blog post
    * Delegates to repository for data access
@@ -235,6 +352,11 @@ export class BlogService implements IBlogService {
       console.error(`Failed to delete post ${id}:`, error)
       return false
     }
+  }
+
+  async deletePostOrThrow(id: string): Promise<void> {
+    const result = await this.repository.deletePost(id)
+    this.unwrapResult(result, 'Failed to delete blog post')
   }
 
   /**

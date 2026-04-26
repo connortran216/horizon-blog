@@ -62,10 +62,10 @@ export interface BlogServicePostInput {
 }
 
 export interface IBlogService {
-  getPublishedArchivePosts(options: BlogSearchOptions): Promise<BlogPostSummary[]>
-  getPublicPostDetail(id: string): Promise<BlogPost>
-  getPopularTags(limit?: number): Promise<BlogArchiveTag[]>
-  getCurrentUserPosts(
+  getPublishedArchivePosts(options: BlogArchiveOptions): Promise<PublicPostsPage>
+  getPublicPostDetail(id: string): Promise<PublicPostRecord>
+  getPopularTags(limit?: number): Promise<PublicPostTag[]>
+  getCurrentUserPostsPage(
     status: 'draft' | 'published',
     page: number,
     limit: number,
@@ -100,3 +100,13 @@ Focus Area: use-case boundary. The service should hide repository result mechani
 - Repository errors are mapped consistently.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Added public archive page contracts: `BlogArchiveOptions` and `PublicPostsPage`.
+- Added repository methods for raw published post pages, raw public post detail, raw search pages, and popular tags.
+- Added service use cases for public archive, public detail, popular tags, current-user post pages, editable-post loading, draft create/update, publish, and delete-or-throw.
+- Public archive/detail service methods intentionally return `PublicPostRecord` shapes so R4 can migrate hooks without changing the current blog UI components.
+- Repository failures are converted to thrown `Error` or `ApiError` in new service use cases.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

@@ -6,10 +6,13 @@
 
 import {
   BlogPost,
+  BlogArchiveOptions,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
+  PublicPostTag,
+  PublicPostsPage,
   PublicPostRecord,
 } from './blog.types'
 
@@ -37,7 +40,9 @@ export interface RepositoryResult<T> {
 export interface IBlogRepository {
   // Basic CRUD operations
   getPublishedPosts(options?: BlogSearchOptions): Promise<RepositoryResult<BlogPostSummary[]>>
+  getPublishedPostRecords(options: BlogArchiveOptions): Promise<RepositoryResult<PublicPostsPage>>
   getPostById(id: string): Promise<RepositoryResult<BlogPost>>
+  getPublicPostRecordById(id: string): Promise<RepositoryResult<PublicPostRecord>>
   createPost(
     post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>,
   ): Promise<RepositoryResult<BlogPost>>
@@ -68,6 +73,8 @@ export interface IBlogRepository {
     query: string,
     options?: BlogSearchOptions,
   ): Promise<RepositoryResult<BlogPostSummary[]>>
+  searchPostRecords(options: BlogArchiveOptions): Promise<RepositoryResult<PublicPostsPage>>
+  getPopularTags(limit?: number): Promise<RepositoryResult<PublicPostTag[]>>
 
   // Utility operations
   clearCache(): Promise<void>
