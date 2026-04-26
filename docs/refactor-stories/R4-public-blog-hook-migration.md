@@ -109,3 +109,14 @@ Focus Area: public read path. The hook should keep browser-state behavior becaus
 - Public archive and detail behavior are unchanged.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- `useBlogArchive` now calls `getBlogService().getPublishedArchivePosts()` and `getBlogService().getPopularTags()`.
+- `useBlogPostDetail` now calls `getBlogService().getPublicPostDetail()`.
+- Removed `src/features/blog/blog.api.ts` because no public blog hook depends on direct feature API helpers.
+- URL query state for `q`, `tags`, and `page` remains owned by `useBlogArchive`.
+- Validation: direct API/helper search in migrated hooks returned no matches.
+- Validation: `test ! -f src/features/blog/blog.api.ts` passed.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

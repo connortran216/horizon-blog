@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { ApiError, apiService } from '../../core/services/api.service'
+import { ApiError, getBlogService } from '../../core'
 import { BlogArchivePost } from './blog.types'
 
 const PUBLIC_NOT_FOUND_MESSAGE = 'This post is not published or is no longer available.'
@@ -29,8 +29,7 @@ export const useBlogPostDetail = () => {
 
     const fetchPost = async () => {
       try {
-        const response = await apiService.get<{ data: BlogArchivePost }>(`/posts/${id}`)
-        const foundPost = response.data
+        const foundPost = await getBlogService().getPublicPostDetail(id)
 
         if (isCancelled) {
           return

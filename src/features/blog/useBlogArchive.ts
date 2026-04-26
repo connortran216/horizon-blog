@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { getBlogService } from '../../core'
 import { BlogArchivePost, BlogArchiveTag } from './blog.types'
-import { fetchBlogArchivePosts, fetchPopularTags } from './blog.api'
 
 const DEFAULT_PAGE_SIZE = 6
 const SEARCH_DEBOUNCE_MS = 350
@@ -65,7 +65,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     const loadPosts = async () => {
       try {
         setLoading(true)
-        const response = await fetchBlogArchivePosts({
+        const response = await getBlogService().getPublishedArchivePosts({
           q: query || undefined,
           tags: activeTags,
           page,
@@ -74,7 +74,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
 
         if (cancelled) return
 
-        setPosts(response.data)
+        setPosts(response.posts)
         setTotal(response.total)
         setTotalPages(Math.max(1, Math.ceil(response.total / pageSize)))
       } catch (error) {
@@ -103,7 +103,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     const loadPopularTags = async () => {
       try {
         setTagsLoading(true)
-        const data = await fetchPopularTags()
+        const data = await getBlogService().getPopularTags()
         if (!cancelled) {
           setPopularTags(data)
         }
