@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { getBlogService } from '../../core'
 import { User } from '../../core/types/common.types'
 import { AuthStatus } from '../../core/types/auth.types'
-import { getBlogRepository } from '../../core/di/container'
 import { resolveMediaUrls } from '../media/media.api'
 import { ProfileBlogPost, ProfilePaginationState } from './profile.types'
 import { mapBlogSummaryToProfilePost } from './profile.utils'
@@ -72,41 +72,30 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
   })
 
   const loadBlogs = async () => {
-    const repository = getBlogRepository()
-
-    const publishedResult = await repository.getCurrentUserPosts(
+    const blogService = getBlogService()
+    const publishedPage = await blogService.getCurrentUserPostsPage(
       'published',
       publishedPagination.page,
       publishedPagination.limit,
     )
-    if (publishedResult.success && publishedResult.data) {
-      const resolvedPublishedImages = await resolveFeaturedImages(publishedResult.data)
-      const mappedPublished = publishedResult.data.map((post) =>
-        mapBlogSummaryToProfilePost(post, resolvedPublishedImages),
-      )
-      setPublishedBlogs(mappedPublished)
-      const publishedTotal = publishedResult.metadata?.total
-      if (publishedTotal !== undefined) {
-        setPublishedPagination((prev) => ({ ...prev, total: publishedTotal }))
-      }
-    }
+    const resolvedPublishedImages = await resolveFeaturedImages(publishedPage.posts)
+    const mappedPublished = publishedPage.posts.map((post) =>
+      mapBlogSummaryToProfilePost(post, resolvedPublishedImages),
+    )
+    setPublishedBlogs(mappedPublished)
+    setPublishedPagination((prev) => ({ ...prev, total: publishedPage.total }))
 
-    const draftsResult = await repository.getCurrentUserPosts(
+    const draftPage = await blogService.getCurrentUserPostsPage(
       'draft',
       draftPagination.page,
       draftPagination.limit,
     )
-    if (draftsResult.success && draftsResult.data) {
-      const resolvedDraftImages = await resolveFeaturedImages(draftsResult.data)
-      const mappedDrafts = draftsResult.data.map((post) =>
-        mapBlogSummaryToProfilePost(post, resolvedDraftImages),
-      )
-      setDraftBlogs(mappedDrafts)
-      const draftTotal = draftsResult.metadata?.total
-      if (draftTotal !== undefined) {
-        setDraftPagination((prev) => ({ ...prev, total: draftTotal }))
-      }
-    }
+    const resolvedDraftImages = await resolveFeaturedImages(draftPage.posts)
+    const mappedDrafts = draftPage.posts.map((post) =>
+      mapBlogSummaryToProfilePost(post, resolvedDraftImages),
+    )
+    setDraftBlogs(mappedDrafts)
+    setDraftPagination((prev) => ({ ...prev, total: draftPage.total }))
   }
 
   useEffect(() => {
@@ -117,7 +106,6 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
 
     const loadUserPosts = async () => {
       setPostsLoading(true)
-      void getBlogRepository().clearCache()
 
       try {
         await loadBlogs()
@@ -153,10 +141,8 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
     }
 
     try {
-      const result = await getBlogRepository().deletePost(blogId)
-      if (result.success) {
-        await loadBlogs()
-      }
+      await getBlogService().deletePostOrThrow(blogId)
+      await loadBlogs()
     } catch (error) {
       console.error('Error deleting blog post:', error)
     }

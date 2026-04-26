@@ -104,3 +104,14 @@ Focus Area: authenticated profile read/write path. The service should own loadin
 - Profile lists, pagination, deletion, and cover images still work.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- `useProfilePosts` now loads published and draft pages through `getBlogService().getCurrentUserPostsPage()`.
+- `useProfilePosts` now deletes through `getBlogService().deletePostOrThrow()`.
+- Independent published/draft pagination state and handlers remain in the hook.
+- `media://` cover resolution remains in the profile feature utility path.
+- Removed hook-level repository cache clearing and direct `getBlogRepository()` usage.
+- Validation: `rg "getBlogRepository|RepositoryResult|\\.success|\\.metadata" src/features/profile/useProfilePosts.ts` returned no matches.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.
