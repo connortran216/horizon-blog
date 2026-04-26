@@ -20,7 +20,7 @@ Status key:
 - [x] [R6 - Editor Save Flow Refactor](./refactor-stories/R6-editor-save-flow-refactor.md)
 - [x] [R7 - Navbar Create Flow Migration](./refactor-stories/R7-navbar-create-flow-migration.md)
 - [x] [R8 - Dependency Injection Wiring Cleanup](./refactor-stories/R8-di-wiring-cleanup.md)
-- [ ] [R9 - Logging Cleanup](./refactor-stories/R9-logging-cleanup.md)
+- [x] [R9 - Logging Cleanup](./refactor-stories/R9-logging-cleanup.md)
 - [ ] [R10 - Final Manual Verification](./refactor-stories/R10-final-manual-verification.md)
 
 ## Tracking Rule

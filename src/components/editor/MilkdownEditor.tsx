@@ -96,13 +96,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
   // Configure Milkdown editor
   const { get } = useEditor(
     (root) => {
-      if (EDITOR_CONFIG.debug?.logLifecycle) {
-        console.log(
-          '🔧 Creating Milkdown editor with initial content:',
-          initialContent?.substring(0, 50),
-        )
-      }
-
       try {
         let editor = Editor.make()
           .config((ctx) => {
@@ -143,14 +136,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
                   if (view?.state?.doc) {
                     // Properly extract the ProseMirror document as JSON
                     prosemirrorJSON = JSON.stringify(view.state.doc.toJSON())
-
-                    if (EDITOR_CONFIG.debug?.logLifecycle) {
-                      console.log('📝 ProseMirror JSON extracted:', {
-                        markdown: markdown.substring(0, 50) + '...',
-                        jsonSize: prosemirrorJSON.length,
-                        nodeCount: view.state.doc.childCount,
-                      })
-                    }
                   }
 
                   stableOnChange(markdown, prosemirrorJSON)
@@ -182,10 +167,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 
         // Store the editor instance for programmatic access
         editorInstanceRef.current = editor
-
-        if (EDITOR_CONFIG.debug?.logLifecycle) {
-          console.log('✅ Milkdown editor instance created and stored')
-        }
 
         return editor
       } catch (error: unknown) {
@@ -222,10 +203,6 @@ const MilkdownEditorInner: React.FC<MilkdownEditorProps & { mode: EditorMode }> 
 
         // CRITICAL: Force ProseMirror to reapply the editable state
         view.updateState(view.state)
-
-        if (EDITOR_CONFIG.debug?.logLifecycle) {
-          console.log(`🔄 Editor mode changed to: ${mode}`)
-        }
       })
     }
   }, [mode, get])

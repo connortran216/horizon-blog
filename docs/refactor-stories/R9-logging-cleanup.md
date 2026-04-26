@@ -63,3 +63,15 @@ Focus Area: production cleanliness. The safest approach is to remove debug logs 
 - Important `console.error` paths remain.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Removed editor lifecycle debug `console.log` calls from `MilkdownEditor`.
+- Removed reader lifecycle debug `console.log` calls from `MilkdownReader`.
+- Removed initial editor-content load debug `console.log` from `useEditorContent`.
+- Kept existing `console.error` catch paths for editor, reader, API, and service failures.
+- Validation: `rg "console\\.log" src` returned no matches.
+- Validation: `rg "console\\.error" src` confirmed meaningful failure logs remain.
+- Validation: `rg "logger|createLogger|logService" src` found existing service names only; no logging abstraction was added.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

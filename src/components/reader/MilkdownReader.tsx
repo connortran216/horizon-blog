@@ -52,10 +52,6 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
   // Configure Milkdown editor in read-only mode
   useEditor(
     (root) => {
-      if (EDITOR_CONFIG.debug?.logLifecycle) {
-        console.log('📖 Creating Milkdown reader with content:', content?.substring(0, 50))
-      }
-
       try {
         let editor = Editor.make()
           .config((ctx) => {
@@ -93,10 +89,6 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
         }
         if (EDITOR_CONFIG.features.codeBlockHighlighting) {
           editor = editor.use(prism)
-        }
-
-        if (EDITOR_CONFIG.debug?.logLifecycle) {
-          console.log('✅ Milkdown reader instance created')
         }
 
         return editor

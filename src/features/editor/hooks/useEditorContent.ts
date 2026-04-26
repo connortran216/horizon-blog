@@ -56,12 +56,6 @@ export function useEditorContent(initialValues: Partial<EditorContentState> = {}
         initialValues.contentMarkdown ||
         (initialValues.tags && initialValues.tags.length > 0))
     ) {
-      console.log('📝 Loading initial content into editor:', {
-        title: initialValues.title,
-        contentLength: initialValues.contentMarkdown?.length || 0,
-        tagsCount: initialValues.tags?.length || 0,
-      })
-
       setState((prev) => ({
         ...prev,
         title: initialValues.title ?? prev.title,
