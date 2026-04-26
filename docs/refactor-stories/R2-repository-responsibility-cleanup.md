@@ -93,3 +93,13 @@ Focus Area: data access boundary. The repository remains result-based because th
 - Temporary compatibility is documented if needed.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Repository display calculations were removed as direct private implementations in R1.
+- Temporary compatibility remains: list/search/current-user repository methods still return `BlogPostSummary[]` because existing hooks consume that contract before R3/R4/R5 migration.
+- `ApiBlogRepository` now delegates display-summary mapping to `mapApiPostToSummary` rather than owning excerpt, reading-time, owner fallback, and image extraction logic.
+- Cache behavior remains in `ApiBlogRepository` for published posts, post detail, current-user posts, public author data, and search.
+- Validation: `rg "generateExcerpt|calculateReadingTime|buildExcerptFromMarkdown|words per minute|readingTime" src/core/repositories/blog.repository.ts` returned no matches.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.
