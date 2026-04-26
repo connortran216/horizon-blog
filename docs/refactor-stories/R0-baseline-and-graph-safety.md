@@ -60,3 +60,11 @@ Focus Area: refactor safety. The key decision is to capture the current quality 
 - Baseline `yarn lint` result is recorded.
 - Baseline `yarn build` result is recorded.
 
+## Execution Notes
+
+- Status: Done
+- Graph stats: `622` nodes, `4349` edges, `153` files, updated `2026-04-26T11:58:20`.
+- Baseline git state: only unrelated untracked `.claude/` and `evaluate/` paths remain.
+- Baseline lint: `yarn lint` exited `0`.
+- Baseline build: `yarn build` exited `0`; Vite reported chunk-size warnings only.
+- Source diff check: `git status --short` showed no tracked `src` changes after baseline commands.

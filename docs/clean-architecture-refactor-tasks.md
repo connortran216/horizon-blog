@@ -11,7 +11,7 @@ Status key:
 
 ## Stories
 
-- [ ] [R0 - Baseline and Graph Safety](./refactor-stories/R0-baseline-and-graph-safety.md)
+- [x] [R0 - Baseline and Graph Safety](./refactor-stories/R0-baseline-and-graph-safety.md)
 - [ ] [R1 - Blog Mapping Single Source of Truth](./refactor-stories/R1-blog-mapping-single-source.md)
 - [ ] [R2 - Repository Responsibility Cleanup](./refactor-stories/R2-repository-responsibility-cleanup.md)
 - [ ] [R3 - Blog Service Use-Case Expansion](./refactor-stories/R3-blog-service-use-cases.md)
@@ -26,4 +26,3 @@ Status key:
 ## Tracking Rule
 
 Update this index status and the corresponding story file whenever a story starts, completes, or becomes blocked. Keep implementation notes inside the story file, not in this index.
-
