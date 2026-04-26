@@ -23,6 +23,8 @@
 - Minimize logging noise; prefer intentional, helpful logs.
 - Document any architectural change in this file when it is non-obvious.
 - Keep frontend and API contracts aligned; do not guess missing endpoints.
+- For broad architecture, Clean Architecture, SOLID, optimization, or refactor requests, produce a concrete findings-and-proposals report first and wait for owner discussion before changing production code.
+- For multi-task planning, split work into separate story files with Header, Context, Acceptance Criteria, Interface Contracts when stories share boundaries, Technical Approach, Non-Goals when useful, and Definition of Done. Every functional or technical acceptance criterion must include a Verify command and Pass condition.
 
 ### 1.1 When you touch UI
 
