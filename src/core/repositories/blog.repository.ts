@@ -14,7 +14,6 @@ import {
   BlogPost,
   BlogPostSummary,
   BlogSearchOptions,
-  BlogStatus,
   PublicAuthor,
   PublicAuthorPostsPage,
   PublicPostRecord,
@@ -26,7 +25,7 @@ import {
   ApiPublicAuthorPostsResponse,
 } from '../types/blog-service.types'
 import { ApiError, apiService } from '../services/api.service'
-import { buildExcerptFromMarkdown } from '../utils/markdown-preview.utils'
+import { extractFirstImageFromMarkdown, mapApiPostToSummary } from '../utils/blog-mapping.utils'
 
 /**
  * Default configuration for blog repository
@@ -121,26 +120,6 @@ export class ApiBlogRepository implements IBlogRepository {
   }
 
   /**
-   * Extract first image URL from markdown content
-   */
-  private extractFirstImageFromMarkdown(content: string): string | undefined {
-    if (!content) return undefined
-
-    const markdownMatch = content.match(/!\[[^\]]*]\(([^)]+)\)/)
-    if (markdownMatch?.[1]) {
-      const raw = markdownMatch[1].trim()
-      const urlMatch = raw.match(/^<([^>]+)>|^(\S+)/)
-      const markdownUrl = urlMatch?.[1] || urlMatch?.[2]
-      if (markdownUrl) return markdownUrl
-    }
-
-    const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i)
-    if (htmlMatch?.[1]) return htmlMatch[1]
-
-    return undefined
-  }
-
-  /**
    * Normalize public API posts so consumer code can rely on stable optional fields.
    */
   private normalizePublicPost(post: ApiBlogPost): ApiBlogPost {
@@ -181,18 +160,6 @@ export class ApiBlogRepository implements IBlogRepository {
     }
   }
 
-  private getPostOwnerName(post: ApiBlogPost): string {
-    return post.owner?.name || post.user?.name || 'Anonymous'
-  }
-
-  private getPostOwnerAvatar(post: ApiBlogPost): string | undefined {
-    return post.owner?.avatar_url || post.user?.avatar_url || undefined
-  }
-
-  private getPostOwnerId(post: ApiBlogPost): number | undefined {
-    return post.owner?.id ?? post.user_id
-  }
-
   private cacheCurrentUserPostRecords(posts: ApiBlogPost[]): void {
     posts.forEach((post) => {
       this.setCache(`current-user-post_${post.id}`, this.normalizePublicPost(post))
@@ -204,32 +171,14 @@ export class ApiBlogRepository implements IBlogRepository {
    */
   private transformPostForDisplay(post: ApiBlogPost): BlogPostSummary {
     const normalizedPost = this.normalizePublicPost(post)
-    const featuredImage = this.extractFirstImageFromMarkdown(normalizedPost.content_markdown)
-
-    return {
-      id: normalizedPost.id.toString(),
-      title: normalizedPost.title,
-      excerpt: this.generateExcerpt(normalizedPost.content_markdown),
-      author: {
-        id: this.getPostOwnerId(normalizedPost),
-        username: this.getPostOwnerName(normalizedPost),
-        avatar: this.getPostOwnerAvatar(normalizedPost),
-      },
-      createdAt: normalizedPost.created_at,
-      updatedAt: normalizedPost.updated_at,
-      readingTime: this.calculateReadingTime(normalizedPost.content_markdown),
-      tags: normalizedPost.tags?.map((tag) => tag.name) || [],
-      featuredImage,
-      status: normalizedPost.status as BlogStatus,
-      slug: normalizedPost.id.toString(),
-    }
+    return mapApiPostToSummary(normalizedPost)
   }
 
   /**
    * Transform full blog post
    */
   private transformFullPost(post: BlogPost): BlogPost {
-    const extractedImage = this.extractFirstImageFromMarkdown(post.content_markdown)
+    const extractedImage = extractFirstImageFromMarkdown(post.content_markdown)
 
     return {
       ...post,
@@ -243,21 +192,6 @@ export class ApiBlogRepository implements IBlogRepository {
   private transformToApiPost(post: unknown): unknown {
     // For now, return as-is since the API accepts the same format
     return post
-  }
-
-  /**
-   * Generate excerpt from markdown content
-   */
-  private generateExcerpt(content: string, maxLength: number = 150): string {
-    return buildExcerptFromMarkdown(content, maxLength)
-  }
-
-  /**
-   * Calculate reading time based on word count
-   */
-  private calculateReadingTime(content: string): number {
-    const words = content.split(/\s+/).length
-    return Math.max(1, Math.ceil(words / 200)) // 200 words per minute
   }
 
   /**

@@ -12,7 +12,7 @@ Status key:
 ## Stories
 
 - [x] [R0 - Baseline and Graph Safety](./refactor-stories/R0-baseline-and-graph-safety.md)
-- [ ] [R1 - Blog Mapping Single Source of Truth](./refactor-stories/R1-blog-mapping-single-source.md)
+- [x] [R1 - Blog Mapping Single Source of Truth](./refactor-stories/R1-blog-mapping-single-source.md)
 - [ ] [R2 - Repository Responsibility Cleanup](./refactor-stories/R2-repository-responsibility-cleanup.md)
 - [ ] [R3 - Blog Service Use-Case Expansion](./refactor-stories/R3-blog-service-use-cases.md)
 - [ ] [R4 - Public Blog Hook Migration](./refactor-stories/R4-public-blog-hook-migration.md)

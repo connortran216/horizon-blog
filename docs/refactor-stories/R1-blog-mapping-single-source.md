@@ -86,3 +86,12 @@ Focus Area: domain mapping. The mapping utility should be pure and framework-fre
 - Duplicate mapper logic is removed from service/repository.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Added shared mapper: `src/core/utils/blog-mapping.utils.ts`.
+- `BlogService` now delegates excerpt, reading time, summary mapping, and enriched display fields to the shared utility.
+- `ApiBlogRepository` now delegates summary mapping and first-image extraction to the shared utility.
+- Duplicate private owner/image/reading-time/excerpt helper implementations were removed from `BlogService` and `ApiBlogRepository`.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.
