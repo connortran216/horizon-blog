@@ -83,3 +83,13 @@ Focus Area: app shell boundary. Layout should not know repository details becaus
 - Create/write action behavior is preserved or intentionally simplified with documented owner approval.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Navbar fallback publish now calls `getBlogService().publishPost(null, ...)`.
+- Removed direct `getBlogRepository().createPost()` usage from `Navbar`.
+- Removed navbar-side slug generation from the fallback publish path.
+- Navbar no longer inspects `RepositoryResult` success/data/error fields.
+- Validation: repository, slug-generation, and result-shape search in `src/app/layouts/Navbar.tsx` returned no matches.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

@@ -18,7 +18,7 @@ Status key:
 - [x] [R4 - Public Blog Hook Migration](./refactor-stories/R4-public-blog-hook-migration.md)
 - [x] [R5 - Profile Post Flow Migration](./refactor-stories/R5-profile-post-flow-migration.md)
 - [x] [R6 - Editor Save Flow Refactor](./refactor-stories/R6-editor-save-flow-refactor.md)
-- [ ] [R7 - Navbar Create Flow Migration](./refactor-stories/R7-navbar-create-flow-migration.md)
+- [x] [R7 - Navbar Create Flow Migration](./refactor-stories/R7-navbar-create-flow-migration.md)
 - [ ] [R8 - Dependency Injection Wiring Cleanup](./refactor-stories/R8-di-wiring-cleanup.md)
 - [ ] [R9 - Logging Cleanup](./refactor-stories/R9-logging-cleanup.md)
 - [ ] [R10 - Final Manual Verification](./refactor-stories/R10-final-manual-verification.md)

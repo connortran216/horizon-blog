@@ -13,7 +13,7 @@ import {
 import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { getBlogRepository } from '../../core/di/container'
+import { getBlogService } from '../../core'
 import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
 import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
 import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
@@ -71,30 +71,12 @@ const Navbar = () => {
       return
     }
 
-    const slug = editorState.title
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-
     try {
-      const result = await getBlogRepository().createPost({
+      const post = await getBlogService().publishPost(null, {
         title: editorState.title.trim(),
         content_markdown: editorState.content_markdown,
         content_json: '{}',
-        slug,
-        author: {
-          username: user?.username || 'Anonymous',
-          avatar: user?.avatar,
-        },
-        status: 'published',
       })
-
-      if (!result.success || !result.data) {
-        throw new Error(result.error || 'Failed to save blog post')
-      }
 
       toast({
         title: 'Success',
@@ -106,7 +88,7 @@ const Navbar = () => {
 
       const { particleSystem } = await import('../../components/core/animations/ParticleSystem')
       particleSystem.showSuccessParticles()
-      navigate(`/blog/${result.data.id}`)
+      navigate(`/blog/${post.id}`)
     } catch {
       toast({
         title: 'Error',
