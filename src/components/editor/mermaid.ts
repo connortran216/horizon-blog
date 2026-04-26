@@ -7,7 +7,6 @@ import type { Ctx } from '@milkdown/ctx'
 import type { NodeType } from '@milkdown/prose/model'
 import { TextSelection } from '@milkdown/prose/state'
 import type { EditorView } from '@milkdown/prose/view'
-import DOMPurify from 'dompurify'
 import type { Mermaid as MermaidInstance, MermaidConfig } from 'mermaid'
 
 const MERMAID_LANGUAGE = 'mermaid'
@@ -16,6 +15,41 @@ const FALLBACK_TEMPLATE = 'flowchart TD\n  A[Start] --> B[End]'
 let mermaidImportPromise: Promise<MermaidInstance> | null = null
 let configuredTheme: MermaidTheme | null = null
 let mermaidRenderSequence = 0
+
+const DANGEROUS_MERMAID_SVG_TAGS = new Set([
+  'script',
+  'iframe',
+  'object',
+  'embed',
+  'link',
+  'meta',
+  'form',
+  'input',
+  'button',
+  'textarea',
+  'select',
+  'option',
+])
+
+const URL_ATTRIBUTE_NAMES = new Set(['href', 'poster', 'src'])
+
+const stripUnsafeUrlPadding = (value: string): string =>
+  Array.from(value)
+    .filter((character) => {
+      const charCode = character.charCodeAt(0)
+
+      return charCode > 0x1f && charCode !== 0x7f && !/\s/.test(character)
+    })
+    .join('')
+
+const stripControlCharacters = (value: string): string =>
+  Array.from(value)
+    .filter((character) => {
+      const charCode = character.charCodeAt(0)
+
+      return charCode > 0x1f && charCode !== 0x7f
+    })
+    .join('')
 
 type PreviewValue = null | string | HTMLElement
 
@@ -109,97 +143,85 @@ const createMermaidErrorPreview = (error: unknown): HTMLElement => {
 const createMermaidLoadingPreview = (message: string): HTMLElement =>
   createPreviewShell('mermaid-preview--loading', 'Diagram preview', message)
 
-export const sanitizeMermaidSvg = (svg: string): string =>
-  DOMPurify.sanitize(svg, {
-    USE_PROFILES: {
-      html: true,
-      svg: true,
-      svgFilters: true,
-    },
-    ADD_TAGS: [
-      'foreignObject',
-      'foreignobject',
-      'div',
-      'span',
-      'p',
-      'br',
-      'b',
-      'i',
-      'u',
-      's',
-      'del',
-      'ins',
-      'strong',
-      'em',
-      'a',
-      'code',
-      'kbd',
-      'samp',
-      'small',
-      'sub',
-      'sup',
-      'mark',
-      'abbr',
-    ],
-    ADD_ATTR: [
-      'alignment-baseline',
-      'aria-label',
-      'aria-roledescription',
-      'background-color',
-      'class',
-      'clip-path',
-      'color',
-      'd',
-      'data-id',
-      'dominant-baseline',
-      'dx',
-      'dy',
-      'fill',
-      'font-family',
-      'font-size',
-      'font-weight',
-      'height',
-      'href',
-      'id',
-      'lengthAdjust',
-      'marker-end',
-      'marker-mid',
-      'marker-start',
-      'markerHeight',
-      'markerUnits',
-      'markerWidth',
-      'orient',
-      'preserveAspectRatio',
-      'refX',
-      'refY',
-      'role',
-      'rx',
-      'ry',
-      'stroke',
-      'stroke-dasharray',
-      'stroke-dashoffset',
-      'stroke-linecap',
-      'stroke-linejoin',
-      'stroke-width',
-      'style',
-      'text-anchor',
-      'transform',
-      'viewBox',
-      'width',
-      'x',
-      'x1',
-      'x2',
-      'xlink:href',
-      'xmlns',
-      'xmlns:xlink',
-      'y',
-      'y1',
-      'y2',
-      'target',
-      'rel',
-      'title',
-    ],
+const isUnsafeUrlValue = (value: string): boolean => {
+  const normalizedValue = stripUnsafeUrlPadding(value).toLowerCase()
+
+  return (
+    normalizedValue.startsWith('javascript:') ||
+    normalizedValue.startsWith('vbscript:') ||
+    normalizedValue.startsWith('data:text/html')
+  )
+}
+
+const isUnsafeStyleValue = (value: string): boolean => {
+  const normalizedValue = stripControlCharacters(value).trim().toLowerCase()
+
+  return (
+    normalizedValue.includes('javascript:') ||
+    normalizedValue.includes('vbscript:') ||
+    normalizedValue.includes('data:text/html') ||
+    normalizedValue.includes('expression(') ||
+    normalizedValue.includes('-moz-binding')
+  )
+}
+
+const sanitizeMermaidSvgNode = (node: Node): void => {
+  const childNodes = Array.from(node.childNodes)
+
+  childNodes.forEach((childNode) => {
+    if (childNode.nodeType === Node.COMMENT_NODE) {
+      childNode.remove()
+      return
+    }
+
+    if (childNode.nodeType !== Node.ELEMENT_NODE) {
+      return
+    }
+
+    const element = childNode as Element
+    const tagName = element.tagName.toLowerCase()
+
+    if (DANGEROUS_MERMAID_SVG_TAGS.has(tagName)) {
+      element.remove()
+      return
+    }
+
+    Array.from(element.attributes).forEach((attribute) => {
+      const attributeName = attribute.name.toLowerCase()
+      const attributeValue = attribute.value
+      const isUrlAttribute =
+        URL_ATTRIBUTE_NAMES.has(attributeName) || attributeName.endsWith(':href')
+
+      if (
+        attributeName.startsWith('on') ||
+        attributeName === 'srcdoc' ||
+        (isUrlAttribute && isUnsafeUrlValue(attributeValue)) ||
+        (attributeName === 'style' && isUnsafeStyleValue(attributeValue))
+      ) {
+        element.removeAttribute(attribute.name)
+      }
+    })
+
+    sanitizeMermaidSvgNode(element)
   })
+}
+
+export const sanitizeMermaidSvg = (svg: string): string => {
+  if (!svg.trim()) {
+    return ''
+  }
+
+  const document = new DOMParser().parseFromString(svg, 'text/html')
+  const svgElement = document.body.querySelector('svg')
+
+  if (!svgElement) {
+    return ''
+  }
+
+  sanitizeMermaidSvgNode(svgElement)
+
+  return svgElement.outerHTML
+}
 
 const createMermaidZoomButton = (): HTMLButtonElement => {
   const button = document.createElement('button')

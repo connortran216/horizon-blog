@@ -332,6 +332,7 @@
 - Keep diagram content in raw fenced markdown (for example, ` ```mermaid ` blocks); do not persist rendered SVG or HTML.
 - Reuse the read-only Crepe path for preview and public reader surfaces so authoring and reading stay behaviorally aligned.
 - Mermaid HTML labels such as `<br/>` inside node text are valid and should be preserved; do not disable HTML labels as a workaround unless the owner explicitly asks for that tradeoff.
+- When debugging Mermaid label rendering, verify the rendered DOM contains populated `foreignObject` children, not only empty `foreignObject` shells.
 
 ## 9. API Integration
 
