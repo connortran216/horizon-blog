@@ -6,10 +6,8 @@
  */
 
 import { useEffect, useCallback, useRef, useState } from 'react'
-import { getBlogRepository } from '../../../core/di/container'
-import { BlogPost } from '../../../core/types/blog.types'
 import { ApiError } from '../../../core/services/api.service'
-import { RepositoryResult } from '../../../core/types/blog-repository.types'
+import { EditorPostInput, getEditorPostService } from '../editor-post.service'
 
 interface UseAutoSaveOptions {
   autoSaveDelay?: number // Auto-save delay in milliseconds (default: 5000)
@@ -47,17 +45,6 @@ export function useAutoSave(
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const localSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const toRepositoryError = useCallback(
-    <T>(result: RepositoryResult<T>, fallback: string): Error => {
-      if (result.statusCode) {
-        return new ApiError(result.error || fallback, result.statusCode)
-      }
-
-      return new Error(result.error || fallback)
-    },
-    [],
-  )
-
   const setValidationState = useCallback((error: unknown) => {
     setState((prev) => ({
       ...prev,
@@ -65,6 +52,16 @@ export function useAutoSave(
         error instanceof ApiError && error.status === 400 ? error.message : undefined,
     }))
   }, [])
+
+  const buildEditorPostInput = useCallback(
+    (): EditorPostInput => ({
+      title: title.trim(),
+      content_markdown: contentMarkdown,
+      content_json: '{}',
+      tag_names: tags,
+    }),
+    [contentMarkdown, tags, title],
+  )
 
   useEffect(() => {
     if (postId) {
@@ -109,15 +106,8 @@ export function useAutoSave(
 
     try {
       setValidationState(undefined)
-      const postData = {
-        title: title.trim(),
-        content_markdown: contentMarkdown,
-        content_json: '{}',
-        status: 'draft' as const,
-        tag_names: tags,
-      }
-
-      const repository = getBlogRepository()
+      const postData = buildEditorPostInput()
+      const editorPostService = getEditorPostService()
       let updatedPostId = postIdRef.current
 
       if (!updatedPostId && createInFlightRef.current) {
@@ -125,30 +115,11 @@ export function useAutoSave(
       }
 
       if (updatedPostId) {
-        // Update existing post
-        const result = await repository.updatePost(updatedPostId.toString(), postData)
-        if (!result.success) {
-          throw toRepositoryError(result, 'Failed to update post')
-        }
+        await editorPostService.saveDraft(updatedPostId.toString(), postData)
       } else {
         const createPromise = (async () => {
-          const result = await repository.createPost({
-            title: postData.title,
-            content_markdown: postData.content_markdown,
-            content_json: postData.content_json,
-            status: postData.status,
-            tags: tags,
-            author: { username: '', avatar: undefined },
-            excerpt: '',
-            slug: '',
-            readingTime: 1,
-          } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
-
-          if (!result.success || !result.data?.id) {
-            throw toRepositoryError(result, 'Failed to create post')
-          }
-
-          const createdPostId = Number(result.data.id)
+          const savedPost = await editorPostService.saveDraft(null, postData)
+          const createdPostId = Number(savedPost.id)
           setCurrentPostId(createdPostId)
           postIdRef.current = createdPostId
           return createdPostId
@@ -171,8 +142,6 @@ export function useAutoSave(
         validationMessage: undefined,
       })
 
-      console.log('✅ Auto-saved to backend')
-
       // Return the updated post ID in case it was newly created
       return updatedPostId
     } catch (error) {
@@ -187,7 +156,7 @@ export function useAutoSave(
       // Don't show toast for auto-save errors to avoid interrupting user
       return null
     }
-  }, [contentMarkdown, contentJSON, setValidationState, tags, title, toRepositoryError])
+  }, [buildEditorPostInput, contentMarkdown, setValidationState, title])
 
   // Manual publish function (extracted from original component)
   const publishPost = useCallback(async () => {
@@ -199,15 +168,8 @@ export function useAutoSave(
       throw new Error('Please add content to your blog post')
     }
 
-    const postData = {
-      title: title.trim(),
-      content_markdown: contentMarkdown,
-      content_json: '{}',
-      status: 'published' as const,
-      tag_names: tags,
-    }
-
-    const repository = getBlogRepository()
+    const postData = buildEditorPostInput()
+    const editorPostService = getEditorPostService()
 
     try {
       setValidationState(undefined)
@@ -218,36 +180,17 @@ export function useAutoSave(
       }
 
       if (targetPostId) {
-        // Update existing post
-        const result = await repository.updatePost(targetPostId.toString(), postData)
-        if (!result.success) {
-          throw toRepositoryError(result, 'Failed to update blog post')
-        }
+        const publishedPost = await editorPostService.publish(targetPostId.toString(), postData)
         setState((prev) => ({
           ...prev,
           validationMessage: undefined,
         }))
-        return result.data
+        return publishedPost
       } else {
-        // Create new post
-        const result = await repository.createPost({
-          title: postData.title,
-          content_markdown: postData.content_markdown,
-          content_json: postData.content_json,
-          status: postData.status,
-          tags: tags,
-          author: { username: '', avatar: undefined },
-          excerpt: '',
-          slug: '',
-          readingTime: 1,
-        } as Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>)
+        const publishedPost = await editorPostService.publish(null, postData)
 
-        if (!result.success) {
-          throw toRepositoryError(result, 'Failed to create blog post')
-        }
-
-        if (result.data?.id) {
-          setCurrentPostId(Number(result.data.id))
+        if (publishedPost.id) {
+          setCurrentPostId(Number(publishedPost.id))
         }
 
         setState((prev) => ({
@@ -255,7 +198,7 @@ export function useAutoSave(
           validationMessage: undefined,
         }))
 
-        return result.data
+        return publishedPost
       }
     } catch (error: unknown) {
       setValidationState(error)
@@ -265,7 +208,7 @@ export function useAutoSave(
 
       throw new Error(`Failed to ${postIdRef.current ? 'update' : 'publish'} blog post`)
     }
-  }, [contentMarkdown, contentJSON, setValidationState, tags, title, toRepositoryError])
+  }, [buildEditorPostInput, contentMarkdown, setValidationState, title])
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {

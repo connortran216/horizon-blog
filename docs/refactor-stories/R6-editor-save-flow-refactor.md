@@ -121,3 +121,13 @@ Focus Area: editor write path. Timers and save status are React concerns, while 
 - Autosave, publish, validation, and authorized edit behavior are preserved.
 - Lint and build pass.
 
+## Execution Notes
+
+- Status: Done
+- Added `src/features/editor/editor-post.service.ts` to own editable-post loading, draft save, and publish orchestration.
+- `useAutoSave` now manages timers, local backup, save state, validation state, and the existing in-flight create guard while delegating backend save/publish to `EditorPostService`.
+- `useBlogPost` now loads editable posts through `EditorPostService` and no longer calls the blog repository directly.
+- Removed debug `console.log` statements from `useAutoSave` and `useBlogPost` touched paths.
+- Validation: `rg "getBlogRepository|RepositoryResult|toRepositoryError|console\\.log" src/features/editor/hooks/useAutoSave.ts src/features/editor/hooks/useBlogPost.ts src/features/editor/editor-post.service.ts` returned no matches.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.

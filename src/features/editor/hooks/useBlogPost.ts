@@ -9,8 +9,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { useToast } from '@chakra-ui/react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
-import { getBlogRepository } from '../../../core/di/container'
+import { ApiError } from '../../../core'
 import { PublicPostRecord } from '../../../core/types/blog.types'
+import { getEditorPostService } from '../editor-post.service'
 
 interface UseBlogPostOptions {
   redirectOnError?: boolean
@@ -104,13 +105,6 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
 
   // Load post data
   const loadPost = useCallback(async () => {
-    console.log(
-      '🚀 Loading blog post with postIdParam:',
-      postIdParam,
-      'routerPost:',
-      routerPost?.id,
-    )
-
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
     try {
@@ -118,17 +112,16 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
 
       // Load by ID if URL parameter exists and no router state
       if (postIdParam && !post) {
-        console.log('🔗 Loading post by ID:', postIdParam)
-        const repository = getBlogRepository()
-        const result = await repository.getCurrentUserPostById(postIdParam)
-
-        if (!result.success || !result.data) {
+        try {
+          post = await getEditorPostService().loadEditablePost(postIdParam, user?.id ?? 0)
+        } catch (error) {
+          const statusCode = error instanceof ApiError ? error.status : undefined
           const errorMsg =
-            result.statusCode === 404
+            statusCode === 404
               ? 'This post is not available in your workspace.'
-              : result.statusCode === 401
+              : statusCode === 401
                 ? 'Your session has expired. Please sign in again.'
-                : result.statusCode === 403
+                : statusCode === 403
                   ? 'You do not have permission to edit this post.'
                   : 'Failed to load post'
 
@@ -153,19 +146,10 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
 
           return
         }
-
-        post = result.data
       }
 
       // Initialize state from loaded post
       if (post) {
-        console.log(
-          '📋 Loading post:',
-          post.title,
-          'with content length:',
-          post.content_markdown?.length || 0,
-        )
-
         // For editing, check authorization
         if (postIdParam && !checkAuthorization(post)) {
           return
@@ -177,11 +161,7 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
           isLoading: false,
           error: null,
         })
-
-        console.log('✅ Post loaded successfully')
       } else {
-        // New post
-        console.log('🆕 Initializing new post')
         setState({
           post: null,
           postId: null,
