@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@chakra-ui/react'
-import { getBlogRepository } from '../../core/di/container'
+import { ApiError, getBlogService } from '../../core'
 import { BlogArchivePost } from '../blog/blog.types'
 
 interface UseOwnerBlogPostDetailOptions {
   redirectPath: string
   routeUsername?: string
+  authenticatedUserId?: number
   authenticatedUsername?: string
 }
 
@@ -29,6 +30,7 @@ const buildOwnerPostErrorMessage = (statusCode?: number) => {
 export const useOwnerBlogPostDetail = ({
   redirectPath,
   routeUsername,
+  authenticatedUserId,
   authenticatedUsername,
 }: UseOwnerBlogPostDetailOptions) => {
   const { id } = useParams<{ id: string }>()
@@ -38,7 +40,7 @@ export const useOwnerBlogPostDetail = ({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!id || !authenticatedUsername) {
+    if (!id || !authenticatedUserId || !authenticatedUsername) {
       setPost(null)
       setLoading(false)
       return
@@ -64,26 +66,25 @@ export const useOwnerBlogPostDetail = ({
     setPost(null)
 
     const fetchOwnerPost = async () => {
-      const result = await getBlogRepository().getCurrentUserPostById(id)
-
-      if (isCancelled) {
-        return
-      }
-
-      if (!result.success || !result.data) {
+      try {
+        const ownerPost = await getBlogService().getEditablePostById(id, authenticatedUserId)
+        if (!isCancelled) {
+          setPost(ownerPost)
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return
+        }
+        const statusCode = error instanceof ApiError ? error.status : undefined
         toast({
           title: 'Post unavailable',
-          description: buildOwnerPostErrorMessage(result.statusCode),
+          description: buildOwnerPostErrorMessage(statusCode),
           status: 'error',
           duration: 4000,
           isClosable: true,
         })
         navigate(redirectPath, { replace: true })
-        return
       }
-
-      setPost(result.data)
-      setLoading(false)
     }
 
     void fetchOwnerPost().finally(() => {
@@ -95,7 +96,7 @@ export const useOwnerBlogPostDetail = ({
     return () => {
       isCancelled = true
     }
-  }, [authenticatedUsername, id, navigate, redirectPath, routeUsername, toast])
+  }, [authenticatedUserId, authenticatedUsername, id, navigate, redirectPath, routeUsername, toast])
 
   return {
     post,

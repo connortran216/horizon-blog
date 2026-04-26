@@ -20,7 +20,7 @@ import {
   FadeInShimmer,
   MotionWrapper,
   ShimmerLoader,
-  getBlogRepository,
+  getBlogService,
 } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import HeroArchivePreview from '../components/HeroArchivePreview'
@@ -41,21 +41,15 @@ const HomePage = () => {
 
   useEffect(() => {
     const loadBlogPosts = async () => {
-      getBlogRepository().clearCache?.()
-
       try {
-        const result = await getBlogRepository().getPublishedPosts({ limit: 6 })
-        if (result.success && result.data) {
-          const posts = result.data.map((summary) => ({
-            ...summary,
-            content_markdown: '',
-            content_json: '{}',
-            user_id: 0,
-          }))
-          setBlogPosts(posts)
-        } else {
-          console.error('Failed to load blog posts:', result.error)
-        }
+        const summaries = await getBlogService().getPublishedPosts({ limit: 6 })
+        const posts = summaries.map((summary) => ({
+          ...summary,
+          content_markdown: '',
+          content_json: '{}',
+          user_id: 0,
+        }))
+        setBlogPosts(posts)
       } catch (error) {
         console.error('Error loading blog posts:', error)
       } finally {

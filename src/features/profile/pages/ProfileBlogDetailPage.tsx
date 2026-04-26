@@ -16,6 +16,7 @@ const ProfileBlogDetailPage = () => {
   const { post, loading } = useOwnerBlogPostDetail({
     redirectPath,
     routeUsername: username,
+    authenticatedUserId: user?.id,
     authenticatedUsername: user?.username,
   })
 

@@ -144,3 +144,18 @@ Focus Area: behavior preservation. Final verification should combine static comm
 - Final build passes.
 - Story index is updated to mark completed stories.
 
+## Execution Notes
+
+- Status: Static verification complete; manual browser verification is blocked on owner-run dev server and backend.
+- Cleanup found during static verification: `HomePage` now loads previews through `BlogService` instead of `getBlogRepository()`.
+- Cleanup found during static verification: `useOwnerBlogPostDetail` now loads owner-visible post detail through `BlogService.getEditablePostById`.
+- Cleanup found during static verification: `ProfileBlogDetailPage` passes the authenticated user id into the owner-detail hook so the service keeps the authorization check.
+- Validation: `rg "apiService" src/features src/app src/components` only returned `src/features/media/media.api.ts`, which is the approved media API adapter.
+- Validation: `rg "getBlogRepository" src/features src/app src/components` returned no matches.
+- Validation: `rg "extractFirstImageFromMarkdown|getPostOwnerName|calculateReadingTime" src/core` confirmed markdown mapping logic is centralized in `blog-mapping.utils`; `blog.utils.ts` remains the deprecated Lexical-only helper.
+- Validation: `rg "ApiError|statusCode|status ===" src/features src/core/services` confirmed status-aware error handling remains.
+- Validation: `rg "useAuth|AuthStatus|ProtectedRoute|user.id" src/features src/components src/context` confirmed protected flows still depend on auth state.
+- Validation: `rg "Clean Architecture|repository -> service|apiService -> repository" docs AGENTS.md` confirmed docs describe the final boundary.
+- Validation: `yarn lint` exited `0`.
+- Validation: `yarn build` exited `0`; Vite reported chunk-size warnings only.
+- Not run by Codex: browser checks for public archive, search, tag filtering, pagination, detail, author archive, profile, delete, media resolution, editor autosave, publish, unauthorized edit, and session restore. These require the owner-run frontend/backend runtime per repo rules.
