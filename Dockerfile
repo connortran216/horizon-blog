@@ -18,8 +18,8 @@ COPY . .
 # Build the application (skip TypeScript checking for Docker deployment)
 RUN yarn build
 
-# Expose port 3000 (Vite preview default port)
+# Expose port 3000
 EXPOSE 3000
 
-# Start Vite preview server to serve built files
-CMD ["yarn", "preview", "--host", "0.0.0.0", "--port", "3000"]
+# Serve built files and inject crawler-visible metadata for blog detail routes
+CMD ["yarn", "preview:meta"]

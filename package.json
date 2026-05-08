@@ -11,7 +11,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:meta": "node scripts/serve-with-meta.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
