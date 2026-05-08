@@ -10,7 +10,9 @@ const distDir = resolve(rootDir, 'dist');
 const indexPath = join(distDir, 'index.html');
 
 const port = Number(process.env.PORT || 3000);
-const beHost = (process.env.BE_HOST || 'https://blog-api.connortran.io.vn').replace(/\/+$/, '');
+const defaultBeHost = 'https://blog-api.connortran.io.vn';
+const configuredBeHost = (process.env.BE_HOST || '').trim().replace(/\/+$/, '');
+const backendHosts = Array.from(new Set([configuredBeHost, defaultBeHost].filter(Boolean)));
 const publicSiteUrl = (process.env.PUBLIC_SITE_URL || '').replace(/\/+$/, '');
 const defaultDescription =
   'A personal blog for thoughtful writing about life, experience, and technology.';
@@ -99,6 +101,26 @@ const toAbsoluteUrl = (value, origin) => {
   return undefined;
 };
 
+const fetchJsonFromBackend = async (path, options) => {
+  let lastError;
+
+  for (const host of backendHosts) {
+    try {
+      const response = await fetch(`${host}${path}`, options);
+      if (!response.ok) {
+        lastError = new Error(`Backend ${host}${path} returned ${response.status}`);
+        continue;
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error(`No backend host could serve ${path}`);
+};
+
 const resolveMediaToken = async (imageUrl) => {
   const mediaMatch = imageUrl?.match(/^media:\/\/([a-zA-Z0-9_-]+)$/);
   const mediaId = mediaMatch?.[1];
@@ -106,15 +128,12 @@ const resolveMediaToken = async (imageUrl) => {
 
   if (!Number.isInteger(numericMediaId) || numericMediaId <= 0) return undefined;
 
-  const response = await fetch(`${beHost}/media/resolve`, {
+  const payload = await fetchJsonFromBackend('/media/resolve', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ media_ids: [numericMediaId] }),
   });
 
-  if (!response.ok) return undefined;
-
-  const payload = await response.json();
   const data = payload?.data ?? payload;
   const items = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
   const resolved = items.find((item) => {
@@ -136,10 +155,7 @@ const fetchPostMetadata = async (postId, origin) => {
   const cached = metadataCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < metadataCacheTtlMs) return cached.metadata;
 
-  const response = await fetch(`${beHost}/posts/${encodeURIComponent(postId)}`);
-  if (!response.ok) return undefined;
-
-  const payload = await response.json();
+  const payload = await fetchJsonFromBackend(`/posts/${encodeURIComponent(postId)}`);
   const post = payload?.data;
   if (!post?.title) return undefined;
 
