@@ -71,6 +71,22 @@ const findHashTarget = (root: HTMLElement, hash: string): HTMLElement | null => 
   return root.querySelector<HTMLElement>(`[name="${CSS.escape(targetId)}"]`)
 }
 
+const getReaderHash = (anchor: HTMLAnchorElement): string | null => {
+  if (!anchor.hash) {
+    return null
+  }
+
+  const url = new URL(anchor.href, window.location.href)
+  const currentPath = window.location.pathname
+  const pointsToCurrentDocument = url.pathname === currentPath || url.pathname === '/'
+
+  if (url.origin !== window.location.origin || !pointsToCurrentDocument) {
+    return null
+  }
+
+  return url.hash
+}
+
 interface CrepeEditorProps {
   initialContent?: string
   onChange?: (markdown: string) => void
@@ -242,19 +258,28 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         return
       }
 
-      const anchor = target.closest<HTMLAnchorElement>('a[href^="#"]')
+      const anchor = target.closest<HTMLAnchorElement>('a[href]')
       if (!anchor || !editorRef.current.contains(anchor)) {
         return
       }
 
-      const targetElement = findHashTarget(editorRef.current, anchor.hash)
+      const hash = getReaderHash(anchor)
+      if (!hash) {
+        return
+      }
+
+      const targetElement = findHashTarget(editorRef.current, hash)
       if (!targetElement) {
         return
       }
 
       event.preventDefault()
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      window.history.replaceState(null, '', `${window.location.pathname}${anchor.hash}`)
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}${hash}`,
+      )
     },
     [handleMermaidPreviewClick, readOnly],
   )
