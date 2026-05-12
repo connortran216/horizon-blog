@@ -71,14 +71,20 @@ const findHashTarget = (root: HTMLElement, hash: string): HTMLElement | null => 
   return root.querySelector<HTMLElement>(`[name="${CSS.escape(targetId)}"]`)
 }
 
+const normalizeReaderPath = (path: string): string => {
+  const decodedPath = decodeHash(path)
+  return decodedPath.length > 1 ? decodedPath.replace(/\/+$/g, '') : decodedPath
+}
+
 const getReaderHash = (anchor: HTMLAnchorElement): string | null => {
   if (!anchor.hash) {
     return null
   }
 
   const url = new URL(anchor.href, window.location.href)
-  const currentPath = window.location.pathname
-  const pointsToCurrentDocument = url.pathname === currentPath || url.pathname === '/'
+  const currentPath = normalizeReaderPath(window.location.pathname)
+  const linkPath = normalizeReaderPath(url.pathname)
+  const pointsToCurrentDocument = linkPath === currentPath || linkPath === '/'
 
   if (url.origin !== window.location.origin || !pointsToCurrentDocument) {
     return null
