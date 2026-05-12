@@ -68,7 +68,17 @@ const findHashTarget = (root: HTMLElement, hash: string): HTMLElement | null => 
     return byId
   }
 
-  return root.querySelector<HTMLElement>(`[name="${CSS.escape(targetId)}"]`)
+  const byName = root.querySelector<HTMLElement>(`[name="${CSS.escape(targetId)}"]`)
+  if (byName) {
+    return byName
+  }
+
+  const normalizedTargetId = slugifyHeadingText(targetId)
+  if (!normalizedTargetId || normalizedTargetId === targetId) {
+    return null
+  }
+
+  return root.querySelector<HTMLElement>(`#${CSS.escape(normalizedTargetId)}`)
 }
 
 const normalizeReaderPath = (path: string): string => {
@@ -84,7 +94,8 @@ const getReaderHash = (anchor: HTMLAnchorElement): string | null => {
   const url = new URL(anchor.href, window.location.href)
   const currentPath = normalizeReaderPath(window.location.pathname)
   const linkPath = normalizeReaderPath(url.pathname)
-  const pointsToCurrentDocument = linkPath === currentPath || linkPath === '/'
+  const pointsToCurrentDocument =
+    linkPath === currentPath || linkPath === '/' || linkPath === '/blog'
 
   if (url.origin !== window.location.origin || !pointsToCurrentDocument) {
     return null
