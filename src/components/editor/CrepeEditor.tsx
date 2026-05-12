@@ -35,6 +35,42 @@ import { isAllowedMediaUpload } from '../../features/media/media.upload'
 import '@milkdown/crepe/theme/common/style.css'
 import './crepe-theme.css'
 
+const headingSelector = 'h1, h2, h3, h4, h5, h6'
+
+const slugifyHeadingText = (text: string): string =>
+  text
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+const decodeHash = (hash: string): string => {
+  try {
+    return decodeURIComponent(hash)
+  } catch {
+    return hash
+  }
+}
+
+const findHashTarget = (root: HTMLElement, hash: string): HTMLElement | null => {
+  const targetId = decodeHash(hash.slice(1))
+
+  if (!targetId) {
+    return null
+  }
+
+  const byId = root.querySelector<HTMLElement>(`#${CSS.escape(targetId)}`)
+  if (byId) {
+    return byId
+  }
+
+  return root.querySelector<HTMLElement>(`[name="${CSS.escape(targetId)}"]`)
+}
+
 interface CrepeEditorProps {
   initialContent?: string
   onChange?: (markdown: string) => void
@@ -74,6 +110,26 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const { colorMode } = useColorMode()
   const toast = useToast()
   const mermaidTheme = colorMode === 'dark' ? 'dark' : 'neutral'
+
+  const applyHeadingAnchors = useCallback(() => {
+    if (!readOnly || !editorRef.current) {
+      return
+    }
+
+    const slugCounts = new Map<string, number>()
+    const headings = editorRef.current.querySelectorAll<HTMLHeadingElement>(headingSelector)
+
+    headings.forEach((heading) => {
+      const baseSlug = slugifyHeadingText(heading.textContent || '')
+      if (!baseSlug) {
+        return
+      }
+
+      const count = slugCounts.get(baseSlug) || 0
+      slugCounts.set(baseSlug, count + 1)
+      heading.id = count === 0 ? baseSlug : `${baseSlug}-${count + 1}`
+    })
+  }, [readOnly])
 
   useEffect(() => {
     postIdRef.current = postId
@@ -172,6 +228,36 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       setMermaidZoomSvg(diagramSvg.outerHTML)
     }
   }, [])
+
+  const handleEditorClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      handleMermaidPreviewClick(event)
+
+      if (event.defaultPrevented || !readOnly || !editorRef.current) {
+        return
+      }
+
+      const target = event.target
+      if (!(target instanceof HTMLElement)) {
+        return
+      }
+
+      const anchor = target.closest<HTMLAnchorElement>('a[href^="#"]')
+      if (!anchor || !editorRef.current.contains(anchor)) {
+        return
+      }
+
+      const targetElement = findHashTarget(editorRef.current, anchor.hash)
+      if (!targetElement) {
+        return
+      }
+
+      event.preventDefault()
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      window.history.replaceState(null, '', `${window.location.pathname}${anchor.hash}`)
+    },
+    [handleMermaidPreviewClick, readOnly],
+  )
 
   useEffect(() => {
     isMountedRef.current = true
@@ -390,6 +476,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
               slashMenuInput.setAttribute('id', `${inputId}-command`)
               slashMenuInput.setAttribute('name', `${inputName}Command`)
             }
+
+            applyHeadingAnchors()
           }
 
           applyFormAttrs()
@@ -421,7 +509,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         crepeRef.current = null
       }
     }
-  }, [mermaidTheme])
+  }, [applyHeadingAnchors, mermaidTheme])
 
   // Update content when initialContent changes (e.g., edit existing post after async load)
   useEffect(() => {
@@ -456,7 +544,7 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         minH="500px"
         className="crepe-editor-wrapper"
         data-readonly={readOnly ? 'true' : 'false'}
-        onClick={handleMermaidPreviewClick}
+        onClick={handleEditorClick}
         sx={{
           // Ensure proper height and scrolling
           '& .milkdown': {
