@@ -93,6 +93,27 @@ const getReaderHash = (anchor: HTMLAnchorElement): string | null => {
   return url.hash
 }
 
+const scrollToReaderHashTarget = (root: HTMLElement, anchor: HTMLAnchorElement): boolean => {
+  const hash = getReaderHash(anchor)
+  if (!hash) {
+    return false
+  }
+
+  const targetElement = findHashTarget(root, hash)
+  if (!targetElement) {
+    return false
+  }
+
+  targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  window.history.replaceState(
+    null,
+    '',
+    `${window.location.pathname}${window.location.search}${hash}`,
+  )
+
+  return true
+}
+
 interface CrepeEditorProps {
   initialContent?: string
   onChange?: (markdown: string) => void
@@ -269,26 +290,47 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         return
       }
 
-      const hash = getReaderHash(anchor)
-      if (!hash) {
-        return
-      }
-
-      const targetElement = findHashTarget(editorRef.current, hash)
-      if (!targetElement) {
+      if (!scrollToReaderHashTarget(editorRef.current, anchor)) {
         return
       }
 
       event.preventDefault()
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      window.history.replaceState(
-        null,
-        '',
-        `${window.location.pathname}${window.location.search}${hash}`,
-      )
     },
     [handleMermaidPreviewClick, readOnly],
   )
+
+  useEffect(() => {
+    const root = editorRef.current
+    if (!readOnly || !root) {
+      return
+    }
+
+    const handleHashLinkClick = (event: MouseEvent) => {
+      const target = event.target
+      if (!(target instanceof HTMLElement)) {
+        return
+      }
+
+      const anchor = target.closest<HTMLAnchorElement>('a[href]')
+      if (!anchor || !root.contains(anchor)) {
+        return
+      }
+
+      applyHeadingAnchors()
+      if (!scrollToReaderHashTarget(root, anchor)) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+    }
+
+    root.addEventListener('click', handleHashLinkClick, true)
+    return () => {
+      root.removeEventListener('click', handleHashLinkClick, true)
+    }
+  }, [applyHeadingAnchors, readOnly])
 
   useEffect(() => {
     isMountedRef.current = true
