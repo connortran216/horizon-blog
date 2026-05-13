@@ -11,6 +11,7 @@ const Cv = lazy(() => import('./pages/Cv'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const LoginCallback = lazy(() => import('./features/auth/pages/LoginCallbackPage'))
+const OAuthAuthorize = lazy(() => import('./pages/OAuthAuthorize'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const AuthorArchive = lazy(() => import('./pages/AuthorArchive'))
@@ -40,6 +41,7 @@ const Routes = () => {
         <Route path="/cv" element={<Cv />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/callback" element={<LoginCallback />} />
+        <Route path="/oauth/authorize" element={<OAuthAuthorize />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
