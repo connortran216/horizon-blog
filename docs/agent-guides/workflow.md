@@ -24,6 +24,19 @@ Task routing:
 
 The goal is selective loading, not no loading. Do not skip a relevant guide to save tokens; avoid loading unrelated guides.
 
+## Spec Kit + Superpowers Workflow
+
+Use Spec Kit and Superpowers together for non-trivial feature work:
+
+1. Start with the relevant Superpowers process skill to clarify intent, constraints, and approval gates.
+2. Use Spec Kit to produce durable project artifacts: `specify -> clarify when needed -> plan -> tasks -> implement`.
+3. Check `.specify/memory/constitution.md` during Spec Kit planning and before implementation.
+4. Keep Spec Kit artifacts focused on the product and implementation contract; keep Superpowers as the execution discipline for brainstorming, TDD, debugging, and verification.
+5. For BE/FE features, let the backend own API behavior and contract changes, then make the frontend consume the approved contract without inventing endpoints or response fields.
+6. If the frontend and backend both change, keep matching feature names in each repo's `specs/` artifacts and link the counterpart spec or plan in the implementation notes.
+
+Use the lighter repo workflow instead of full Spec Kit only for narrow maintenance, docs-only edits, mechanical formatting, or one-line fixes where a full feature spec would add noise.
+
 ## Token-Conscious Exploration
 
 - Prefix shell commands with `rtk` whenever available.
