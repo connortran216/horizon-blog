@@ -20,7 +20,7 @@ import FeaturedStory from '../components/FeaturedStory'
 import { useBlogArchive } from '../useBlogArchive'
 
 const BlogPage = () => {
-  const limit = 6
+  const limit = 9
   const {
     searchInput,
     setSearchInput,
@@ -101,7 +101,7 @@ const BlogPage = () => {
           <AnimatePresence mode="wait">
             {loading ? (
               <FadeInShimmer key="loading" delay={0.2}>
-                <ShimmerLoader variant="blog" count={6} />
+                <ShimmerLoader variant="blog" count={9} />
               </FadeInShimmer>
             ) : posts.length === 0 ? (
               <MotionWrapper

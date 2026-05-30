@@ -62,12 +62,12 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
   const [postsLoading, setPostsLoading] = useState(true)
   const [publishedPagination, setPublishedPagination] = useState<ProfilePaginationState>({
     page: 1,
-    limit: 6,
+    limit: 9,
     total: 0,
   })
   const [draftPagination, setDraftPagination] = useState<ProfilePaginationState>({
     page: 1,
-    limit: 6,
+    limit: 9,
     total: 0,
   })
 

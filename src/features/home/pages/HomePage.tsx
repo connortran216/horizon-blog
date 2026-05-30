@@ -42,7 +42,7 @@ const HomePage = () => {
   useEffect(() => {
     const loadBlogPosts = async () => {
       try {
-        const summaries = await getBlogService().getPublishedPosts({ limit: 6 })
+        const summaries = await getBlogService().getPublishedPosts({ limit: 9 })
         const posts = summaries.map((summary) => ({
           ...summary,
           content_markdown: '',

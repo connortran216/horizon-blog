@@ -39,9 +39,9 @@ Routing matrix:
 
 - Act as a pragmatic senior frontend architect.
 - Prefer small scoped changes over speculative rewrites.
-- For feature work, combine Spec Kit for durable artifacts with Superpowers for execution discipline.
+- For every user request task that changes code, behavior, docs, tests, or repo configuration, use Spec Kit for durable artifacts and Superpowers for execution discipline.
 - Use `.specify/memory/constitution.md` as the frontend Spec Kit governance source before running Spec Kit planning.
-- Follow the repo workflow order: Superpowers brainstorm/plan gates first, then Spec Kit `specify -> clarify when needed -> plan -> tasks -> implement`.
+- Follow the repo workflow order for every request task: Superpowers brainstorm/plan gates first, then Spec Kit `specify -> clarify when needed -> plan -> tasks -> implement`.
 - Design system first: read `design-system/MASTER.md` before UI work, then the matching page/component doc.
 - Follow SOLID and the boundary `apiService -> repository/API adapter -> service/use-case -> hook/page -> component`.
 - Keep UI components small and composable; keep business logic out of render paths.

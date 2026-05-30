@@ -26,7 +26,7 @@ The goal is selective loading, not no loading. Do not skip a relevant guide to s
 
 ## Spec Kit + Superpowers Workflow
 
-Use Spec Kit and Superpowers together for non-trivial feature work:
+Use Spec Kit and Superpowers together for every user request task that changes code, behavior, docs, tests, or repo configuration:
 
 1. Start with the relevant Superpowers process skill to clarify intent, constraints, and approval gates.
 2. Use Spec Kit to produce durable project artifacts: `specify -> clarify when needed -> plan -> tasks -> implement`.
@@ -35,7 +35,7 @@ Use Spec Kit and Superpowers together for non-trivial feature work:
 5. For BE/FE features, let the backend own API behavior and contract changes, then make the frontend consume the approved contract without inventing endpoints or response fields.
 6. If the frontend and backend both change, keep matching feature names in each repo's `specs/` artifacts and link the counterpart spec or plan in the implementation notes.
 
-Use the lighter repo workflow instead of full Spec Kit only for narrow maintenance, docs-only edits, mechanical formatting, or one-line fixes where a full feature spec would add noise.
+Do not skip Spec Kit for narrow maintenance, docs-only edits, mechanical formatting, or one-line fixes. Keep artifacts proportionate to the change, but still run the full flow: `specify -> clarify when needed -> plan -> tasks -> implement`.
 
 ## Token-Conscious Exploration
 
