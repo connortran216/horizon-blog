@@ -4,7 +4,8 @@ export const extractPreviewText = (content: string): string => {
   return content
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, ' $1 ')
+    .replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
+    .replace(/<img\b[^>]*>/gi, ' ')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, ' $1 ')
     .replace(/<((?:https?:\/\/|mailto:)[^>]+)>/gi, '$1')
     .replace(/<br\b[^>]*\/?>/gi, ' ')

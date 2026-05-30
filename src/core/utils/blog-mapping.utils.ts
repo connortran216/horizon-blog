@@ -1,5 +1,5 @@
 import { BlogPost, BlogPostSummary, BlogStatus, PublicPostRecord } from '../types/blog.types'
-import { buildExcerptFromMarkdown } from './markdown-preview.utils'
+import { buildExcerptFromMarkdown, extractPreviewText } from './markdown-preview.utils'
 
 const DEFAULT_EXCERPT_LENGTH = 150
 const DEFAULT_WORDS_PER_MINUTE = 200
@@ -30,7 +30,7 @@ export function calculateReadingTime(
   content: string,
   wordsPerMinute: number = DEFAULT_WORDS_PER_MINUTE,
 ): number {
-  const words = content.split(/\s+/).length
+  const words = extractPreviewText(content).split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(words / wordsPerMinute))
 }
 

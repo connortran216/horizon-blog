@@ -1,4 +1,7 @@
-import { buildExcerptFromMarkdown } from '../../core/utils/markdown-preview.utils'
+import {
+  buildExcerptFromMarkdown,
+  extractPreviewText,
+} from '../../core/utils/markdown-preview.utils'
 import { BlogArchiveOwner, BlogArchivePost } from './blog.types'
 
 const slugifyAuthorName = (name: string) =>
@@ -31,7 +34,7 @@ export const getExcerpt = (markdown: string): string => {
 }
 
 export const getReadingTime = (markdown: string): number => {
-  const words = markdown.split(/\s+/).filter(Boolean).length
+  const words = extractPreviewText(markdown).split(/\s+/).filter(Boolean).length
   return Math.max(1, Math.ceil(words / 200))
 }
 
