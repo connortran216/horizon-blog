@@ -7,7 +7,7 @@ export const cvProfile: CvProfile = {
   location: 'Ho Chi Minh City, Vietnam',
   email: 'canhtran210699@gmail.com',
   summary:
-    'Backend engineer with strong Python and Django experience building microservices for logistics, analytics, authentication, and shipment performance platforms. Experienced in modular backend design, API modernization, event-driven workflows, and production data systems.',
+    'Backend engineer with strong Python and Django experience turning logistics, analytics, authentication, and shipment-performance needs into reliable backend platforms. Focused on production systems that improve operational visibility, support scalable workflows, and keep APIs maintainable as products grow.',
   competencies: [
     {
       title: 'Backend',
@@ -81,13 +81,13 @@ export const cvProfile: CvProfile = {
       role: 'Backend Engineer',
       period: '2023 - Present',
       highlights: [
-        'Worked on backend systems across logistics intelligence, analytics, authentication, and shipment performance domains.',
-        'Built analytics and reporting capabilities for merchant dashboards, exports, and operational insights.',
-        'Contributed to alerting and decision-support systems for performance monitoring and root-cause analysis.',
-        'Delivered shipment performance, SLA, search and data synchronization, authentication, authorization, feature-toggle, and business-calendar capabilities used in logistics workflows.',
-        'Designed and maintained Python services using Django, Django Ninja, Django REST Framework, and FastAPI.',
-        'Built event-driven workflows using Kafka consumers, outbox-style publishing, and asynchronous processing, with PostgreSQL, Redis, OpenSearch, ClickHouse, and Redshift in production.',
-        'Contributed to Dagster and Scala/Flink systems while improving API design, validation, modular service structure, and testability with Pydantic, Docker, Helm, Kubernetes, and AWS.',
+        'Strengthened logistics intelligence and shipment-performance platforms by delivering backend capabilities across analytics, authentication, and operational workflows.',
+        'Enabled merchants and operations teams to understand shipment health through dashboard analytics, reporting exports, and operational insight workflows.',
+        'Improved performance-monitoring decisions by supporting alerting and root-cause analysis systems for logistics operations.',
+        'Made shipment workflows more dependable through SLA logic, search, data synchronization, authentication, authorization, feature toggles, and business-calendar capabilities.',
+        'Improved maintainability of production Python services by applying modular Django, Django Ninja, Django REST Framework, and FastAPI patterns.',
+        'Supported reliable asynchronous processing through Kafka consumers, outbox-style publishing, and production data stores including PostgreSQL, Redis, OpenSearch, ClickHouse, and Redshift.',
+        'Expanded backend delivery across data and streaming systems by contributing to Dagster and Scala/Flink work while improving API validation, service structure, and testability.',
       ],
       stack: [
         'Python',
@@ -116,10 +116,10 @@ export const cvProfile: CvProfile = {
       period: '2023',
       productionUrl: 'https://bizchat.thinkprompt.com/',
       highlights: [
-        'Built the backend for a ChatGPT-like chatbot product, including system architecture, infrastructure setup, and RESTful APIs.',
-        'Coordinated between the AI and backend teams to keep communication and delivery aligned.',
-        'Managed team execution and supported delivery as backend team lead.',
-        'Mentored junior developers on frameworks, tools, debugging, error handling, and troubleshooting.',
+        'Turned a ChatGPT-like chatbot concept into a production backend foundation with system architecture, infrastructure setup, and RESTful APIs.',
+        'Kept AI and backend delivery aligned by translating integration needs into clear backend tasks and communication paths.',
+        'Improved team execution as backend team lead by coordinating delivery priorities and unblocking implementation work.',
+        'Raised junior developer effectiveness through mentoring on frameworks, tooling, debugging, error handling, and troubleshooting.',
       ],
       stack: [
         'Python',
@@ -144,11 +144,11 @@ export const cvProfile: CvProfile = {
       period: '01/2022 - 01/2023',
       productionUrl: 'https://www.sssmarket.vn/',
       highlights: [
-        'Built and maintained a scalable backend for an e-commerce application, covering system architecture, infrastructure setup, and RESTful APIs.',
-        'Provided technical leadership through code reviews and technical guidance for the team.',
-        'Served as a key point of contact for the CTO and stakeholders, communicating progress and issues.',
-        'Addressed performance and security issues to keep the backend stable and efficient.',
-        'Collaborated with cross-functional teams to integrate backend functionality with other application components.',
+        'Enabled e-commerce product delivery by shaping a scalable backend foundation across architecture, infrastructure, and RESTful APIs.',
+        'Improved backend quality and consistency through code reviews, technical guidance, and team-level engineering standards.',
+        'Clarified delivery status for the CTO and stakeholders by communicating progress, risks, and implementation issues clearly.',
+        'Strengthened backend stability by addressing performance and security issues in the application stack.',
+        'Helped product features ship across the application by aligning backend functionality with cross-functional integration needs.',
       ],
       stack: [
         'Python',
@@ -174,10 +174,10 @@ export const cvProfile: CvProfile = {
       period: '12/2020 - 01/2022',
       productionUrl: 'https://www.dps.com.vn/vi/products/doanhnghiep#',
       highlights: [
-        'Developed and maintained a real-time facial recognition system for attendance checking and CCTV surveillance.',
-        'Researched new AI technologies to improve system performance and capabilities.',
-        'Implemented features from research findings to improve system accuracy and reliability.',
-        'Worked with cross-functional teams to gather requirements and incorporate feedback into system enhancements.',
+        'Supported attendance and CCTV surveillance workflows by delivering a real-time facial recognition system.',
+        'Improved the product roadmap with AI research that informed performance and capability enhancements.',
+        'Translated research findings into system features that improved recognition accuracy and reliability.',
+        'Kept system enhancements aligned with real user needs by gathering requirements and incorporating cross-functional feedback.',
       ],
       stack: [
         'Python',
@@ -199,10 +199,10 @@ export const cvProfile: CvProfile = {
       role: 'Data Analyst Intern',
       period: '06/2019 - 10/2019',
       highlights: [
-        'Built a value table for ranking feeds in a newsfeed system based on user relationships.',
-        'Analyzed user relationship data for feed ranking using basic data analysis techniques and regression models.',
-        'Used Python, NumPy, and Pandas for data manipulation and analysis.',
-        'Worked with team members to incorporate user requirements into the ranking algorithm.',
+        'Improved newsfeed ranking inputs by creating a value table based on user relationship signals.',
+        'Helped the team evaluate feed-ranking behavior through relationship-data analysis and regression models.',
+        'Prepared analysis-ready datasets with Python, NumPy, and Pandas to support ranking experiments.',
+        'Kept ranking changes aligned with product needs by incorporating team requirements into algorithm work.',
       ],
       stack: ['Python', 'NumPy', 'Pandas'],
     },
