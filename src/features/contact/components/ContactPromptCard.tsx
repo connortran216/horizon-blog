@@ -1,5 +1,4 @@
-import { Flex, Heading, Icon, Stack, Text } from '@chakra-ui/react'
-import { AnimatedCard } from '../../../core'
+import { Box, Flex, Heading, Icon, Stack, Text } from '@chakra-ui/react'
 import { ContactPromptItem } from '../contact.types'
 
 interface ContactPromptCardProps {
@@ -7,18 +6,25 @@ interface ContactPromptCardProps {
 }
 
 const ContactPromptCard = ({ prompt }: ContactPromptCardProps) => (
-  <AnimatedCard intensity="light" maxW="100%" animation="fadeInUp">
-    <Stack spacing={4} p={6}>
+  <Box
+    border="1px solid"
+    borderColor="border.subtle"
+    borderRadius="2xl"
+    bg="bg.secondary"
+    p={{ base: 5, md: 6 }}
+    h="100%"
+  >
+    <Stack spacing={4}>
       <Flex
-        w={12}
-        h={12}
+        w={10}
+        h={10}
         align="center"
         justify="center"
-        borderRadius="2xl"
+        borderRadius="xl"
         bg="bg.tertiary"
         color="action.primary"
       >
-        <Icon as={prompt.icon} boxSize={5} />
+        <Icon as={prompt.icon} boxSize={4} />
       </Flex>
       <Heading size="md" color="text.primary" letterSpacing="-0.02em">
         {prompt.title}
@@ -27,7 +33,7 @@ const ContactPromptCard = ({ prompt }: ContactPromptCardProps) => (
         {prompt.description}
       </Text>
     </Stack>
-  </AnimatedCard>
+  </Box>
 )
 
 export default ContactPromptCard

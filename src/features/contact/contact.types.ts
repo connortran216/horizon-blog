@@ -5,6 +5,9 @@ export interface ContactInfoItem {
   title: string
   content: string
   href?: string
+  description?: string
+  actionLabel?: string
+  variant?: 'primary' | 'secondary'
 }
 
 export interface ContactPromptItem {
