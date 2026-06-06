@@ -28,9 +28,18 @@ const ReaderInteractionBar = ({
         onToggle={onToggleHeart}
       />
     ) : (
-      <Text color="text.tertiary" fontSize="sm">
-        Reactions unavailable
-      </Text>
+      <>
+        <HeartButton
+          heartCount={0}
+          viewerHasHearted={false}
+          canHeart={false}
+          isLoading={isHeartLoading}
+          onToggle={onToggleHeart}
+        />
+        <Text color="text.tertiary" fontSize="sm">
+          Reactions unavailable
+        </Text>
+      </>
     )}
     <ShareButton isLoading={isShareLoading} onShare={onShare} />
   </HStack>
