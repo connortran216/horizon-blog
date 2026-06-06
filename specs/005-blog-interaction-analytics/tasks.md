@@ -37,21 +37,21 @@
 - [x] T018 [P] [US3] Implement author analytics service and DTO mapping in `src/features/author-analytics/author-analytics.service.ts`
 - [x] T019 [US3] Register author analytics service/repository in `src/core/di/container.ts`
 - [x] T020 [P] [US3] Implement overview and blog-metrics hooks in `src/features/author-analytics/useAnalyticsOverview.ts` and `src/features/author-analytics/useBlogMetrics.ts`
-- [ ] T021 [P] [US3] Implement date range, approximate metric card, and accessible trend primitives in `src/features/author-analytics/components/AnalyticsDateRangeFilter.tsx`, `AnalyticsMetricCard.tsx`, and `AnalyticsTrendChart.tsx`
-- [ ] T022 [US3] Implement analytics overview page in `src/features/author-analytics/pages/AnalyticsOverviewPage.tsx`
-- [ ] T023 [US3] Add protected route wrapper and route/navigation integration in `src/pages/Analytics.tsx`, `src/Routes.tsx`, and `src/app/layouts/UserMenu.tsx`
-- [ ] T024 [US3] Add analytics page design guidance in `design-system/pages/analytics.md`, `design-system/pages/README.md`, and `docs/agent-guides/project-reference.md`
+- [x] T021 [P] [US3] Implement date range, approximate metric card, and accessible trend primitives in `src/features/author-analytics/components/AnalyticsDateRangeFilter.tsx`, `AnalyticsMetricCard.tsx`, and `AnalyticsTrendChart.tsx`
+- [x] T022 [US3] Implement analytics overview page in `src/features/author-analytics/pages/AnalyticsOverviewPage.tsx`
+- [x] T023 [US3] Add protected route wrapper and route/navigation integration in `src/pages/Analytics.tsx`, `src/Routes.tsx`, and `src/app/layouts/UserMenu.tsx`
+- [x] T024 [US3] Add analytics page design guidance in `design-system/pages/analytics.md`, `design-system/pages/README.md`, and `docs/agent-guides/project-reference.md`
 
 ## Phase 5: User Story 4 - Blog Detail, Comparison, and Insights
 
 **Independent Test**: An author can diagnose one owned blog and compare blog performance using accessible, cautious presentation.
 
-- [ ] T025 [P] [US4] Implement blog-detail hook in `src/features/author-analytics/useBlogAnalytics.ts`
-- [ ] T026 [P] [US4] Implement progress funnel and reaction trend components in `src/features/author-analytics/components/ReaderProgressFunnel.tsx` and `AnalyticsReactionTrend.tsx`
-- [ ] T027 [P] [US4] Implement link and source performance components in `src/features/author-analytics/components/LinkPerformanceTable.tsx` and `TrafficSourceBreakdown.tsx`
+- [x] T025 [P] [US4] Implement blog-detail hook in `src/features/author-analytics/useBlogAnalytics.ts`
+- [x] T026 [P] [US4] Implement progress funnel and reaction trend components in `src/features/author-analytics/components/ReaderProgressFunnel.tsx` and `AnalyticsReactionTrend.tsx`
+- [x] T027 [P] [US4] Implement link and source performance components in `src/features/author-analytics/components/LinkPerformanceTable.tsx` and `TrafficSourceBreakdown.tsx`
 - [ ] T028 [P] [US4] Implement sortable comparison table and insight list in `src/features/author-analytics/components/BlogMetricsTable.tsx` and `AnalyticsInsightList.tsx`
-- [ ] T029 [US4] Implement blog analytics detail page in `src/features/author-analytics/pages/BlogAnalyticsPage.tsx`
-- [ ] T030 [US4] Add protected blog analytics route wrapper and route entry in `src/pages/BlogAnalytics.tsx` and `src/Routes.tsx`
+- [x] T029 [US4] Implement blog analytics detail page in `src/features/author-analytics/pages/BlogAnalyticsPage.tsx`
+- [x] T030 [US4] Add protected blog analytics route wrapper and route entry in `src/pages/BlogAnalytics.tsx` and `src/Routes.tsx`
 - [ ] T031 [US4] Document reusable analytics visualization rules in `design-system/components/README.md`
 
 ## Phase 6: Validation and Cross-Cutting

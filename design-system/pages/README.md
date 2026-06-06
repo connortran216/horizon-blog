@@ -28,6 +28,7 @@ Override order:
 
 - `editor.md`
 - `profile.md`
+- `analytics.md`
 
 ## When To Add A Page Doc
 

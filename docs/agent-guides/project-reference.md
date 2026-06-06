@@ -53,6 +53,8 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `/forgot-password` -> Forgot password.
 - `/reset-password` -> Reset password.
 - `/blog-editor` -> Blog editor, protected.
+- `/analytics` -> Author analytics overview, protected.
+- `/analytics/blog/:id` -> Author blog analytics detail, protected.
 - `/profile/:username` -> Profile, protected.
 - `/profile/:username/blog/:id` -> Profile blog detail, protected.
 
@@ -70,4 +72,3 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - Runtime API config lives in `src/config/runtime.ts`.
 - Editor config lives in `src/config/editor.config.ts`.
 - Crepe config lives in `src/config/crepe.config.ts`.
-

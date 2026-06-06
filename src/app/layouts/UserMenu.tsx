@@ -20,6 +20,9 @@ const UserMenu = ({ user, colorMode, onToggleColorMode, onLogout }: UserMenuProp
         <MenuItem as={RouterLink} to={`/profile/${user.username}`}>
           Profile
         </MenuItem>
+        <MenuItem as={RouterLink} to="/analytics">
+          Analytics
+        </MenuItem>
         <MenuItem
           onClick={onToggleColorMode}
           icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}

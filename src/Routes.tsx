@@ -19,6 +19,8 @@ const BlogEditor = lazy(() => import('./pages/BlogEditor'))
 const Profile = lazy(() => import('./pages/Profile'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 const ProfileBlogDetail = lazy(() => import('./pages/ProfileBlogDetail'))
+const Analytics = lazy(() => import('./pages/Analytics'))
+const BlogAnalytics = lazy(() => import('./pages/BlogAnalytics'))
 
 const Routes = () => {
   return (
@@ -66,6 +68,22 @@ const Routes = () => {
           element={
             <ProtectedRoute>
               <ProfileBlogDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics/blog/:id"
+          element={
+            <ProtectedRoute>
+              <BlogAnalytics />
             </ProtectedRoute>
           }
         />
