@@ -21,13 +21,13 @@
 
 **Independent Test**: A published blog supports heart/share and non-blocking reading instrumentation without navigation regressions.
 
-- [ ] T010 [P] [US1] Implement reader interaction API adapter and service in `src/features/reader-interactions/reader-interactions.api.ts` and `src/features/reader-interactions/reader-interactions.service.ts`
-- [ ] T011 [P] [US1] Implement accessible heart/share components in `src/features/reader-interactions/components/HeartButton.tsx`, `ShareButton.tsx`, and `ReaderInteractionBar.tsx`
-- [ ] T012 [US1] Implement interaction orchestration hook in `src/features/reader-interactions/useReaderInteractions.ts`
-- [ ] T013 [US2] Implement progress, active-time, source, and delegated-link instrumentation in `src/features/reader-interactions/useReaderSession.ts`
-- [ ] T014 [US2] Integrate one progress source and interaction bar in `src/features/blog/components/BlogReaderFrame.tsx`
-- [ ] T015 [US1] Integrate reader hooks into `src/features/blog/pages/BlogDetailPage.tsx`
-- [ ] T016 [US2] Update reader design guidance in `design-system/pages/reader.md`
+- [x] T010 [P] [US1] Implement reader interaction API adapter and service in `src/features/reader-interactions/reader-interactions.api.ts` and `src/features/reader-interactions/reader-interactions.service.ts`
+- [x] T011 [P] [US1] Implement accessible heart/share components in `src/features/reader-interactions/components/HeartButton.tsx`, `ShareButton.tsx`, and `ReaderInteractionBar.tsx`
+- [x] T012 [US1] Implement interaction orchestration hook in `src/features/reader-interactions/useReaderInteractions.ts`
+- [x] T013 [US2] Implement progress, active-time, source, and delegated-link instrumentation in `src/features/reader-interactions/useReaderSession.ts`
+- [x] T014 [US2] Integrate one progress source and interaction bar in `src/features/blog/components/BlogReaderFrame.tsx`
+- [x] T015 [US1] Integrate reader hooks into `src/features/blog/pages/BlogDetailPage.tsx`
+- [x] T016 [US2] Update reader design guidance in `design-system/pages/reader.md`
 
 ## Phase 4: User Story 3 - Author Analytics Data and Overview
 

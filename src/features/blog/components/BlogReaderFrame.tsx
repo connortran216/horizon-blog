@@ -1,4 +1,4 @@
-import { ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { MouseEventHandler, ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { ArrowBackIcon } from '@chakra-ui/icons'
 import {
   Avatar,
@@ -39,6 +39,9 @@ interface BlogReaderFrameProps {
   showReadingProgress?: boolean
   titleSection?: ReactNode
   helperSection?: ReactNode
+  interactionSection?: ReactNode
+  onReadingProgressChange?: (progressPercent: number) => void
+  onContentClick?: MouseEventHandler<HTMLElement>
   bottomPadding?: boolean
 }
 
@@ -54,6 +57,9 @@ const BlogReaderFrame = ({
   showReadingProgress = false,
   titleSection,
   helperSection,
+  interactionSection,
+  onReadingProgressChange,
+  onContentClick,
   bottomPadding = true,
 }: BlogReaderFrameProps) => {
   const [readingProgress, setReadingProgress] = useState(0)
@@ -73,17 +79,21 @@ const BlogReaderFrame = ({
       const elementHeight = element.offsetHeight
       const windowHeight = window.innerHeight
       const totalHeight = elementTop + elementHeight - windowHeight
+      if (totalHeight <= 0) return
+
       const currentProgress = Math.min(
         100,
         Math.max(0, ((scrollTop - elementTop) / totalHeight) * 100),
       )
 
       setReadingProgress(currentProgress)
+      onReadingProgressChange?.(currentProgress)
     }
 
     window.addEventListener('scroll', updateReadingProgress, { passive: true })
+    updateReadingProgress()
     return () => window.removeEventListener('scroll', updateReadingProgress)
-  }, [showReadingProgress])
+  }, [onReadingProgressChange, showReadingProgress])
 
   useEffect(() => {
     if (!showReadingProgress) {
@@ -241,10 +251,12 @@ const BlogReaderFrame = ({
                 </HStack>
 
                 {helperSection}
+
+                {interactionSection}
               </Stack>
             </Box>
 
-            <Box maxW="5xl" mx="auto" w="full">
+            <Box maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
               <ContentAnimation hasPaddingBottom={bottomPadding}>
                 {resolvedContent ? (
                   <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>

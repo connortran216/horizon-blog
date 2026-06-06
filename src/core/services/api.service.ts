@@ -68,7 +68,7 @@ export class ApiService {
   /**
    * Generic POST request
    */
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown, options?: { keepalive?: boolean }): Promise<T> {
     // Handle FormData differently (for file uploads)
     const isFormData = data instanceof FormData
 
@@ -76,6 +76,7 @@ export class ApiService {
       method: 'POST',
       headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
       body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
+      keepalive: options?.keepalive,
     })
 
     return this.handleResponse<T>(response, endpoint)
@@ -100,10 +101,11 @@ export class ApiService {
   /**
    * Generic DELETE request
    */
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, data?: unknown): Promise<T> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
     })
 
     return this.handleResponse<T>(response, endpoint)

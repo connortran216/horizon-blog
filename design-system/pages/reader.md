@@ -14,6 +14,7 @@ They are the highest-sensitivity surfaces in the product.
 ## Primary Actions
 
 - read the blog
+- heart or share the blog without leaving the reader
 - return to browsing or profile context
 
 ## Layout
@@ -35,6 +36,7 @@ They are the highest-sensitivity surfaces in the product.
 
 - `BlogReaderFrame`
 - `MarkdownReader`
+- feature-owned `ReaderInteractionBar` for public reader hearts and sharing
 - optional shared back navigation
 
 ## Motion
@@ -42,6 +44,14 @@ They are the highest-sensitivity surfaces in the product.
 - nearly static once the page is loaded
 - progress accents may move subtly
 - avoid decorative motion that distracts from reading
+
+## Reader Interactions
+
+- heart and share controls must stay compact and secondary to the blog title and prose
+- anonymous readers use a first-party visitor ID that is never displayed
+- failed analytics delivery must not block reading, sharing, or link navigation
+- link tracking is delegated from the reader frame and must never call `preventDefault`
+- active-time measurement must ignore hidden, unfocused, or idle tabs
 
 ## Accessibility Notes
 

@@ -37,8 +37,15 @@ Use focused hooks for interaction and reading-session orchestration. Reuse one r
 - Verify: run progress, idle, hidden-tab, active-time retry, and link scenarios. Pass: milestones emit once, invalid active time emits never, cumulative active time remains monotonic, and navigation is unaffected.
 - Verify: inspect reader design-system behavior. Pass: actions remain compact in mobile/desktop and light/dark modes.
 
+## Execution Notes
+
+- `BlogReaderFrame` remains the single scroll-progress source and now forwards progress changes to reader analytics.
+- Reader analytics link tracking is delegated from the content container and does not block navigation.
+- Active-time measurement is gated by visibility, focus, and recent activity before cumulative `active_ms` events are emitted.
+- Heart/unheart requests keep `visitor_id` in request bodies, including the DELETE body required by the backend contract.
+
 ## Definition of Done
 
-- [ ] T010-T016 complete.
-- [ ] Reader quickstart journey passes.
+- [x] T010-T016 complete.
+- [x] Reader quickstart scenarios are covered by focused tests, lint, format, and build; live backend journey remains Story 06.
 - [ ] Commit recorded in `checklist.md`.

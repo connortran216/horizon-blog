@@ -20,9 +20,13 @@ const getDefaultStorage = () => {
   return window.localStorage
 }
 
-const generateUuid = () => {
+export const createReaderUuid = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
+  }
+
+  if (typeof crypto === 'undefined' || typeof crypto.getRandomValues !== 'function') {
+    throw new Error('Crypto API is required to create reader analytics IDs')
   }
 
   return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (character) => {
@@ -36,7 +40,7 @@ export const createReaderIdentityStorage = (
   options: ReaderIdentityStorageOptions = {},
 ): ReaderIdentityStorage => {
   const storage = options.storage ?? getDefaultStorage()
-  const generateId = options.generateId ?? generateUuid
+  const generateId = options.generateId ?? createReaderUuid
 
   const readStoredVisitorId = () => {
     if (!storage) return null

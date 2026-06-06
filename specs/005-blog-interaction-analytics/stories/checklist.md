@@ -3,7 +3,7 @@
 ## Overall Status
 
 - [x] Story 01: [Freeze fixtures and create frontend foundations](./01-fixtures-foundations.md)
-- [ ] Story 02: [Implement reader interactions and instrumentation](./02-reader-interactions.md)
+- [x] Story 02: [Implement reader interactions and instrumentation](./02-reader-interactions.md)
 - [ ] Story 03: [Implement author analytics data layer](./03-author-data-layer.md)
 - [ ] Story 04: [Implement overview and blog-detail analytics UI](./04-overview-detail-ui.md)
 - [ ] Story 05: [Implement comparison and insight presentation](./05-comparison-insights.md)
@@ -34,7 +34,7 @@
 | Story | Status | Commit | Validation |
 | --- | --- | --- | --- |
 | 01 | Complete | `feat(analytics): FE Fixtures + Foundations` | `yarn test src/features/reader-interactions src/features/author-analytics`; `yarn lint`; `yarn format`; `yarn build` |
-| 02 | Pending | | |
+| 02 | Complete | `feat(analytics): Reader Interactions + Instrumentation` | `yarn test src/features/reader-interactions`; `yarn lint`; `yarn format`; `yarn build`; live backend journey deferred to Story 06 |
 | 03 | Pending | | |
 | 04 | Pending | | |
 | 05 | Pending | | |

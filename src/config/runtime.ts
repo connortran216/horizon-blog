@@ -12,10 +12,8 @@ export const getRuntimeConfig = () => {
     }
   }
 
-  const isLocalhost =
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === ''
+  const hostname = typeof window === 'undefined' ? '' : window.location.hostname
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === ''
 
   return {
     beHost: isLocalhost ? 'http://localhost:8080' : 'https://blog-api.connortran.io.vn',
