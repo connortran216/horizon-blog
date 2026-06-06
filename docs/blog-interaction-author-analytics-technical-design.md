@@ -18,7 +18,7 @@ They share backend contracts but do not share feature state or components.
 
 ## 2. Product and UX Principles
 
-- Reading remains the primary experience; instrumentation must be invisible and actions compact.
+- Reading remains the primary experience; instrumentation must be invisible and actions must appear as compact post-content feedback.
 - Link tracking never prevents or delays navigation.
 - Reader interactions work without login.
 - Dashboard language explains meaning instead of exposing analytics jargon.
@@ -191,13 +191,13 @@ flowchart TD
 
 ### Reader Interaction Bar
 
-The first release uses one compact inline action bar below blog metadata. It contains:
+The first release uses one compact closing feedback section after the article body. It contains:
 
 - heart toggle with visible count;
 - share action;
 - accessible labels and status feedback.
 
-It must not become a floating rail, sticky overlay, or decorative distraction. A mirrored end-of-article bar is an extension, not part of the first implementation.
+It must not become a floating rail, sticky overlay, or decorative distraction. Opening-metadata placement is intentionally avoided because the reader should evaluate the article before reacting.
 
 ### Heart Behavior
 
@@ -440,7 +440,7 @@ This ordering allows safe parallelism without coupling frontend progress to unfi
 When implementation begins:
 
 - add `design-system/pages/analytics.md` because analytics is a distinct protected page family;
-- update `design-system/pages/reader.md` with the compact interaction-bar rule;
+- update `design-system/pages/reader.md` with the compact post-content interaction rule;
 - update `design-system/components/README.md` only for reusable analytics visualization rules;
 - add semantic tokens only if repeated chart roles cannot use existing action/text/surface tokens.
 

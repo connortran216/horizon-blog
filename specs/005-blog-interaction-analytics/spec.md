@@ -7,17 +7,17 @@
 
 ## User Scenarios & Testing
 
-### User Story 1 - React and share while reading (Priority: P1)
+### User Story 1 - React and share after reading (Priority: P1)
 
-As an anonymous or authenticated reader, I want to heart and share a blog without leaving the reading flow so that I can respond to useful writing quickly.
+As an anonymous or authenticated reader, I want to heart and share a blog after reading the content without leaving the reader so that my response is based on the article itself.
 
-**Why this priority**: Reader interactions must feel natural before their analytics value matters.
+**Why this priority**: Reader interactions must feel natural and timed to the reading experience before their analytics value matters.
 
-**Independent Test**: Open a published blog anonymously, heart/unheart it, share it with native share or copy fallback, and confirm the article remains comfortable to read.
+**Independent Test**: Open a published blog anonymously, read through the article, heart/unheart it from the closing feedback section, share it with native share or copy fallback, and confirm the article remains comfortable to read.
 
 **Acceptance Scenarios**:
 
-1. **Given** a reader opens a blog, **When** interaction state loads, **Then** a compact heart count and share action appear without dominating the reader.
+1. **Given** a reader opens a blog, **When** interaction state loads, **Then** compact heart and share actions appear after the article content without dominating the reader.
 2. **Given** a reader hearts or unhearts, **When** the action completes or fails, **Then** the visible state is reconciled accurately.
 3. **Given** native sharing is unavailable, **When** the reader shares, **Then** copying the canonical link works as a fallback.
 4. **Given** a reader uses keyboard or assistive technology, **When** they reach the actions, **Then** toggle state and labels are understandable.
@@ -71,7 +71,7 @@ As an author, I want blog-level funnel, link, traffic source, reaction, comparis
 
 ### Functional Requirements
 
-- **FR-001**: Published blog detail MUST provide compact heart and share actions for anonymous and authenticated readers.
+- **FR-001**: Published blog detail MUST provide compact post-content heart and share actions for anonymous and authenticated readers.
 - **FR-002**: Heart state MUST update optimistically and reconcile with the backend result.
 - **FR-003**: Share tracking MUST count only successful native shares or clipboard copies.
 - **FR-004**: The frontend MUST create and validate a first-party anonymous visitor ID without treating it as authentication.

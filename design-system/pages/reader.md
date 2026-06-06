@@ -30,6 +30,7 @@ They are the highest-sensitivity surfaces in the product.
 - optional subtitle
 - author/date/reading time
 - body
+- closing feedback with heart/share actions
 - follow-up navigation if needed
 
 ## Core Components
@@ -47,7 +48,7 @@ They are the highest-sensitivity surfaces in the product.
 
 ## Reader Interactions
 
-- heart and share controls must stay compact and secondary to the blog title and prose
+- heart and share controls must stay compact and appear as post-content feedback, secondary to the blog title and prose
 - anonymous readers use a first-party visitor ID that is never displayed
 - failed analytics delivery must not block reading, sharing, or link navigation
 - link tracking is delegated from the reader frame and must never call `preventDefault`
