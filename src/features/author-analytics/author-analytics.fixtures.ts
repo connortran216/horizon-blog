@@ -1,10 +1,10 @@
-import {
-  AnalyticsOverviewResponse,
-  AnalyticsPostDetailResponse,
-  AnalyticsPostsResponse,
-} from './author-analytics.types'
+import type {
+  AuthorAnalyticsApiOverviewResponse,
+  AuthorAnalyticsApiPostDetailResponse,
+  AuthorAnalyticsApiPostsResponse,
+} from './author-analytics.repository'
 
-export const analyticsOverviewFixture: AnalyticsOverviewResponse = {
+export const analyticsOverviewApiFixture: AuthorAnalyticsApiOverviewResponse = {
   data: {
     range: { from: '2026-05-06', to: '2026-06-04', timezone: 'UTC' },
     summary: {
@@ -47,25 +47,25 @@ export const analyticsOverviewFixture: AnalyticsOverviewResponse = {
   },
 }
 
-export const analyticsPostsFixture: AnalyticsPostsResponse = {
-  data: analyticsOverviewFixture.data.top_blogs,
+export const analyticsPostsApiFixture: AuthorAnalyticsApiPostsResponse = {
+  data: analyticsOverviewApiFixture.data.top_blogs,
   page: 1,
   limit: 10,
   total: 1,
-  range: analyticsOverviewFixture.data.range,
-  data_fresh_through: analyticsOverviewFixture.data.data_fresh_through,
+  range: analyticsOverviewApiFixture.data.range,
+  data_fresh_through: analyticsOverviewApiFixture.data.data_fresh_through,
 }
 
-export const analyticsPostDetailFixture: AnalyticsPostDetailResponse = {
+export const analyticsPostDetailApiFixture: AuthorAnalyticsApiPostDetailResponse = {
   data: {
     post: {
       id: 42,
       title: 'Example blog',
       published_at: '2026-05-01T08:00:00Z',
     },
-    range: analyticsOverviewFixture.data.range,
+    range: analyticsOverviewApiFixture.data.range,
     summary: {
-      ...analyticsOverviewFixture.data.top_blogs[0],
+      ...analyticsOverviewApiFixture.data.top_blogs[0],
       active_heart_count: 128,
     },
     progress_funnel: [
@@ -96,6 +96,10 @@ export const analyticsPostDetailFixture: AnalyticsPostDetailResponse = {
       },
     ],
     insights: [],
-    data_fresh_through: analyticsOverviewFixture.data.data_fresh_through,
+    data_fresh_through: analyticsOverviewApiFixture.data.data_fresh_through,
   },
 }
+
+export const analyticsOverviewFixture = analyticsOverviewApiFixture
+export const analyticsPostsFixture = analyticsPostsApiFixture
+export const analyticsPostDetailFixture = analyticsPostDetailApiFixture

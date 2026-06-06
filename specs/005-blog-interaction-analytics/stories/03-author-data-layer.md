@@ -36,8 +36,15 @@ Keep API DTOs inside the repository, map them through an author analytics servic
 - Verify: exercise success, empty, `401`, `404`, and `5xx` hook states. Pass: each state is explicit and preserves the selected range.
 - Verify: inspect DI registration. Pass: feature pages can resolve the service without direct repository access.
 
+## Execution Notes
+
+- Repository uses only `GET /users/me/analytics/overview`, `GET /users/me/analytics/posts`, and `GET /users/me/analytics/posts/{id}` with inclusive `from` and `to` query params.
+- Backend DTOs stay in `author-analytics.repository.ts`; service output is camelCase display models for page/UI stories.
+- Hook helpers classify `401`, `404`, and `5xx` states and preserve freshness/range metadata on successful empty responses.
+- No route, page, or visual analytics component was added in this story.
+
 ## Definition of Done
 
-- [ ] T017-T020 complete.
-- [ ] Contract mapping review passes.
-- [ ] Commit recorded in `checklist.md`.
+- [x] T017-T020 complete.
+- [x] Contract mapping review passes.
+- [x] Commit recorded in `checklist.md`.

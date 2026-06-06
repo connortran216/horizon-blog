@@ -15,6 +15,14 @@ import { IProfileRepository } from '../types/profile-repository.types'
 import { ApiProfileRepository } from '../repositories/profile.repository'
 import { IProfileService } from '../types/profile-service.types'
 import { createProfileServiceInstance } from '../services/profile.service'
+import {
+  ApiAuthorAnalyticsRepository,
+  AuthorAnalyticsRepositoryPort,
+} from '../../features/author-analytics/author-analytics.repository'
+import {
+  AuthorAnalyticsService,
+  createAuthorAnalyticsServiceInstance,
+} from '../../features/author-analytics/author-analytics.service'
 
 /**
  * Service factory function type
@@ -130,6 +138,12 @@ export class DIContainer {
     this.register('IProfileService', () =>
       createProfileServiceInstance(this.resolve('IProfileRepository')),
     )
+
+    // Register author analytics repository and service
+    this.register('IAuthorAnalyticsRepository', () => new ApiAuthorAnalyticsRepository())
+    this.register('IAuthorAnalyticsService', () =>
+      createAuthorAnalyticsServiceInstance(this.resolve('IAuthorAnalyticsRepository')),
+    )
   }
 }
 
@@ -159,6 +173,8 @@ export const SERVICE_TOKENS = {
   BLOG_SERVICE: 'IBlogService' as const,
   PROFILE_REPOSITORY: 'IProfileRepository' as const,
   PROFILE_SERVICE: 'IProfileService' as const,
+  AUTHOR_ANALYTICS_REPOSITORY: 'IAuthorAnalyticsRepository' as const,
+  AUTHOR_ANALYTICS_SERVICE: 'IAuthorAnalyticsService' as const,
 } as const
 
 /**
@@ -172,6 +188,10 @@ export const getProfileRepository = (): IProfileRepository =>
   container.resolve(SERVICE_TOKENS.PROFILE_REPOSITORY)
 export const getProfileService = (): IProfileService =>
   container.resolve(SERVICE_TOKENS.PROFILE_SERVICE)
+export const getAuthorAnalyticsRepository = (): AuthorAnalyticsRepositoryPort =>
+  container.resolve(SERVICE_TOKENS.AUTHOR_ANALYTICS_REPOSITORY)
+export const getAuthorAnalyticsService = (): AuthorAnalyticsService =>
+  container.resolve(SERVICE_TOKENS.AUTHOR_ANALYTICS_SERVICE)
 
 /**
  * Factory functions for service creation
@@ -184,3 +204,7 @@ export const createProfileRepository = (): IProfileRepository =>
   container.resolve(SERVICE_TOKENS.PROFILE_REPOSITORY)
 export const createProfileService = (): IProfileService =>
   container.resolve(SERVICE_TOKENS.PROFILE_SERVICE)
+export const createAuthorAnalyticsRepository = (): AuthorAnalyticsRepositoryPort =>
+  container.resolve(SERVICE_TOKENS.AUTHOR_ANALYTICS_REPOSITORY)
+export const createAuthorAnalyticsService = (): AuthorAnalyticsService =>
+  container.resolve(SERVICE_TOKENS.AUTHOR_ANALYTICS_SERVICE)

@@ -33,10 +33,10 @@
 
 **Independent Test**: An authenticated author can open overview, change ranges, sort/paginate blogs, and understand loading/empty/error/freshness states.
 
-- [ ] T017 [P] [US3] Implement author analytics repository in `src/features/author-analytics/author-analytics.repository.ts`
-- [ ] T018 [P] [US3] Implement author analytics service and DTO mapping in `src/features/author-analytics/author-analytics.service.ts`
-- [ ] T019 [US3] Register author analytics service/repository in `src/core/di/container.ts`
-- [ ] T020 [P] [US3] Implement overview and blog-metrics hooks in `src/features/author-analytics/useAnalyticsOverview.ts` and `src/features/author-analytics/useBlogMetrics.ts`
+- [x] T017 [P] [US3] Implement author analytics repository in `src/features/author-analytics/author-analytics.repository.ts`
+- [x] T018 [P] [US3] Implement author analytics service and DTO mapping in `src/features/author-analytics/author-analytics.service.ts`
+- [x] T019 [US3] Register author analytics service/repository in `src/core/di/container.ts`
+- [x] T020 [P] [US3] Implement overview and blog-metrics hooks in `src/features/author-analytics/useAnalyticsOverview.ts` and `src/features/author-analytics/useBlogMetrics.ts`
 - [ ] T021 [P] [US3] Implement date range, approximate metric card, and accessible trend primitives in `src/features/author-analytics/components/AnalyticsDateRangeFilter.tsx`, `AnalyticsMetricCard.tsx`, and `AnalyticsTrendChart.tsx`
 - [ ] T022 [US3] Implement analytics overview page in `src/features/author-analytics/pages/AnalyticsOverviewPage.tsx`
 - [ ] T023 [US3] Add protected route wrapper and route/navigation integration in `src/pages/Analytics.tsx`, `src/Routes.tsx`, and `src/app/layouts/UserMenu.tsx`

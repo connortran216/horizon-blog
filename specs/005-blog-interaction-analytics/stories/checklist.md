@@ -4,7 +4,7 @@
 
 - [x] Story 01: [Freeze fixtures and create frontend foundations](./01-fixtures-foundations.md)
 - [x] Story 02: [Implement reader interactions and instrumentation](./02-reader-interactions.md)
-- [ ] Story 03: [Implement author analytics data layer](./03-author-data-layer.md)
+- [x] Story 03: [Implement author analytics data layer](./03-author-data-layer.md)
 - [ ] Story 04: [Implement overview and blog-detail analytics UI](./04-overview-detail-ui.md)
 - [ ] Story 05: [Implement comparison and insight presentation](./05-comparison-insights.md)
 - [ ] Story 06: [Validate cross-repo journeys](./06-cross-repo-validation.md)
@@ -35,7 +35,7 @@
 | --- | --- | --- | --- |
 | 01 | Complete | `feat(analytics): FE Fixtures + Foundations` | `yarn test src/features/reader-interactions src/features/author-analytics`; `yarn lint`; `yarn format`; `yarn build` |
 | 02 | Complete | `feat(analytics): Reader Interactions + Instrumentation` | `yarn test src/features/reader-interactions`; `yarn lint`; `yarn format`; `yarn build`; live backend journey deferred to Story 06 |
-| 03 | Pending | | |
+| 03 | Complete | `feat(analytics): Author Analytics Data Layer` | `yarn test src/features/author-analytics src/core/di/container.analytics.test.ts`; `yarn lint`; `yarn format`; `yarn build` |
 | 04 | Pending | | |
 | 05 | Pending | | |
 | 06 | Pending | | |

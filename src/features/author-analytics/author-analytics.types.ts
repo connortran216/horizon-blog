@@ -6,36 +6,36 @@ export interface AnalyticsDateRange {
 
 export interface AnalyticsSummary {
   views: number
-  estimated_unique_readers: number
-  unique_readers_approximate: boolean
-  hearts_received: number
+  estimatedUniqueReaders: number
+  uniqueReadersApproximate: boolean
+  heartsReceived: number
   shares: number
-  link_clicks: number
-  completion_rate: number
-  avg_active_read_seconds: number
-  active_heart_count?: number
+  linkClicks: number
+  completionRate: number
+  avgActiveReadSeconds: number
+  activeHeartCount?: number
 }
 
 export interface AnalyticsTrendPoint {
   date: string
   views: number
-  estimated_unique_readers: number
-  hearts_received: number
+  estimatedUniqueReaders: number
+  heartsReceived: number
   shares: number
   completed: number
 }
 
-export interface AnalyticsPostMetric {
-  post_id: number
+export interface BlogMetricRow {
+  postId: number
   title: string
   views: number
-  estimated_unique_readers: number
-  unique_readers_approximate: boolean
-  hearts_received: number
+  estimatedUniqueReaders: number
+  uniqueReadersApproximate: boolean
+  heartsReceived: number
   shares: number
-  link_clicks: number
-  completion_rate: number
-  avg_active_read_seconds: number
+  linkClicks: number
+  completionRate: number
+  avgActiveReadSeconds: number
 }
 
 export interface AnalyticsInsightEvidence {
@@ -51,33 +51,29 @@ export interface AnalyticsInsight {
   evidence: AnalyticsInsightEvidence[]
 }
 
-export interface AnalyticsOverviewData {
+export interface AnalyticsOverview {
   range: AnalyticsDateRange
   summary: AnalyticsSummary
   trend: AnalyticsTrendPoint[]
-  top_blogs: AnalyticsPostMetric[]
+  topBlogs: BlogMetricRow[]
   insights: AnalyticsInsight[]
-  data_fresh_through: string
-  unique_readers_approximate: boolean
+  dataFreshThrough: string
+  uniqueReadersApproximate: boolean
 }
 
-export interface AnalyticsOverviewResponse {
-  data: AnalyticsOverviewData
-}
-
-export interface AnalyticsPostsResponse {
-  data: AnalyticsPostMetric[]
+export interface BlogMetricsPage {
+  posts: BlogMetricRow[]
   page: number
   limit: number
   total: number
   range: AnalyticsDateRange
-  data_fresh_through: string
+  dataFreshThrough: string
 }
 
 export interface AnalyticsPostReference {
   id: number
   title: string
-  published_at: string
+  publishedAt: string
 }
 
 export interface AnalyticsFunnelStage {
@@ -88,12 +84,12 @@ export interface AnalyticsFunnelStage {
 
 export interface AnalyticsReactionTrendPoint {
   date: string
-  hearts_added: number
-  hearts_removed: number
+  heartsAdded: number
+  heartsRemoved: number
 }
 
 export interface AnalyticsLinkMetric {
-  link_key: string
+  linkKey: string
   url: string
   label: string
   kind: string
@@ -105,22 +101,37 @@ export interface AnalyticsTrafficSourceMetric {
   category: string
   host: string
   views: number
-  completion_rate: number
-  avg_active_read_seconds: number
+  completionRate: number
+  avgActiveReadSeconds: number
 }
 
-export interface AnalyticsPostDetailData {
+export interface BlogAnalyticsDetail {
   post: AnalyticsPostReference
   range: AnalyticsDateRange
   summary: AnalyticsSummary
-  progress_funnel: AnalyticsFunnelStage[]
-  reaction_trend: AnalyticsReactionTrendPoint[]
-  top_links: AnalyticsLinkMetric[]
-  traffic_sources: AnalyticsTrafficSourceMetric[]
+  progressFunnel: AnalyticsFunnelStage[]
+  reactionTrend: AnalyticsReactionTrendPoint[]
+  topLinks: AnalyticsLinkMetric[]
+  trafficSources: AnalyticsTrafficSourceMetric[]
   insights: AnalyticsInsight[]
-  data_fresh_through: string
+  dataFreshThrough: string
 }
 
-export interface AnalyticsPostDetailResponse {
-  data: AnalyticsPostDetailData
+export type AnalyticsPostSort =
+  | 'views'
+  | 'unique_readers'
+  | 'hearts_received'
+  | 'shares'
+  | 'completion_rate'
+  | 'avg_active_read_seconds'
+  | 'link_clicks'
+
+export type AnalyticsSortOrder = 'asc' | 'desc'
+
+export interface AnalyticsPostMetricsQuery {
+  range: AnalyticsDateRange
+  sort?: AnalyticsPostSort
+  order?: AnalyticsSortOrder
+  page?: number
+  limit?: number
 }
