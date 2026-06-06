@@ -1,4 +1,11 @@
-import { AnalyticsDateRange, AnalyticsFunnelStage } from './author-analytics.types'
+import {
+  AnalyticsDateRange,
+  AnalyticsFunnelStage,
+  AnalyticsInsight,
+  AnalyticsPostSort,
+  AnalyticsSortOrder,
+  BlogMetricRow,
+} from './author-analytics.types'
 import { AnalyticsLoadErrorState } from './author-analytics.hook-state'
 
 export type AnalyticsRangePreset = '7d' | '30d' | '90d'
@@ -18,6 +25,11 @@ export interface NormalizedFunnelStage {
   sessions: number
   rate: number
   widthPercent: number
+}
+
+export interface FormattedInsightEvidence {
+  sampleLabel: string
+  evidenceLabels: string[]
 }
 
 const presetDays: Record<AnalyticsRangePreset, number> = {
@@ -110,6 +122,32 @@ export const getAnalyticsErrorCopy = (
   }
 }
 
+export const sortBlogMetrics = (
+  blogs: BlogMetricRow[],
+  sort: AnalyticsPostSort,
+  order: AnalyticsSortOrder,
+): BlogMetricRow[] => {
+  const direction = order === 'asc' ? 1 : -1
+
+  return [...blogs].sort((left, right) => {
+    const leftValue = getBlogMetricValue(left, sort)
+    const rightValue = getBlogMetricValue(right, sort)
+
+    if (leftValue === rightValue) return left.title.localeCompare(right.title)
+    return (leftValue - rightValue) * direction
+  })
+}
+
+export const formatInsightEvidence = (insight: AnalyticsInsight): FormattedInsightEvidence => ({
+  sampleLabel: `Sample size: ${insight.sample_size}`,
+  evidenceLabels: insight.evidence.map(
+    (evidence) =>
+      `${evidence.metric}: ${formatEvidenceValue(evidence.value)} vs ${formatEvidenceValue(
+        evidence.baseline,
+      )} baseline`,
+  ),
+})
+
 const formatStageLabel = (stage: string) => {
   if (stage === '25' || stage === '50' || stage === '75') return `${stage}% read`
   return stage
@@ -119,3 +157,23 @@ const formatStageLabel = (stage: string) => {
 }
 
 const roundCoordinate = (value: number) => Number(value.toFixed(2))
+
+const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): number => {
+  if (sort === 'unique_readers') return blog.estimatedUniqueReaders
+  if (sort === 'hearts_received') return blog.heartsReceived
+  if (sort === 'shares') return blog.shares
+  if (sort === 'completion_rate') return blog.completionRate
+  if (sort === 'avg_active_read_seconds') return blog.avgActiveReadSeconds
+  if (sort === 'link_clicks') return blog.linkClicks
+  return blog.views
+}
+
+const formatEvidenceValue = (value: number): string => {
+  if (value >= 0 && value <= 1) {
+    const percent = value * 100
+    const fractionDigits = Number.isInteger(percent) ? 0 : 1
+    return `${percent.toFixed(fractionDigits)}%`
+  }
+
+  return String(value)
+}

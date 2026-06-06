@@ -6,7 +6,7 @@
 - [x] Story 02: [Implement reader interactions and instrumentation](./02-reader-interactions.md)
 - [x] Story 03: [Implement author analytics data layer](./03-author-data-layer.md)
 - [x] Story 04: [Implement overview and blog-detail analytics UI](./04-overview-detail-ui.md)
-- [ ] Story 05: [Implement comparison and insight presentation](./05-comparison-insights.md)
+- [x] Story 05: [Implement comparison and insight presentation](./05-comparison-insights.md)
 - [ ] Story 06: [Validate cross-repo journeys](./06-cross-repo-validation.md)
 
 ## Dependency Tiers
@@ -37,5 +37,5 @@
 | 02 | Complete | `feat(analytics): Reader Interactions + Instrumentation` | `yarn test src/features/reader-interactions`; `yarn lint`; `yarn format`; `yarn build`; live backend journey deferred to Story 06 |
 | 03 | Complete | `feat(analytics): Author Analytics Data Layer` | `yarn test src/features/author-analytics src/core/di/container.analytics.test.ts`; `yarn lint`; `yarn format`; `yarn build` |
 | 04 | Complete | `feat(analytics): Overview + Blog Detail Analytics UI` | `yarn test src/features/author-analytics`; `yarn lint`; `yarn format`; `yarn build`; manual live backend journey deferred to Story 06 |
-| 05 | Pending | | |
+| 05 | Complete | `feat(analytics): Comparison + Insights` | `yarn test src/features/author-analytics`; `yarn lint`; `yarn format`; `yarn build`; manual live scenarios deferred to Story 06 |
 | 06 | Pending | | |

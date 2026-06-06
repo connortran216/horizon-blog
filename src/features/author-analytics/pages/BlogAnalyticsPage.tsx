@@ -23,6 +23,7 @@ import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytic
 import { getAnalyticsErrorCopy } from '../author-analytics.visualization'
 import { useBlogAnalytics } from '../useBlogAnalytics'
 import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
+import AnalyticsInsightList from '../components/AnalyticsInsightList'
 import AnalyticsMetricCard from '../components/AnalyticsMetricCard'
 import AnalyticsReactionTrend from '../components/AnalyticsReactionTrend'
 import LinkPerformanceTable from '../components/LinkPerformanceTable'
@@ -135,6 +136,8 @@ const BlogAnalyticsPage = () => {
                 <LinkPerformanceTable links={analytics.data.topLinks} />
                 <TrafficSourceBreakdown sources={analytics.data.trafficSources} />
               </SimpleGrid>
+
+              <AnalyticsInsightList insights={analytics.data.insights} title="Blog insights" />
 
               {analytics.isEmpty ? (
                 <HStack

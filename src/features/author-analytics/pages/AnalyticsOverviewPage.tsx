@@ -3,15 +3,13 @@ import {
   Box,
   Button,
   Container,
-  Flex,
   Heading,
-  HStack,
   SimpleGrid,
   Stack,
   Text,
   VStack,
 } from '@chakra-ui/react'
-import { Link as RouterLink, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 import PaginationControls from '../../../components/PaginationControls'
 import { LoadingPanel } from '../../../core'
@@ -27,15 +25,10 @@ import { getAnalyticsErrorCopy } from '../author-analytics.visualization'
 import { useAnalyticsOverview } from '../useAnalyticsOverview'
 import { useBlogMetrics } from '../useBlogMetrics'
 import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
+import AnalyticsInsightList from '../components/AnalyticsInsightList'
 import AnalyticsMetricCard from '../components/AnalyticsMetricCard'
 import AnalyticsTrendChart from '../components/AnalyticsTrendChart'
-
-const sortOptions: Array<{ label: string; value: AnalyticsPostSort }> = [
-  { label: 'Views', value: 'views' },
-  { label: 'Readers', value: 'unique_readers' },
-  { label: 'Completion', value: 'completion_rate' },
-  { label: 'Hearts', value: 'hearts_received' },
-]
+import BlogMetricsTable from '../components/BlogMetricsTable'
 
 const pageSize = 10
 
@@ -148,103 +141,43 @@ const AnalyticsOverviewPage = () => {
               </SimpleGrid>
 
               <AnalyticsTrendChart title="Views trend" points={overview.data.trend} />
+              <AnalyticsInsightList insights={overview.data.insights} title="Overview insights" />
             </>
           ) : null}
 
-          <Box
-            border="1px solid"
-            borderColor="border.subtle"
-            bg="bg.secondary"
-            borderRadius="2xl"
-            p={5}
-          >
-            <Flex
-              direction={{ base: 'column', md: 'row' }}
-              justify="space-between"
-              align={{ base: 'stretch', md: 'center' }}
-              gap={4}
-              mb={5}
+          {metrics.isLoading ? (
+            <LoadingPanel label="Loading blog metrics" size="sm" minH="220px" />
+          ) : metrics.error ? (
+            <AnalyticsErrorPanel error={metrics.error} onRetry={metrics.refresh} />
+          ) : metrics.data && metrics.data.posts.length > 0 ? (
+            <VStack align="stretch" spacing={3}>
+              <BlogMetricsTable
+                blogs={metrics.data.posts}
+                range={range}
+                sort={sort}
+                order={order}
+                onSortChange={updateSort}
+              />
+              <PaginationControls
+                currentPage={page}
+                totalPages={Math.max(1, totalPages)}
+                totalCount={metrics.data.total}
+                pageSize={metrics.data.limit}
+                onPageChange={updatePage}
+                showOnlyWhenMultiple
+              />
+            </VStack>
+          ) : (
+            <Box
+              border="1px solid"
+              borderColor="border.subtle"
+              bg="bg.secondary"
+              borderRadius="2xl"
+              p={5}
             >
-              <Box>
-                <Heading size="md" color="text.primary">
-                  Blog metrics
-                </Heading>
-                <Text color="text.secondary" fontSize="sm">
-                  Sort and open a blog to inspect detailed diagnostics.
-                </Text>
-              </Box>
-              <HStack flexWrap="wrap">
-                {sortOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    size="sm"
-                    variant={sort === option.value ? 'solid' : 'ghost'}
-                    bg={sort === option.value ? 'action.primary' : 'bg.tertiary'}
-                    color={sort === option.value ? 'white' : 'text.secondary'}
-                    _hover={{ bg: sort === option.value ? 'action.hover' : 'action.subtle' }}
-                    onClick={() => updateSort(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </HStack>
-            </Flex>
-
-            {metrics.isLoading ? (
-              <LoadingPanel label="Loading blog metrics" size="sm" minH="220px" />
-            ) : metrics.error ? (
-              <AnalyticsErrorPanel error={metrics.error} onRetry={metrics.refresh} />
-            ) : metrics.data && metrics.data.posts.length > 0 ? (
-              <VStack align="stretch" spacing={3}>
-                {metrics.data.posts.map((blog) => (
-                  <Flex
-                    key={blog.postId}
-                    direction={{ base: 'column', md: 'row' }}
-                    justify="space-between"
-                    gap={3}
-                    borderRadius="xl"
-                    bg="bg.tertiary"
-                    p={4}
-                  >
-                    <Box>
-                      <Text color="text.primary" fontWeight="semibold">
-                        {blog.title}
-                      </Text>
-                      <Text color="text.tertiary" fontSize="sm">
-                        {formatAnalyticsInteger(blog.views)} views ·{' '}
-                        {
-                          formatApproximateReaders(
-                            blog.estimatedUniqueReaders,
-                            blog.uniqueReadersApproximate,
-                          ).value
-                        }{' '}
-                        readers · {formatAnalyticsPercent(blog.completionRate)} completion
-                      </Text>
-                    </Box>
-                    <Button
-                      as={RouterLink}
-                      to={`/analytics/blog/${blog.postId}?${serializeAnalyticsRange(range).toString()}`}
-                      size="sm"
-                      variant="ghost"
-                      color="action.primary"
-                    >
-                      View diagnostics
-                    </Button>
-                  </Flex>
-                ))}
-                <PaginationControls
-                  currentPage={page}
-                  totalPages={Math.max(1, totalPages)}
-                  totalCount={metrics.data.total}
-                  pageSize={metrics.data.limit}
-                  onPageChange={updatePage}
-                  showOnlyWhenMultiple
-                />
-              </VStack>
-            ) : (
               <Text color="text.tertiary">No analytics data for this range yet.</Text>
-            )}
-          </Box>
+            </Box>
+          )}
         </VStack>
       </Container>
     </Box>

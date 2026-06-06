@@ -3,9 +3,12 @@ import { describe, expect, it } from 'vitest'
 import {
   buildTrendPolyline,
   createAnalyticsRangePreset,
+  formatInsightEvidence,
   getAnalyticsErrorCopy,
   normalizeFunnelStages,
+  sortBlogMetrics,
 } from './author-analytics.visualization'
+import { AnalyticsInsight, BlogMetricRow } from './author-analytics.types'
 
 describe('author analytics visualization helpers', () => {
   it('builds a bounded SVG polyline from trend values', () => {
@@ -78,5 +81,54 @@ describe('author analytics visualization helpers', () => {
           "title": "Analytics is catching up",
         }
       `)
+  })
+
+  it('sorts blog metrics for comparison without mutating the backend order', () => {
+    const blogs: BlogMetricRow[] = [
+      {
+        postId: 1,
+        title: 'A',
+        views: 30,
+        estimatedUniqueReaders: 20,
+        uniqueReadersApproximate: true,
+        heartsReceived: 2,
+        shares: 1,
+        linkClicks: 3,
+        completionRate: 0.8,
+        avgActiveReadSeconds: 100,
+      },
+      {
+        postId: 2,
+        title: 'B',
+        views: 50,
+        estimatedUniqueReaders: 40,
+        uniqueReadersApproximate: true,
+        heartsReceived: 4,
+        shares: 2,
+        linkClicks: 1,
+        completionRate: 0.25,
+        avgActiveReadSeconds: 20,
+      },
+    ]
+
+    expect(sortBlogMetrics(blogs, 'completion_rate', 'desc').map((blog) => blog.postId)).toEqual([
+      1, 2,
+    ])
+    expect(sortBlogMetrics(blogs, 'views', 'asc').map((blog) => blog.postId)).toEqual([1, 2])
+    expect(blogs.map((blog) => blog.postId)).toEqual([1, 2])
+  })
+
+  it('formats insight evidence while preserving backend metrics and cautious sample size', () => {
+    const insight: AnalyticsInsight = {
+      code: 'low_completion',
+      message: 'Completion is lower than usual for this blog.',
+      sample_size: 18,
+      evidence: [{ metric: 'completion_rate', value: 0.25, baseline: 0.5 }],
+    }
+
+    expect(formatInsightEvidence(insight)).toEqual({
+      sampleLabel: 'Sample size: 18',
+      evidenceLabels: ['completion_rate: 25% vs 50% baseline'],
+    })
   })
 })

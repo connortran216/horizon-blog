@@ -223,6 +223,50 @@ Rules:
 - code blocks, blockquotes, tables, and lists remain legible in both color modes
 - the prose component should not add an unnecessary second card shell
 
+## Analytics Components
+
+Analytics components live in:
+- `src/features/author-analytics/components`
+
+They stay feature-owned because they understand analytics-specific concepts such as approximate readers, completion, active read seconds, sample size, and backend evidence.
+
+### AnalyticsMetricCard
+
+Rules:
+- label approximate unique-reader counts explicitly
+- keep values textual and readable before any visual emphasis
+- use `bg.secondary` and `border.subtle`; avoid dashboard-heavy nested chrome
+
+### AnalyticsTrendChart
+
+Rules:
+- use dependency-free SVG primitives unless a chart dependency is separately approved
+- chart labels and nearby values must explain the metric; the line alone is not enough
+- use action tokens for strokes and keep decorative color secondary
+
+### BlogMetricsTable
+
+Rules:
+- comparison belongs in a keyboard-accessible table
+- sort controls must show active state with text/ARIA, not color alone
+- rows must keep blog title, key values, and diagnostics action visible on small screens through horizontal table scrolling
+
+### AnalyticsInsightList
+
+Rules:
+- preserve backend insight `message`, `sample_size`, and `evidence`
+- do not invent AI-style recommendations or causal explanations
+- evidence labels must include metric, value, and baseline when provided
+- empty insight state should be calm and should not imply a problem
+
+### Funnel, Reaction, Link, And Source Components
+
+Rules:
+- visual bars and badges are secondary to text labels and numeric values
+- funnel stages must show stage name, session count, and percentage
+- reaction trends must separate added and removed hearts
+- link/source tables must include meaningful labels beyond color or icon treatment
+
 ## Form and Auth Components
 
 ### AuthShell

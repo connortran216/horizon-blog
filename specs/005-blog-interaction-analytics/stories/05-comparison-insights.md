@@ -35,8 +35,15 @@ Present comparison as an accessible sortable table and insights as evidence-back
 - Verify: render low-sample and qualifying insights. Pass: backend caution and evidence are preserved.
 - Verify: review visual encodings. Pass: no meaning relies on color alone.
 
+## Execution Notes
+
+- Added `BlogMetricsTable` for keyboard-accessible comparison sorting and diagnostics navigation.
+- Added `AnalyticsInsightList` to preserve backend insight message, sample size, and evidence labels.
+- Added helper coverage for local comparison sorting and insight evidence formatting.
+- Updated reusable analytics component rules; live/manual screen checks remain Story 06.
+
 ## Definition of Done
 
-- [ ] T028 and T031 complete.
-- [ ] Comparison/insight manual scenarios pass.
-- [ ] Commit recorded in `checklist.md`.
+- [x] T028 and T031 complete.
+- [x] Static comparison/insight validation passes; live manual scenarios remain Story 06.
+- [x] Commit recorded in `checklist.md`.

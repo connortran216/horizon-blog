@@ -49,10 +49,10 @@
 - [x] T025 [P] [US4] Implement blog-detail hook in `src/features/author-analytics/useBlogAnalytics.ts`
 - [x] T026 [P] [US4] Implement progress funnel and reaction trend components in `src/features/author-analytics/components/ReaderProgressFunnel.tsx` and `AnalyticsReactionTrend.tsx`
 - [x] T027 [P] [US4] Implement link and source performance components in `src/features/author-analytics/components/LinkPerformanceTable.tsx` and `TrafficSourceBreakdown.tsx`
-- [ ] T028 [P] [US4] Implement sortable comparison table and insight list in `src/features/author-analytics/components/BlogMetricsTable.tsx` and `AnalyticsInsightList.tsx`
+- [x] T028 [P] [US4] Implement sortable comparison table and insight list in `src/features/author-analytics/components/BlogMetricsTable.tsx` and `AnalyticsInsightList.tsx`
 - [x] T029 [US4] Implement blog analytics detail page in `src/features/author-analytics/pages/BlogAnalyticsPage.tsx`
 - [x] T030 [US4] Add protected blog analytics route wrapper and route entry in `src/pages/BlogAnalytics.tsx` and `src/Routes.tsx`
-- [ ] T031 [US4] Document reusable analytics visualization rules in `design-system/components/README.md`
+- [x] T031 [US4] Document reusable analytics visualization rules in `design-system/components/README.md`
 
 ## Phase 6: Validation and Cross-Cutting
 
