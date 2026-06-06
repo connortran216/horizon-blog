@@ -56,11 +56,11 @@
 
 ## Phase 6: Validation and Cross-Cutting
 
-- [ ] T032 Verify frontend types and fixtures against backend Swagger and `specs/005-blog-interaction-analytics/contracts/backend-api.md`
-- [ ] T033 Perform reader and author manual journeys from `specs/005-blog-interaction-analytics/quickstart.md`
-- [ ] T034 Verify mobile/desktop, light/dark, keyboard, screen-reader labels, distinct surfaces, and reduced motion using `specs/005-blog-interaction-analytics/quickstart.md`
-- [ ] T035 Run `rtk yarn lint`, `rtk yarn format`, and `rtk yarn build`
-- [ ] T036 Record validation and implementation commits in `specs/005-blog-interaction-analytics/stories/checklist.md`
+- [x] T032 Verify frontend types and fixtures against backend Swagger and `specs/005-blog-interaction-analytics/contracts/backend-api.md`
+- [ ] T033 Perform reader and author manual journeys from `specs/005-blog-interaction-analytics/quickstart.md` (blocked: no owner-run frontend server reachable on `localhost:5173`, `127.0.0.1:5173`, `localhost:3000`, or `localhost:4173`)
+- [ ] T034 Verify mobile/desktop, light/dark, keyboard, screen-reader labels, distinct surfaces, and reduced motion using `specs/005-blog-interaction-analytics/quickstart.md` (static checks passed; live visual/manual checks blocked by no frontend server)
+- [x] T035 Run `rtk yarn lint`, `rtk yarn format`, and `rtk yarn build`
+- [x] T036 Record validation and implementation commits in `specs/005-blog-interaction-analytics/stories/checklist.md`
 
 ## Dependencies
 
