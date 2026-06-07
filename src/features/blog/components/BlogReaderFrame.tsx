@@ -274,32 +274,8 @@ const BlogReaderFrame = ({
             </Box>
 
             {interactionSection ? (
-              <Box maxW="4xl" mx="auto" w="full">
-                <Box
-                  border="1px solid"
-                  borderColor="border.subtle"
-                  borderRadius="2xl"
-                  bg="bg.secondary"
-                  px={{ base: 4, md: 5 }}
-                  py={{ base: 4, md: 5 }}
-                >
-                  <Stack
-                    spacing={{ base: 3, md: 4 }}
-                    direction={{ base: 'column', sm: 'row' }}
-                    align={{ base: 'flex-start', sm: 'center' }}
-                    justify="space-between"
-                  >
-                    <Box>
-                      <Text color="text.primary" fontWeight="semibold">
-                        Was this useful?
-                      </Text>
-                      <Text color="text.secondary" fontSize="sm" mt={1}>
-                        React or share after reading.
-                      </Text>
-                    </Box>
-                    {interactionSection}
-                  </Stack>
-                </Box>
+              <Box maxW="4xl" mx="auto" w="full" pt={{ base: 1, md: 2 }}>
+                {interactionSection}
               </Box>
             ) : null}
           </VStack>

@@ -3,7 +3,7 @@
 ## Reader Review Scenario
 
 1. Open a published blog anonymously.
-2. Confirm compact heart/share actions appear after the article content and do not distract from reading.
+2. Confirm a compact icon row appears after the article content, heart/share are usable, and unsupported comment/repost/more actions are visibly muted.
 3. Heart, unheart, refresh, and confirm reconciled state.
 4. Share through native share or copy fallback.
 5. Scroll through milestones, idle, hide the tab, return, and leave.

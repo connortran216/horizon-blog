@@ -18,7 +18,7 @@ They share backend contracts but do not share feature state or components.
 
 ## 2. Product and UX Principles
 
-- Reading remains the primary experience; instrumentation must be invisible and actions must appear as compact post-content feedback.
+- Reading remains the primary experience; instrumentation must be invisible and actions must appear as compact post-content icon feedback.
 - Link tracking never prevents or delays navigation.
 - Reader interactions work without login.
 - Dashboard language explains meaning instead of exposing analytics jargon.
@@ -191,13 +191,14 @@ flowchart TD
 
 ### Reader Interaction Bar
 
-The first release uses one compact closing feedback section after the article body. It contains:
+The first release uses one compact icon-row feedback section after the article body. It contains:
 
 - heart toggle with visible count;
 - share action;
+- muted unavailable comment, repost, and overflow actions;
 - accessible labels and status feedback.
 
-It must not become a floating rail, sticky overlay, or decorative distraction. Opening-metadata placement is intentionally avoided because the reader should evaluate the article before reacting.
+It must not become a floating rail, sticky overlay, or decorative distraction. Opening-metadata placement is intentionally avoided because the reader should evaluate the article before reacting. Muted unavailable actions are presentation only until matching backend contracts exist.
 
 ### Heart Behavior
 

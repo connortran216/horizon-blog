@@ -1,4 +1,5 @@
-import { Button } from '@chakra-ui/react'
+import { Button, Icon, Text } from '@chakra-ui/react'
+import { FiHeart } from 'react-icons/fi'
 
 interface HeartButtonProps {
   heartCount: number
@@ -16,23 +17,33 @@ const HeartButton = ({
   onToggle,
 }: HeartButtonProps) => (
   <Button
-    size="sm"
-    variant={viewerHasHearted ? 'solid' : 'outline'}
-    colorScheme={viewerHasHearted ? 'red' : undefined}
-    borderColor="border.subtle"
-    bg={viewerHasHearted ? 'red.500' : 'bg.secondary'}
-    color={viewerHasHearted ? 'white' : 'text.primary'}
+    variant="ghost"
+    minW={{ base: '44px', md: '52px' }}
+    h={{ base: '52px', md: '56px' }}
+    px={2}
+    py={2}
+    flexDirection="column"
+    gap={1}
+    borderRadius="full"
+    color={viewerHasHearted ? 'red.500' : 'text.secondary'}
     _hover={{
-      bg: viewerHasHearted ? 'red.600' : 'action.subtle',
-      borderColor: 'action.primary',
+      bg: 'action.subtle',
+      color: viewerHasHearted ? 'red.600' : 'text.primary',
     }}
     isDisabled={!canHeart}
     isLoading={isLoading}
     onClick={onToggle}
     aria-label={viewerHasHearted ? 'Remove heart from this blog' : 'Heart this blog'}
-    leftIcon={<span aria-hidden="true">{viewerHasHearted ? '♥' : '♡'}</span>}
   >
-    {heartCount}
+    <Icon
+      as={FiHeart}
+      boxSize={{ base: 6, md: 7 }}
+      fill={viewerHasHearted ? 'currentColor' : 'none'}
+      aria-hidden="true"
+    />
+    <Text as="span" fontSize="xs" lineHeight="1" color="text.tertiary">
+      {heartCount}
+    </Text>
   </Button>
 )
 

@@ -207,7 +207,7 @@ Purpose:
 Rules:
 - avoid box-in-box claustrophobic layouts
 - keep header and prose separated without over-framing
-- render reader heart/share feedback after the article body, not inside the opening metadata block
+- render reader interaction feedback as a compact icon row after the article body, not inside the opening metadata block
 - progress accents use action tokens, not purple defaults
 
 ### MarkdownReader

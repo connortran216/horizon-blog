@@ -17,7 +17,7 @@ As an anonymous or authenticated reader, I want to heart and share a blog after 
 
 **Acceptance Scenarios**:
 
-1. **Given** a reader opens a blog, **When** interaction state loads, **Then** compact heart and share actions appear after the article content without dominating the reader.
+1. **Given** a reader opens a blog, **When** interaction state loads, **Then** a compact icon row appears after the article content with active heart/share actions and muted unavailable future actions.
 2. **Given** a reader hearts or unhearts, **When** the action completes or fails, **Then** the visible state is reconciled accurately.
 3. **Given** native sharing is unavailable, **When** the reader shares, **Then** copying the canonical link works as a fallback.
 4. **Given** a reader uses keyboard or assistive technology, **When** they reach the actions, **Then** toggle state and labels are understandable.
@@ -71,7 +71,7 @@ As an author, I want blog-level funnel, link, traffic source, reaction, comparis
 
 ### Functional Requirements
 
-- **FR-001**: Published blog detail MUST provide compact post-content heart and share actions for anonymous and authenticated readers.
+- **FR-001**: Published blog detail MUST provide compact post-content icon actions for anonymous and authenticated readers, with only backend-supported heart/share actions enabled.
 - **FR-002**: Heart state MUST update optimistically and reconcile with the backend result.
 - **FR-003**: Share tracking MUST count only successful native shares or clipboard copies.
 - **FR-004**: The frontend MUST create and validate a first-party anonymous visitor ID without treating it as authentication.

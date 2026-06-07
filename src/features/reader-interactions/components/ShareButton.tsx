@@ -1,5 +1,5 @@
-import { Button } from '@chakra-ui/react'
-import { ExternalLinkIcon } from '@chakra-ui/icons'
+import { Button, Icon } from '@chakra-ui/react'
+import { FiShare2 } from 'react-icons/fi'
 
 interface ShareButtonProps {
   isLoading?: boolean
@@ -8,18 +8,19 @@ interface ShareButtonProps {
 
 const ShareButton = ({ isLoading = false, onShare }: ShareButtonProps) => (
   <Button
-    size="sm"
-    variant="outline"
-    borderColor="border.subtle"
-    bg="bg.secondary"
-    color="text.primary"
-    _hover={{ bg: 'action.subtle', borderColor: 'action.primary' }}
+    variant="ghost"
+    minW={{ base: '44px', md: '52px' }}
+    h={{ base: '52px', md: '56px' }}
+    px={2}
+    py={2}
+    borderRadius="full"
+    color="text.secondary"
+    _hover={{ bg: 'action.subtle', color: 'text.primary' }}
     isLoading={isLoading}
     onClick={onShare}
     aria-label="Share this blog"
-    leftIcon={<ExternalLinkIcon />}
   >
-    Share
+    <Icon as={FiShare2} boxSize={{ base: 6, md: 7 }} aria-hidden="true" />
   </Button>
 )
 
