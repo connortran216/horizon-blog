@@ -8,7 +8,7 @@ export type AnalyticsEventType =
   | 'heart'
   | 'unheart'
 
-export type ReaderShareMethod = 'native_share' | 'copy_link'
+export type ReaderShareMethod = 'facebook' | 'x' | 'linkedin' | 'copy_link'
 
 export interface AnalyticsEventRequest {
   event_id: string

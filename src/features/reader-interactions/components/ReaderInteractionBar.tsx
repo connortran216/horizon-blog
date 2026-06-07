@@ -1,7 +1,7 @@
 import { Button, HStack, Icon, Text, VStack } from '@chakra-ui/react'
 import { IconType } from 'react-icons'
 import { FiMessageCircle, FiMoreHorizontal, FiRepeat } from 'react-icons/fi'
-import { ReaderInteractionState } from '../reader-interactions.types'
+import { ReaderInteractionState, ReaderShareMethod } from '../reader-interactions.types'
 import HeartButton from './HeartButton'
 import ShareButton from './ShareButton'
 
@@ -10,7 +10,7 @@ interface ReaderInteractionBarProps {
   isHeartLoading?: boolean
   isShareLoading?: boolean
   onToggleHeart: () => void
-  onShare: () => void
+  onShare: (method: ReaderShareMethod) => void
 }
 
 interface UnavailableIconActionProps {

@@ -3,6 +3,7 @@ import { useToast } from '@chakra-ui/react'
 import { createReaderIdentityStorage, createReaderUuid } from './reader-identity.storage'
 import { ReaderInteractionsService, readerInteractionsService } from './reader-interactions.service'
 import { ReaderInteractionState, ReaderShareMethod } from './reader-interactions.types'
+import { buildReaderShareTargetUrl } from './reader-share.targets'
 
 interface UseReaderInteractionsOptions {
   postId?: number
@@ -101,53 +102,59 @@ export const useReaderInteractions = ({
     }
   }, [enabled, isHeartLoading, postId, service, state, toast])
 
-  const share = useCallback(async () => {
-    if (!enabled || !postId || isShareLoading) return
+  const share = useCallback(
+    async (method: ReaderShareMethod = 'copy_link') => {
+      if (!enabled || !postId || isShareLoading) return
 
-    const url = shareUrl || window.location.href
-    const visitorId = visitorIdRef.current ?? identityStorage.getOrCreateVisitorId()
-    visitorIdRef.current = visitorId
-    setIsShareLoading(true)
+      const url = shareUrl || window.location.href
+      const visitorId = visitorIdRef.current ?? identityStorage.getOrCreateVisitorId()
+      visitorIdRef.current = visitorId
+      setIsShareLoading(true)
 
-    let method: ReaderShareMethod = 'copy_link'
+      try {
+        const shareTargetUrl = buildReaderShareTargetUrl(method, { title, url })
 
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, url })
-        method = 'native_share'
-      } else {
-        await copyToClipboard(url)
-      }
+        if (shareTargetUrl) {
+          window.open(shareTargetUrl, '_blank', 'noopener,noreferrer,width=720,height=560')
+        } else {
+          await copyToClipboard(url)
+        }
 
-      toast({
-        title: method === 'native_share' ? 'Shared' : 'Link copied',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      })
-
-      if (sessionId) {
-        void service.trackShare({
-          postId,
-          visitorId,
-          sessionId,
-          eventId: createReaderUuid(),
-          method,
+        toast({
+          title: method === 'copy_link' ? 'Link copied' : 'Share window opened',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
         })
+
+        if (sessionId) {
+          void service
+            .trackShare({
+              postId,
+              visitorId,
+              sessionId,
+              eventId: createReaderUuid(),
+              method,
+            })
+            .catch((error) => {
+              console.error('Failed to track share event:', error)
+            })
+        }
+      } catch (error) {
+        console.error('Failed to share blog:', error)
+        toast({
+          title: 'Unable to share',
+          description: error instanceof Error ? error.message : 'Please try again.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        })
+      } finally {
+        setIsShareLoading(false)
       }
-    } catch (error) {
-      console.error('Failed to share blog:', error)
-      toast({
-        title: 'Unable to share',
-        description: error instanceof Error ? error.message : 'Please try again.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
-    } finally {
-      setIsShareLoading(false)
-    }
-  }, [enabled, identityStorage, isShareLoading, postId, service, sessionId, shareUrl, title, toast])
+    },
+    [enabled, identityStorage, isShareLoading, postId, service, sessionId, shareUrl, title, toast],
+  )
 
   return {
     state,

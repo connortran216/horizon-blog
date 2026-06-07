@@ -13,13 +13,13 @@ As an anonymous or authenticated reader, I want to heart and share a blog after 
 
 **Why this priority**: Reader interactions must feel natural and timed to the reading experience before their analytics value matters.
 
-**Independent Test**: Open a published blog anonymously, read through the article, heart/unheart it from the closing feedback section, share it with native share or copy fallback, and confirm the article remains comfortable to read.
+**Independent Test**: Open a published blog anonymously, read through the article, heart/unheart it from the closing feedback section, share it through a social target or copy-link action, and confirm the article remains comfortable to read.
 
 **Acceptance Scenarios**:
 
 1. **Given** a reader opens a blog, **When** interaction state loads, **Then** a compact icon row appears after the article content with active heart/share actions and muted unavailable future actions.
 2. **Given** a reader hearts or unhearts, **When** the action completes or fails, **Then** the visible state is reconciled accurately.
-3. **Given** native sharing is unavailable, **When** the reader shares, **Then** copying the canonical link works as a fallback.
+3. **Given** the reader opens the share menu, **When** they choose Facebook, X, LinkedIn, or copy link, **Then** the selected action shares or copies the canonical blog URL.
 4. **Given** a reader uses keyboard or assistive technology, **When** they reach the actions, **Then** toggle state and labels are understandable.
 
 ### User Story 2 - Measure reading without interrupting it (Priority: P1)
@@ -73,7 +73,7 @@ As an author, I want blog-level funnel, link, traffic source, reaction, comparis
 
 - **FR-001**: Published blog detail MUST provide compact post-content icon actions for anonymous and authenticated readers, with only backend-supported heart/share actions enabled.
 - **FR-002**: Heart state MUST update optimistically and reconcile with the backend result.
-- **FR-003**: Share tracking MUST count only successful native shares or clipboard copies.
+- **FR-003**: Share tracking MUST count only selected social share targets or successful clipboard copies.
 - **FR-004**: The frontend MUST create and validate a first-party anonymous visitor ID without treating it as authentication.
 - **FR-005**: The frontend MUST create bounded per-blog reading sessions and queue one view per session.
 - **FR-006**: The frontend MUST queue progress milestones at 25, 50, 75, 80, and 100 percent no more than once per session.

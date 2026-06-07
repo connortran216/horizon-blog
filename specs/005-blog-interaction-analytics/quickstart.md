@@ -5,7 +5,7 @@
 1. Open a published blog anonymously.
 2. Confirm a compact icon row appears after the article content, heart/share are usable, and unsupported comment/repost/more actions are visibly muted.
 3. Heart, unheart, refresh, and confirm reconciled state.
-4. Share through native share or copy fallback.
+4. Share through Facebook, X, LinkedIn, and copy-link menu actions.
 5. Scroll through milestones, idle, hide the tab, return, and leave.
 6. Click internal, external, and same-page links; confirm navigation is never blocked.
 7. Confirm retried events keep the same event ID and active-time reports stay cumulative and monotonic.

@@ -211,10 +211,10 @@ It must not become a floating rail, sticky overlay, or decorative distraction. O
 
 ### Share Behavior
 
-1. Prefer `navigator.share` when supported.
-2. Fall back to copying the canonical blog URL.
-3. Queue `share_completed` only after native share resolves or clipboard copy succeeds.
-4. Do not count cancelled native share or clipboard failure.
+1. Open an in-app share menu from the bottom icon row.
+2. Support Facebook, X, LinkedIn, and copy-link actions for the canonical blog URL.
+3. Queue `share_completed` after a social share target is selected or clipboard copy succeeds.
+4. Do not invoke the OS-native `navigator.share` sheet for public reader sharing.
 
 ## 8. Author Analytics Information Architecture
 
@@ -367,7 +367,7 @@ The frontend currently has no established automated test runner. The implementat
 
 - anonymous heart, unheart, refresh, and visible count
 - authenticated heart across sessions
-- native share, copy fallback, and cancelled share
+- social share targets and copy-link fallback
 - progress milestones and idle-tab exclusion
 - links navigate normally while events queue
 - protected analytics routes and ownership errors
