@@ -82,7 +82,7 @@ As an author, I want blog-level funnel, link, traffic source, reaction, comparis
 - **FR-009**: Event delivery MUST batch and retry without blocking reading or page teardown.
 - **FR-010**: The frontend MUST stop queueing non-reaction events when backend capabilities disable analytics tracking.
 - **FR-011**: Authors MUST have protected overview and blog-detail analytics routes.
-- **FR-012**: Overview MUST support summary metrics, trends, date ranges, sortable blogs, pagination, and insights.
+- **FR-012**: Overview MUST support summary metrics, trends, date ranges, sortable blogs, pagination, insights, and distinct labels for date-range hearts received versus current active hearts.
 - **FR-013**: Blog detail MUST support summary metrics, freshness, progress funnel, reaction trend, links, traffic sources, and insights.
 - **FR-014**: Selected date range and sorting MUST survive refresh through URL query parameters.
 - **FR-015**: Analytics UI MUST show accurate loading, empty, error, low-sample, and stale-data states.

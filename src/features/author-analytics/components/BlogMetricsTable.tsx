@@ -42,7 +42,7 @@ const columns: Array<{ label: string; sort: AnalyticsPostSort }> = [
   { label: 'Readers', sort: 'unique_readers' },
   { label: 'Completion', sort: 'completion_rate' },
   { label: 'Active read', sort: 'avg_active_read_seconds' },
-  { label: 'Hearts', sort: 'hearts_received' },
+  { label: 'Hearts received', sort: 'hearts_received' },
 ]
 
 const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetricsTableProps) => {
@@ -107,7 +107,8 @@ const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetri
                     </Text>
                     <Text color="text.tertiary" fontSize="xs">
                       {formatAnalyticsInteger(blog.linkClicks)} link clicks ·{' '}
-                      {formatAnalyticsInteger(blog.shares)} shares
+                      {formatAnalyticsInteger(blog.shares)} shares ·{' '}
+                      {formatAnalyticsInteger(blog.activeHeartCount)} active hearts
                     </Text>
                   </Td>
                   <Td isNumeric>{formatAnalyticsInteger(blog.views)}</Td>

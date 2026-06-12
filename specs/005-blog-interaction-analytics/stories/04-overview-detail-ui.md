@@ -12,6 +12,7 @@ Authors need a calm, actionable analytics route that answers reach and drop-off 
 ## Acceptance Criteria
 
 - Overview clearly presents range, primary metrics, trends, top blogs, and freshness.
+- Overview and blog detail distinguish date-range hearts received from current active hearts.
 - Blog detail clearly presents funnel, reactions, links, and sources.
 - Approximate reader counts are visibly labeled without overclaiming precision.
 - Loading, empty, error, stale, and not-found states are useful.

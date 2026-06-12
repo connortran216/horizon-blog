@@ -36,6 +36,7 @@ export interface AuthorAnalyticsApiPostMetric {
   estimated_unique_readers: number
   unique_readers_approximate: boolean
   hearts_received: number
+  active_heart_count?: number
   shares: number
   link_clicks: number
   completion_rate: number

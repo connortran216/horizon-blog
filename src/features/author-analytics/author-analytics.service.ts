@@ -124,6 +124,7 @@ export class AuthorAnalyticsService {
       estimatedUniqueReaders: post.estimated_unique_readers,
       uniqueReadersApproximate: post.unique_readers_approximate,
       heartsReceived: post.hearts_received,
+      activeHeartCount: post.active_heart_count ?? 0,
       shares: post.shares,
       linkClicks: post.link_clicks,
       completionRate: post.completion_rate,

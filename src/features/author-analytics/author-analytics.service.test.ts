@@ -66,6 +66,7 @@ describe('author analytics service', () => {
         estimatedUniqueReaders: 830,
         uniqueReadersApproximate: true,
         heartsReceived: 94,
+        activeHeartCount: 128,
         shares: 32,
         linkClicks: 180,
         completionRate: 0.42,
@@ -87,6 +88,7 @@ describe('author analytics service', () => {
           title: 'Example blog',
           estimatedUniqueReaders: 350,
           uniqueReadersApproximate: true,
+          activeHeartCount: 28,
         },
       ],
     })
@@ -115,6 +117,7 @@ describe('author analytics service', () => {
           postId: 42,
           completionRate: 0.56,
           avgActiveReadSeconds: 310,
+          activeHeartCount: 28,
         },
       ],
     })

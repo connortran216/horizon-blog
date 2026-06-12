@@ -43,7 +43,7 @@
 
 ### AnalyticsSummary
 
-- Views, approximate unique readers, hearts received, shares, link clicks, completion rate, and average active read seconds.
+- Views, approximate unique readers, date-range hearts received, current active hearts, shares, link clicks, completion rate, and average active read seconds.
 
 ### AnalyticsTrendPoint
 

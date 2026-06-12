@@ -116,7 +116,7 @@ const AnalyticsOverviewPage = () => {
             <AnalyticsErrorPanel error={overview.error} onRetry={overview.refresh} />
           ) : overview.data && readers ? (
             <>
-              <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing={4}>
+              <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4}>
                 <AnalyticsMetricCard
                   label="Views"
                   value={formatAnalyticsInteger(overview.data.summary.views)}
@@ -137,6 +137,16 @@ const AnalyticsOverviewPage = () => {
                   label="Active read"
                   value={formatAnalyticsDuration(overview.data.summary.avgActiveReadSeconds)}
                   helper="Average active reading time"
+                />
+                <AnalyticsMetricCard
+                  label="Hearts received"
+                  value={formatAnalyticsInteger(overview.data.summary.heartsReceived)}
+                  helper="Added during the selected range"
+                />
+                <AnalyticsMetricCard
+                  label="Active hearts"
+                  value={formatAnalyticsInteger(overview.data.summary.activeHeartCount ?? 0)}
+                  helper="Current hearts across published blogs"
                 />
               </SimpleGrid>
 

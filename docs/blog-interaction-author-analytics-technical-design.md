@@ -239,7 +239,7 @@ flowchart TD
 
 Primary content:
 
-- total views, estimated unique readers, hearts received, shares;
+- total views, estimated unique readers, date-range hearts received, current active hearts, shares;
 - average completion and active read time;
 - performance trend;
 - top-performing blogs;

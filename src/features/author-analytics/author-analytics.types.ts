@@ -32,6 +32,7 @@ export interface BlogMetricRow {
   estimatedUniqueReaders: number
   uniqueReadersApproximate: boolean
   heartsReceived: number
+  activeHeartCount: number
   shares: number
   linkClicks: number
   completionRate: number
