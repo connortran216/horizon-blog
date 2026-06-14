@@ -17,7 +17,18 @@ interface UseReaderSessionOptions {
   enabled?: boolean
   service?: ReaderInteractionsService
   activeIntervalMs?: number
+  deliveryIntervalMs?: number
   idleTimeoutMs?: number
+}
+
+export const DEFAULT_ANALYTICS_DELIVERY_INTERVAL_MS = 30_000
+
+export const scheduleRoutineAnalyticsDelivery = (
+  flush: () => void,
+  intervalMs: number = DEFAULT_ANALYTICS_DELIVERY_INTERVAL_MS,
+) => {
+  const intervalId = globalThis.setInterval(flush, intervalMs)
+  return () => globalThis.clearInterval(intervalId)
 }
 
 export const useReaderSession = ({
@@ -25,6 +36,7 @@ export const useReaderSession = ({
   enabled = true,
   service = readerInteractionsService,
   activeIntervalMs = 15_000,
+  deliveryIntervalMs = DEFAULT_ANALYTICS_DELIVERY_INTERVAL_MS,
   idleTimeoutMs = 30_000,
 }: UseReaderSessionOptions) => {
   const identityStorage = useMemo(() => createReaderIdentityStorage(), [])
@@ -76,7 +88,6 @@ export const useReaderSession = ({
     setSessionId(nextSessionId)
 
     transport.enqueue(startReadingSession(session))
-    void transport.flush(visitorId)
 
     return () => {
       void transport.flush(visitorId, { keepalive: true })
@@ -130,12 +141,17 @@ export const useReaderSession = ({
 
       if (event) {
         transport.enqueue(event)
-        flush()
       }
     }, activeIntervalMs)
 
     return () => window.clearInterval(intervalId)
-  }, [activeIntervalMs, enabled, flush, idleTimeoutMs, postId])
+  }, [activeIntervalMs, enabled, idleTimeoutMs, postId])
+
+  useEffect(() => {
+    if (!enabled || !postId) return
+
+    return scheduleRoutineAnalyticsDelivery(flush, deliveryIntervalMs)
+  }, [deliveryIntervalMs, enabled, flush, postId])
 
   useEffect(() => {
     if (!enabled || !postId) return
@@ -167,10 +183,8 @@ export const useReaderSession = ({
       for (const event of events) {
         transport.enqueue(event)
       }
-
-      flush()
     },
-    [enabled, flush, markActivity],
+    [enabled, markActivity],
   )
 
   const handleContentClick = useCallback(

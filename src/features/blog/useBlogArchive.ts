@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getBlogService } from '../../core'
-import { BlogArchivePost, BlogArchiveTag } from './blog.types'
+import { BlogArchiveSummary, BlogArchiveTag } from './blog.types'
 
 const DEFAULT_PAGE_SIZE = 6
 const SEARCH_DEBOUNCE_MS = 350
@@ -20,7 +20,7 @@ const parseTags = (value: string | null) =>
 export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
-  const [posts, setPosts] = useState<BlogArchivePost[]>([])
+  const [posts, setPosts] = useState<BlogArchiveSummary[]>([])
   const [popularTags, setPopularTags] = useState<BlogArchiveTag[]>([])
   const [loading, setLoading] = useState(true)
   const [tagsLoading, setTagsLoading] = useState(true)

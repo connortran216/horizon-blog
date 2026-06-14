@@ -13,6 +13,7 @@ import {
 import {
   BlogPost,
   BlogArchiveOptions,
+  BlogPostSummariesPage,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
@@ -23,12 +24,17 @@ import {
 } from '../types/blog.types'
 import {
   ApiBlogPost,
+  ApiListPostSummariesResponse,
   ApiListPostsResponse,
   ApiPublicAuthorProfileResponse,
   ApiPublicAuthorPostsResponse,
 } from '../types/blog-service.types'
 import { ApiError, apiService } from '../services/api.service'
-import { extractFirstImageFromMarkdown, mapApiPostToSummary } from '../utils/blog-mapping.utils'
+import {
+  extractFirstImageFromMarkdown,
+  mapApiPostSummaryToBlogSummary,
+  mapApiPostToSummary,
+} from '../utils/blog-mapping.utils'
 
 /**
  * Default configuration for blog repository
@@ -172,6 +178,17 @@ export class ApiBlogRepository implements IBlogRepository {
     }
   }
 
+  private normalizePostSummariesPage(
+    response: ApiListPostSummariesResponse,
+  ): BlogPostSummariesPage {
+    return {
+      posts: response.data.map(mapApiPostSummaryToBlogSummary),
+      page: response.page,
+      limit: response.limit,
+      total: response.total,
+    }
+  }
+
   private cacheCurrentUserPostRecords(posts: ApiBlogPost[]): void {
     posts.forEach((post) => {
       this.setCache(`current-user-post_${post.id}`, this.normalizePublicPost(post))
@@ -213,7 +230,7 @@ export class ApiBlogRepository implements IBlogRepository {
     options?: BlogSearchOptions,
   ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('published', options)
+      const cacheKey = this.generateCacheKey('published-summaries', options)
 
       // Check cache first
       const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
@@ -226,10 +243,12 @@ export class ApiBlogRepository implements IBlogRepository {
         ...options,
       }
 
-      const response = await apiService.get<ApiListPostsResponse>('/posts', params)
+      const response = await apiService.get<ApiListPostSummariesResponse>(
+        '/posts/summaries',
+        params,
+      )
 
-      // Transform API data to business objects
-      const posts = response.data.map((post) => this.transformPostForDisplay(post))
+      const posts = response.data.map(mapApiPostSummaryToBlogSummary)
 
       // Cache the result
       this.setCache(cacheKey, posts)
@@ -252,6 +271,56 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch published posts',
+      }
+    }
+  }
+
+  async getPublishedPostSummaries(
+    options: BlogArchiveOptions,
+  ): Promise<RepositoryResult<BlogPostSummariesPage>> {
+    try {
+      const cacheKey = this.generateCacheKey('published-summary-page', options)
+      const cached = this.getFromCache(cacheKey) as BlogPostSummariesPage | null
+      if (cached) {
+        return {
+          success: true,
+          data: cached,
+          metadata: {
+            page: cached.page,
+            limit: cached.limit,
+            total: cached.total,
+            hasNext: cached.page * cached.limit < cached.total,
+            hasPrev: cached.page > 1,
+          },
+        }
+      }
+
+      const response = await apiService.get<ApiListPostSummariesResponse>('/posts/summaries', {
+        page: options.page,
+        limit: options.limit,
+        status: 'published',
+      })
+      const summariesPage = this.normalizePostSummariesPage(response)
+      this.setCache(cacheKey, summariesPage)
+      this.lastUpdate = new Date()
+
+      return {
+        success: true,
+        data: summariesPage,
+        metadata: {
+          page: summariesPage.page,
+          limit: summariesPage.limit,
+          total: summariesPage.total,
+          hasNext: summariesPage.page * summariesPage.limit < summariesPage.total,
+          hasPrev: summariesPage.page > 1,
+        },
+      }
+    } catch (error: unknown) {
+      console.error('Failed to fetch published post summaries:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch published post summaries',
+        statusCode: this.getStatusCode(error),
       }
     }
   }

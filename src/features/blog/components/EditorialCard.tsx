@@ -4,25 +4,18 @@ import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
-import { BlogArchivePost } from '../blog.types'
-import {
-  extractFirstImageUrl,
-  formatArchiveDate,
-  getExcerpt,
-  getPostAuthorAvatar,
-  getPostAuthorName,
-  getReadingTime,
-} from '../blog.utils'
+import { BlogArchiveSummary } from '../blog.types'
+import { formatArchiveDate } from '../blog.utils'
 
 interface EditorialCardProps {
-  post: BlogArchivePost
+  post: BlogArchiveSummary
   index: number
 }
 
 const EditorialCard = ({ post, index }: EditorialCardProps) => {
-  const coverImage = useResolvedCoverImage(extractFirstImageUrl(post.content_markdown))
-  const authorName = getPostAuthorName(post)
-  const authorAvatar = getPostAuthorAvatar(post)
+  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const authorName = post.author.username || 'Anonymous'
+  const authorAvatar = post.author.avatar
 
   return (
     <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
@@ -65,11 +58,11 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
               <Text color="text.secondary">{authorName}</Text>
             </HStack>
             <Text>•</Text>
-            <Text>{formatArchiveDate(post.created_at)}</Text>
+            <Text>{formatArchiveDate(post.createdAt)}</Text>
             <Text>•</Text>
             <HStack spacing={1.5}>
               <Icon as={FiClock} />
-              <Text>{getReadingTime(post.content_markdown)} min read</Text>
+              <Text>{post.readingTime || 1} min read</Text>
             </HStack>
           </HStack>
 
@@ -84,7 +77,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
               {post.title}
             </Heading>
             <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-              {getExcerpt(post.content_markdown)}
+              {post.excerpt || 'Fresh thoughts are on the way.'}
             </Text>
           </VStack>
 

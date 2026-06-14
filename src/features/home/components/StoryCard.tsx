@@ -13,7 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { AnimatedCard, BlogPost, extractPreviewText } from '../../../core'
+import { AnimatedCard, BlogPostSummary, extractPreviewText } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
@@ -21,7 +21,7 @@ const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
 
 interface StoryCardProps {
-  post: BlogPost
+  post: BlogPostSummary
   index: number
   formatDate: (dateString: string) => string
 }

@@ -16,22 +16,16 @@ import { MotionWrapper } from '../../../core'
 import StatChip from '../../../components/ui/StatChip'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
-import { BlogArchivePost } from '../blog.types'
-import {
-  extractFirstImageUrl,
-  formatArchiveDate,
-  getExcerpt,
-  getPostAuthorName,
-  getReadingTime,
-} from '../blog.utils'
+import { BlogArchiveSummary } from '../blog.types'
+import { formatArchiveDate } from '../blog.utils'
 
 interface FeaturedStoryProps {
-  post: BlogArchivePost
+  post: BlogArchiveSummary
 }
 
 const FeaturedStory = ({ post }: FeaturedStoryProps) => {
-  const coverImage = useResolvedCoverImage(extractFirstImageUrl(post.content_markdown))
-  const authorName = getPostAuthorName(post)
+  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const authorName = post.author.username || 'Anonymous'
 
   return (
     <MotionWrapper
@@ -82,7 +76,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   letterSpacing="0.14em"
                   color="text.tertiary"
                 >
-                  {formatArchiveDate(post.created_at)}
+                  {formatArchiveDate(post.createdAt)}
                 </Text>
               </HStack>
 
@@ -109,16 +103,13 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   fontSize={{ base: 'md', md: 'lg' }}
                   lineHeight="tall"
                 >
-                  {getExcerpt(post.content_markdown)}
+                  {post.excerpt || 'Fresh thoughts are on the way.'}
                 </Text>
               </Stack>
 
               <Wrap spacing={3}>
                 <StatChip label="Author" value={authorName} />
-                <StatChip
-                  label="Reading time"
-                  value={`${getReadingTime(post.content_markdown)} min`}
-                />
+                <StatChip label="Reading time" value={`${post.readingTime || 1} min`} />
               </Wrap>
 
               <HStack pt={2} spacing={4} flexWrap="wrap">

@@ -1,4 +1,10 @@
-import { BlogPost, BlogPostSummary, BlogStatus, PublicPostRecord } from '../types/blog.types'
+import {
+  BlogPost,
+  BlogPostSummary,
+  BlogStatus,
+  PublicPostRecord,
+  PublicPostSummaryRecord,
+} from '../types/blog.types'
 import { buildExcerptFromMarkdown, extractPreviewText } from './markdown-preview.utils'
 
 const DEFAULT_EXCERPT_LENGTH = 150
@@ -62,6 +68,26 @@ export function mapApiPostToSummary(
     readingTime: calculateReadingTime(post.content_markdown, wordsPerMinute),
     tags: post.tags?.map((tag) => tag.name) || [],
     featuredImage: extractFirstImageFromMarkdown(post.content_markdown),
+    status: post.status as BlogStatus,
+    slug: post.id.toString(),
+  }
+}
+
+export function mapApiPostSummaryToBlogSummary(post: PublicPostSummaryRecord): BlogPostSummary {
+  return {
+    id: post.id.toString(),
+    title: post.title,
+    excerpt: post.excerpt,
+    author: {
+      id: post.owner.id ?? post.user_id,
+      username: post.owner.name || 'Anonymous',
+      avatar: post.owner.avatar_url || undefined,
+    },
+    createdAt: post.created_at,
+    updatedAt: post.updated_at,
+    readingTime: Math.max(1, post.reading_time),
+    tags: post.tags?.map((tag) => tag.name) || [],
+    featuredImage: post.cover_image || undefined,
     status: post.status as BlogStatus,
     slug: post.id.toString(),
   }

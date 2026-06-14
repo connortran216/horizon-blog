@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { getAuthorAnalyticsService } from '../../core/di/container'
+import { getAuthorAnalyticsService } from './author-analytics.dependencies'
 import { AuthorAnalyticsService } from './author-analytics.service'
 import {
   AnalyticsDateRange,

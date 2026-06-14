@@ -23,6 +23,7 @@ export class AnalyticsEventTransport {
   private readonly maxRetries: number
   private readonly sendBatch: AnalyticsEventTransportOptions['sendBatch']
   private queue: QueuedAnalyticsEvent[] = []
+  private inFlightFlush: Promise<void> | null = null
 
   constructor({ maxBatchSize = 50, maxRetries = 3, sendBatch }: AnalyticsEventTransportOptions) {
     this.maxBatchSize = maxBatchSize
@@ -38,18 +39,35 @@ export class AnalyticsEventTransport {
     return this.queue.length
   }
 
-  async flush(visitorId: string, options: AnalyticsFlushOptions = {}) {
-    if (this.queue.length === 0) return
+  flush(visitorId: string, options: AnalyticsFlushOptions = {}): Promise<void> {
+    if (this.inFlightFlush) return this.inFlightFlush
+    if (this.queue.length === 0) return Promise.resolve()
 
     const batch = this.queue.slice(0, this.maxBatchSize)
+    const delivery = this.deliverBatch(visitorId, batch, options)
+    this.inFlightFlush = delivery
+    void delivery.then(() => {
+      if (this.inFlightFlush === delivery) {
+        this.inFlightFlush = null
+      }
+    })
+
+    return delivery
+  }
+
+  private async deliverBatch(
+    visitorId: string,
+    batch: QueuedAnalyticsEvent[],
+    options: AnalyticsFlushOptions,
+  ) {
     const request: AnalyticsBatchRequest = {
       visitor_id: visitorId,
       events: batch.map((item) => item.event),
     }
 
     try {
-      const response = await this.sendBatch(request, { keepalive: options.keepalive ?? false })
-      this.removeDeliveredBatch(batch, response)
+      await this.sendBatch(request, { keepalive: options.keepalive ?? false })
+      this.removeDeliveredBatch(batch)
     } catch {
       for (const item of batch) {
         item.retryCount += 1
@@ -59,18 +77,8 @@ export class AnalyticsEventTransport {
     }
   }
 
-  private removeDeliveredBatch(batch: QueuedAnalyticsEvent[], response: AnalyticsBatchResponse) {
-    const rejectedEventIds = new Set(
-      response.rejected
-        .map((event) => event.event_id)
-        .filter((eventId): eventId is string => !!eventId),
-    )
-    const deliveredEventIds = new Set(batch.map((item) => item.event.event_id))
-
-    for (const eventId of rejectedEventIds) {
-      deliveredEventIds.add(eventId)
-    }
-
-    this.queue = this.queue.filter((item) => !deliveredEventIds.has(item.event.event_id))
+  private removeDeliveredBatch(batch: QueuedAnalyticsEvent[]) {
+    const deliveredItems = new Set(batch)
+    this.queue = this.queue.filter((item) => !deliveredItems.has(item))
   }
 }

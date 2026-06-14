@@ -93,6 +93,21 @@ export interface PublicPostRecord {
   tags?: PublicPostTag[]
 }
 
+export interface PublicPostSummaryRecord {
+  id: number
+  user_id: number
+  title: string
+  excerpt: string
+  reading_time: number
+  cover_image?: string | null
+  status: 'published'
+  owner: PublicPostOwner
+  tags: PublicPostTag[]
+  published_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface PublicAuthor {
   id: number
   name: string
@@ -109,6 +124,13 @@ export interface PublicAuthorPostsPage {
 
 export interface PublicPostsPage {
   posts: PublicPostRecord[]
+  page: number
+  limit: number
+  total: number
+}
+
+export interface BlogPostSummariesPage {
+  posts: BlogPostSummary[]
   page: number
   limit: number
   total: number

@@ -6,13 +6,14 @@
 import {
   BlogArchiveOptions,
   BlogPost,
+  BlogPostSummariesPage,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
   PublicPostTag,
-  PublicPostsPage,
   PublicPostRecord,
+  PublicPostSummaryRecord,
 } from './blog.types'
 
 /**
@@ -25,6 +26,15 @@ export type ApiBlogPost = PublicPostRecord
  */
 export interface ApiListPostsResponse {
   data: ApiBlogPost[]
+  page: number
+  limit: number
+  total: number
+}
+
+export type ApiPostSummary = PublicPostSummaryRecord
+
+export interface ApiListPostSummariesResponse {
+  data: ApiPostSummary[]
   page: number
   limit: number
   total: number
@@ -53,7 +63,7 @@ export interface IBlogService {
 
   // Data operations (delegated to repositories)
   getPublishedPosts(options?: BlogSearchOptions): Promise<BlogPostSummary[]>
-  getPublishedArchivePosts(options: BlogArchiveOptions): Promise<PublicPostsPage>
+  getPublishedArchivePosts(options: BlogArchiveOptions): Promise<BlogPostSummariesPage>
   getPostById(id: string): Promise<BlogPost | null>
   getPublicPostDetail(id: string): Promise<PublicPostRecord>
   getPopularTags(limit?: number): Promise<PublicPostTag[]>

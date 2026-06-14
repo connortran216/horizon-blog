@@ -13,13 +13,13 @@ import {
 import {
   BlogArchiveOptions,
   BlogPost,
+  BlogPostSummariesPage,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
   PublicAuthorPostsPage,
   PublicPostRecord,
   PublicPostTag,
-  PublicPostsPage,
 } from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
 import { RepositoryResult } from '../types/blog-repository.types'
@@ -130,13 +130,24 @@ export class BlogService implements IBlogService {
     }
   }
 
-  async getPublishedArchivePosts(options: BlogArchiveOptions): Promise<PublicPostsPage> {
+  async getPublishedArchivePosts(options: BlogArchiveOptions): Promise<BlogPostSummariesPage> {
     const hasSearchFilters = Boolean(options.q || options.tags?.length)
-    const result = hasSearchFilters
-      ? await this.repository.searchPostRecords(options)
-      : await this.repository.getPublishedPostRecords(options)
+    if (!hasSearchFilters) {
+      return this.unwrapResult(
+        await this.repository.getPublishedPostSummaries(options),
+        'Failed to fetch published post summaries',
+      )
+    }
 
-    return this.unwrapResult(result, 'Failed to fetch published posts')
+    const page = this.unwrapResult(
+      await this.repository.searchPostRecords(options),
+      'Failed to fetch published posts',
+    )
+
+    return {
+      ...page,
+      posts: page.posts.map((post) => mapApiPostToSummary(post)),
+    }
   }
 
   /**

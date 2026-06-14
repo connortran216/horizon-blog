@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { AnalyticsEventTransport } from './analytics-event.transport'
-import { AnalyticsEventRequest } from './reader-interactions.types'
+import { AnalyticsBatchResponse, AnalyticsEventRequest } from './reader-interactions.types'
 
 const makeEvent = (eventId: string): AnalyticsEventRequest => ({
   event_id: eventId,
@@ -89,5 +89,43 @@ describe('analytics event transport', () => {
     await transport.flush('11111111-1111-4111-8111-111111111111', { keepalive: true })
 
     expect(keepaliveFlags).toEqual([true])
+  })
+
+  it('shares one in-flight request and retains events queued during delivery', async () => {
+    let resolveDelivery: ((response: AnalyticsBatchResponse) => void) | undefined
+    const sentBatches: AnalyticsEventRequest[][] = []
+    const sendBatch = vi.fn((request: { events: AnalyticsEventRequest[] }) => {
+      sentBatches.push(request.events)
+      if (sentBatches.length > 1) {
+        return Promise.resolve({ accepted_count: 1, duplicate_count: 0, rejected: [] })
+      }
+
+      return new Promise<AnalyticsBatchResponse>((resolve) => {
+        resolveDelivery = resolve
+      })
+    })
+    const transport = new AnalyticsEventTransport({ sendBatch })
+    const visitorId = '11111111-1111-4111-8111-111111111111'
+
+    transport.enqueue(makeEvent('aaaaaaaa-1111-4111-8111-111111111111'))
+    const firstFlush = transport.flush(visitorId)
+
+    transport.enqueue(makeEvent('bbbbbbbb-2222-4222-8222-222222222222'))
+    const concurrentFlush = transport.flush(visitorId)
+
+    expect(sendBatch).toHaveBeenCalledTimes(1)
+    expect(concurrentFlush).toBe(firstFlush)
+
+    resolveDelivery?.({ accepted_count: 1, duplicate_count: 0, rejected: [] })
+    await firstFlush
+
+    expect(transport.getQueueSize()).toBe(1)
+
+    await transport.flush(visitorId)
+
+    expect(sendBatch).toHaveBeenCalledTimes(2)
+    expect(sentBatches[1].map((event) => event.event_id)).toEqual([
+      'bbbbbbbb-2222-4222-8222-222222222222',
+    ])
   })
 })

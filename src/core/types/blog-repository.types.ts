@@ -5,8 +5,9 @@
  */
 
 import {
-  BlogPost,
   BlogArchiveOptions,
+  BlogPost,
+  BlogPostSummariesPage,
   BlogPostSummary,
   BlogSearchOptions,
   PublicAuthor,
@@ -40,6 +41,9 @@ export interface RepositoryResult<T> {
 export interface IBlogRepository {
   // Basic CRUD operations
   getPublishedPosts(options?: BlogSearchOptions): Promise<RepositoryResult<BlogPostSummary[]>>
+  getPublishedPostSummaries(
+    options: BlogArchiveOptions,
+  ): Promise<RepositoryResult<BlogPostSummariesPage>>
   getPublishedPostRecords(options: BlogArchiveOptions): Promise<RepositoryResult<PublicPostsPage>>
   getPostById(id: string): Promise<RepositoryResult<BlogPost>>
   getPublicPostRecordById(id: string): Promise<RepositoryResult<PublicPostRecord>>

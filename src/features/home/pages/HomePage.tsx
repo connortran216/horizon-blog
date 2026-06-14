@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { FiArrowRight } from 'react-icons/fi'
 import {
-  BlogPost,
+  BlogPostSummary,
   FadeInShimmer,
   MotionWrapper,
   ShimmerLoader,
@@ -35,7 +35,7 @@ const formatDate = (dateString: string) =>
 
 const HomePage = () => {
   const location = useLocation()
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [blogPosts, setBlogPosts] = useState<BlogPostSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
 
@@ -43,13 +43,7 @@ const HomePage = () => {
     const loadBlogPosts = async () => {
       try {
         const summaries = await getBlogService().getPublishedPosts({ limit: 9 })
-        const posts = summaries.map((summary) => ({
-          ...summary,
-          content_markdown: '',
-          content_json: '{}',
-          user_id: 0,
-        }))
-        setBlogPosts(posts)
+        setBlogPosts(summaries)
       } catch (error) {
         console.error('Error loading blog posts:', error)
       } finally {
