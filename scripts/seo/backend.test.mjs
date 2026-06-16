@@ -148,6 +148,32 @@ describe('SEO backend adapter', () => {
     );
   });
 
+  it('does not use the public site origin as a backend host', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: [postSummary()],
+        page: 1,
+        limit: 9,
+        total: 1,
+      }),
+    );
+    const backend = createBackendClient(
+      createSeoConfig({
+        BE_HOST: 'https://blog.connortran.io.vn',
+        PUBLIC_SITE_URL: 'https://blog.connortran.io.vn',
+      }),
+      { fetchImpl },
+    );
+
+    await expect(backend.listPublishedPostSummaries({ page: 1, limit: 9 })).resolves.toMatchObject({
+      posts: [{ id: 76 }],
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl.mock.calls[0][0]).toBe(
+      'https://blog-api.connortran.io.vn/posts/summaries?page=1&limit=9&status=published',
+    );
+  });
+
   it('removes repeated malformed break prefixes from summary excerpts', async () => {
     const backend = createBackendClient(createSeoConfig({}), {
       fetchImpl: vi.fn().mockResolvedValue(
