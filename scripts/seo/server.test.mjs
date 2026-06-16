@@ -23,6 +23,16 @@ const indexHtml = `<!doctype html>
 <title>Horizon</title>
 </head><body><div id="root"></div><script type="module" src="/assets/app.js"></script></body></html>`;
 
+const browserHeaders = {
+  'user-agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+};
+
+const crawlerHeaders = {
+  'user-agent':
+    'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+};
+
 const createBackend = () => ({
   getPublishedPost: vi.fn().mockResolvedValue(post),
   listPublishedPosts: vi.fn().mockResolvedValue({
@@ -97,18 +107,38 @@ describe('SEO HTTP gateway', () => {
     }
   });
 
-  it('serves crawler-readable public pages with route-specific metadata', async () => {
-    const home = await fetch(`${baseUrl}/`);
+  it('serves app shell public pages to browsers without visible SEO fallback content', async () => {
+    const home = await fetch(`${baseUrl}/`, { headers: browserHeaders });
     const homeHtml = await home.text();
     expect(home.status).toBe(200);
-    expect(homeHtml).toContain('<h1>Thoughtful writing for curious readers</h1>');
+    expect(homeHtml).toContain('<div id="root"></div>');
+    expect(homeHtml).not.toContain('data-seo-fallback="true"');
+    expect(homeHtml).not.toContain('<h1>Thoughtful writing for curious readers</h1>');
     expect(homeHtml).toContain(`rel="canonical" href="${baseUrl}/"`);
     expect(homeHtml).toContain('<script type="module" src="/assets/app.js"></script>');
     expect(homeHtml).not.toContain('data-horizon-entry-loader="deferred"');
     expect(backend.listPublishedPostSummaries).toHaveBeenCalledWith({ page: 1, limit: 9 });
     expect(backend.listPublishedPosts).not.toHaveBeenCalled();
 
-    const article = await fetch(`${baseUrl}/blog/76`);
+    const article = await fetch(`${baseUrl}/blog/76`, { headers: browserHeaders });
+    const articleHtml = await article.text();
+    expect(article.status).toBe(200);
+    expect(articleHtml).toContain('<div id="root"></div>');
+    expect(articleHtml).not.toContain('data-seo-fallback="true"');
+    expect(articleHtml).not.toContain('<h1>API Performance</h1>');
+    expect(articleHtml).toContain(`content="${baseUrl}/seo/post-image/76"`);
+    expect(articleHtml).toContain('"@type":"BlogPosting"');
+  });
+
+  it('serves crawler-readable public pages with route-specific metadata', async () => {
+    const home = await fetch(`${baseUrl}/`, { headers: crawlerHeaders });
+    const homeHtml = await home.text();
+    expect(home.status).toBe(200);
+    expect(homeHtml).toContain('<h1>Thoughtful writing for curious readers</h1>');
+    expect(homeHtml).toContain(`rel="canonical" href="${baseUrl}/"`);
+    expect(homeHtml).not.toContain('<script type="module" src="/assets/app.js"></script>');
+
+    const article = await fetch(`${baseUrl}/blog/76`, { headers: crawlerHeaders });
     const articleHtml = await article.text();
     expect(article.status).toBe(200);
     expect(articleHtml).toContain('<h1>API Performance</h1>');
@@ -117,7 +147,7 @@ describe('SEO HTTP gateway', () => {
     expect(articleHtml).not.toContain('X-Amz-');
     expect(articleHtml).toContain('"@type":"BlogPosting"');
 
-    const author = await fetch(`${baseUrl}/authors/connor-tran`);
+    const author = await fetch(`${baseUrl}/authors/connor-tran`, { headers: crawlerHeaders });
     expect(await author.text()).toContain('Backend engineer and writer.');
   });
 
@@ -138,17 +168,23 @@ describe('SEO HTTP gateway', () => {
   });
 
   it('marks private and duplicate query routes noindex with clean canonicals', async () => {
-    const privateResponse = await fetch(`${baseUrl}/login`);
+    const privateResponse = await fetch(`${baseUrl}/login`, { headers: browserHeaders });
     const privateHtml = await privateResponse.text();
     expect(privateHtml).toContain('content="noindex,nofollow,noarchive"');
     expect(privateHtml).not.toContain('rel="canonical"');
+    expect(privateHtml).toContain('<div id="root"></div>');
+    expect(privateHtml).not.toContain('data-seo-fallback="true"');
     expect(privateHtml).toContain('<script type="module" src="/assets/app.js"></script>');
     expect(privateHtml).not.toContain('data-horizon-entry-loader="deferred"');
 
-    const filteredResponse = await fetch(`${baseUrl}/blog?query=api&utm_source=test`);
+    const filteredResponse = await fetch(`${baseUrl}/blog?query=api&utm_source=test`, {
+      headers: browserHeaders,
+    });
     const filteredHtml = await filteredResponse.text();
     expect(filteredHtml).toContain('content="noindex,follow,noarchive"');
     expect(filteredHtml).toContain(`rel="canonical" href="${baseUrl}/blog"`);
+    expect(filteredHtml).toContain('<div id="root"></div>');
+    expect(filteredHtml).not.toContain('data-seo-fallback="true"');
     expect(filteredHtml).toContain('<script type="module" src="/assets/app.js"></script>');
     expect(filteredHtml).not.toContain('data-horizon-entry-loader="deferred"');
   });

@@ -59,6 +59,8 @@ const ALLOWED_PROXY_IMAGE_TYPES = new Set([
   'image/webp',
 ]);
 const MAX_IMAGE_REDIRECTS = 3;
+const CRAWLER_USER_AGENT =
+  /\b(?:googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|applebot|facebookexternalhit|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|semrushbot|ahrefsbot|gptbot)\b/i;
 
 const STATIC_METADATA = {
   about: {
@@ -129,6 +131,12 @@ const withDescriptions = (posts) =>
 const pagePath = (basePath, page) => (page > 1 ? `${basePath}?page=${page}` : basePath);
 
 const normalizeContentType = (value) => String(value || '').split(';', 1)[0].trim().toLowerCase();
+
+const isCrawlerRequest = (request) => {
+  const value = request.headers['user-agent'];
+  const userAgent = Array.isArray(value) ? value.join(' ') : String(value || '');
+  return CRAWLER_USER_AGENT.test(userAgent);
+};
 
 const getAllowedImageRedirect = (location, sourceUrl, config) => {
   if (!location) return undefined;
@@ -319,10 +327,12 @@ export const createSeoServer = ({
       imageUrl: `${origin}${config.defaultImagePath}`,
       ...metadataInput,
     });
-    const entryMode = status >= 400 ? 'omit' : 'immediate';
+    const crawler = isCrawlerRequest(request);
+    const renderBodyFallback = status >= 400 || crawler;
+    const entryMode = status >= 400 || crawler ? 'omit' : 'immediate';
     const html = injectDocument(indexHtml, {
       headHtml: renderHead(metadata),
-      bodyHtml,
+      bodyHtml: renderBodyFallback ? bodyHtml : '',
       entryMode,
     });
     const cacheControl =
@@ -342,6 +352,7 @@ export const createSeoServer = ({
         ...securityHeaders(config),
         'content-type': 'text/html; charset=utf-8',
         'cache-control': cacheControl,
+        vary: 'User-Agent',
         ...(status === 503 ? { 'retry-after': '60' } : {}),
       },
       html,
