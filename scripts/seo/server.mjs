@@ -319,8 +319,7 @@ export const createSeoServer = ({
       imageUrl: `${origin}${config.defaultImagePath}`,
       ...metadataInput,
     });
-    const entryMode =
-      status >= 400 ? 'omit' : policy.kind === 'private' ? 'immediate' : 'deferred';
+    const entryMode = status >= 400 ? 'omit' : 'immediate';
     const html = injectDocument(indexHtml, {
       headHtml: renderHead(metadata),
       bodyHtml,

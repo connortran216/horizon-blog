@@ -103,10 +103,8 @@ describe('SEO HTTP gateway', () => {
     expect(home.status).toBe(200);
     expect(homeHtml).toContain('<h1>Thoughtful writing for curious readers</h1>');
     expect(homeHtml).toContain(`rel="canonical" href="${baseUrl}/"`);
-    expect(homeHtml).toContain('data-horizon-entry-loader="deferred"');
-    expect(homeHtml).not.toContain(
-      '<script type="module" src="/assets/app.js"></script>',
-    );
+    expect(homeHtml).toContain('<script type="module" src="/assets/app.js"></script>');
+    expect(homeHtml).not.toContain('data-horizon-entry-loader="deferred"');
     expect(backend.listPublishedPostSummaries).toHaveBeenCalledWith({ page: 1, limit: 9 });
     expect(backend.listPublishedPosts).not.toHaveBeenCalled();
 
@@ -151,7 +149,8 @@ describe('SEO HTTP gateway', () => {
     const filteredHtml = await filteredResponse.text();
     expect(filteredHtml).toContain('content="noindex,follow,noarchive"');
     expect(filteredHtml).toContain(`rel="canonical" href="${baseUrl}/blog"`);
-    expect(filteredHtml).toContain('data-horizon-entry-loader="deferred"');
+    expect(filteredHtml).toContain('<script type="module" src="/assets/app.js"></script>');
+    expect(filteredHtml).not.toContain('data-horizon-entry-loader="deferred"');
   });
 
   it('returns real 404 responses for unknown routes and missing assets', async () => {
