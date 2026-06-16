@@ -16,6 +16,7 @@ import CvExperienceCard from '../components/CvExperienceCard'
 import CvProjectEntry from '../components/CvProjectEntry'
 import { cvProfile } from '../cv.data'
 import { CvLinkItem } from '../cv.types'
+import '../cv-fonts.css'
 
 const headingFont = "'Newsreader', serif"
 

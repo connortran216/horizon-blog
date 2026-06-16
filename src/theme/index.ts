@@ -47,7 +47,7 @@ const colors = {
 
       lightPrimary: '#2c3e50', // Primary text (light mode)
       lightSecondary: '#5a6c7d', // Secondary text (light mode)
-      lightTertiary: '#8896a4', // Tertiary text (light mode)
+      lightTertiary: '#647485', // Tertiary text (light mode)
     },
 
     // Accent colors (Obsidian purple/blue)

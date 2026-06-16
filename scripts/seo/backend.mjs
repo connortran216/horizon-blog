@@ -1,3 +1,4 @@
+import { buildExcerpt } from './content.mjs';
 import { slugify } from './urls.mjs';
 
 export class BackendError extends Error {
@@ -15,7 +16,26 @@ const normalizeOptionalText = (value) => {
   return trimmed || undefined;
 };
 
-const normalizePost = (record) => {
+const normalizeSummaryExcerpt = (value) => {
+  const excerpt = normalizeOptionalText(value);
+  if (!excerpt) return undefined;
+  const cleaned = excerpt.replace(/<br\s*\/\s*/gi, ' ').replace(/^\s*\d+\.\d+\s+/, '');
+  return buildExcerpt(cleaned) || undefined;
+};
+
+const canResolveImage = (imageUrl, config) => {
+  if (!imageUrl) return false;
+  if (/^media:\/\/\d+$/.test(imageUrl)) return true;
+
+  try {
+    const url = new URL(imageUrl);
+    return url.protocol === 'https:' && config.allowedImageHosts.has(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
+const normalizePost = (record, config) => {
   if (!record || record.status !== 'published' || !record.title || !record.id) {
     throw new BackendError('Published post not found', { status: 404, transient: false });
   }
@@ -27,12 +47,57 @@ const normalizePost = (record) => {
     throw new BackendError('Published post author not found', { status: 404, transient: false });
   }
 
+  const contentMarkdown = String(record.content_markdown || '');
+
   return {
     id: record.id,
     title: String(record.title),
-    contentMarkdown: String(record.content_markdown || ''),
+    contentMarkdown,
+    hasImage: canResolveImage(extractFirstImageUrl(contentMarkdown), config),
     createdAt: normalizeOptionalText(record.created_at),
     updatedAt: normalizeOptionalText(record.updated_at),
+    status: 'published',
+    author: {
+      id: authorId,
+      name: authorName,
+      slug: slugify(authorName),
+      avatarUrl: normalizeOptionalText(sourceAuthor?.avatar_url),
+    },
+    tags: Array.isArray(record.tags)
+      ? record.tags.map((tag) => normalizeOptionalText(tag?.name)).filter(Boolean)
+      : [],
+  };
+};
+
+const normalizePostSummary = (record, config) => {
+  if (!record || record.status !== 'published' || !record.title || !record.id) {
+    throw new BackendError('Published post summary not found', {
+      status: 404,
+      transient: false,
+    });
+  }
+
+  const sourceAuthor = record.owner?.name ? record.owner : record.user;
+  const authorId = sourceAuthor?.id ?? record.user_id;
+  const authorName = normalizeOptionalText(sourceAuthor?.name);
+  if (!authorId || !authorName) {
+    throw new BackendError('Published post summary author not found', {
+      status: 404,
+      transient: false,
+    });
+  }
+
+  const imageUrl = normalizeOptionalText(record.cover_image);
+
+  return {
+    id: record.id,
+    title: String(record.title),
+    contentMarkdown: '',
+    description: normalizeSummaryExcerpt(record.excerpt),
+    readingTime: Math.max(1, Number(record.reading_time) || 1),
+    hasImage: canResolveImage(imageUrl, config),
+    createdAt: normalizeOptionalText(record.published_at || record.created_at),
+    updatedAt: normalizeOptionalText(record.updated_at || record.published_at),
     status: 'published',
     author: {
       id: authorId,
@@ -143,7 +208,7 @@ export const createBackendClient = (
   const getPublishedPost = (id) =>
     cache.load(`post:${id}`, async () => {
       const payload = await requestJson(`/posts/${encodeURIComponent(id)}`);
-      return normalizePost(payload?.data ?? payload);
+      return normalizePost(payload?.data ?? payload, config);
     });
 
   const listPublishedPosts = ({ page = 1, limit = 100 } = {}) =>
@@ -157,7 +222,33 @@ export const createBackendClient = (
       const records = Array.isArray(payload?.data) ? payload.data : [];
       const posts = records.flatMap((record) => {
         try {
-          return [normalizePost(record)];
+          return [normalizePost(record, config)];
+        } catch (error) {
+          if (error instanceof BackendError && error.status === 404) return [];
+          throw error;
+        }
+      });
+
+      return {
+        posts,
+        page: Number(payload?.page || page),
+        limit: Number(payload?.limit || limit),
+        total: Number(payload?.total ?? posts.length),
+      };
+    });
+
+  const listPublishedPostSummaries = ({ page = 1, limit = 9 } = {}) =>
+    cache.load(`post-summaries:${page}:${limit}`, async () => {
+      const query = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        status: 'published',
+      });
+      const payload = await requestJson(`/posts/summaries?${query}`);
+      const records = Array.isArray(payload?.data) ? payload.data : [];
+      const posts = records.flatMap((record) => {
+        try {
+          return [normalizePostSummary(record, config)];
         } catch (error) {
           if (error instanceof BackendError && error.status === 404) return [];
           throw error;
@@ -259,6 +350,7 @@ export const createBackendClient = (
   return {
     getPublishedPost,
     listPublishedPosts,
+    listPublishedPostSummaries,
     listAllPublishedPosts,
     getAuthorBySlug,
     resolvePostImageSource,

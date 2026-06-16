@@ -82,6 +82,16 @@ func main() {}
     expect(html).toContain('<span role="img" aria-label="Protected">Protected</span>');
   });
 
+  it('restores legacy Medium article links that were stored as root-relative paths', () => {
+    const html = renderMarkdown(
+      '[Django and FastAPI](/@connortran216/django-vs-fastapi-making-the-right-choice-for-your-project-014acdc63965)',
+    );
+
+    expect(html).toContain(
+      '<a href="https://medium.com/@connortran216/django-vs-fastapi-making-the-right-choice-for-your-project-014acdc63965" rel="noopener noreferrer">Django and FastAPI</a>',
+    );
+  });
+
   it('derives plain text, excerpts, reading time, and first images from Markdown', () => {
     const markdown = `# A title
 

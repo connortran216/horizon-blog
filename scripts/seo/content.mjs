@@ -42,6 +42,9 @@ const safeUrl = (value, { image = false } = {}) => {
   const href = String(value || '').trim();
   if (!href || href.startsWith('//')) return undefined;
   if (href.startsWith('#')) return /^#[a-zA-Z0-9_.:-]+$/.test(href) ? href : undefined;
+  if (/^\/@[a-zA-Z0-9._-]+\/[a-zA-Z0-9][^\s]*$/.test(href)) {
+    return `https://medium.com${href}`;
+  }
   if (href.startsWith('/')) return href;
   if (href.startsWith('./') || href.startsWith('../')) return href;
   if (!image && href.startsWith('mailto:')) return href;

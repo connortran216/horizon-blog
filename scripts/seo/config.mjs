@@ -11,7 +11,14 @@ export const createSeoConfig = (env = process.env) => {
     locale: 'en_US',
     language: 'en',
     authorName: 'Connor Tran',
+    authorAlternateName: 'Tran Tuan Canh',
     authorSlug: 'connor-tran',
+    authorImageUrl:
+      'https://minio.connortran.io.vn/horizon-blog-public-bucket/connortran-avatar.jpg',
+    authorSameAs: [
+      'https://github.com/connortran216',
+      'https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/',
+    ],
     defaultImagePath: '/branding/horizon-app-icon-512.png',
     feedPath: '/feed.xml',
     sitemapPath: '/sitemap.xml',

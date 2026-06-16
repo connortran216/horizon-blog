@@ -20,6 +20,21 @@ const post = (overrides = {}) => ({
   ...overrides,
 });
 
+const postSummary = (overrides = {}) => ({
+  id: 76,
+  title: 'API Performance',
+  excerpt: '<br /1.00 _Measure first, then optimize the slowest path._',
+  reading_time: 12,
+  cover_image: 'media://37',
+  published_at: '2026-05-31T15:57:35.463866Z',
+  created_at: '2026-05-31T15:35:12.405931Z',
+  updated_at: '2026-05-31T15:57:35.464126Z',
+  status: 'published',
+  owner: { id: 1, name: 'Connor Tran' },
+  tags: [{ name: 'api' }],
+  ...overrides,
+});
+
 describe('SEO backend adapter', () => {
   it('falls back across backend hosts and normalizes a published post', async () => {
     const fetchImpl = vi
@@ -36,6 +51,7 @@ describe('SEO backend adapter', () => {
       id: 76,
       title: 'API Performance',
       contentMarkdown: 'Measure first.\n\n![cover](media://37)',
+      hasImage: true,
       status: 'published',
       author: { id: 1, name: 'Connor Tran', slug: 'connor-tran' },
       tags: ['api'],
@@ -44,6 +60,19 @@ describe('SEO backend adapter', () => {
       'https://primary.example/posts/76',
       'https://fallback.example/posts/76',
     ]);
+  });
+
+  it('marks posts without a representative image', async () => {
+    const backend = createBackendClient(createSeoConfig({}), {
+      fetchImpl: vi
+        .fn()
+        .mockResolvedValue(jsonResponse({ data: post({ content_markdown: 'Text only.' }) })),
+    });
+
+    await expect(backend.getPublishedPost('76')).resolves.toMatchObject({
+      id: 76,
+      hasImage: false,
+    });
   });
 
   it('maps missing and non-published records to not found', async () => {
@@ -81,6 +110,63 @@ describe('SEO backend adapter', () => {
 
     expect(posts.map((item) => item.id)).toEqual([3, 2, 1]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('loads compact published summaries for public listing pages', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: [postSummary()],
+        page: 1,
+        limit: 9,
+        total: 1,
+      }),
+    );
+    const backend = createBackendClient(createSeoConfig({}), { fetchImpl });
+
+    await expect(
+      backend.listPublishedPostSummaries({ page: 1, limit: 9 }),
+    ).resolves.toMatchObject({
+      page: 1,
+      limit: 9,
+      total: 1,
+      posts: [
+        {
+          id: 76,
+          title: 'API Performance',
+          description: 'Measure first, then optimize the slowest path.',
+          readingTime: 12,
+          hasImage: true,
+          createdAt: '2026-05-31T15:57:35.463866Z',
+          author: { id: 1, name: 'Connor Tran', slug: 'connor-tran' },
+          tags: ['api'],
+        },
+      ],
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://blog-api.connortran.io.vn/posts/summaries?page=1&limit=9&status=published',
+      expect.any(Object),
+    );
+  });
+
+  it('removes repeated malformed break prefixes from summary excerpts', async () => {
+    const backend = createBackendClient(createSeoConfig({}), {
+      fetchImpl: vi.fn().mockResolvedValue(
+        jsonResponse({
+          data: [
+            postSummary({
+              excerpt: '<br /1.00 <br /Leo A clean description after generated artifacts.',
+            }),
+          ],
+          page: 1,
+          limit: 9,
+          total: 1,
+        }),
+      ),
+    });
+
+    await expect(backend.listPublishedPostSummaries()).resolves.toMatchObject({
+      posts: [{ description: 'Leo A clean description after generated artifacts.' }],
+    });
   });
 
   it('resolves direct author slugs from public ownership and paginates posts', async () => {
@@ -137,6 +223,7 @@ describe('SEO backend adapter', () => {
         throw new Error(`unexpected ${url}`);
       }),
     });
+    await expect(unsafe.getPublishedPost('76')).resolves.toMatchObject({ hasImage: false });
     await expect(unsafe.resolvePostImageSource('76')).resolves.toBeUndefined();
   });
 

@@ -96,6 +96,7 @@ export const renderAuthor = (author) => {
   <p>Horizon author</p>
   <h1>${escapeHtml(author.name)}</h1>
   ${author.bio ? `<p>${escapeHtml(author.bio)}</p>` : ''}
+  <p>${escapeHtml(author.total)} published article${author.total === 1 ? '' : 's'}.</p>
 </header>
 <section aria-labelledby="author-writing">
   <h2 id="author-writing">Published writing</h2>
@@ -149,7 +150,109 @@ export const renderErrorPage = (status) =>
 <p>The requested Horizon page does not exist or is no longer public.</p>
 <p><a href="/">Return home</a> or <a href="/blog">browse the blog</a>.</p>`);
 
-export const injectDocument = (indexHtml, { headHtml, bodyHtml }) => {
+const MODULE_ENTRY_PATTERN =
+  /<script\b(?=[^>]*\btype=["']module["'])(?=[^>]*\bsrc=["'](\/[^"']+)["'])[^>]*>\s*<\/script>/i;
+
+const FALLBACK_STYLE = `<style data-horizon-fallback-style="true">
+[data-seo-fallback] {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 5rem) 0;
+  color: #2c3e50;
+  font: 400 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+[data-seo-fallback] header,
+[data-seo-fallback] article,
+[data-seo-fallback] section,
+[data-seo-fallback] nav {
+  margin-block-end: 2rem;
+}
+[data-seo-fallback] h1,
+[data-seo-fallback] h2,
+[data-seo-fallback] h3 {
+  color: #1f2937;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+[data-seo-fallback] h1 { font-size: clamp(2.25rem, 7vw, 4.5rem); }
+[data-seo-fallback] h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
+[data-seo-fallback] a { color: #5b4b9a; text-underline-offset: 0.2em; }
+[data-seo-fallback] a:focus-visible {
+  outline: 3px solid #7c6bc4;
+  outline-offset: 3px;
+}
+[data-seo-fallback] li > p > a:only-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+[data-seo-fallback] ol,
+[data-seo-fallback] ul { padding-inline-start: 1.4rem; }
+[data-seo-fallback] ol > li { margin-block: 1.5rem; }
+[data-seo-fallback] article {
+  overflow-wrap: anywhere;
+}
+[data-seo-fallback] article img {
+  max-width: 100%;
+  height: auto;
+}
+[data-seo-fallback] pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #f1f3f5;
+}
+</style>`;
+
+const createDeferredEntryLoader = (source) => {
+  const serializedSource = JSON.stringify(source).replace(/</g, '\\u003c');
+  return `<script data-horizon-entry-loader="deferred">
+(() => {
+  const source = ${serializedSource};
+  const events = ['pointerdown', 'keydown', 'touchstart', 'focusin'];
+  let loading = false;
+  let timer;
+  const cleanup = () => {
+    events.forEach((eventName) => window.removeEventListener(eventName, load));
+    if (timer) window.clearTimeout(timer);
+  };
+  const load = () => {
+    if (loading) return;
+    loading = true;
+    cleanup();
+    import(source);
+  };
+  try {
+    if (window.localStorage.getItem('horizon_blog_token')) {
+      load();
+      return;
+    }
+  } catch {}
+  events.forEach((eventName) => window.addEventListener(eventName, load, { once: true }));
+  timer = window.setTimeout(() => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(load, { timeout: 2000 });
+    } else {
+      load();
+    }
+  }, 8000);
+})();
+</script>`;
+};
+
+const transformModuleEntry = (html, entryMode) => {
+  if (entryMode === 'immediate') return html;
+
+  return html.replace(MODULE_ENTRY_PATTERN, (_script, source) =>
+    entryMode === 'deferred' ? createDeferredEntryLoader(source) : '',
+  );
+};
+
+export const injectDocument = (
+  indexHtml,
+  { headHtml, bodyHtml, entryMode = 'immediate' },
+) => {
   let html = String(indexHtml).replace(/<title>[\s\S]*?<\/title>\s*/i, '');
 
   if (/<!--app-meta:start-->[\s\S]*?<!--app-meta:end-->/.test(html)) {
@@ -162,5 +265,9 @@ export const injectDocument = (indexHtml, { headHtml, bodyHtml }) => {
     html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${bodyHtml}</div>`);
   }
 
-  return html;
+  if (entryMode === 'deferred') {
+    html = html.replace('</head>', `${FALLBACK_STYLE}\n  </head>`);
+  }
+
+  return transformModuleEntry(html, entryMode);
 };

@@ -50,6 +50,16 @@ const MIME_TYPES = new Map([
   ['.woff2', 'font/woff2'],
 ]);
 
+const ALLOWED_PROXY_IMAGE_TYPES = new Set([
+  'image/avif',
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'image/svg+xml',
+  'image/webp',
+]);
+const MAX_IMAGE_REDIRECTS = 3;
+
 const STATIC_METADATA = {
   about: {
     title: 'About Horizon and Connor Tran',
@@ -112,10 +122,47 @@ const redirectResponse = (request, response, location, config, status = 302) =>
 const withDescriptions = (posts) =>
   posts.map((post) => ({
     ...post,
-    description: buildExcerpt(post.contentMarkdown) || 'Read this Horizon article.',
+    description:
+      post.description || buildExcerpt(post.contentMarkdown) || 'Read this Horizon article.',
   }));
 
 const pagePath = (basePath, page) => (page > 1 ? `${basePath}?page=${page}` : basePath);
+
+const normalizeContentType = (value) => String(value || '').split(';', 1)[0].trim().toLowerCase();
+
+const getAllowedImageRedirect = (location, sourceUrl, config) => {
+  if (!location) return undefined;
+
+  try {
+    const target = new URL(location, sourceUrl);
+    return target.protocol === 'https:' && config.allowedImageHosts.has(target.hostname)
+      ? target.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const readBoundedBody = async (source, maxBytes) => {
+  if (!source.body) return Buffer.alloc(0);
+
+  const reader = source.body.getReader();
+  const chunks = [];
+  let total = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      return undefined;
+    }
+    chunks.push(Buffer.from(value));
+  }
+
+  return Buffer.concat(chunks, total);
+};
 
 export const createSeoServer = ({
   config,
@@ -134,7 +181,7 @@ export const createSeoServer = ({
 
     try {
       if (policy.kind === 'home') {
-        const result = await backend.listPublishedPosts({ page: 1, limit: 9 });
+        const result = await backend.listPublishedPostSummaries({ page: 1, limit: 9 });
         const posts = withDescriptions(result.posts);
         bodyHtml = renderHome({ posts });
         metadataInput = {
@@ -146,7 +193,10 @@ export const createSeoServer = ({
           jsonLd: createSiteSchemas({ config, origin }),
         };
       } else if (policy.kind === 'archive') {
-        const result = await backend.listPublishedPosts({ page: policy.page, limit: 9 });
+        const result = await backend.listPublishedPostSummaries({
+          page: policy.page,
+          limit: 9,
+        });
         const totalPages = Math.max(1, Math.ceil(result.total / result.limit));
         if (policy.page > totalPages) {
           throw new BackendError('Archive page not found', { status: 404, transient: false });
@@ -269,9 +319,12 @@ export const createSeoServer = ({
       imageUrl: `${origin}${config.defaultImagePath}`,
       ...metadataInput,
     });
+    const entryMode =
+      status >= 400 ? 'omit' : policy.kind === 'private' ? 'immediate' : 'deferred';
     const html = injectDocument(indexHtml, {
       headHtml: renderHead(metadata),
       bodyHtml,
+      entryMode,
     });
     const cacheControl =
       status === 503
@@ -326,11 +379,26 @@ export const createSeoServer = ({
       const timeout = setTimeout(() => controller.abort(), config.requestTimeoutMs);
       let source;
       try {
-        source = await fetchImpl(sourceUrl, {
-          redirect: 'follow',
-          headers: { accept: 'image/avif,image/webp,image/png,image/jpeg,image/*' },
-          signal: controller.signal,
-        });
+        let currentUrl = sourceUrl;
+        for (let redirectCount = 0; redirectCount <= MAX_IMAGE_REDIRECTS; redirectCount += 1) {
+          source = await fetchImpl(currentUrl, {
+            redirect: 'manual',
+            headers: { accept: 'image/avif,image/webp,image/png,image/jpeg,image/*' },
+            signal: controller.signal,
+          });
+          if (source.status < 300 || source.status >= 400) break;
+
+          const nextUrl = getAllowedImageRedirect(
+            source.headers.get('location'),
+            currentUrl,
+            config,
+          );
+          if (!nextUrl || redirectCount === MAX_IMAGE_REDIRECTS) {
+            redirectResponse(request, response, config.defaultImagePath, config);
+            return;
+          }
+          currentUrl = nextUrl;
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -342,15 +410,18 @@ export const createSeoServer = ({
         throw new BackendError(`Image source returned ${source.status}`);
       }
 
-      const contentType = source.headers.get('content-type') || '';
+      const contentType = normalizeContentType(source.headers.get('content-type'));
       const declaredLength = Number(source.headers.get('content-length') || 0);
-      if (!contentType.startsWith('image/') || declaredLength > config.maxImageBytes) {
+      if (
+        !ALLOWED_PROXY_IMAGE_TYPES.has(contentType) ||
+        declaredLength > config.maxImageBytes
+      ) {
         redirectResponse(request, response, config.defaultImagePath, config);
         return;
       }
 
-      const body = Buffer.from(await source.arrayBuffer());
-      if (body.byteLength > config.maxImageBytes) {
+      const body = await readBoundedBody(source, config.maxImageBytes);
+      if (!body) {
         redirectResponse(request, response, config.defaultImagePath, config);
         return;
       }
@@ -362,6 +433,12 @@ export const createSeoServer = ({
         {
           ...securityHeaders(config),
           'content-type': contentType,
+          ...(contentType === 'image/svg+xml'
+            ? {
+              'content-security-policy':
+                'default-src \'none\'; style-src \'unsafe-inline\'; sandbox',
+            }
+            : {}),
           'cache-control': 'public, max-age=86400, stale-while-revalidate=604800',
         },
         body,

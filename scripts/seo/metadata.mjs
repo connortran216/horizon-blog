@@ -39,6 +39,9 @@ const robotsContent = (indexing) => {
   return 'noindex,nofollow,noarchive';
 };
 
+const authorEntityId = (origin, slug) =>
+  `${toCanonicalUrl(origin, `/authors/${slug}`)}#person`;
+
 export const createPageMetadata = ({
   config,
   origin,
@@ -63,6 +66,7 @@ export const createPageMetadata = ({
   robots: robotsContent(indexing),
   type,
   imageUrl: stableImageUrl(origin, imageUrl, config),
+  imageAlt: title,
   publishedTime,
   modifiedTime,
   author,
@@ -84,14 +88,17 @@ export const createSiteSchemas = ({ config, origin }) => [
     name: config.siteName,
     description: config.siteDescription,
     inLanguage: config.language,
-    publisher: { '@id': `${origin}/#person` },
+    publisher: { '@id': authorEntityId(origin, config.authorSlug) },
   },
   {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    '@id': `${origin}/#person`,
+    '@id': authorEntityId(origin, config.authorSlug),
     name: config.authorName,
+    alternateName: config.authorAlternateName,
     url: toCanonicalUrl(origin, `/authors/${config.authorSlug}`),
+    image: config.authorImageUrl,
+    sameAs: config.authorSameAs,
   },
 ];
 
@@ -105,7 +112,7 @@ export const createBlogSchemas = ({ config, origin, posts = [] }) => [
     name: `${config.siteName} Blog`,
     description: config.siteDescription,
     inLanguage: config.language,
-    publisher: { '@id': `${origin}/#person` },
+    publisher: { '@id': authorEntityId(origin, config.authorSlug) },
     blogPost: posts.map((post) => ({
       '@type': 'BlogPosting',
       headline: post.title,
@@ -127,19 +134,24 @@ export const createArticleSchemas = ({ config, origin, post }) => {
       mainEntityOfPage: articleUrl,
       headline: post.title,
       description: post.description,
-      image: toCanonicalUrl(origin, `/seo/post-image/${post.id}`),
+      ...(post.hasImage
+        ? { image: toCanonicalUrl(origin, `/seo/post-image/${post.id}`) }
+        : {}),
       datePublished: post.createdAt,
       dateModified: post.updatedAt || post.createdAt,
       inLanguage: config.language,
       author: {
         '@type': 'Person',
+        '@id': authorEntityId(origin, post.author.slug),
         name: post.author.name,
         url: authorUrl,
       },
       publisher: {
         '@type': 'Person',
+        '@id': authorEntityId(origin, config.authorSlug),
         name: config.authorName,
         url: toCanonicalUrl(origin, `/authors/${config.authorSlug}`),
+        image: config.authorImageUrl,
       },
       keywords: post.tags,
     },
@@ -172,6 +184,7 @@ export const createArticleSchemas = ({ config, origin, post }) => {
 
 export const createAuthorSchemas = ({ config, origin, author }) => {
   const authorUrl = toCanonicalUrl(origin, `/authors/${author.slug}`);
+  const primaryAuthor = author.slug === config.authorSlug;
   return [
     {
       '@context': 'https://schema.org',
@@ -187,29 +200,49 @@ export const createAuthorSchemas = ({ config, origin, author }) => {
         name: author.name,
         url: authorUrl,
         description: author.bio || undefined,
+        identifier: author.id ? String(author.id) : undefined,
+        alternateName: primaryAuthor ? config.authorAlternateName : undefined,
+        image: primaryAuthor ? config.authorImageUrl : undefined,
+        sameAs: primaryAuthor ? config.authorSameAs : undefined,
+        agentInteractionStatistic: Number.isFinite(author.total)
+          ? {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/WriteAction',
+            userInteractionCount: author.total,
+          }
+          : undefined,
       },
+      hasPart: (author.posts || []).map((post) => ({
+        '@type': 'Article',
+        headline: post.title,
+        url: toCanonicalUrl(origin, `/blog/${post.id}`),
+        datePublished: post.createdAt,
+        author: { '@id': `${authorUrl}#person` },
+      })),
     },
   ];
 };
 
 const renderMeta = (name, content, property = false) =>
   content
-    ? `<meta ${property ? 'property' : 'name'}="${escapeHtml(name)}" content="${escapeHtml(content)}" />`
+    ? `<meta data-horizon-seo="true" ${property ? 'property' : 'name'}="${escapeHtml(name)}" content="${escapeHtml(content)}" />`
     : undefined;
 
 export const renderHead = (metadata) => {
   const tags = [
-    `<title>${escapeHtml(metadata.title)}</title>`,
+    `<title data-horizon-seo="true">${escapeHtml(metadata.title)}</title>`,
     renderMeta('description', metadata.description),
     renderMeta('robots', metadata.robots),
     metadata.canonicalUrl
-      ? `<link rel="canonical" href="${escapeHtml(metadata.canonicalUrl)}" />`
+      ? `<link data-horizon-seo="true" rel="canonical" href="${escapeHtml(metadata.canonicalUrl)}" />`
       : undefined,
     metadata.previousUrl
-      ? `<link rel="prev" href="${escapeHtml(metadata.previousUrl)}" />`
+      ? `<link data-horizon-seo="true" rel="prev" href="${escapeHtml(metadata.previousUrl)}" />`
       : undefined,
-    metadata.nextUrl ? `<link rel="next" href="${escapeHtml(metadata.nextUrl)}" />` : undefined,
-    `<link rel="alternate" type="application/rss+xml" title="${escapeHtml(metadata.siteName)} RSS Feed" href="${escapeHtml(metadata.feedUrl)}" />`,
+    metadata.nextUrl
+      ? `<link data-horizon-seo="true" rel="next" href="${escapeHtml(metadata.nextUrl)}" />`
+      : undefined,
+    `<link data-horizon-seo="true" rel="alternate" type="application/rss+xml" title="${escapeHtml(metadata.siteName)} RSS Feed" href="${escapeHtml(metadata.feedUrl)}" />`,
     renderMeta('og:site_name', metadata.siteName, true),
     renderMeta('og:locale', metadata.locale, true),
     renderMeta('og:title', metadata.socialTitle, true),
@@ -217,16 +250,19 @@ export const renderHead = (metadata) => {
     renderMeta('og:type', metadata.type, true),
     renderMeta('og:url', metadata.canonicalUrl, true),
     renderMeta('og:image', metadata.imageUrl, true),
+    renderMeta('og:image:alt', metadata.imageAlt, true),
     renderMeta('twitter:card', 'summary_large_image'),
     renderMeta('twitter:title', metadata.socialTitle),
     renderMeta('twitter:description', metadata.description),
     renderMeta('twitter:image', metadata.imageUrl),
+    renderMeta('twitter:image:alt', metadata.imageAlt),
     renderMeta('article:published_time', metadata.publishedTime, true),
     renderMeta('article:modified_time', metadata.modifiedTime, true),
     renderMeta('article:author', metadata.author, true),
     ...metadata.tags.map((tag) => renderMeta('article:tag', tag, true)),
     ...metadata.jsonLd.map(
-      (schema) => `<script type="application/ld+json">${serializeJsonLd(schema)}</script>`,
+      (schema) =>
+        `<script data-horizon-seo="true" type="application/ld+json">${serializeJsonLd(schema)}</script>`,
     ),
   ].filter(Boolean);
 

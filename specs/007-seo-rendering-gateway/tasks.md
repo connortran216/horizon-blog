@@ -59,8 +59,20 @@
 - [x] T024 Run targeted SEO tests and fix all failures under `scripts/seo/`
 - [x] T025 Run the complete Vitest suite, lint, type check, format check, and production build from `package.json`
 - [x] T026 Run the local production response matrix from `specs/007-seo-rendering-gateway/quickstart.md`
-- [ ] T027 Verify React takeover and public navigation against `http://127.0.0.1:3100`
+- [x] T027 Verify React takeover and public navigation against `http://127.0.0.1:3100`
 - [x] T028 Record execution notes and validation evidence in `specs/007-seo-rendering-gateway/tasks.md`
+- [x] T029 Keep managed metadata synchronized after React Router navigation
+- [x] T030 Include every canonical blog and author pagination page in the sitemap
+- [x] T031 Enrich author, article, social-image, and image-sitemap metadata
+- [x] T032 Harden the stable image proxy with redirect validation, bounded reads, and sandboxed SVG responses
+- [x] T033 Remove eager optional editor/Markdown chunk preloads and scope CV fonts to the CV route
+- [x] T034 Improve public-page contrast and add intrinsic brand-logo dimensions
+- [x] T035 Use compact published summaries for public listing pages and normalize excerpt metadata
+- [x] T036 Restore legacy Medium article links and verify every sitemap/internal crawl target
+- [x] T037 Measure the optimized production gateway with Lighthouse and live response timings
+- [x] T038 Defer the full SPA entry on public pages until authentication, interaction, or timeout
+- [x] T039 Keep private routes immediate and omit application loading from 404/503 documents
+- [x] T040 Add accessible fallback presentation and 44px standalone article-link targets
 
 ## Dependencies
 
@@ -88,4 +100,19 @@ Complete the foundation, then deliver discovery and crawler-readable article HTM
 - Local response matrix: home, archive, article, author, filtered, private, missing route, missing asset, robots, sitemap, RSS, HEAD, image, and canonical index redirect passed.
 - Published-content sweep: all 26 published articles returned one canonical, stable same-origin image metadata, parseable JSON-LD, and 100% normalized word coverage in semantic fallback HTML.
 - Index control sweep: 10 private routes returned `noindex,nofollow`; canonical pagination/static variants returned one canonical; five invalid/missing variants returned 404.
-- Browser verification: attempted with the in-app browser, but its URL policy blocked `http://127.0.0.1:3100`. No alternate browser surface was used because the browser policy prohibits that workaround.
+- Browser verification: the in-app browser confirmed React replaces the fallback without duplicate visible content, then navigated through the archive, article 76, the Connor Tran author archive, reaction/share controls, and a filtered archive using real public data through a temporary local API relay.
+- Client metadata verification: after React Router navigation, article and author title, canonical, Open Graph URL, robots policy, and JSON-LD matched the destination route; `/blog?q=api` switched to `noindex,follow` with the clean `/blog` canonical.
+- Browser console verification: zero warning or error entries were recorded after the navigation matrix.
+- Final automated verification: 35 test files and 109 tests passed; lint, type check, formatting, syntax checks, diff checks, and the production build passed.
+- Final discovery sweep: the sitemap exposed 38 canonical URLs for 26 published articles, all pagination pages, and 22 article image entries; all 84 structured-data blocks parsed successfully.
+- Final image sweep: all 22 sitemap image URLs returned bounded raster or sandboxed SVG image responses from the stable same-origin proxy.
+- Listing payload optimization: `/posts/summaries` reduced the first-page backend payload from 197,577 bytes to 13,573 bytes (about 93%) while preserving titles, excerpts, authors, tags, reading time, dates, and image availability.
+- Local gateway timings: uncached listing responses completed in 0.15-0.37 seconds during the final sample and cached responses completed in about 0.002 seconds.
+- Lighthouse mobile comparison: performance improved from 55 to 64, accessibility from 96 to 100, FCP from 15.7 seconds to 3.6 seconds, LCP from 17.4 seconds to 5.0 seconds, and transfer size from 3.07 MB to 0.75 MB; SEO remained 100.
+- Crawl verification: all 38 sitemap URLs and 83 discovered internal links returned valid responses after restoring a legacy root-relative Medium article URL.
+- Deferred hydration response policy: all seven public route classes contain semantic fallback HTML and one deferred entry loader with no eager module request; private routes retain immediate entry loading; 404 and 503 documents contain no application loader.
+- Browser runtime verification: the public entry had zero requests after 1.5 seconds, interaction requested the main entry exactly once and replaced the fallback, authenticated sessions loaded immediately, private pages loaded immediately, and the no-interaction timeout took over at about 8.1 seconds.
+- Final public crawl after deferred hydration: 38 canonical URLs, 22 image URLs, 83 internal links, and 84 JSON-LD blocks passed with no eager public entry scripts or crawl failures.
+- Final mobile Lighthouse home: Performance 100, Accessibility 100, Best Practices 100, SEO 100, FCP 0.75 seconds, LCP 1.43 seconds, TBT 0, CLS 0, 87 KB transferred, five requests, and zero unused JavaScript.
+- Final mobile Lighthouse archive: all four category scores 100, FCP 0.75 seconds, LCP 1.43 seconds, TBT 0, CLS 0, and 87 KB transferred.
+- Final mobile Lighthouse article 76: all four category scores 100, FCP 0.90 seconds, LCP 1.50 seconds, TBT 0, CLS 0, and 102 KB transferred.

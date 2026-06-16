@@ -17,14 +17,22 @@ const LOGO_SOURCES: Record<BrandLogoVariant, { light: string; dark: string }> = 
   },
 }
 
+export const BRAND_LOGO_DIMENSIONS: Record<BrandLogoVariant, { width: number; height: number }> = {
+  full: { width: 1200, height: 320 },
+  icon: { width: 700, height: 700 },
+}
+
 const BrandLogo = ({ variant = 'full', h, maxW, mixBlendMode, ...rest }: BrandLogoProps) => {
   const src = useColorModeValue(LOGO_SOURCES[variant].light, LOGO_SOURCES[variant].dark)
   const defaultBlendMode = useColorModeValue('multiply', 'screen')
+  const dimensions = BRAND_LOGO_DIMENSIONS[variant]
 
   return (
     <Image
       src={src}
       alt="Horizon"
+      htmlWidth={dimensions.width}
+      htmlHeight={dimensions.height}
       h={h ?? (variant === 'full' ? { base: '34px', md: '38px' } : { base: '32px', md: '34px' })}
       w="auto"
       maxW={maxW ?? (variant === 'full' ? { base: '164px', md: '220px' } : '34px')}

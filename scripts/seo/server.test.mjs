@@ -31,6 +31,12 @@ const createBackend = () => ({
     limit: 9,
     total: 1,
   }),
+  listPublishedPostSummaries: vi.fn().mockResolvedValue({
+    posts: [{ ...post, description: 'Measure first, then optimize.' }],
+    page: 1,
+    limit: 9,
+    total: 1,
+  }),
   listAllPublishedPosts: vi.fn().mockResolvedValue([post]),
   getAuthorBySlug: vi.fn().mockResolvedValue({
     id: 1,
@@ -66,7 +72,10 @@ describe('SEO HTTP gateway', () => {
         headers: { 'content-type': 'image/png', 'content-length': '4' },
       }),
     );
-    const config = createSeoConfig({ PUBLIC_SITE_URL: 'http://127.0.0.1' });
+    const config = createSeoConfig({
+      PUBLIC_SITE_URL: 'http://127.0.0.1',
+      SEO_MAX_IMAGE_BYTES: '64',
+    });
     server = createSeoServer({
       config,
       distDir,
@@ -93,7 +102,13 @@ describe('SEO HTTP gateway', () => {
     const homeHtml = await home.text();
     expect(home.status).toBe(200);
     expect(homeHtml).toContain('<h1>Thoughtful writing for curious readers</h1>');
-    expect(homeHtml).toContain(`<link rel="canonical" href="${baseUrl}/" />`);
+    expect(homeHtml).toContain(`rel="canonical" href="${baseUrl}/"`);
+    expect(homeHtml).toContain('data-horizon-entry-loader="deferred"');
+    expect(homeHtml).not.toContain(
+      '<script type="module" src="/assets/app.js"></script>',
+    );
+    expect(backend.listPublishedPostSummaries).toHaveBeenCalledWith({ page: 1, limit: 9 });
+    expect(backend.listPublishedPosts).not.toHaveBeenCalled();
 
     const article = await fetch(`${baseUrl}/blog/76`);
     const articleHtml = await article.text();
@@ -129,17 +144,23 @@ describe('SEO HTTP gateway', () => {
     const privateHtml = await privateResponse.text();
     expect(privateHtml).toContain('content="noindex,nofollow,noarchive"');
     expect(privateHtml).not.toContain('rel="canonical"');
+    expect(privateHtml).toContain('<script type="module" src="/assets/app.js"></script>');
+    expect(privateHtml).not.toContain('data-horizon-entry-loader="deferred"');
 
     const filteredResponse = await fetch(`${baseUrl}/blog?query=api&utm_source=test`);
     const filteredHtml = await filteredResponse.text();
     expect(filteredHtml).toContain('content="noindex,follow,noarchive"');
-    expect(filteredHtml).toContain(`<link rel="canonical" href="${baseUrl}/blog" />`);
+    expect(filteredHtml).toContain(`rel="canonical" href="${baseUrl}/blog"`);
+    expect(filteredHtml).toContain('data-horizon-entry-loader="deferred"');
   });
 
   it('returns real 404 responses for unknown routes and missing assets', async () => {
     const route = await fetch(`${baseUrl}/definitely-missing`);
     expect(route.status).toBe(404);
-    expect(await route.text()).toContain('Page not found');
+    const routeHtml = await route.text();
+    expect(routeHtml).toContain('Page not found');
+    expect(routeHtml).not.toContain('src="/assets/app.js"');
+    expect(routeHtml).not.toContain('data-horizon-entry-loader');
 
     const asset = await fetch(`${baseUrl}/missing.png`);
     expect(asset.status).toBe(404);
@@ -163,7 +184,10 @@ describe('SEO HTTP gateway', () => {
     expect(response.status).toBe(503);
     expect(response.headers.get('retry-after')).toBe('60');
     expect(response.headers.get('cache-control')).toBe('no-store');
-    expect(await response.text()).toContain('Temporarily unavailable');
+    const html = await response.text();
+    expect(html).toContain('Temporarily unavailable');
+    expect(html).not.toContain('src="/assets/app.js"');
+    expect(html).not.toContain('data-horizon-entry-loader');
   });
 
   it('supports HEAD and rejects unsupported methods', async () => {
@@ -189,8 +213,52 @@ describe('SEO HTTP gateway', () => {
     expect([...new Uint8Array(await image.arrayBuffer())]).toEqual([137, 80, 78, 71]);
     expect(imageFetch).toHaveBeenCalledWith(
       'https://minio.connortran.io.vn/cover.png?X-Amz-Signature=secret',
-      expect.objectContaining({ redirect: 'follow' }),
+      expect.objectContaining({ redirect: 'manual' }),
     );
+  });
+
+  it('rejects unsafe redirects and sandboxes SVG image responses', async () => {
+    imageFetch.mockResolvedValueOnce(
+      new Response(null, {
+        status: 302,
+        headers: { location: 'https://evil.example/tracker.png' },
+      }),
+    );
+
+    const redirected = await fetch(`${baseUrl}/seo/post-image/76`, { redirect: 'manual' });
+
+    expect(redirected.status).toBe(302);
+    expect(redirected.headers.get('location')).toBe('/branding/horizon-app-icon-512.png');
+    expect(imageFetch).toHaveBeenCalledTimes(1);
+
+    imageFetch.mockResolvedValueOnce(
+      new Response('<svg><script>alert(1)</script></svg>', {
+        status: 200,
+        headers: { 'content-type': 'image/svg+xml' },
+      }),
+    );
+
+    const svg = await fetch(`${baseUrl}/seo/post-image/76`, { redirect: 'manual' });
+
+    expect(svg.status).toBe(200);
+    expect(svg.headers.get('content-type')).toBe('image/svg+xml');
+    expect(svg.headers.get('content-security-policy')).toBe(
+      'default-src \'none\'; style-src \'unsafe-inline\'; sandbox',
+    );
+  });
+
+  it('rejects oversized image streams without a declared content length', async () => {
+    imageFetch.mockResolvedValueOnce(
+      new Response(Uint8Array.from({ length: 65 }, (_, index) => index), {
+        status: 200,
+        headers: { 'content-type': 'image/png' },
+      }),
+    );
+
+    const response = await fetch(`${baseUrl}/seo/post-image/76`, { redirect: 'manual' });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('/branding/horizon-app-icon-512.png');
   });
 
   it('redirects missing post images to the permanent brand image', async () => {
