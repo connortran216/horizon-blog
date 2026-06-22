@@ -18,6 +18,7 @@ This is the short working contract for AI coding agents in this repo. Keep it co
 - Avoid dumping full `yarn build` output unless diagnosing a build failure.
 - Run `yarn build` only at meaningful gates: before final handoff, after shared dependency/config changes, after route/build-entry changes, or when TypeScript/Vite correctness is uncertain.
 - For narrow docs, style, or single-hook changes, prefer `yarn lint` or targeted static checks first; explain when build is intentionally skipped.
+- If local validation under the default Node runtime fails with `EBADF`, retry with `PATH=/Users/trantuancanh/.nvm/versions/node/v22.18.0/bin:$PATH`.
 
 ## Mandatory Reference Loading
 
@@ -53,9 +54,11 @@ Routing matrix:
 
 ## Essential Commands
 
-- Install dependencies: `rtk yarn install`
+- Install dependencies: `rtk yarn install --immutable`
+- Test: `rtk yarn test`
 - Lint: `rtk yarn lint`
 - Lint fix: `rtk yarn lint:fix`
+- Type check: `rtk yarn tsc --noEmit`
 - Format: `rtk yarn format`
 - Format fix: `rtk yarn format:fix`
 - Build, only when justified by Token Budget Rules: `rtk yarn build`
@@ -95,3 +98,7 @@ Routing matrix:
 - Design source of truth: `design-system/MASTER.md`
 - API snapshot: `api-docs.json`
 - RTK global guide: `/Users/trantuancanh/.codex/RTK.md`
+
+<!-- SPECKIT START -->
+Current plan: `specs/007-seo-rendering-gateway/plan.md`
+<!-- SPECKIT END -->
