@@ -83,7 +83,7 @@ const STATIC_METADATA = {
 const securityHeaders = (config) => ({
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
-  'content-security-policy': `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ${config.backendHosts.join(' ')}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`,
+  'content-security-policy': `default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' ${config.backendHosts.join(' ')}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`,
 });
 
 const isFile = async (path) => {

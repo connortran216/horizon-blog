@@ -38,4 +38,22 @@ describe('blog summary cards', () => {
     expect(markup).toContain('Summary Author')
     expect(markup).toContain('6 min')
   })
+
+  it('does not emit unresolved media tokens as image sources on initial render', () => {
+    const postWithProtectedCover = {
+      ...summary,
+      featuredImage: 'media://40',
+    }
+
+    const markup = renderToStaticMarkup(
+      <MemoryRouter>
+        <ChakraProvider theme={theme}>
+          <FeaturedStory post={postWithProtectedCover} />
+          <EditorialCard post={postWithProtectedCover} index={1} />
+        </ChakraProvider>
+      </MemoryRouter>,
+    )
+
+    expect(markup).not.toContain('src="media://40"')
+  })
 })

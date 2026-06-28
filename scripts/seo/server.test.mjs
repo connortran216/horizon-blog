@@ -130,6 +130,16 @@ describe('SEO HTTP gateway', () => {
     expect(articleHtml).toContain('"@type":"BlogPosting"');
   });
 
+  it('allows Cloudflare Web Analytics automatic beacon injection in the CSP', async () => {
+    const response = await fetch(`${baseUrl}/`, { headers: browserHeaders });
+    const csp = response.headers.get('content-security-policy');
+
+    expect(csp).toContain(
+      'script-src \'self\' \'unsafe-inline\' https://static.cloudflareinsights.com',
+    );
+    expect(csp).toContain('connect-src \'self\'');
+  });
+
   it('serves crawler-readable public pages with route-specific metadata', async () => {
     const home = await fetch(`${baseUrl}/`, { headers: crawlerHeaders });
     const homeHtml = await home.text();
