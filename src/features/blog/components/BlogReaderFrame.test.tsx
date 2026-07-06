@@ -16,6 +16,10 @@ const post: BlogArchivePost = {
     id: 1,
     name: 'Horizon Author',
   },
+  tags: [
+    { id: 5, name: 'database' },
+    { id: 39, name: 'backend' },
+  ],
 }
 
 describe('BlogReaderFrame', () => {
@@ -40,5 +44,22 @@ describe('BlogReaderFrame', () => {
 
     expect(contentPosition).toBeGreaterThan(-1)
     expect(interactionPosition).toBeGreaterThan(contentPosition)
+  })
+
+  it('shows public blog tags in the reader header', () => {
+    const markup = renderToStaticMarkup(
+      <BlogReaderFrame
+        post={post}
+        loading={false}
+        resolvedContent="Body content"
+        onBack={() => undefined}
+        backLabel="View archive"
+        emptyLabel="No post"
+        bottomPadding={false}
+      />,
+    )
+
+    expect(markup).toContain('#database')
+    expect(markup).toContain('#backend')
   })
 })

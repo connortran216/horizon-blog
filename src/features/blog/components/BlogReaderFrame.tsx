@@ -2,6 +2,7 @@ import { MouseEventHandler, ReactNode, Suspense, lazy, useEffect, useRef, useSta
 import { ArrowBackIcon } from '@chakra-ui/icons'
 import {
   Avatar,
+  Badge,
   Box,
   Container,
   HStack,
@@ -10,6 +11,8 @@ import {
   Stack,
   Text,
   VStack,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { Link as RouterLink } from 'react-router-dom'
@@ -129,6 +132,7 @@ const BlogReaderFrame = ({
 
   const authorName = getPostAuthorName(post)
   const authorAvatar = getPostAuthorAvatar(post)
+  const tags = post.tags?.filter((tag) => tag.name.trim()) || []
   const authorIdentity = authorArchivePath ? (
     <Link
       as={RouterLink}
@@ -249,6 +253,26 @@ const BlogReaderFrame = ({
                     </>
                   ) : null}
                 </HStack>
+
+                {tags.length > 0 ? (
+                  <Wrap spacing={2}>
+                    {tags.map((tag) => (
+                      <WrapItem key={tag.id}>
+                        <Badge
+                          px={3}
+                          py={1}
+                          borderRadius="full"
+                          bg="bg.tertiary"
+                          color="text.secondary"
+                          textTransform="none"
+                          fontWeight="medium"
+                        >
+                          #{tag.name}
+                        </Badge>
+                      </WrapItem>
+                    ))}
+                  </Wrap>
+                ) : null}
 
                 {helperSection}
               </Stack>
