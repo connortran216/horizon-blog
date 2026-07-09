@@ -7,7 +7,7 @@ export const cvProfile: CvProfile = {
   location: 'Ho Chi Minh City, Vietnam',
   email: 'canhtran210699@gmail.com',
   summary:
-    'Backend engineer with strong Python and Django experience turning logistics, analytics, authentication, and shipment-performance needs into reliable backend platforms. Focused on production systems that improve operational visibility, support scalable workflows, and keep APIs maintainable as products grow.',
+    'I am a Backend Engineer who enjoys building reliable, scalable systems and turning complex engineering problems into practical solutions.\n\nMy main focus is backend architecture, distributed systems, data-intensive applications, and AI-powered engineering workflows. I am especially interested in how AI can reshape the way we design systems, write technical specifications, build internal tools, and improve developer productivity.\n\nI like working on challenging systems where performance, reliability, maintainability, and product impact all matter. For me, engineering is not only about writing code. It is about understanding the problem deeply, designing the right abstraction, making good trade-offs, and continuously improving the system over time.\n\nI am always learning, experimenting, and pushing myself to become a stronger engineer.',
   competencies: [
     {
       title: 'Backend',
@@ -24,10 +24,6 @@ export const cvProfile: CvProfile = {
     {
       title: 'Platform',
       items: ['Docker', 'Helm', 'Kubernetes', 'AWS'],
-    },
-    {
-      title: 'Domains',
-      items: ['Logistics intelligence', 'Analytics', 'Authentication', 'Shipment performance'],
     },
     {
       title: 'Architecture',

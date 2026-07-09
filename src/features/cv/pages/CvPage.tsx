@@ -173,7 +173,12 @@ const CvPage = () => {
               >
                 Summary
               </Text>
-              <Text className="cv-body-text" color="text.secondary" lineHeight="tall">
+              <Text
+                className="cv-body-text"
+                color="text.secondary"
+                lineHeight="tall"
+                whiteSpace="pre-line"
+              >
                 {cvProfile.summary}
               </Text>
             </Stack>
@@ -186,11 +191,16 @@ const CvPage = () => {
                 textTransform="uppercase"
                 letterSpacing="0.18em"
               >
-                Core Stack & Domains
+                Core Stack
               </Text>
-              <SimpleGrid columns={{ base: 1, md: 2 }} spacingX={{ base: 0, md: 8 }} spacingY={4}>
+              <SimpleGrid
+                className="cv-competency-grid"
+                columns={{ base: 1, md: 2 }}
+                spacingX={{ base: 0, md: 8 }}
+                spacingY={4}
+              >
                 {cvProfile.competencies.map((group) => (
-                  <Stack key={group.title} spacing={1}>
+                  <Stack key={group.title} className="cv-competency-item" spacing={1}>
                     <Text
                       className="cv-entry-label"
                       color="text.primary"
