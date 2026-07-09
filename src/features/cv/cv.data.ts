@@ -54,6 +54,12 @@ export const cvProfile: CvProfile = {
       icon: FaDownload,
     },
     {
+      label: 'Blog',
+      href: 'https://blog.connortran.io.vn/',
+      icon: FaArrowUpRightFromSquare,
+      isExternal: true,
+    },
+    {
       label: 'GitHub',
       href: 'https://github.com/connortran216',
       icon: FaGithub,

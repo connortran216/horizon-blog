@@ -256,7 +256,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 0;
   }
 
   html,
@@ -295,7 +295,7 @@ body {
     --chakra-colors-action-glow: transparent !important;
     background: #ffffff !important;
     color: #18212f !important;
-    padding: 0 !important;
+    padding: 12mm !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
