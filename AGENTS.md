@@ -15,9 +15,12 @@ This is the short working contract for AI coding agents in this repo. Keep it co
 - Prefer `rtk <command>` for shell commands to reduce output noise.
 - Prefer `code-review-graph` for architecture/dependency exploration before broad `rg`, full-file reads, or large diffs.
 - Start with low-output commands: `git status --short`, `git diff --stat`, `rg -n`, `rg -c`, and targeted `sed`.
+- For CI-parity validation, prefer Node.js 20 with Yarn 4.9.1 when environment differences matter.
 - Avoid dumping full `yarn build` output unless diagnosing a build failure.
 - Run `yarn build` only at meaningful gates: before final handoff, after shared dependency/config changes, after route/build-entry changes, or when TypeScript/Vite correctness is uncertain.
 - For narrow docs, style, or single-hook changes, prefer `yarn lint` or targeted static checks first; explain when build is intentionally skipped.
+- For SEO gateway work under `scripts/seo`, prefer `rtk yarn test scripts/seo` before the full test suite.
+- Run `rtk yarn preview:meta` only after a successful build when verifying production SEO fallback behavior.
 - If local validation under the default Node runtime fails with `EBADF`, retry with `PATH=/Users/trantuancanh/.nvm/versions/node/v22.18.0/bin:$PATH`.
 
 ## Mandatory Reference Loading
@@ -55,6 +58,7 @@ Routing matrix:
 ## Essential Commands
 
 - Install dependencies: `rtk yarn install --immutable`
+- SEO script tests: `rtk yarn test scripts/seo`
 - Test: `rtk yarn test`
 - Lint: `rtk yarn lint`
 - Lint fix: `rtk yarn lint:fix`
@@ -62,6 +66,7 @@ Routing matrix:
 - Format: `rtk yarn format`
 - Format fix: `rtk yarn format:fix`
 - Build, only when justified by Token Budget Rules: `rtk yarn build`
+- Production SEO preview, only after build: `PORT=3100 PUBLIC_SITE_URL=http://127.0.0.1:3100 rtk yarn preview:meta`
 - Graph status: `rtk code-review-graph status`
 - Graph update after code changes when useful: `rtk code-review-graph update`
 - Change impact: `rtk code-review-graph detect-changes`
