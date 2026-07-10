@@ -46,6 +46,30 @@ describe('BlogReaderFrame', () => {
     expect(interactionPosition).toBeGreaterThan(contentPosition)
   })
 
+  it('places related posts after the article column for mobile flow', () => {
+    const markup = renderToStaticMarkup(
+      <BlogReaderFrame
+        post={post}
+        loading={false}
+        resolvedContent="Body content"
+        onBack={() => undefined}
+        backLabel="View archive"
+        emptyLabel="No post"
+        interactionSection={<button type="button">Heart action</button>}
+        relatedSection={<aside>More like this</aside>}
+        bottomPadding={false}
+      />,
+    )
+
+    const contentPosition = markup.indexOf('Loading content...')
+    const interactionPosition = markup.indexOf('Heart action')
+    const relatedPosition = markup.indexOf('More like this')
+
+    expect(contentPosition).toBeGreaterThan(-1)
+    expect(interactionPosition).toBeGreaterThan(contentPosition)
+    expect(relatedPosition).toBeGreaterThan(interactionPosition)
+  })
+
   it('shows public blog tags in the reader header', () => {
     const markup = renderToStaticMarkup(
       <BlogReaderFrame

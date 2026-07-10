@@ -169,6 +169,16 @@ export class BlogService implements IBlogService {
     return this.unwrapResult(result, 'Failed to fetch blog post')
   }
 
+  async getRelatedPosts(id: string, limit: number = 3): Promise<BlogPostSummary[]> {
+    try {
+      const result = await this.repository.getRelatedPosts(id, limit)
+      return result.success && result.data ? result.data.map((item) => item.post) : []
+    } catch (error) {
+      console.error(`Failed to fetch related posts for ${id}:`, error)
+      return []
+    }
+  }
+
   async getPopularTags(limit: number = 8): Promise<PublicPostTag[]> {
     const result = await this.repository.getPopularTags(limit)
     return this.unwrapResult(result, 'Failed to fetch popular tags')

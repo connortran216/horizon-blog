@@ -7,6 +7,7 @@ import { BlogPostSummary } from '../../../core'
 import theme from '../../../theme'
 import EditorialCard from './EditorialCard'
 import FeaturedStory from './FeaturedStory'
+import RelatedPosts from './RelatedPosts'
 
 const summary: BlogPostSummary = {
   id: '42',
@@ -55,5 +56,21 @@ describe('blog summary cards', () => {
     )
 
     expect(markup).not.toContain('src="media://40"')
+  })
+
+  it('renders related posts without score or reason labels', () => {
+    const markup = renderToStaticMarkup(
+      <MemoryRouter>
+        <ChakraProvider theme={theme}>
+          <RelatedPosts posts={[summary]} />
+        </ChakraProvider>
+      </MemoryRouter>,
+    )
+
+    expect(markup).toContain('More like this')
+    expect(markup).toContain('Summary-only card')
+    expect(markup).toContain('This card renders without downloading markdown.')
+    expect(markup).not.toContain('score')
+    expect(markup).not.toContain('Related because')
   })
 })

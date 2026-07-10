@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
@@ -6,10 +7,14 @@ import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
 import ReaderInteractionBar from '../../reader-interactions/components/ReaderInteractionBar'
 import { useReaderInteractions } from '../../reader-interactions/useReaderInteractions'
 import { useReaderSession } from '../../reader-interactions/useReaderSession'
+import RelatedPosts from '../components/RelatedPosts'
+import { BlogPostSummary } from '../../../core/types/blog.types'
+import { getBlogService } from '../../../core'
 
 const BlogDetailPage = () => {
   const navigate = useNavigate()
   const { post, loading, emptyStateMessage } = useBlogPostDetail()
+  const [relatedPosts, setRelatedPosts] = useState<BlogPostSummary[]>([])
 
   const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
@@ -26,6 +31,31 @@ const BlogDetailPage = () => {
     sessionId: readerSession.sessionId,
     enabled: Boolean(post),
   })
+
+  useEffect(() => {
+    if (!post?.id) {
+      setRelatedPosts([])
+      return
+    }
+
+    let isCurrent = true
+    getBlogService()
+      .getRelatedPosts(String(post.id), 3)
+      .then((posts) => {
+        if (isCurrent) {
+          setRelatedPosts(posts)
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setRelatedPosts([])
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [post?.id])
 
   return (
     <BlogReaderFrame
@@ -49,6 +79,7 @@ const BlogDetailPage = () => {
           onShare={readerInteractions.share}
         />
       }
+      relatedSection={relatedPosts.length > 0 ? <RelatedPosts posts={relatedPosts} /> : undefined}
       bottomPadding={true}
     />
   )

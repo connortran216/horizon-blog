@@ -15,6 +15,7 @@ import {
   PublicPostTag,
   PublicPostsPage,
   PublicPostRecord,
+  RelatedPostItem,
 } from './blog.types'
 
 /**
@@ -79,6 +80,7 @@ export interface IBlogRepository {
   ): Promise<RepositoryResult<BlogPostSummary[]>>
   searchPostRecords(options: BlogArchiveOptions): Promise<RepositoryResult<PublicPostsPage>>
   getPopularTags(limit?: number): Promise<RepositoryResult<PublicPostTag[]>>
+  getRelatedPosts(postId: string, limit?: number): Promise<RepositoryResult<RelatedPostItem[]>>
 
   // Utility operations
   clearCache(): Promise<void>

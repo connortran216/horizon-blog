@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { apiService } from '../services/api.service'
-import { ApiListPostSummariesResponse } from '../types/blog-service.types'
+import {
+  ApiListPostSummariesResponse,
+  ApiRelatedPostsResponse,
+} from '../types/blog-service.types'
 import { ApiBlogRepository } from './blog.repository'
 
 const summaryResponse: ApiListPostSummariesResponse = {
@@ -43,6 +46,16 @@ const summaryResponse: ApiListPostSummariesResponse = {
   page: 2,
   limit: 2,
   total: 8,
+}
+
+const relatedResponse: ApiRelatedPostsResponse = {
+  data: [
+    {
+      post: summaryResponse.data[0],
+      score: 120,
+    },
+  ],
+  limit: 3,
 }
 
 afterEach(() => {
@@ -139,6 +152,30 @@ describe('blog repository performance contract', () => {
       page: 1,
       limit: 2,
       status: 'published',
+    })
+  })
+
+  it('loads related posts with score metadata from the dedicated endpoint', async () => {
+    const get = vi.spyOn(apiService, 'get').mockResolvedValue(relatedResponse)
+    const repository = new ApiBlogRepository({ cache: { enabled: false } })
+
+    const result = await repository.getRelatedPosts('42', 3)
+
+    expect(get).toHaveBeenCalledWith('/posts/42/related', { limit: 3 })
+    expect(result).toMatchObject({
+      success: true,
+      data: [
+        {
+          score: 120,
+          post: {
+            id: '42',
+            title: 'Compact post',
+            excerpt: 'Already derived by the backend.',
+            tags: ['performance'],
+            status: 'published',
+          },
+        },
+      ],
     })
   })
 })

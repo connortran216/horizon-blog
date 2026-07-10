@@ -21,6 +21,7 @@ import {
   PublicPostTag,
   PublicPostsPage,
   PublicPostRecord,
+  RelatedPostItem,
 } from '../types/blog.types'
 import {
   ApiBlogPost,
@@ -28,6 +29,7 @@ import {
   ApiListPostsResponse,
   ApiPublicAuthorProfileResponse,
   ApiPublicAuthorPostsResponse,
+  ApiRelatedPostsResponse,
 } from '../types/blog-service.types'
 import { ApiError, apiService } from '../services/api.service'
 import {
@@ -432,6 +434,41 @@ export class ApiBlogRepository implements IBlogRepository {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch blog post',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
+  async getRelatedPosts(
+    postId: string,
+    limit: number = 3,
+  ): Promise<RepositoryResult<RelatedPostItem[]>> {
+    try {
+      const cacheKey = this.generateCacheKey('related-posts', { postId, limit })
+      const cached = this.getFromCache(cacheKey) as RelatedPostItem[] | null
+
+      if (cached) {
+        return { success: true, data: cached }
+      }
+
+      const response = await apiService.get<ApiRelatedPostsResponse>(
+        `/posts/${postId}/related`,
+        { limit },
+      )
+      const items = response.data.map((item) => ({
+        post: mapApiPostSummaryToBlogSummary(item.post),
+        score: item.score,
+      }))
+
+      this.setCache(cacheKey, items)
+      this.lastUpdate = new Date()
+
+      return { success: true, data: items }
+    } catch (error: unknown) {
+      console.error(`Failed to fetch related posts for ${postId}:`, error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch related posts',
         statusCode: this.getStatusCode(error),
       }
     }

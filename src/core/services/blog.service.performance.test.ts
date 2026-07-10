@@ -79,4 +79,29 @@ describe('blog service performance routing', () => {
       status: 'published',
     })
   })
+
+  it('maps related post items to plain summaries for UI consumers', async () => {
+    const getRelatedPosts = vi.fn().mockResolvedValue({
+      success: true,
+      data: [{ post: summary, score: 120 }],
+    })
+    const service = new BlogService({
+      getRelatedPosts,
+    } as unknown as IBlogRepository)
+
+    await expect(service.getRelatedPosts('42', 3)).resolves.toEqual([summary])
+    expect(getRelatedPosts).toHaveBeenCalledWith('42', 3)
+  })
+
+  it('returns no related summaries when the optional related request fails', async () => {
+    const getRelatedPosts = vi.fn().mockResolvedValue({
+      success: false,
+      error: 'unavailable',
+    })
+    const service = new BlogService({
+      getRelatedPosts,
+    } as unknown as IBlogRepository)
+
+    await expect(service.getRelatedPosts('42', 3)).resolves.toEqual([])
+  })
 })

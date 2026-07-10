@@ -136,6 +136,11 @@ export interface BlogPostSummariesPage {
   total: number
 }
 
+export interface RelatedPostItem {
+  post: BlogPostSummary
+  score: number
+}
+
 export interface BlogArchiveOptions {
   q?: string
   tags?: string[]

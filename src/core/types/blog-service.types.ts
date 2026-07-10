@@ -40,6 +40,16 @@ export interface ApiListPostSummariesResponse {
   total: number
 }
 
+export interface ApiRelatedPostItem {
+  post: ApiPostSummary
+  score: number
+}
+
+export interface ApiRelatedPostsResponse {
+  data: ApiRelatedPostItem[]
+  limit: number
+}
+
 export interface ApiPublicAuthorProfileResponse {
   data: PublicAuthor
 }
@@ -66,6 +76,7 @@ export interface IBlogService {
   getPublishedArchivePosts(options: BlogArchiveOptions): Promise<BlogPostSummariesPage>
   getPostById(id: string): Promise<BlogPost | null>
   getPublicPostDetail(id: string): Promise<PublicPostRecord>
+  getRelatedPosts(id: string, limit?: number): Promise<BlogPostSummary[]>
   getPopularTags(limit?: number): Promise<PublicPostTag[]>
   getPublicAuthorProfile(authorId: string): Promise<PublicAuthor>
   getPublicAuthorPosts(

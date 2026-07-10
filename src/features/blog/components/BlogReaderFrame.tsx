@@ -5,6 +5,7 @@ import {
   Badge,
   Box,
   Container,
+  Grid,
   HStack,
   Link,
   Progress,
@@ -43,6 +44,7 @@ interface BlogReaderFrameProps {
   titleSection?: ReactNode
   helperSection?: ReactNode
   interactionSection?: ReactNode
+  relatedSection?: ReactNode
   onReadingProgressChange?: (progressPercent: number) => void
   onContentClick?: MouseEventHandler<HTMLElement>
   bottomPadding?: boolean
@@ -61,6 +63,7 @@ const BlogReaderFrame = ({
   titleSection,
   helperSection,
   interactionSection,
+  relatedSection,
   onReadingProgressChange,
   onContentClick,
   bottomPadding = true,
@@ -219,89 +222,109 @@ const BlogReaderFrame = ({
               </FocusRing>
             </BackButtonAnimation>
 
-            <Box maxW="4xl" mx="auto" w="full">
-              <Stack spacing={{ base: 5, md: 6 }}>
-                {titleSection || <TitleAnimation title={post.title} />}
+            <Grid
+              templateColumns={{ base: '1fr', xl: relatedSection ? 'minmax(0, 1fr) 280px' : '1fr' }}
+              gap={{ base: 8, xl: 8 }}
+              alignItems="start"
+              w="full"
+            >
+              <VStack spacing={{ base: 8, md: 10 }} align="stretch" minW={0}>
+                <Box maxW="4xl" mx="auto" w="full">
+                  <Stack spacing={{ base: 5, md: 6 }}>
+                    {titleSection || <TitleAnimation title={post.title} />}
 
-                <HStack spacing={4} flexWrap="wrap" align="center" color="text.secondary">
-                  {authorIdentity}
-                  <Text color="text.tertiary">•</Text>
-                  <Text color="text.secondary">
-                    {new Date(post.created_at).toLocaleDateString()}
-                  </Text>
-                  {post.created_at !== post.updated_at ? (
-                    <>
+                    <HStack spacing={4} flexWrap="wrap" align="center" color="text.secondary">
+                      {authorIdentity}
                       <Text color="text.tertiary">•</Text>
                       <Text color="text.secondary">
-                        Updated {new Date(post.updated_at).toLocaleDateString()}
+                        {new Date(post.created_at).toLocaleDateString()}
                       </Text>
-                    </>
-                  ) : null}
-                  {authorArchivePath ? (
-                    <>
-                      <Text color="text.tertiary">•</Text>
-                      <Link
-                        as={RouterLink}
-                        to={authorArchivePath}
-                        state={authorArchiveState}
-                        color="action.primary"
-                        fontWeight="semibold"
-                        _hover={{ color: 'action.hover', textDecoration: 'none' }}
-                      >
-                        View archive
-                      </Link>
-                    </>
-                  ) : null}
-                </HStack>
+                      {post.created_at !== post.updated_at ? (
+                        <>
+                          <Text color="text.tertiary">•</Text>
+                          <Text color="text.secondary">
+                            Updated {new Date(post.updated_at).toLocaleDateString()}
+                          </Text>
+                        </>
+                      ) : null}
+                      {authorArchivePath ? (
+                        <>
+                          <Text color="text.tertiary">•</Text>
+                          <Link
+                            as={RouterLink}
+                            to={authorArchivePath}
+                            state={authorArchiveState}
+                            color="action.primary"
+                            fontWeight="semibold"
+                            _hover={{ color: 'action.hover', textDecoration: 'none' }}
+                          >
+                            View archive
+                          </Link>
+                        </>
+                      ) : null}
+                    </HStack>
 
-                {tags.length > 0 ? (
-                  <Wrap spacing={2}>
-                    {tags.map((tag) => (
-                      <WrapItem key={tag.id}>
-                        <Badge
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          bg="bg.tertiary"
-                          color="text.secondary"
-                          textTransform="none"
-                          fontWeight="medium"
-                        >
-                          #{tag.name}
-                        </Badge>
-                      </WrapItem>
-                    ))}
-                  </Wrap>
+                    {tags.length > 0 ? (
+                      <Wrap spacing={2}>
+                        {tags.map((tag) => (
+                          <WrapItem key={tag.id}>
+                            <Badge
+                              px={3}
+                              py={1}
+                              borderRadius="full"
+                              bg="bg.tertiary"
+                              color="text.secondary"
+                              textTransform="none"
+                              fontWeight="medium"
+                            >
+                              #{tag.name}
+                            </Badge>
+                          </WrapItem>
+                        ))}
+                      </Wrap>
+                    ) : null}
+
+                    {helperSection}
+                  </Stack>
+                </Box>
+
+                <Box maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
+                  <ContentAnimation hasPaddingBottom={bottomPadding}>
+                    {resolvedContent ? (
+                      <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>
+                        <Box px={{ base: 3, md: 4 }} pb={{ base: 4, md: 6 }}>
+                          <LazyCrepeEditor
+                            initialContent={resolvedContent}
+                            readOnly
+                            inputId="blog-content-reader"
+                            inputName="blogContentReader"
+                          />
+                        </Box>
+                      </Suspense>
+                    ) : (
+                      <Text color="text.secondary">No content available</Text>
+                    )}
+                  </ContentAnimation>
+                </Box>
+
+                {interactionSection ? (
+                  <Box maxW="4xl" mx="auto" w="full" pt={{ base: 1, md: 2 }}>
+                    {interactionSection}
+                  </Box>
                 ) : null}
+              </VStack>
 
-                {helperSection}
-              </Stack>
-            </Box>
-
-            <Box maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
-              <ContentAnimation hasPaddingBottom={bottomPadding}>
-                {resolvedContent ? (
-                  <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>
-                    <Box px={{ base: 3, md: 4 }} pb={{ base: 4, md: 6 }}>
-                      <LazyCrepeEditor
-                        initialContent={resolvedContent}
-                        readOnly
-                        inputId="blog-content-reader"
-                        inputName="blogContentReader"
-                      />
-                    </Box>
-                  </Suspense>
-                ) : (
-                  <Text color="text.secondary">No content available</Text>
-                )}
-              </ContentAnimation>
-            </Box>
-
-            {interactionSection ? (
-              <Box maxW="4xl" mx="auto" w="full" pt={{ base: 1, md: 2 }}>
-                {interactionSection}
-              </Box>
-            ) : null}
+              {relatedSection ? (
+                <Box
+                  as="aside"
+                  position={{ base: 'static', xl: 'sticky' }}
+                  top={{ xl: 20 }}
+                  w="full"
+                >
+                  {relatedSection}
+                </Box>
+              ) : null}
+            </Grid>
           </VStack>
         </Container>
       </Box>
