@@ -32,21 +32,11 @@ import {
   replaceMediaTokensWithUrls,
 } from '../../features/media/media.tokens'
 import { isAllowedMediaUpload } from '../../features/media/media.upload'
+import { buildUniqueHeadingId, slugifyHeadingText } from '../../core/utils/heading.utils'
 import '@milkdown/crepe/theme/common/style.css'
 import './crepe-theme.css'
 
 const headingSelector = 'h1, h2, h3, h4, h5, h6'
-
-const slugifyHeadingText = (text: string): string =>
-  text
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
 
 const decodeHash = (hash: string): string => {
   try {
@@ -174,14 +164,12 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     const headings = editorRef.current.querySelectorAll<HTMLHeadingElement>(headingSelector)
 
     headings.forEach((heading) => {
-      const baseSlug = slugifyHeadingText(heading.textContent || '')
-      if (!baseSlug) {
+      const id = buildUniqueHeadingId(heading.textContent || '', slugCounts)
+      if (!id) {
         return
       }
 
-      const count = slugCounts.get(baseSlug) || 0
-      slugCounts.set(baseSlug, count + 1)
-      heading.id = count === 0 ? baseSlug : `${baseSlug}-${count + 1}`
+      heading.id = id
     })
   }, [readOnly])
 

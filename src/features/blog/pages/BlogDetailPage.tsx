@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
@@ -9,7 +9,8 @@ import { useReaderInteractions } from '../../reader-interactions/useReaderIntera
 import { useReaderSession } from '../../reader-interactions/useReaderSession'
 import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
-import { getBlogService } from '../../../core'
+import { extractMarkdownHeadings, getBlogService } from '../../../core'
+import TableOfContents from '../components/TableOfContents'
 
 const BlogDetailPage = () => {
   const navigate = useNavigate()
@@ -17,6 +18,11 @@ const BlogDetailPage = () => {
   const [relatedPosts, setRelatedPosts] = useState<BlogPostSummary[]>([])
 
   const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
+  const tableOfContentsItems = useMemo(
+    () => extractMarkdownHeadings(post?.content_markdown || ''),
+    [post?.content_markdown],
+  )
+  const shouldShowTableOfContents = tableOfContentsItems.length >= 3
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
   const authorArchiveState = post ? getPostAuthorArchiveState(post) : undefined
   const shareUrl = typeof window === 'undefined' ? undefined : window.location.href
@@ -78,6 +84,14 @@ const BlogDetailPage = () => {
           onToggleHeart={readerInteractions.toggleHeart}
           onShare={readerInteractions.share}
         />
+      }
+      tableOfContentsRail={
+        shouldShowTableOfContents ? <TableOfContents items={tableOfContentsItems} /> : undefined
+      }
+      tableOfContentsInline={
+        shouldShowTableOfContents ? (
+          <TableOfContents items={tableOfContentsItems} variant="collapse" />
+        ) : undefined
       }
       relatedSection={relatedPosts.length > 0 ? <RelatedPosts posts={relatedPosts} /> : undefined}
       bottomPadding={true}

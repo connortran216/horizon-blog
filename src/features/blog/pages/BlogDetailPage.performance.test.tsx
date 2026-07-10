@@ -11,7 +11,13 @@ vi.mock('../useBlogPostDetail', () => ({
     post: {
       id: 76,
       title: 'Article remains readable',
-      content_markdown: 'Independent article body',
+      content_markdown: `
+Independent article body
+
+## Setup
+### Tradeoffs
+## Result
+`,
       content_json: '',
       status: 'published',
       user_id: 1,
@@ -57,6 +63,8 @@ describe('BlogDetailPage dependency independence', () => {
     )
 
     expect(markup).toContain('Article remains readable')
+    expect(markup).toContain('On this page')
+    expect(markup).toContain('#setup')
     expect(markup).toContain('Loading content...')
     expect(markup).toContain('Reactions unavailable')
   })

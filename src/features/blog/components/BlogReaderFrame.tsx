@@ -45,6 +45,8 @@ interface BlogReaderFrameProps {
   helperSection?: ReactNode
   interactionSection?: ReactNode
   relatedSection?: ReactNode
+  tableOfContentsRail?: ReactNode
+  tableOfContentsInline?: ReactNode
   onReadingProgressChange?: (progressPercent: number) => void
   onContentClick?: MouseEventHandler<HTMLElement>
   bottomPadding?: boolean
@@ -64,6 +66,8 @@ const BlogReaderFrame = ({
   helperSection,
   interactionSection,
   relatedSection,
+  tableOfContentsRail,
+  tableOfContentsInline,
   onReadingProgressChange,
   onContentClick,
   bottomPadding = true,
@@ -203,7 +207,7 @@ const BlogReaderFrame = ({
         ) : null}
 
         <Container
-          maxW="container.xl"
+          maxW={tableOfContentsRail && relatedSection ? '1536px' : 'container.xl'}
           py={{ base: 8, md: 12 }}
           position="relative"
           ref={contentRef}
@@ -223,11 +227,34 @@ const BlogReaderFrame = ({
             </BackButtonAnimation>
 
             <Grid
-              templateColumns={{ base: '1fr', xl: relatedSection ? 'minmax(0, 1fr) 280px' : '1fr' }}
-              gap={{ base: 8, xl: 8 }}
+              templateColumns={{
+                base: '1fr',
+                xl: relatedSection ? 'minmax(0, 1fr) 280px' : '1fr',
+                '2xl':
+                  tableOfContentsRail && relatedSection
+                    ? '220px minmax(0, 1fr) 280px'
+                    : relatedSection
+                      ? 'minmax(0, 1fr) 280px'
+                      : tableOfContentsRail
+                        ? '220px minmax(0, 1fr)'
+                        : '1fr',
+              }}
+              gap={{ base: 8, xl: 8, '2xl': 10 }}
               alignItems="start"
               w="full"
             >
+              {tableOfContentsRail ? (
+                <Box
+                  as="aside"
+                  display={{ base: 'none', '2xl': 'block' }}
+                  position="sticky"
+                  top={20}
+                  w="full"
+                >
+                  {tableOfContentsRail}
+                </Box>
+              ) : null}
+
               <VStack spacing={{ base: 8, md: 10 }} align="stretch" minW={0}>
                 <Box maxW="4xl" mx="auto" w="full">
                   <Stack spacing={{ base: 5, md: 6 }}>
@@ -285,6 +312,10 @@ const BlogReaderFrame = ({
                     ) : null}
 
                     {helperSection}
+
+                    {tableOfContentsInline ? (
+                      <Box display={{ base: 'block', '2xl': 'none' }}>{tableOfContentsInline}</Box>
+                    ) : null}
                   </Stack>
                 </Box>
 

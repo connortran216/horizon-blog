@@ -70,6 +70,36 @@ describe('BlogReaderFrame', () => {
     expect(relatedPosition).toBeGreaterThan(interactionPosition)
   })
 
+  it('places table of contents before the article content', () => {
+    const markup = renderToStaticMarkup(
+      <BlogReaderFrame
+        post={post}
+        loading={false}
+        resolvedContent="Body content"
+        onBack={() => undefined}
+        backLabel="View archive"
+        emptyLabel="No post"
+        tableOfContentsRail={<nav>Desktop contents</nav>}
+        tableOfContentsInline={<nav>Inline contents</nav>}
+        relatedSection={<aside>More like this</aside>}
+        bottomPadding={false}
+      />,
+    )
+
+    const titlePosition = markup.indexOf('Reader interaction placement')
+    const desktopTocPosition = markup.indexOf('Desktop contents')
+    const inlineTocPosition = markup.indexOf('Inline contents')
+    const contentPosition = markup.indexOf('Loading content...')
+    const relatedPosition = markup.indexOf('More like this')
+
+    expect(desktopTocPosition).toBeGreaterThan(-1)
+    expect(inlineTocPosition).toBeGreaterThan(-1)
+    expect(desktopTocPosition).toBeLessThan(titlePosition)
+    expect(inlineTocPosition).toBeGreaterThan(titlePosition)
+    expect(inlineTocPosition).toBeLessThan(contentPosition)
+    expect(relatedPosition).toBeGreaterThan(contentPosition)
+  })
+
   it('shows public blog tags in the reader header', () => {
     const markup = renderToStaticMarkup(
       <BlogReaderFrame
