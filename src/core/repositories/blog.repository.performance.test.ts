@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { apiService } from '../services/api.service'
-import {
-  ApiListPostSummariesResponse,
-  ApiRelatedPostsResponse,
-} from '../types/blog-service.types'
+import { ApiListPostSummariesResponse, ApiRelatedPostsResponse } from '../types/blog-service.types'
 import { ApiBlogRepository } from './blog.repository'
 
 const summaryResponse: ApiListPostSummariesResponse = {

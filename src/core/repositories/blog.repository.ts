@@ -451,10 +451,9 @@ export class ApiBlogRepository implements IBlogRepository {
         return { success: true, data: cached }
       }
 
-      const response = await apiService.get<ApiRelatedPostsResponse>(
-        `/posts/${postId}/related`,
-        { limit },
-      )
+      const response = await apiService.get<ApiRelatedPostsResponse>(`/posts/${postId}/related`, {
+        limit,
+      })
       const items = response.data.map((item) => ({
         post: mapApiPostSummaryToBlogSummary(item.post),
         score: item.score,
