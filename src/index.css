@@ -324,7 +324,21 @@ body {
   }
 
   .cv-section {
+    display: block !important;
     padding-top: 0.75rem !important;
+  }
+
+  .cv-section-label {
+    display: block !important;
+    break-after: avoid;
+    page-break-after: avoid;
+    margin-bottom: 1rem !important;
+  }
+
+  .cv-section-body {
+    display: block !important;
+    break-before: avoid;
+    page-break-before: avoid;
   }
 
   .cv-section + .cv-section,
@@ -339,6 +353,11 @@ body {
   .cv-entry + .cv-entry {
     margin-top: 1rem !important;
     padding-top: 1rem !important;
+  }
+
+  .cv-section-body > .cv-entry:first-child {
+    break-before: avoid;
+    page-break-before: avoid;
   }
 
   .cv-competency-grid {

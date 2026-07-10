@@ -174,7 +174,7 @@ const CvPage = () => {
                 Summary
               </Text>
               <Text
-                className="cv-body-text"
+                className="cv-body-text cv-section-body"
                 color="text.secondary"
                 lineHeight="tall"
                 whiteSpace="pre-line"
@@ -194,7 +194,7 @@ const CvPage = () => {
                 Core Stack
               </Text>
               <SimpleGrid
-                className="cv-competency-grid"
+                className="cv-competency-grid cv-section-body"
                 columns={{ base: 1, md: 2 }}
                 spacingX={{ base: 0, md: 8 }}
                 spacingY={4}
@@ -227,7 +227,7 @@ const CvPage = () => {
               >
                 Experience
               </Text>
-              <Stack spacing={0}>
+              <Stack className="cv-section-body" spacing={0}>
                 {cvProfile.experience.map((experience) => (
                   <CvExperienceCard
                     key={`${experience.company}-${experience.role}`}
@@ -247,7 +247,7 @@ const CvPage = () => {
               >
                 Personal Projects
               </Text>
-              <Stack spacing={0}>
+              <Stack className="cv-section-body" spacing={0}>
                 {cvProfile.projects.map((project) => (
                   <CvProjectEntry key={`${project.title}-${project.period}`} project={project} />
                 ))}
@@ -264,7 +264,7 @@ const CvPage = () => {
               >
                 Education
               </Text>
-              <Stack spacing={0}>
+              <Stack className="cv-section-body" spacing={0}>
                 {cvProfile.education.map((item) => (
                   <Box key={`${item.school}-${item.degree}`} className="cv-entry cv-avoid-break">
                     <Stack spacing={3}>
