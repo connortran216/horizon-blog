@@ -47,9 +47,9 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
       transition="border-color 0.2s ease, transform 0.2s ease"
       _hover={{ borderColor: 'action.primary', transform: 'translateY(-1px)' }}
     >
-      <Box h="112px" overflow="hidden">
+      <Box h="112px" overflow="hidden" bg="bg.tertiary">
         {coverImage ? (
-          <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
+          <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
         ) : (
           <DefaultPostCover title={post.title} eyebrow="" h="full" />
         )}

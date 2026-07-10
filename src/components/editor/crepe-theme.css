@@ -138,7 +138,10 @@
 
 .crepe-editor-wrapper .image-block-container img {
   border-radius: var(--crepe-media-radius);
-  max-width: 100%;
+  display: block;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
   opacity: 1 !important;
   filter: none !important;
   mix-blend-mode: normal !important;
@@ -149,6 +152,10 @@
 .crepe-editor-wrapper .milkdown .ProseMirror .ProseMirror-selectednode img,
 .crepe-editor-wrapper .milkdown .ProseMirror img.ProseMirror-selectednode {
   border-radius: var(--crepe-media-radius);
+  display: block;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
   opacity: 1 !important;
   filter: none !important;
   mix-blend-mode: normal !important;
@@ -166,16 +173,25 @@
 }
 
 /* Center block images in editor content area. */
+.crepe-editor-wrapper .milkdown .milkdown-image-block,
+.crepe-editor-wrapper .milkdown .milkdown-image-block > .image-edit,
+.crepe-editor-wrapper .milkdown .milkdown-image-block > .image-wrapper {
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
 .crepe-editor-wrapper .milkdown .milkdown-image-block > .image-wrapper {
   margin: 0 auto !important;
   border-radius: var(--crepe-media-radius);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .crepe-editor-wrapper .milkdown .milkdown-image-block .image-wrapper {
   justify-content: center !important;
   border-radius: var(--crepe-media-radius);
-  overflow: hidden;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 /* =========================================
