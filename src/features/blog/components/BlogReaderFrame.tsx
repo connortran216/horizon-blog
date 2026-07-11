@@ -229,24 +229,23 @@ const BlogReaderFrame = ({
             <Grid
               templateColumns={{
                 base: '1fr',
-                xl: relatedSection ? 'minmax(0, 1fr) 280px' : '1fr',
-                '2xl':
+                xl:
                   tableOfContentsRail && relatedSection
                     ? '220px minmax(0, 1fr) 280px'
-                    : relatedSection
-                      ? 'minmax(0, 1fr) 280px'
-                      : tableOfContentsRail
-                        ? '220px minmax(0, 1fr)'
+                    : tableOfContentsRail
+                      ? '220px minmax(0, 1fr)'
+                      : relatedSection
+                        ? 'minmax(0, 1fr) 280px'
                         : '1fr',
               }}
-              gap={{ base: 8, xl: 8, '2xl': 10 }}
+              gap={{ base: 8, xl: 8 }}
               alignItems="start"
               w="full"
             >
               {tableOfContentsRail ? (
                 <Box
                   as="aside"
-                  display={{ base: 'none', '2xl': 'block' }}
+                  display={{ base: 'none', xl: 'block' }}
                   position="sticky"
                   top={20}
                   w="full"
@@ -314,7 +313,7 @@ const BlogReaderFrame = ({
                     {helperSection}
 
                     {tableOfContentsInline ? (
-                      <Box display={{ base: 'block', '2xl': 'none' }}>{tableOfContentsInline}</Box>
+                      <Box display={{ base: 'block', xl: 'none' }}>{tableOfContentsInline}</Box>
                     ) : null}
                   </Stack>
                 </Box>
