@@ -21,7 +21,7 @@ const RelatedPosts = ({ posts }: RelatedPostsProps) => {
       <Heading as="h2" size="sm" color="text.primary" lineHeight="1.2">
         More like this
       </Heading>
-      <VStack align="stretch" spacing={3}>
+      <VStack align="stretch" spacing={2}>
         {posts.map((post) => (
           <RelatedPostCard key={post.id} post={post} />
         ))}
@@ -47,7 +47,7 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
       transition="border-color 0.2s ease, transform 0.2s ease"
       _hover={{ borderColor: 'action.primary', transform: 'translateY(-1px)' }}
     >
-      <Box h="112px" overflow="hidden" bg="bg.tertiary">
+      <Box aspectRatio="16 / 9" overflow="hidden" bg="bg.tertiary">
         {coverImage ? (
           <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
         ) : (
@@ -55,14 +55,20 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
         )}
       </Box>
 
-      <VStack align="stretch" spacing={3} p={4}>
+      <VStack align="stretch" spacing={{ base: 3, xl: 2 }} p={{ base: 4, xl: 3 }}>
         <LinkOverlay as={RouterLink} to={`/blog/${post.id}`}>
           <Heading size="sm" color="text.primary" lineHeight="1.25" noOfLines={2}>
             {post.title}
           </Heading>
         </LinkOverlay>
 
-        <Text color="text.secondary" fontSize="sm" lineHeight="tall" noOfLines={2}>
+        <Text
+          display={{ base: 'block', xl: 'none' }}
+          color="text.secondary"
+          fontSize="sm"
+          lineHeight="tall"
+          noOfLines={2}
+        >
           {post.excerpt || 'Fresh thoughts are on the way.'}
         </Text>
 

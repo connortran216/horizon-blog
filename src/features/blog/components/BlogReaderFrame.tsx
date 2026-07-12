@@ -291,23 +291,28 @@ const BlogReaderFrame = ({
                     </HStack>
 
                     {tags.length > 0 ? (
-                      <Wrap spacing={2}>
-                        {tags.map((tag) => (
-                          <WrapItem key={tag.id}>
-                            <Badge
-                              px={3}
-                              py={1}
-                              borderRadius="full"
-                              bg="bg.tertiary"
-                              color="text.secondary"
-                              textTransform="none"
-                              fontWeight="medium"
-                            >
-                              #{tag.name}
-                            </Badge>
-                          </WrapItem>
-                        ))}
-                      </Wrap>
+                      <VStack align="stretch" spacing={2} aria-label="Blog tags">
+                        <Text fontSize="sm" fontWeight="semibold" color="text.tertiary">
+                          Tags
+                        </Text>
+                        <Wrap spacing={2}>
+                          {tags.map((tag) => (
+                            <WrapItem key={tag.id}>
+                              <Badge
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                                bg="bg.tertiary"
+                                color="text.secondary"
+                                textTransform="none"
+                                fontWeight="medium"
+                              >
+                                #{tag.name}
+                              </Badge>
+                            </WrapItem>
+                          ))}
+                        </Wrap>
+                      </VStack>
                     ) : null}
 
                     {helperSection}

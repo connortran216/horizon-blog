@@ -113,6 +113,7 @@ describe('BlogReaderFrame', () => {
       />,
     )
 
+    expect(markup).toContain('Tags')
     expect(markup).toContain('#database')
     expect(markup).toContain('#backend')
   })
