@@ -2,8 +2,8 @@
 
 **Feature Branch**: `main`
 **Created**: 2026-05-31
-**Status**: Ready for planning
-**Input**: Rewrite CV content so experience bullets communicate achievements and outcomes instead of only listing responsibilities.
+**Status**: Implemented
+**Input**: Rewrite CV content so experience bullets communicate achievements and outcomes instead of only listing responsibilities, using facts verified through a role-by-role interview with the CV owner.
 
 ## User Scenarios & Testing
 
@@ -18,7 +18,7 @@ As a visitor reviewing the CV page, I want the experience section to explain the
 **Acceptance Scenarios**:
 
 1. **Given** a CV experience entry describes backend work, **When** a visitor reads the bullet, **Then** the bullet explains what capability or business workflow the work enabled.
-2. **Given** an achievement cannot be quantified from the current source, **When** the bullet is rewritten, **Then** it uses credible qualitative outcome language instead of invented numbers.
+2. **Given** an achievement cannot be quantified from the repository or the owner's interview, **When** the bullet is rewritten, **Then** it uses credible qualitative outcome language instead of invented numbers.
 3. **Given** the CV includes employers, roles, dates, links, and technology stacks, **When** the rewrite is complete, **Then** those facts remain unchanged.
 4. **Given** public project descriptions already include verified achievements, **When** the rewrite is complete, **Then** existing verified metrics such as challenge results and accuracy remain intact.
 
@@ -27,7 +27,7 @@ As a visitor reviewing the CV page, I want the experience section to explain the
 ### Functional Requirements
 
 - **FR-001**: Experience bullets MUST be rewritten toward achievements, value, and outcomes rather than task-only phrasing.
-- **FR-002**: The rewrite MUST NOT invent employers, dates, responsibilities, technologies, production URLs, metrics, awards, or business results.
+- **FR-002**: The rewrite MUST NOT invent employers, dates, responsibilities, technologies, production URLs, metrics, awards, or business results; additions MUST be verified by the owner.
 - **FR-003**: The rewrite MUST preserve the current CV structure, section ordering, links, project entries, education facts, and stack lists.
 - **FR-004**: The rewrite SHOULD reduce repetitive verbs such as "Built", "Worked on", and "Contributed to" where outcome phrasing is clearer.
 - **FR-005**: The rewrite MUST keep a concise, credible resume tone suitable for a public CV page and PDF export.
@@ -41,12 +41,12 @@ As a visitor reviewing the CV page, I want the experience section to explain the
 ## Success Criteria
 
 - **SC-001**: Every experience entry has outcome-focused bullets that describe user, business, system, or team value.
-- **SC-002**: No new numeric metrics or unverifiable claims are introduced.
+- **SC-002**: Every new numeric metric, award, or scope claim is traceable to the owner's interview; no unsupported claims are introduced.
 - **SC-003**: Existing CV data shape remains compatible with the page.
 - **SC-004**: Frontend lint passes for the repository using the supported Node runtime.
 
 ## Assumptions
 
-- The existing CV data is the factual source available for this task.
+- The existing CV data and the owner's role-by-role interview are the factual sources available for this task.
 - Qualitative achievement language is acceptable when measured results are not available.
 - This is content-only; no layout, styling, API, routing, or backend change is required.

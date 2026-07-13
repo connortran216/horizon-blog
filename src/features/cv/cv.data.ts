@@ -83,12 +83,12 @@ export const cvProfile: CvProfile = {
       role: 'Backend Engineer',
       period: '2023 - Present',
       highlights: [
-        'Designed, built, and maintained backend APIs for shipment analytics, alerting, and automated insight generation, covering shipment-performance querying and reporting, rule-based alert evaluation against configurable thresholds, and insight generation from operational metrics.',
+        'Owned the end-to-end delivery of backend services for shipment analytics, alerting, and automated insight generation, writing and reviewing technical designs across all squad-owned services and carrying changes through implementation, deployment, and production monitoring.',
         'Built and maintained real-time SLA metric processing on live parcel events using Flink, Kafka, and outbox-style publishing, helping operations teams and merchants monitor shipment health and carrier performance more reliably.',
         'Improved backend quality across service repositories through code review, test design, and implementation standards, maintaining above 90% test coverage across related repositories.',
-        'Contributed to the migration from Django REST Framework to Django Ninja, improving API maintainability, schema clarity, validation, and developer experience.',
-        'Created Claude Code skills and agents to accelerate custom SLA implementation while preserving quality through workflow guardrails, review steps, and reusable implementation patterns.',
-        'Created Claude Code workflows for epic handling and CI follow-up from Jira tickets, reducing manual coordination effort and improving delivery accuracy across the squad.',
+        'Migrated nearly all APIs from Django REST Framework to Django Ninja, improving maintainability, schema clarity, validation, and developer experience.',
+        'Reduced implementation time for customer inquiries from 3-7 days to 1-2 days by creating Claude Code skills and agents adopted across the team, with reusable workflows, quality guardrails, and review steps.',
+        "Reduced technical design drafting from 5-7 days to 2-3 days through Claude Code workflows for Jira epics and CI follow-up; contributed to the company boilerplate and helped the team win first prize in Parcel Perform's AI competition.",
       ],
       stack: [
         'Python',
@@ -117,10 +117,10 @@ export const cvProfile: CvProfile = {
       period: '2023',
       productionUrl: 'https://bizchat.thinkprompt.com/',
       highlights: [
-        'Designed and built the backend foundation for a ChatGPT-like business chatbot platform, covering system architecture, RESTful APIs, service structure, and infrastructure setup.',
-        'Led backend delivery across AI integration, application APIs, storage, caching, and deployment concerns, helping turn an early product concept into a production-ready service.',
-        'Coordinated backend priorities, clarified technical direction, and translated product and AI requirements into implementable tasks for the engineering team.',
-        'Improved team output quality through code review, debugging support, error-handling guidance, and mentoring for junior developers.',
+        'Led backend development from inception to a functional prototype for an AI business chatbot, owning the architecture and technical decisions across all non-frontend components.',
+        'Managed two backend engineers and coordinated with AI researchers, covering technical design, task assignment, implementation guidance, code review, and release decisions.',
+        'Designed and implemented an end-to-end document-processing pipeline that transformed raw source materials into vector embeddings and indexed them for chatbot retrieval.',
+        'Built the core APIs, AI integration, storage, caching, and deployment foundation, with implementation support from the backend team.',
       ],
       stack: [
         'Python',
@@ -145,11 +145,11 @@ export const cvProfile: CvProfile = {
       period: '01/2022 - 01/2023',
       productionUrl: 'https://www.sssmarket.vn/',
       highlights: [
-        'Designed and built backend services for an e-commerce platform, covering RESTful APIs, service architecture, infrastructure setup, and integration with product workflows.',
-        'Led backend implementation across product, search, storage, caching, and deployment capabilities, supporting feature delivery across the application.',
-        'Improved backend quality and maintainability through code review, technical guidance, and shared engineering standards for the team.',
-        'Strengthened platform stability by identifying and resolving performance and security issues in the backend stack.',
-        'Communicated delivery progress, risks, and technical trade-offs with the CTO and stakeholders to keep implementation aligned with business priorities.',
+        'Inherited and refactored the e-commerce backend while supporting platform growth from approximately 300,000 to 1.5 million users, with 700-800 daily active users and campaign traffic peaks of 2,000-3,000 users.',
+        'Led two backend engineers, trained and mentored interns and junior engineers, and coordinated with AI, marketing, and sales teams to align technical delivery with business priorities.',
+        'Helped turn AI research into production-ready capabilities, including product similarity search, recommendation systems, and virtual clothing try-on.',
+        'Improved API throughput from approximately 30 to 50-60 requests per second through asynchronous processing, query optimization, and PostgreSQL read replicas, while introducing explicit API schemas to strengthen validation and data correctness.',
+        'Led the migration from AWS to on-premise infrastructure to reduce costs, personally provisioning and maintaining the virtual machines and coordinating production incidents with the CTO and stakeholders.',
       ],
       stack: [
         'Python',
@@ -175,10 +175,9 @@ export const cvProfile: CvProfile = {
       period: '12/2020 - 01/2022',
       productionUrl: 'https://www.dps.com.vn/vi/products/doanhnghiep#',
       highlights: [
-        'Built real-time facial recognition capabilities for attendance and CCTV surveillance workflows, supporting practical computer-vision use cases in enterprise environments.',
-        'Developed and improved AI pipelines across face detection, recognition, tracking, and model integration.',
-        'Translated AI research and experiment results into product improvements, improving recognition accuracy, reliability, and operational fit.',
-        'Worked with cross-functional stakeholders to gather requirements, validate system behavior, and align model improvements with real user needs.',
+        "Took an inherited facial-recognition prototype to production readiness within the company's SaaS ecosystem, owning the complete pipeline across detection, recognition, tracking, anti-spoofing, integration, and deployment.",
+        'Achieved over 95% recognition accuracy and processing speeds of up to 30 FPS on phone-camera input, while improving performance under poor lighting, low-resolution imagery, multiple viewing angles, and crowded scenes.',
+        'Deployed the capability for multiple startup customers through the SaaS platform and as a standalone CCTV solution for a police department.',
       ],
       stack: [
         'Python',

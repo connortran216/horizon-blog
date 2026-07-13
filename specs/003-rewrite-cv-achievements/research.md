@@ -25,3 +25,12 @@
 **Alternatives considered**:
 
 - Use highly promotional phrasing. Rejected because the design-system page guidance asks for concise, professionally credible tone.
+
+## Decision: Treat the owner's role interview as a verified source
+
+**Rationale**: The owner supplied concrete scope, metrics, awards, and deployment details for each role. These facts can replace generic responsibility statements without inventing impact.
+
+**Alternatives considered**:
+
+- Keep all bullets qualitative. Rejected because it would discard credible evidence supplied directly by the owner.
+- Add estimates beyond the interview. Rejected because unsupported precision would weaken the CV's credibility.

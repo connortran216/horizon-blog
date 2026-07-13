@@ -27,6 +27,15 @@
 - [x] T010 Run `PATH=/Users/trantuancanh/.nvm/versions/node/v22.18.0/bin:$PATH rtk yarn lint`
 - [x] T011 Record validation outcome in the final handoff
 
+## Phase 5: Interview-Backed Refinement
+
+- [x] T012 [US1] Interview the owner for role-specific scope, outcomes, and metrics
+- [x] T013 [US1] Refine Parcel Perform highlights with verified delivery and AI-workflow impact in `src/features/cv/cv.data.ts`
+- [x] T014 [US1] Correct Think Prompt highlights to describe prototype-stage delivery in `src/features/cv/cv.data.ts`
+- [x] T015 [US1] Add verified scale, leadership, performance, and infrastructure impact to SSSMarket in `src/features/cv/cv.data.ts`
+- [x] T016 [US1] Add verified production scope and model performance to Dai Phat Solutions in `src/features/cv/cv.data.ts`
+- [x] T017 Validate the final interview-backed rewrite and record the outcome
+
 ## Dependencies
 
 - T001 through T003 precede content edits.

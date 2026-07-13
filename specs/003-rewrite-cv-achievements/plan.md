@@ -8,7 +8,7 @@
 
 - **Stack**: React 18, TypeScript, Vite, Chakra UI.
 - **Source area**: `src/features/cv/cv.data.ts`.
-- **Data source**: Existing CV content in the repository; no external resume file was provided in this turn.
+- **Data source**: Existing CV content plus facts and metrics verified through a role-by-role interview with the CV owner.
 - **Validation**: source review, guardrail search for invented metric-style claims, `yarn lint`.
 - **Runtime note**: use the available Node `v22.18.0` runtime for validation.
 
@@ -34,7 +34,7 @@ See [research.md](./research.md).
 
 1. Rewrite experience highlights in `src/features/cv/cv.data.ts` from task phrasing to achievement/value phrasing.
 2. Preserve employers, roles, periods, URLs, technology stacks, projects, and education facts.
-3. Keep statements qualitative unless the existing content already contains a verified metric.
+3. Use metrics and awards only when verified by the owner; otherwise keep statements qualitative.
 4. Run guardrail searches and lint before handoff.
 
 ## Post-Design Constitution Check
