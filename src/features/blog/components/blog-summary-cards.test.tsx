@@ -23,6 +23,12 @@ const summary: BlogPostSummary = {
   slug: '42',
 }
 
+const relatedSummaries = [
+  summary,
+  { ...summary, id: '43', title: 'Second related card' },
+  { ...summary, id: '44', title: 'Third related card' },
+]
+
 describe('blog summary cards', () => {
   it('render backend summary fields without full article content', () => {
     const markup = renderToStaticMarkup(
@@ -62,13 +68,15 @@ describe('blog summary cards', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
-          <RelatedPosts posts={[summary]} />
+          <RelatedPosts posts={relatedSummaries} />
         </ChakraProvider>
       </MemoryRouter>,
     )
 
     expect(markup).toContain('More like this')
     expect(markup).toContain('Summary-only card')
+    expect(markup).toContain('Second related card')
+    expect(markup).toContain('Third related card')
     expect(markup).toContain('This card renders without downloading markdown.')
     expect(markup).not.toContain('score')
     expect(markup).not.toContain('Related because')

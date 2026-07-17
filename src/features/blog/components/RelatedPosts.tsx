@@ -39,6 +39,9 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
 
   return (
     <LinkBox
+      display={{ base: 'grid', xl: 'block' }}
+      gridTemplateColumns={{ base: 'minmax(0, 10rem) minmax(0, 1fr)' }}
+      alignItems="stretch"
       border="1px solid"
       borderColor="border.subtle"
       borderRadius="md"
@@ -47,7 +50,13 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
       transition="border-color 0.2s ease, transform 0.2s ease"
       _hover={{ borderColor: 'action.primary', transform: 'translateY(-1px)' }}
     >
-      <Box aspectRatio="16 / 9" overflow="hidden" bg="bg.tertiary">
+      <Box
+        aspectRatio={{ base: 'auto', xl: '16 / 9' }}
+        h={{ base: 'full', xl: 'auto' }}
+        minH={{ base: '7rem', md: '8rem' }}
+        overflow="hidden"
+        bg="bg.tertiary"
+      >
         {coverImage ? (
           <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
         ) : (
@@ -55,7 +64,7 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
         )}
       </Box>
 
-      <VStack align="stretch" spacing={{ base: 3, xl: 2 }} p={{ base: 4, xl: 3 }}>
+      <VStack align="stretch" spacing={{ base: 2, md: 3, xl: 2 }} p={{ base: 3, md: 4, xl: 3 }}>
         <LinkOverlay as={RouterLink} to={`/blog/${post.id}`}>
           <Heading size="sm" color="text.primary" lineHeight="1.25" noOfLines={2}>
             {post.title}
