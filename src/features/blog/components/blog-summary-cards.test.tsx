@@ -64,6 +64,24 @@ describe('blog summary cards', () => {
     expect(markup).not.toContain('src="media://40"')
   })
 
+  it('rounds the standard blog card cover frame', () => {
+    const postWithCover = {
+      ...summary,
+      featuredImage: 'https://cdn.example.com/rounded-cover.png',
+    }
+
+    const markup = renderToStaticMarkup(
+      <MemoryRouter>
+        <ChakraProvider theme={theme}>
+          <EditorialCard post={postWithCover} index={1} />
+        </ChakraProvider>
+      </MemoryRouter>,
+    )
+
+    expect(markup).toContain('src="https://cdn.example.com/rounded-cover.png"')
+    expect(markup).toContain('height:240px;overflow:hidden;border-radius:var(--chakra-radii-xl)')
+  })
+
   it('renders related posts without score or reason labels', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>

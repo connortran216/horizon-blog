@@ -27,7 +27,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
         index={index}
         animation="fadeInUp"
       >
-        <Box position="relative" h="240px" overflow="hidden">
+        <Box position="relative" h="240px" overflow="hidden" borderRadius="xl">
           {coverImage ? (
             <>
               <Image

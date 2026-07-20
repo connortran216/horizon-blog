@@ -32,7 +32,17 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
     extractPreviewText(post.excerpt || post.subtitle || '') || 'A new blog from the site.'
 
   return (
-    <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
+    <Box
+      as={RouterLink}
+      to={`/blog/${post.id}`}
+      display="block"
+      _focusVisible={{
+        outline: '2px solid',
+        outlineColor: 'action.primary',
+        outlineOffset: '2px',
+        borderRadius: 'xl',
+      }}
+    >
       <AnimatedCard
         maxW="100%"
         overflow="hidden"
@@ -107,11 +117,25 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
 
           {coverImage ? (
             <Box
-              minH="260px"
+              minH={{ base: 'auto', md: '260px' }}
+              p={{ base: 4, lg: 6 }}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              bg="bg.page"
+              borderTop={{ base: '1px solid', md: 'none' }}
               borderLeft={{ base: 'none', md: '1px solid' }}
               borderColor="border.subtle"
             >
-              <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
+              <Image
+                src={coverImage}
+                alt={post.title}
+                w="full"
+                h="auto"
+                maxH="full"
+                objectFit="contain"
+                borderRadius="lg"
+              />
             </Box>
           ) : (
             <DefaultPostCover
