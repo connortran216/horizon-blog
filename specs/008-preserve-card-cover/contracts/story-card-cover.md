@@ -17,6 +17,9 @@
 - Narrow screens: content and media stack vertically.
 - Medium screens and above: content and media use the existing two-column layout.
 - Neither layout may crop the resolved cover.
+- The media frame keeps a compact wide-cover aspect ratio and does not inherit extra height from the preview content.
+- Author, reading time, and action metadata render in a full-width footer after the content-and-media row.
+- A desktop divider may separate the preview and media only across the compact row; it must not extend through an empty panel.
 
 ## Standard blog-card frame
 

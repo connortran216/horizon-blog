@@ -35,6 +35,20 @@
 - [x] T013 Run `rtk yarn lint`
 - [x] T014 Check formatting and the scoped diff for `src/features/blog/components/EditorialCard.tsx` and `src/features/blog/components/blog-summary-cards.test.tsx`
 
+## Phase 6: User Story 3 - See a balanced landing card
+
+**Independent Test**: A recent-blog card renders a contained cover before a full-width semantic footer, without a stretched minimum-height media panel.
+
+- [x] T015 [US3] Add balanced-layout regression assertions in `src/features/home/components/StoryCard.test.tsx`
+- [x] T016 [US3] Run the focused test and capture the expected failure for `src/features/home/components/StoryCard.test.tsx`
+- [x] T017 [US3] Implement the compact media frame and full-width footer in `src/features/home/components/StoryCard.tsx`
+- [x] T018 [US3] Run the focused test for `src/features/home/components/StoryCard.test.tsx`
+
+## Phase 7: Correction Validation
+
+- [x] T019 Run `rtk yarn tsc --noEmit` and `rtk yarn lint`
+- [x] T020 Check formatting and the scoped diff for the User Story 3 files
+
 ## Validation Results
 
 - `rtk yarn test src/features/home/components/StoryCard.test.tsx`: passed (1 test).
@@ -44,6 +58,11 @@
 - `git diff --check`: passed.
 - `rtk yarn test src/features/blog/components/blog-summary-cards.test.tsx`: passed (4 tests).
 - `rtk yarn prettier --check src/features/blog/components/EditorialCard.tsx src/features/blog/components/blog-summary-cards.test.tsx`: passed.
+- User Story 3 regression: failed before implementation on the stretched `min-height: 260px` media cell, as expected.
+- `rtk yarn test src/features/home/components/StoryCard.test.tsx src/features/blog/components/blog-summary-cards.test.tsx`: passed (5 tests).
+- User Story 3 `rtk yarn tsc --noEmit`: passed.
+- User Story 3 `rtk yarn lint`: passed.
+- User Story 3 formatting and `git diff --check`: passed.
 
 ## Dependencies
 
@@ -51,6 +70,8 @@
 - T004 blocks T005 through T008.
 - T009 precedes T010 to capture the sharp-corner regression.
 - T010 blocks T011 through T014.
+- T015 precedes T016 to demonstrate the stretched-layout regression.
+- T016 precedes T017, and T017 blocks T018 through T020.
 
 ## MVP Scope
 

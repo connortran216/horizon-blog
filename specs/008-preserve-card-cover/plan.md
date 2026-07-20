@@ -37,10 +37,11 @@ See [research.md](./research.md).
 2. Replace the fill-and-crop cover treatment with a centered, padded media well and contained image.
 3. Preserve the existing fallback-cover branch and responsive stacking.
 4. Round the standard blog-card cover frame so the image, overlay, and fallback share one clipped shape.
-5. Run the focused tests, TypeScript, lint, and diff checks.
+5. Constrain the landing cover to a compact 16:9 frame and move author/read metadata into a full-width footer so preview text cannot stretch the media treatment.
+6. Run the focused tests, TypeScript, lint, and diff checks.
 
 ## Post-Design Constitution Check
 
 - No principle violations remain.
 - No new component, token, dependency, or backend behavior is introduced.
-- The change stays inside the feature-owned home card.
+- The correction stays inside the feature-owned home card and its focused test.

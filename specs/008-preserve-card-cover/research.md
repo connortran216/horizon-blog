@@ -22,3 +22,13 @@
 
 - Round only the image element: rejected because the absolute overlay could retain sharp corners.
 - Match the outer card's largest radius: rejected because the inset image should use the quieter standard-card radius defined by the design system.
+
+## Decision: Use a compact media row with a shared footer
+
+**Rationale**: A contained wide image inside an equal-height grid cell inherits the taller preview column's height, creating a large empty slab and an overlong divider. Keeping the media in a dedicated 16:9 frame preserves every edge at a useful size. Moving metadata below both columns shortens the preview row and gives the card one coherent visual base.
+
+**Alternatives considered**:
+
+- Keep the stretched media cell and enlarge the image: rejected because a wide image still cannot fill a tall cell without cropping.
+- Crop the cover to fill the available height: rejected because it restores the original defect.
+- Remove the cover padding entirely: rejected because the quiet inset treatment is still useful when the cover ratio varies slightly.

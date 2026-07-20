@@ -34,6 +34,11 @@ describe('StoryCard', () => {
     expect(markup).toContain('src="https://cdn.example.com/complete-cover.png"')
     expect(markup).toContain('object-fit:contain')
     expect(markup).not.toContain('object-fit:cover')
+    expect(markup).not.toContain('min-height:260px')
+    expect(markup).toContain('<footer')
+    expect(markup.indexOf('<footer')).toBeGreaterThan(
+      markup.indexOf('src="https://cdn.example.com/complete-cover.png"'),
+    )
     expect(markup).toContain('Keep the complete cover visible')
     expect(markup).toContain('Connor Tran')
     expect(markup).toContain('10 min read')

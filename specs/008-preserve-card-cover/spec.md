@@ -36,6 +36,20 @@ As a reader browsing the blog page, I want the inset cover image to follow the c
 2. **Given** the card applies an image overlay, **When** the image frame is rounded, **Then** the overlay is clipped to the same corners.
 3. **Given** a card uses the generated fallback cover, **When** it renders, **Then** the same rounded frame contains the fallback.
 
+### User Story 3 - See a balanced landing card (Priority: P1)
+
+As a reader scanning the landing page, I want the complete cover to remain large and balanced with the preview text so that the card does not look like a tiny image floating inside an empty panel.
+
+**Why this priority**: Preserving every image edge is not enough if the surrounding layout introduces a large empty slab that makes the cover feel disconnected from the story.
+
+**Independent Test**: Given a wide cover image at desktop width, the preview content and cover form one compact row, while the author and reading action sit in a full-width footer below them.
+
+**Acceptance Scenarios**:
+
+1. **Given** a recent blog has a wide cover, **When** the landing card renders on desktop, **Then** the cover fills a compact natural-aspect frame without a tall empty media panel.
+2. **Given** the preview text is taller than the cover, **When** the card renders, **Then** that text does not stretch the cover frame or create a full-height divider beside empty space.
+3. **Given** the card includes author and reading metadata, **When** it renders, **Then** that metadata appears in a full-width footer after both the preview and cover.
+
 ## Requirements
 
 ### Functional Requirements
@@ -48,6 +62,9 @@ As a reader browsing the blog page, I want the inset cover image to follow the c
 - **FR-006**: The change MUST use the existing visual language and semantic color roles.
 - **FR-007**: Standard blog-card cover frames MUST use the existing standard-card corner radius.
 - **FR-008**: Image overlays and fallback covers MUST remain clipped inside the rounded cover frame.
+- **FR-009**: The landing-card media frame MUST retain a compact wide-cover aspect ratio instead of stretching to the preview text height.
+- **FR-010**: Landing-card author, reading time, and action metadata MUST appear in a full-width footer below the preview-and-cover row.
+- **FR-011**: The desktop media treatment MUST NOT create an oversized empty panel or divider extending substantially beyond the cover.
 
 ## Success Criteria
 
@@ -56,10 +73,12 @@ As a reader browsing the blog page, I want the inset cover image to follow the c
 - **SC-003**: Existing card content and navigation remain present after the redesign.
 - **SC-004**: The focused regression test, type check, and lint validation pass.
 - **SC-005**: 100% of standard blog cards show their cover inside a consistently rounded frame.
+- **SC-006**: At desktop widths, the visible media area stays aligned to the cover's wide aspect ratio and does not inherit the text column's height.
+- **SC-007**: The author, reading time, and action remain present in a semantic footer after the cover.
 
 ## Assumptions
 
-- Option D refers to the approved horizontal card with a padded, contained media well.
+- Option D refers to a compact horizontal preview-and-cover row with a shared metadata footer, not a full-height letterboxed media column.
 - Existing cover assets may include important text near their edges and therefore cannot safely use a fill-and-crop treatment.
 - This is a frontend presentation change with no backend, API, or stored-content changes.
 - The existing standard-card radius is the intended rounding level for blog-page cover frames.
