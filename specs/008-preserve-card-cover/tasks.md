@@ -49,6 +49,20 @@
 - [x] T019 Run `rtk yarn tsc --noEmit` and `rtk yarn lint`
 - [x] T020 Check formatting and the scoped diff for the User Story 3 files
 
+## Phase 8: User Story 4 - Read from an inset information panel
+
+**Independent Test**: A recent-blog card renders the complete cover before one Option C information panel containing all story content and metadata.
+
+- [x] T021 [US4] Add Option C structure assertions in `src/features/home/components/StoryCard.test.tsx`
+- [x] T022 [US4] Run the focused test and capture the expected failure for `src/features/home/components/StoryCard.test.tsx`
+- [x] T023 [US4] Implement the cover-first inset information panel in `src/features/home/components/StoryCard.tsx`
+- [x] T024 [US4] Run the focused test for `src/features/home/components/StoryCard.test.tsx`
+
+## Phase 9: Option C Validation
+
+- [x] T025 Run `rtk yarn tsc --noEmit` and `rtk yarn lint`
+- [x] T026 Check formatting and the scoped diff for the User Story 4 files
+
 ## Validation Results
 
 - `rtk yarn test src/features/home/components/StoryCard.test.tsx`: passed (1 test).
@@ -63,6 +77,10 @@
 - User Story 3 `rtk yarn tsc --noEmit`: passed.
 - User Story 3 `rtk yarn lint`: passed.
 - User Story 3 formatting and `git diff --check`: passed.
+- User Story 4 regression: failed before implementation because the Option C information panel was absent, as expected.
+- `rtk yarn test src/features/home/components/StoryCard.test.tsx src/features/blog/components/blog-summary-cards.test.tsx`: passed (5 tests) for Option C.
+- Option C `rtk yarn tsc --noEmit`: passed.
+- Option C `rtk yarn lint`: passed.
 
 ## Dependencies
 
@@ -72,6 +90,8 @@
 - T010 blocks T011 through T014.
 - T015 precedes T016 to demonstrate the stretched-layout regression.
 - T016 precedes T017, and T017 blocks T018 through T020.
+- T021 precedes T022 to demonstrate the missing Option C structure.
+- T022 precedes T023, and T023 blocks T024 through T026.
 
 ## MVP Scope
 

@@ -32,3 +32,13 @@
 - Keep the stretched media cell and enlarge the image: rejected because a wide image still cannot fill a tall cell without cropping.
 - Crop the cover to fill the available height: rejected because it restores the original defect.
 - Remove the cover padding entirely: rejected because the quiet inset treatment is still useful when the cover ratio varies slightly.
+
+## Decision: Supersede the split row with Option C
+
+**Rationale**: A cover-first composition gives the artwork one uninterrupted 16:9 area. Placing the story content inside a single inset panel beneath it creates a clear scan path, avoids equal-height column behavior, and keeps the panel from hiding meaningful cover details.
+
+**Alternatives considered**:
+
+- Keep the corrected Option D split row: rejected because the owner selected Option C.
+- Float the information panel over the cover: rejected because it could obscure titles, avatars, or artwork near the cover edges.
+- Return to a full-width unframed text section: rejected because it would lose the defining inset-panel treatment.

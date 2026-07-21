@@ -21,6 +21,14 @@
 - Author, reading time, and action metadata render in a full-width footer after the content-and-media row.
 - A desktop divider may separate the preview and media only across the compact row; it must not extend through an empty panel.
 
+## Option C information panel
+
+- The cover is the first visible card element and retains its complete 16:9 frame.
+- One information panel follows the cover and is inset from the outer card edges.
+- The panel contains the badge, date, title, excerpt, author, reading time, and read action.
+- The panel does not overlap or obscure the cover.
+- Mobile and desktop preserve the same cover-first reading order.
+
 ## Standard blog-card frame
 
 - The cover, overlay, and fallback share one overflow-clipped frame.

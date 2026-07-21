@@ -3,7 +3,7 @@
 **Feature Branch**: `main`
 **Created**: 2026-07-20
 **Status**: Ready for planning
-**Input**: Use approved prototype Option D for landing-page recent-blog cards so the complete cover artwork remains visible.
+**Input**: Refactor the landing-page recent-blog card to approved prototype Option C, using an inset information panel while keeping the complete cover artwork visible.
 
 ## User Scenarios & Testing
 
@@ -50,6 +50,20 @@ As a reader scanning the landing page, I want the complete cover to remain large
 2. **Given** the preview text is taller than the cover, **When** the card renders, **Then** that text does not stretch the cover frame or create a full-height divider beside empty space.
 3. **Given** the card includes author and reading metadata, **When** it renders, **Then** that metadata appears in a full-width footer after both the preview and cover.
 
+### User Story 4 - Read from an inset information panel (Priority: P1)
+
+As a reader scanning the landing page, I want the story details grouped inside a clear inset panel beneath the cover so that the artwork leads the card and the information remains easy to scan.
+
+**Why this priority**: Option C gives the cover one uninterrupted visual area and keeps all supporting content together without returning to a split layout.
+
+**Independent Test**: Given a recent blog with a cover, the card renders the complete cover first and then a distinct inset information panel containing the badge, date, title, excerpt, author, reading time, and action.
+
+**Acceptance Scenarios**:
+
+1. **Given** a cover is available, **When** the card renders, **Then** the complete cover appears before the information panel and is not covered by it.
+2. **Given** the card is viewed at desktop or mobile width, **When** the layout adapts, **Then** the cover and information panel retain the same clear reading order.
+3. **Given** the card information is displayed, **When** a reader scans it, **Then** the badge, date, title, excerpt, author, reading time, and read action are grouped within the inset panel.
+
 ## Requirements
 
 ### Functional Requirements
@@ -63,8 +77,10 @@ As a reader scanning the landing page, I want the complete cover to remain large
 - **FR-007**: Standard blog-card cover frames MUST use the existing standard-card corner radius.
 - **FR-008**: Image overlays and fallback covers MUST remain clipped inside the rounded cover frame.
 - **FR-009**: The landing-card media frame MUST retain a compact wide-cover aspect ratio instead of stretching to the preview text height.
-- **FR-010**: Landing-card author, reading time, and action metadata MUST appear in a full-width footer below the preview-and-cover row.
+- **FR-010**: Landing-card author, reading time, and action metadata MUST appear inside the inset information panel after the preview content.
 - **FR-011**: The desktop media treatment MUST NOT create an oversized empty panel or divider extending substantially beyond the cover.
+- **FR-012**: The landing card MUST use the approved Option C cover-first composition with a visually distinct information panel inset from the card edges.
+- **FR-013**: The information panel MUST follow the cover in document order and MUST NOT obscure the cover artwork.
 
 ## Success Criteria
 
@@ -74,11 +90,12 @@ As a reader scanning the landing page, I want the complete cover to remain large
 - **SC-004**: The focused regression test, type check, and lint validation pass.
 - **SC-005**: 100% of standard blog cards show their cover inside a consistently rounded frame.
 - **SC-006**: At desktop widths, the visible media area stays aligned to the cover's wide aspect ratio and does not inherit the text column's height.
-- **SC-007**: The author, reading time, and action remain present in a semantic footer after the cover.
+- **SC-007**: The author, reading time, and action remain present in a semantic footer inside the inset information panel.
+- **SC-008**: At every representative viewport, the cover precedes one inset information panel containing 100% of the existing story information.
 
 ## Assumptions
 
-- Option D refers to a compact horizontal preview-and-cover row with a shared metadata footer, not a full-height letterboxed media column.
+- Option C supersedes Option D for the landing card and refers to a cover-first card with a separate information panel inset beneath it.
 - Existing cover assets may include important text near their edges and therefore cannot safely use a fill-and-crop treatment.
 - This is a frontend presentation change with no backend, API, or stored-content changes.
 - The existing standard-card radius is the intended rounding level for blog-page cover frames.

@@ -2,7 +2,7 @@
 
 **Branch**: `main`
 **Spec**: [spec.md](./spec.md)
-**Approved Design**: Option D from the 2026-07-20 prototype review
+**Approved Design**: Option C, inset information panel, selected on 2026-07-21
 **Constitution**: [.specify/memory/constitution.md](../../.specify/memory/constitution.md)
 
 ## Technical Context
@@ -37,11 +37,12 @@ See [research.md](./research.md).
 2. Replace the fill-and-crop cover treatment with a centered, padded media well and contained image.
 3. Preserve the existing fallback-cover branch and responsive stacking.
 4. Round the standard blog-card cover frame so the image, overlay, and fallback share one clipped shape.
-5. Constrain the landing cover to a compact 16:9 frame and move author/read metadata into a full-width footer so preview text cannot stretch the media treatment.
-6. Run the focused tests, TypeScript, lint, and diff checks.
+5. Replace the split composition with a cover-first 16:9 media frame followed by an inset information panel.
+6. Keep the badge, date, title, excerpt, author, reading time, and action together inside the panel without overlapping the artwork.
+7. Run the focused tests, TypeScript, lint, and diff checks.
 
 ## Post-Design Constitution Check
 
 - No principle violations remain.
 - No new component, token, dependency, or backend behavior is introduced.
-- The correction stays inside the feature-owned home card and its focused test.
+- The Option C refactor stays inside the feature-owned home card and its focused test.

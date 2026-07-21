@@ -7,7 +7,6 @@ import {
   HStack,
   Icon,
   Image,
-  SimpleGrid,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -46,14 +45,39 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
       <AnimatedCard
         maxW="100%"
         overflow="hidden"
+        p={0}
         intensity="light"
         staggerDelay={0.08}
         index={index}
         animation="fadeInUp"
       >
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={0} alignItems="center">
-          <VStack align="stretch" spacing={4} p={6}>
-            <HStack spacing={3} flexWrap="wrap">
+        <Box p={{ base: 3, md: 4 }}>
+          <Box aspectRatio={16 / 9} w="full" overflow="hidden" borderRadius="lg" bg="bg.page">
+            {coverImage ? (
+              <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
+            ) : (
+              <DefaultPostCover
+                title={post.title}
+                eyebrow={index === 0 ? 'Lead blog' : 'Recent blog'}
+                w="full"
+                h="full"
+              />
+            )}
+          </Box>
+
+          <VStack
+            data-layout="inset-information-panel"
+            align="stretch"
+            spacing={4}
+            mt={{ base: 3, md: 4 }}
+            p={{ base: 5, md: 6 }}
+            border="1px solid"
+            borderColor="border.subtle"
+            borderRadius="lg"
+            bg="bg.elevated"
+            boxShadow="md"
+          >
+            <HStack spacing={3}>
               <Badge
                 px={3}
                 py={1}
@@ -66,9 +90,6 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
               >
                 {index === 0 ? 'Lead blog' : 'Recent blog'}
               </Badge>
-              <Text fontSize="sm" color="text.tertiary">
-                {formatDate(post.createdAt)}
-              </Text>
             </HStack>
 
             <Heading
@@ -84,52 +105,39 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
             <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
               {previewText}
             </Text>
+
+            <Flex
+              as="footer"
+              pt={4}
+              borderTop="1px solid"
+              borderColor="border.subtle"
+              align="center"
+              justify="space-between"
+              gap={4}
+              wrap="wrap"
+            >
+              <HStack spacing={3} flexWrap="wrap">
+                <Avatar size="2xs" src={post.author.avatar || DEFAULT_AVATAR} />
+                <Text fontSize="sm" color="text.secondary">
+                  {post.author.username}
+                </Text>
+                <Text fontSize="sm" color="text.tertiary">
+                  {formatDate(post.createdAt)}
+                </Text>
+                <HStack spacing={1.5}>
+                  <Icon as={FiClock} />
+                  <Text fontSize="sm" color="text.tertiary">
+                    {post.readingTime || 1} min read
+                  </Text>
+                </HStack>
+              </HStack>
+              <HStack spacing={1.5} color="action.primary" fontWeight="semibold">
+                <Text>Read</Text>
+                <Icon as={FiArrowRight} />
+              </HStack>
+            </Flex>
           </VStack>
-
-          <Box p={{ base: 4, md: 5, lg: 6 }} w="full">
-            <Box aspectRatio={16 / 9} w="full" overflow="hidden" borderRadius="lg" bg="bg.page">
-              {coverImage ? (
-                <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
-              ) : (
-                <DefaultPostCover
-                  title={post.title}
-                  eyebrow={index === 0 ? 'Lead blog' : 'Recent blog'}
-                  w="full"
-                  h="full"
-                />
-              )}
-            </Box>
-          </Box>
-        </SimpleGrid>
-
-        <Flex
-          as="footer"
-          px={6}
-          py={4}
-          borderTop="1px solid"
-          borderColor="border.subtle"
-          align="center"
-          justify="space-between"
-          gap={4}
-          wrap="wrap"
-        >
-          <HStack spacing={3}>
-            <Avatar size="2xs" src={post.author.avatar || DEFAULT_AVATAR} />
-            <Text fontSize="sm" color="text.secondary">
-              {post.author.username}
-            </Text>
-          </HStack>
-          <HStack spacing={3} color="text.tertiary" fontSize="sm">
-            <HStack spacing={1.5}>
-              <Icon as={FiClock} />
-              <Text>{post.readingTime || 1} min read</Text>
-            </HStack>
-            <HStack spacing={1.5} color="action.primary" fontWeight="semibold">
-              <Text>Read</Text>
-              <Icon as={FiArrowRight} />
-            </HStack>
-          </HStack>
-        </Flex>
+        </Box>
       </AnimatedCard>
     </Box>
   )

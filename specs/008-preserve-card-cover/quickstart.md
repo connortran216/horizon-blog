@@ -9,3 +9,5 @@
 7. Render `EditorialCard` with a normal HTTPS cover URL and confirm all four cover corners, including the overlay, use the standard rounded frame.
 8. Confirm the landing cover occupies a compact 16:9 frame rather than a tall grid cell, with no large empty media slab.
 9. Confirm the author, reading time, and action render in one full-width footer below the preview-and-cover row.
+10. Confirm Option C renders the complete cover before one inset information panel at mobile and desktop widths.
+11. Confirm the information panel contains all existing story content and does not overlap the cover.
