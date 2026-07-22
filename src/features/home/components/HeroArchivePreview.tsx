@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowUpRight, FiClock } from 'react-icons/fi'
-import { BlogPostSummary, extractPreviewText } from '../../../core'
+import { BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
@@ -139,7 +139,7 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
       {post ? (
         <Box
           as={RouterLink}
-          to={`/blog/${post.id}`}
+          to={toPublicPostPath(post.id)}
           position="relative"
           display="block"
           border="1px solid"

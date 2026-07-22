@@ -1,7 +1,7 @@
 import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { AnimatedCard } from '../../../core'
+import { AnimatedCard, toPublicPostPath } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
@@ -18,7 +18,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
   const authorAvatar = post.author.avatar
 
   return (
-    <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
+    <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
       <AnimatedCard
         maxW="100%"
         overflow="hidden"

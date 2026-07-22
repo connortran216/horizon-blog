@@ -1,4 +1,4 @@
-import { toCanonicalUrl } from './urls.mjs';
+import { toCanonicalUrl, toPublicPostPath } from './urls.mjs';
 
 export const escapeHtml = (value) =>
   String(value ?? '')
@@ -116,13 +116,13 @@ export const createBlogSchemas = ({ config, origin, posts = [] }) => [
     blogPost: posts.map((post) => ({
       '@type': 'BlogPosting',
       headline: post.title,
-      url: toCanonicalUrl(origin, `/blog/${post.id}`),
+      url: toCanonicalUrl(origin, toPublicPostPath(post.id)),
     })),
   },
 ];
 
 export const createArticleSchemas = ({ config, origin, post }) => {
-  const articleUrl = toCanonicalUrl(origin, `/blog/${post.id}`);
+  const articleUrl = toCanonicalUrl(origin, toPublicPostPath(post.id));
   const authorUrl = toCanonicalUrl(origin, `/authors/${post.author.slug}`);
 
   return [
@@ -215,7 +215,7 @@ export const createAuthorSchemas = ({ config, origin, author }) => {
       hasPart: (author.posts || []).map((post) => ({
         '@type': 'Article',
         headline: post.title,
-        url: toCanonicalUrl(origin, `/blog/${post.id}`),
+        url: toCanonicalUrl(origin, toPublicPostPath(post.id)),
         datePublished: post.createdAt,
         author: { '@id': `${authorUrl}#person` },
       })),

@@ -1,23 +1,34 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { ApiError, getBlogService } from '../../core'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ApiError, getBlogService, resolvePublicPostRouteSegment } from '../../core'
 import { BlogArchivePost } from './blog.types'
 
 const PUBLIC_NOT_FOUND_MESSAGE = 'This post is not published or is no longer available.'
 
 export const useBlogPostDetail = () => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [post, setPost] = useState<BlogArchivePost | null>(null)
   const [loading, setLoading] = useState(true)
   const [emptyStateMessage, setEmptyStateMessage] = useState(PUBLIC_NOT_FOUND_MESSAGE)
   const [statusCode, setStatusCode] = useState<number | undefined>()
 
   useEffect(() => {
-    if (!id) {
+    const route = resolvePublicPostRouteSegment(id)
+    if (!route) {
       setPost(null)
       setLoading(false)
       setStatusCode(404)
       setEmptyStateMessage(PUBLIC_NOT_FOUND_MESSAGE)
+      return
+    }
+
+    if (route.legacy) {
+      setPost(null)
+      setLoading(true)
+      setStatusCode(undefined)
+      setEmptyStateMessage(PUBLIC_NOT_FOUND_MESSAGE)
+      navigate(route.canonicalPath, { replace: true })
       return
     }
 
@@ -29,7 +40,7 @@ export const useBlogPostDetail = () => {
 
     const fetchPost = async () => {
       try {
-        const foundPost = await getBlogService().getPublicPostDetail(id)
+        const foundPost = await getBlogService().getPublicPostDetail(route.id)
 
         if (isCancelled) {
           return
@@ -69,7 +80,7 @@ export const useBlogPostDetail = () => {
     return () => {
       isCancelled = true
     }
-  }, [id])
+  }, [id, navigate])
 
   return {
     post,

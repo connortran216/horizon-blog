@@ -105,5 +105,5 @@ Routing matrix:
 - RTK global guide: `/Users/trantuancanh/.codex/RTK.md`
 
 <!-- SPECKIT START -->
-Current plan: `specs/007-seo-rendering-gateway/plan.md`
+Current plan: `specs/009-public-post-codes/plan.md`
 <!-- SPECKIT END -->

@@ -2,6 +2,7 @@ import { Box, Heading, HStack, Image, LinkBox, LinkOverlay, Text, VStack } from 
 import { Link as RouterLink } from 'react-router-dom'
 import { FiClock } from 'react-icons/fi'
 import { Icon } from '@chakra-ui/react'
+import { toPublicPostPath } from '../../../core'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import { BlogArchiveSummary } from '../blog.types'
@@ -65,7 +66,7 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
       </Box>
 
       <VStack align="stretch" spacing={{ base: 2, md: 3, xl: 2 }} p={{ base: 3, md: 4, xl: 3 }}>
-        <LinkOverlay as={RouterLink} to={`/blog/${post.id}`}>
+        <LinkOverlay as={RouterLink} to={toPublicPostPath(post.id)}>
           <Heading size="sm" color="text.primary" lineHeight="1.25" noOfLines={2}>
             {post.title}
           </Heading>

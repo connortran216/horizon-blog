@@ -1,5 +1,6 @@
 import { Box, Stack, Text } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
+import { toPublicPostPath } from '../../../core'
 import { BlogArchivePost } from '../../blog/blog.types'
 import { formatArchiveDate, getExcerpt } from '../../blog/blog.utils'
 
@@ -11,7 +12,7 @@ const AuthorArchiveStoryListItem = ({ post }: AuthorArchiveStoryListItemProps) =
   return (
     <Box
       as={RouterLink}
-      to={`/blog/${post.id}`}
+      to={toPublicPostPath(post.id)}
       display="block"
       border="1px solid"
       borderColor="transparent"

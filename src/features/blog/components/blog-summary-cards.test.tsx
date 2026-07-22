@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
-import { BlogPostSummary } from '../../../core'
+import { BlogPostSummary, toPublicPostPath } from '../../../core'
 import theme from '../../../theme'
 import EditorialCard from './EditorialCard'
 import FeaturedStory from './FeaturedStory'
@@ -44,6 +44,8 @@ describe('blog summary cards', () => {
     expect(markup).toContain('This card renders without downloading markdown.')
     expect(markup).toContain('Summary Author')
     expect(markup).toContain('6 min')
+    expect(markup).toContain(`href="${toPublicPostPath(42)}"`)
+    expect(markup).not.toContain('href="/blog/42"')
   })
 
   it('does not emit unresolved media tokens as image sources on initial render', () => {
@@ -96,6 +98,9 @@ describe('blog summary cards', () => {
     expect(markup).toContain('Second related card')
     expect(markup).toContain('Third related card')
     expect(markup).toContain('This card renders without downloading markdown.')
+    expect(markup).toContain(`href="${toPublicPostPath(42)}"`)
+    expect(markup).toContain(`href="${toPublicPostPath(43)}"`)
+    expect(markup).toContain(`href="${toPublicPostPath(44)}"`)
     expect(markup).not.toContain('score')
     expect(markup).not.toContain('Related because')
   })

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
-import { BlogPostSummary } from '../../../core'
+import { BlogPostSummary, toPublicPostPath } from '../../../core'
 import theme from '../../../theme'
 import StoryCard from './StoryCard'
 
@@ -46,6 +46,6 @@ describe('StoryCard', () => {
     expect(markup).toContain('Keep the complete cover visible')
     expect(markup).toContain('Connor Tran')
     expect(markup).toContain('10 min read')
-    expect(markup).toContain('href="/blog/87"')
+    expect(markup).toContain(`href="${toPublicPostPath(87)}"`)
   })
 })

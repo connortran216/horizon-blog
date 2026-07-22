@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { AnimatedCard, BlogPostSummary, extractPreviewText } from '../../../core'
+import { AnimatedCard, BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
@@ -33,7 +33,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
   return (
     <Box
       as={RouterLink}
-      to={`/blog/${post.id}`}
+      to={toPublicPostPath(post.id)}
       display="block"
       _focusVisible={{
         outline: '2px solid',

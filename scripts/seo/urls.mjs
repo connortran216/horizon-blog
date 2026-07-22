@@ -1,4 +1,17 @@
 import { resolve, sep } from 'node:path';
+import {
+  decodePublicPostCode,
+  encodePublicPostId,
+  resolvePublicPostRouteSegment,
+  toPublicPostPath,
+} from '../../src/core/utils/public-post-code.mjs';
+
+export {
+  decodePublicPostCode,
+  encodePublicPostId,
+  resolvePublicPostRouteSegment,
+  toPublicPostPath,
+};
 
 const PRIVATE_PATHS = new Set([
   '/login',
@@ -122,13 +135,20 @@ export const classifyRoute = (url) => {
     };
   }
 
-  const articleMatch = pathname.match(/^\/blog\/(\d+)\/?$/);
-  if (articleMatch && Number(articleMatch[1]) > 0) {
+  const articleMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
+  const articleRoute = articleMatch
+    ? resolvePublicPostRouteSegment(articleMatch[1])
+    : undefined;
+  if (articleRoute) {
     return {
-      kind: 'article',
-      id: articleMatch[1],
-      indexing: url.search ? 'noindex-follow' : 'index-follow',
-      canonicalPath: `/blog/${articleMatch[1]}`,
+      kind: articleRoute.legacy ? 'legacy-article' : 'article',
+      id: articleRoute.id,
+      indexing: articleRoute.legacy
+        ? 'noindex-nofollow'
+        : url.search
+          ? 'noindex-follow'
+          : 'index-follow',
+      canonicalPath: articleRoute.canonicalPath,
     };
   }
 

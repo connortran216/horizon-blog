@@ -502,6 +502,11 @@ export const createSeoServer = ({
       }
 
       const policy = classifyRoute(url);
+      if (policy.kind === 'legacy-article') {
+        redirectResponse(request, response, policy.canonicalPath, config, 301);
+        return;
+      }
+
       if (policy.kind === 'robots') {
         writeResponse(
           request,

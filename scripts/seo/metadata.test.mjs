@@ -8,16 +8,18 @@ import {
   renderHead,
   serializeJsonLd,
 } from './metadata.mjs';
+import { toPublicPostPath } from './urls.mjs';
 
 const config = createSeoConfig({});
 const origin = config.siteUrl;
+const articlePath = toPublicPostPath(76);
 
 describe('SEO metadata', () => {
   it('renders one escaped canonical and complete social metadata', () => {
     const metadata = createPageMetadata({
       config,
       origin,
-      canonicalPath: '/blog/76',
+      canonicalPath: articlePath,
       indexing: 'index-follow',
       title: 'API <Performance> & "Safety"',
       description: 'Measure <first> & optimize "second".',
@@ -35,7 +37,7 @@ describe('SEO metadata', () => {
     expect(head.match(/data-horizon-seo="true"/g)?.length).toBeGreaterThan(10);
     expect(head.match(/rel="canonical"/g)).toHaveLength(1);
     expect(head).toContain(
-      'rel="canonical" href="https://blog.connortran.io.vn/blog/76"',
+      `rel="canonical" href="https://blog.connortran.io.vn${articlePath}"`,
     );
     expect(head).toContain('API &lt;Performance&gt; &amp; &quot;Safety&quot; | Horizon');
     expect(head).toContain('content="index,follow,max-image-preview:large"');
@@ -121,7 +123,7 @@ describe('SEO metadata', () => {
     ]);
     expect(articleSchemas[0]).toMatchObject({
       headline: 'Measure APIs',
-      url: 'https://blog.connortran.io.vn/blog/76',
+      url: `https://blog.connortran.io.vn${articlePath}`,
       image: 'https://blog.connortran.io.vn/seo/post-image/76',
       author: {
         '@type': 'Person',
@@ -156,7 +158,7 @@ describe('SEO metadata', () => {
         {
           '@type': 'Article',
           headline: 'Measure APIs',
-          url: 'https://blog.connortran.io.vn/blog/76',
+          url: `https://blog.connortran.io.vn${articlePath}`,
           datePublished: '2026-05-31T15:35:12.405931Z',
         },
       ],

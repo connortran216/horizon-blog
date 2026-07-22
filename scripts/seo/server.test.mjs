@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendError } from './backend.mjs';
 import { createSeoConfig } from './config.mjs';
 import { createSeoServer } from './server.mjs';
+import { toPublicPostPath } from './urls.mjs';
+
+const articlePath = toPublicPostPath(76);
 
 const post = {
   id: 76,
@@ -120,7 +123,7 @@ describe('SEO HTTP gateway', () => {
     expect(backend.listPublishedPostSummaries).toHaveBeenCalledWith({ page: 1, limit: 9 });
     expect(backend.listPublishedPosts).not.toHaveBeenCalled();
 
-    const article = await fetch(`${baseUrl}/blog/76`, { headers: browserHeaders });
+    const article = await fetch(`${baseUrl}${articlePath}`, { headers: browserHeaders });
     const articleHtml = await article.text();
     expect(article.status).toBe(200);
     expect(articleHtml).toContain('<div id="root"></div>');
@@ -148,7 +151,7 @@ describe('SEO HTTP gateway', () => {
     expect(homeHtml).toContain(`rel="canonical" href="${baseUrl}/"`);
     expect(homeHtml).not.toContain('<script type="module" src="/assets/app.js"></script>');
 
-    const article = await fetch(`${baseUrl}/blog/76`, { headers: crawlerHeaders });
+    const article = await fetch(`${baseUrl}${articlePath}`, { headers: crawlerHeaders });
     const articleHtml = await article.text();
     expect(article.status).toBe(200);
     expect(articleHtml).toContain('<h1>API Performance</h1>');
@@ -169,12 +172,14 @@ describe('SEO HTTP gateway', () => {
     const sitemap = await fetch(`${baseUrl}/sitemap.xml`);
     expect(sitemap.headers.get('content-type')).toContain('application/xml');
     const sitemapBody = await sitemap.text();
-    expect(sitemapBody).toContain(`<loc>${baseUrl}/blog/76</loc>`);
+    expect(sitemapBody).toContain(`<loc>${baseUrl}${articlePath}</loc>`);
     expect(sitemapBody).not.toContain('<!doctype html>');
 
     const feed = await fetch(`${baseUrl}/feed.xml`);
     expect(feed.headers.get('content-type')).toContain('application/rss+xml');
-    expect(await feed.text()).toContain(`<guid isPermaLink="true">${baseUrl}/blog/76</guid>`);
+    expect(await feed.text()).toContain(
+      `<guid isPermaLink="true">${baseUrl}${articlePath}</guid>`,
+    );
   });
 
   it('marks private and duplicate query routes noindex with clean canonicals', async () => {
@@ -219,12 +224,29 @@ describe('SEO HTTP gateway', () => {
     expect(response.headers.get('location')).toBe('/');
   });
 
+  it('permanently redirects legacy numeric article URLs to public codes', async () => {
+    const getResponse = await fetch(`${baseUrl}/blog/76?utm_source=legacy`, {
+      redirect: 'manual',
+    });
+    const headResponse = await fetch(`${baseUrl}/blog/76`, {
+      method: 'HEAD',
+      redirect: 'manual',
+    });
+
+    expect(getResponse.status).toBe(301);
+    expect(getResponse.headers.get('location')).toBe(articlePath);
+    expect(headResponse.status).toBe(301);
+    expect(headResponse.headers.get('location')).toBe(articlePath);
+    expect(await headResponse.text()).toBe('');
+    expect(backend.getPublishedPost).not.toHaveBeenCalled();
+  });
+
   it('maps transient backend failures to retryable 503 responses', async () => {
     backend.getPublishedPost.mockRejectedValueOnce(
       new BackendError('temporary', { status: 503, transient: true }),
     );
 
-    const response = await fetch(`${baseUrl}/blog/76`);
+    const response = await fetch(`${baseUrl}${articlePath}`);
 
     expect(response.status).toBe(503);
     expect(response.headers.get('retry-after')).toBe('60');
@@ -236,13 +258,13 @@ describe('SEO HTTP gateway', () => {
   });
 
   it('supports HEAD and rejects unsupported methods', async () => {
-    const getResponse = await fetch(`${baseUrl}/blog/76`);
-    const headResponse = await fetch(`${baseUrl}/blog/76`, { method: 'HEAD' });
+    const getResponse = await fetch(`${baseUrl}${articlePath}`);
+    const headResponse = await fetch(`${baseUrl}${articlePath}`, { method: 'HEAD' });
     expect(headResponse.status).toBe(getResponse.status);
     expect(headResponse.headers.get('content-type')).toBe(getResponse.headers.get('content-type'));
     expect(await headResponse.text()).toBe('');
 
-    const postResponse = await fetch(`${baseUrl}/blog/76`, { method: 'POST' });
+    const postResponse = await fetch(`${baseUrl}${articlePath}`, { method: 'POST' });
     expect(postResponse.status).toBe(405);
     expect(postResponse.headers.get('allow')).toBe('GET, HEAD');
   });

@@ -9,6 +9,9 @@ import {
   renderPrivateShell,
   renderStaticPage,
 } from './render.mjs';
+import { toPublicPostPath } from './urls.mjs';
+
+const articlePath = toPublicPostPath(76);
 
 const posts = [
   {
@@ -31,7 +34,7 @@ describe('SEO semantic rendering', () => {
 
     for (const html of [home, archive]) {
       expect(html).toContain('<main data-seo-fallback="true">');
-      expect(html).toContain('href="/blog/76"');
+      expect(html).toContain(`href="${articlePath}"`);
       expect(html).toContain('href="/authors/connor-tran"');
       expect(html).toContain('API &lt;Performance&gt;');
       expect(html).not.toContain('<script>');
@@ -69,7 +72,7 @@ describe('SEO semantic rendering', () => {
     expect(html).toContain('<h1>Connor &lt;Tran&gt;</h1>');
     expect(html).toContain('Backend engineer &amp; writer.');
     expect(html).toContain('3 published articles');
-    expect(html).toContain('href="/blog/76"');
+    expect(html).toContain(`href="${articlePath}"`);
     expect(html).toContain('href="/authors/connor-tran"');
     expect(html).toContain('href="/authors/connor-tran?page=3"');
   });
@@ -91,7 +94,7 @@ describe('SEO semantic rendering', () => {
 </head><body><div id="root"></div><script type="module" crossorigin src="/assets/app.js"></script></body></html>`;
     const headHtml = `<!--app-meta:start-->
 <title>Article | Horizon</title>
-<link rel="canonical" href="https://example.com/blog/76" />
+<link rel="canonical" href="https://example.com${articlePath}" />
 <!--app-meta:end-->`;
     const result = injectDocument(indexHtml, {
       headHtml,

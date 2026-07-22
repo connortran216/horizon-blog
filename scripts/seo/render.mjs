@@ -1,5 +1,6 @@
 import { getReadingTime, renderMarkdown } from './content.mjs';
 import { escapeHtml } from './metadata.mjs';
+import { toPublicPostPath } from './urls.mjs';
 
 const formatDate = (value) => {
   if (!value) return undefined;
@@ -22,7 +23,7 @@ ${posts
       const date = formatDate(post.createdAt);
       return `  <li>
     <article>
-      <h2><a href="/blog/${encodeURIComponent(post.id)}">${escapeHtml(post.title)}</a></h2>
+      <h2><a href="${toPublicPostPath(post.id)}">${escapeHtml(post.title)}</a></h2>
       ${post.description ? `<p>${escapeHtml(post.description)}</p>` : ''}
       <p>By <a href="/authors/${escapeHtml(post.author.slug)}">${escapeHtml(post.author.name)}</a>${date ? ` on <time datetime="${escapeHtml(post.createdAt)}">${escapeHtml(date)}</time>` : ''}</p>
       ${post.tags.length ? `<ul>${post.tags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}</ul>` : ''}

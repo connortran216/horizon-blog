@@ -22,6 +22,7 @@ export * from './utils/blog.utils'
 export * from './utils/error.utils'
 export * from './utils/heading.utils'
 export * from './utils/markdown-preview.utils'
+export * from './utils/public-post-code.mjs'
 
 // Components
 export * from './components/ErrorBoundary'

@@ -7,7 +7,10 @@ import {
   getSafeAssetPath,
   slugify,
   toCanonicalUrl,
+  toPublicPostPath,
 } from './urls.mjs';
+
+const articlePath = toPublicPostPath(76);
 
 describe('SEO URL policy', () => {
   it('uses one configured canonical origin even with comma-separated proxy headers', () => {
@@ -40,11 +43,17 @@ describe('SEO URL policy', () => {
       indexing: 'index-follow',
       canonicalPath: '/',
     });
-    expect(classifyRoute(new URL('https://example.com/blog/76'))).toMatchObject({
+    expect(classifyRoute(new URL(`https://example.com${articlePath}`))).toMatchObject({
       kind: 'article',
       id: '76',
       indexing: 'index-follow',
-      canonicalPath: '/blog/76',
+      canonicalPath: articlePath,
+    });
+    expect(classifyRoute(new URL('https://example.com/blog/76'))).toMatchObject({
+      kind: 'legacy-article',
+      id: '76',
+      indexing: 'noindex-nofollow',
+      canonicalPath: articlePath,
     });
     expect(classifyRoute(new URL('https://example.com/authors/connor-tran?page=2'))).toMatchObject({
       kind: 'author',
@@ -66,10 +75,12 @@ describe('SEO URL policy', () => {
       canonicalPath: '/blog',
       page: 3,
     });
-    expect(classifyRoute(new URL('https://example.com/blog/76?utm_source=test'))).toMatchObject({
+    expect(
+      classifyRoute(new URL(`https://example.com${articlePath}?utm_source=test`)),
+    ).toMatchObject({
       kind: 'article',
       indexing: 'noindex-follow',
-      canonicalPath: '/blog/76',
+      canonicalPath: articlePath,
     });
     expect(classifyRoute(new URL('https://example.com/about?ref=footer'))).toMatchObject({
       kind: 'static',

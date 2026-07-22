@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiFileText } from 'react-icons/fi'
-import { MotionWrapper } from '../../../core'
+import { MotionWrapper, toPublicPostPath } from '../../../core'
 import StatChip from '../../../components/ui/StatChip'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
@@ -34,7 +34,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
       duration={0.6}
       delay={0.15}
     >
-      <Box as={RouterLink} to={`/blog/${post.id}`} display="block">
+      <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
         <Box
           position="relative"
           border="1px solid"

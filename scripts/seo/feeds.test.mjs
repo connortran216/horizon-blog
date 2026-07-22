@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSeoConfig } from './config.mjs';
 import { renderRobots, renderRss, renderSitemap } from './feeds.mjs';
+import { toPublicPostPath } from './urls.mjs';
 
 const config = createSeoConfig({});
 const origin = config.siteUrl;
@@ -49,8 +50,8 @@ Sitemap: https://blog.connortran.io.vn/sitemap.xml
     for (const path of ['/', '/blog', '/about', '/cv', '/contact', '/authors/connor-tran']) {
       expect(sitemap).toContain(`<loc>${origin}${path}</loc>`);
     }
-    expect(sitemap.match(/<loc>https:\/\/blog\.connortran\.io\.vn\/blog\/2<\/loc>/g)).toHaveLength(1);
-    expect(sitemap.match(/<loc>https:\/\/blog\.connortran\.io\.vn\/blog\/1<\/loc>/g)).toHaveLength(1);
+    expect(sitemap).toContain(`<loc>${origin}${toPublicPostPath(2)}</loc>`);
+    expect(sitemap).toContain(`<loc>${origin}${toPublicPostPath(1)}</loc>`);
     expect(sitemap).toContain('<lastmod>2026-06-11T10:00:00.000Z</lastmod>');
     expect(sitemap).toContain(
       '<image:loc>https://blog.connortran.io.vn/seo/post-image/2</image:loc>',
@@ -97,10 +98,12 @@ Sitemap: https://blog.connortran.io.vn/sitemap.xml
     expect(rss).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>/);
     expect(rss).toContain('<rss version="2.0"');
     expect(rss).toContain('xmlns:dc="http://purl.org/dc/elements/1.1/"');
-    expect(rss.indexOf('/blog/2')).toBeLessThan(rss.indexOf('/blog/1'));
+    expect(rss.indexOf(toPublicPostPath(2))).toBeLessThan(rss.indexOf(toPublicPostPath(1)));
     expect(rss).toContain('<title>New &lt;Post&gt;</title>');
     expect(rss).toContain('<description>New &amp; useful writing.</description>');
-    expect(rss).toContain('<guid isPermaLink="true">https://blog.connortran.io.vn/blog/2</guid>');
+    expect(rss).toContain(
+      `<guid isPermaLink="true">${origin}${toPublicPostPath(2)}</guid>`,
+    );
     expect(rss).toContain('<dc:creator>Connor Tran</dc:creator>');
     expect(rss).not.toContain('<author>Connor Tran</author>');
     expect(rss).toContain('<category>api</category>');

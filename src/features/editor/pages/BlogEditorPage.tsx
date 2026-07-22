@@ -15,7 +15,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatedCard, LoadingPanel } from '../../../core'
+import { AnimatedCard, LoadingPanel, toPublicPostPath } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import { ApiError } from '../../../core/services/api.service'
 import { useAutoSave } from '../hooks/useAutoSave'
@@ -71,7 +71,7 @@ const BlogEditorPage = () => {
       })
 
       if (publishedPost?.id) {
-        navigate(`/blog/${publishedPost.id}`)
+        navigate(toPublicPostPath(publishedPost.id))
       }
 
       return true

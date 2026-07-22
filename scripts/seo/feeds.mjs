@@ -1,5 +1,5 @@
 import { buildExcerpt } from './content.mjs';
-import { toCanonicalUrl } from './urls.mjs';
+import { toCanonicalUrl, toPublicPostPath } from './urls.mjs';
 
 const BLOG_PAGE_SIZE = 9;
 const AUTHOR_PAGE_SIZE = 6;
@@ -72,7 +72,7 @@ export const renderSitemap = ({ origin, posts }) => {
     authorPosts.push(post);
     postsByAuthor.set(post.author.slug, authorPosts);
     urls.push({
-      location: toCanonicalUrl(origin, `/blog/${post.id}`),
+      location: toCanonicalUrl(origin, toPublicPostPath(post.id)),
       lastModified: toIsoDate(post.updatedAt || post.createdAt),
       imageLocation: post.hasImage
         ? toCanonicalUrl(origin, `/seo/post-image/${post.id}`)
@@ -118,7 +118,7 @@ export const renderRss = ({ origin, posts, config }) => {
 
   const items = published
     .map((post) => {
-      const url = toCanonicalUrl(origin, `/blog/${post.id}`);
+      const url = toCanonicalUrl(origin, toPublicPostPath(post.id));
       const pubDate = toRssDate(post.createdAt);
       return `    <item>
       <title>${escapeXml(post.title)}</title>

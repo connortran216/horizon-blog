@@ -13,7 +13,7 @@ import {
 import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { getBlogService } from '../../core'
+import { getBlogService, toPublicPostPath } from '../../core'
 import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
 import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
 import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
@@ -88,7 +88,7 @@ const Navbar = () => {
 
       const { particleSystem } = await import('../../components/core/animations/ParticleSystem')
       particleSystem.showSuccessParticles()
-      navigate(`/blog/${post.id}`)
+      navigate(toPublicPostPath(post.id))
     } catch {
       toast({
         title: 'Error',
