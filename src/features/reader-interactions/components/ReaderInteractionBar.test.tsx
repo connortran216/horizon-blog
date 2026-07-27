@@ -33,7 +33,8 @@ describe('ReaderInteractionBar', () => {
 
     expect(markup).toContain('aria-label="Reader interactions"')
     expect(markup).toContain('aria-label="Heart this blog"')
-    expect(markup).toContain('aria-label="Comments are not available yet"')
+    expect(markup).toContain('aria-label="Go to comments"')
+    expect(markup).toContain('href="#comments"')
     expect(markup).toContain('aria-label="Repost is not available yet"')
     expect(markup).toContain('aria-label="Share this blog"')
     expect(markup).toContain('aria-label="More actions are not available yet"')

@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
 import theme from '../../../theme'
+import { AuthProvider } from '../../../context/AuthContext'
 import BlogDetailPage from './BlogDetailPage'
 
 vi.mock('../useBlogPostDetail', () => ({
@@ -57,7 +58,9 @@ describe('BlogDetailPage dependency independence', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
-          <BlogDetailPage />
+          <AuthProvider>
+            <BlogDetailPage />
+          </AuthProvider>
         </ChakraProvider>
       </MemoryRouter>,
     )
@@ -67,5 +70,6 @@ describe('BlogDetailPage dependency independence', () => {
     expect(markup).toContain('#setup')
     expect(markup).toContain('Loading content...')
     expect(markup).toContain('Reactions unavailable')
+    expect(markup).toContain('Discussion')
   })
 })

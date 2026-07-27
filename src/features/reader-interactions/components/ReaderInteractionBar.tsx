@@ -40,6 +40,25 @@ const UnavailableIconAction = ({ label, icon }: UnavailableIconActionProps) => (
   </Button>
 )
 
+const CommentAction = () => (
+  <Button
+    as="a"
+    href="#comments"
+    variant="ghost"
+    minW={{ base: '44px', md: '52px' }}
+    h={{ base: '52px', md: '56px' }}
+    px={2}
+    py={2}
+    borderRadius="full"
+    color="text.secondary"
+    aria-label="Go to comments"
+    title="Comments"
+    _hover={{ bg: 'action.subtle', color: 'text.primary' }}
+  >
+    <Icon as={FiMessageCircle} boxSize={{ base: 6, md: 7 }} aria-hidden="true" />
+  </Button>
+)
+
 const ReaderInteractionBar = ({
   state,
   isHeartLoading = false,
@@ -66,7 +85,7 @@ const ReaderInteractionBar = ({
           onToggle={onToggleHeart}
         />
       )}
-      <UnavailableIconAction label="Comments are not available yet" icon={FiMessageCircle} />
+      <CommentAction />
       <UnavailableIconAction label="Repost is not available yet" icon={FiRepeat} />
       <ShareButton isLoading={isShareLoading} onShare={onShare} />
       <UnavailableIconAction label="More actions are not available yet" icon={FiMoreHorizontal} />

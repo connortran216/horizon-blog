@@ -11,6 +11,7 @@ import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
 import { extractMarkdownHeadings, getBlogService } from '../../../core'
 import TableOfContents from '../components/TableOfContents'
+import CommentSection from '../../comments/components/CommentSection'
 
 const BlogDetailPage = () => {
   const navigate = useNavigate()
@@ -85,6 +86,7 @@ const BlogDetailPage = () => {
           onShare={readerInteractions.share}
         />
       }
+      discussionSection={post?.id ? <CommentSection postId={post.id} /> : undefined}
       tableOfContentsRail={
         shouldShowTableOfContents ? <TableOfContents items={tableOfContentsItems} /> : undefined
       }

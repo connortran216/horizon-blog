@@ -44,6 +44,7 @@ interface BlogReaderFrameProps {
   titleSection?: ReactNode
   helperSection?: ReactNode
   interactionSection?: ReactNode
+  discussionSection?: ReactNode
   relatedSection?: ReactNode
   tableOfContentsRail?: ReactNode
   tableOfContentsInline?: ReactNode
@@ -65,6 +66,7 @@ const BlogReaderFrame = ({
   titleSection,
   helperSection,
   interactionSection,
+  discussionSection,
   relatedSection,
   tableOfContentsRail,
   tableOfContentsInline,
@@ -345,6 +347,12 @@ const BlogReaderFrame = ({
                 {interactionSection ? (
                   <Box maxW="4xl" mx="auto" w="full" pt={{ base: 1, md: 2 }}>
                     {interactionSection}
+                  </Box>
+                ) : null}
+
+                {discussionSection ? (
+                  <Box maxW="4xl" mx="auto" w="full" pt={{ base: 4, md: 6 }}>
+                    {discussionSection}
                   </Box>
                 ) : null}
               </VStack>
