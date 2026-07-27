@@ -91,7 +91,9 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             </Box>
           ) : null
         ) : discussion ? (
-          <Text color="text.secondary">Comments are closed, but the discussion remains readable.</Text>
+          <Text color="text.secondary">
+            Comments are closed, but the discussion remains readable.
+          </Text>
         ) : null}
 
         {comments.topLevel.loading && comments.topLevel.items.length === 0 ? (

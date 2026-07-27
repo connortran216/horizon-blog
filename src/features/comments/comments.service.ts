@@ -18,9 +18,7 @@ import {
 } from './comments.types'
 
 export class CommentsService {
-  constructor(
-    private readonly repository: CommentsRepositoryPort = new ApiCommentsRepository(),
-  ) {}
+  constructor(private readonly repository: CommentsRepositoryPort = new ApiCommentsRepository()) {}
 
   async listComments(postId: number, query: ListCommentsQuery = {}): Promise<CommentPage> {
     const response = this.unwrap(

@@ -8,12 +8,7 @@ import {
   upsertSiblingComment,
 } from './comments.reducer'
 import { getCommentsService } from './comments.dependencies'
-import {
-  Comment,
-  CommentDiscussion,
-  RemoveCommentResult,
-  SiblingPageState,
-} from './comments.types'
+import { Comment, CommentDiscussion, RemoveCommentResult, SiblingPageState } from './comments.types'
 
 interface UseBlogCommentsOptions {
   postId?: number
@@ -76,8 +71,8 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
     async (parentId: number | null, append: boolean) => {
       if (!postId) return
 
-      const current = parentId === null ? topLevel : replies[parentId] ?? createSiblingPageState()
-      const cursor = append ? current.nextCursor ?? undefined : undefined
+      const current = parentId === null ? topLevel : (replies[parentId] ?? createSiblingPageState())
+      const cursor = append ? (current.nextCursor ?? undefined) : undefined
 
       if (parentId === null) {
         setTopLevel((state) => startSiblingPageLoad(append ? state : createSiblingPageState()))
@@ -85,7 +80,7 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         setReplies((state) => ({
           ...state,
           [parentId]: startSiblingPageLoad(
-            append ? state[parentId] ?? createSiblingPageState() : createSiblingPageState(),
+            append ? (state[parentId] ?? createSiblingPageState()) : createSiblingPageState(),
           ),
         }))
       }
@@ -98,13 +93,17 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         setDiscussion(page.discussion)
         if (parentId === null) {
           setTopLevel((state) =>
-            mergeSiblingPage(append ? state : createSiblingPageState(), page.comments, page.pagination),
+            mergeSiblingPage(
+              append ? state : createSiblingPageState(),
+              page.comments,
+              page.pagination,
+            ),
           )
         } else {
           setReplies((state) => ({
             ...state,
             [parentId]: mergeSiblingPage(
-              append ? state[parentId] ?? createSiblingPageState() : createSiblingPageState(),
+              append ? (state[parentId] ?? createSiblingPageState()) : createSiblingPageState(),
               page.comments,
               page.pagination,
             ),
@@ -117,10 +116,7 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         } else {
           setReplies((state) => ({
             ...state,
-            [parentId]: failSiblingPageLoad(
-              state[parentId] ?? createSiblingPageState(),
-              message,
-            ),
+            [parentId]: failSiblingPageLoad(state[parentId] ?? createSiblingPageState(), message),
           }))
         }
       }
@@ -161,10 +157,7 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         } else {
           setReplies((state) => ({
             ...state,
-            [parentId]: upsertSiblingComment(
-              state[parentId] ?? createSiblingPageState(),
-              comment,
-            ),
+            [parentId]: upsertSiblingComment(state[parentId] ?? createSiblingPageState(), comment),
           }))
           setTopLevel((state) => ({
             ...state,

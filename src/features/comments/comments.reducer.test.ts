@@ -45,15 +45,11 @@ describe('comments sibling-page reducer helpers', () => {
       nextCursor: 'page-2',
       hasMore: true,
     })
-    const second = mergeSiblingPage(
-      first,
-      [makeComment(2, 'Updated by replay'), makeComment(3)],
-      {
-        limit: 2,
-        nextCursor: null,
-        hasMore: false,
-      },
-    )
+    const second = mergeSiblingPage(first, [makeComment(2, 'Updated by replay'), makeComment(3)], {
+      limit: 2,
+      nextCursor: null,
+      hasMore: false,
+    })
 
     expect(second.items.map((comment) => comment.id)).toEqual([1, 2, 3])
     expect(second.items[1].content).toBe('Updated by replay')

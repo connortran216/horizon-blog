@@ -1,9 +1,4 @@
-import {
-  Comment,
-  CommentPagination,
-  RemoveCommentResult,
-  SiblingPageState,
-} from './comments.types'
+import { Comment, CommentPagination, RemoveCommentResult, SiblingPageState } from './comments.types'
 
 export const createSiblingPageState = (): SiblingPageState => ({
   items: [],
@@ -19,10 +14,7 @@ export const startSiblingPageLoad = (state: SiblingPageState): SiblingPageState 
   error: null,
 })
 
-export const failSiblingPageLoad = (
-  state: SiblingPageState,
-  error: string,
-): SiblingPageState => ({
+export const failSiblingPageLoad = (state: SiblingPageState, error: string): SiblingPageState => ({
   ...state,
   loading: false,
   error,

@@ -95,8 +95,7 @@ export class ApiCommentsRepository implements CommentsRepositoryPort {
     commentId: number,
   ): Promise<RepositoryResult<ApiRemoveCommentResponse>> {
     return this.getResult(
-      () =>
-        this.http.delete<ApiRemoveCommentResponse>(`/posts/${postId}/comments/${commentId}`),
+      () => this.http.delete<ApiRemoveCommentResponse>(`/posts/${postId}/comments/${commentId}`),
       'Failed to remove comment.',
     )
   }

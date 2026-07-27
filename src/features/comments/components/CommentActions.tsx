@@ -20,13 +20,7 @@ interface CommentActionsProps {
   onRemove: () => Promise<void>
 }
 
-const CommentActions = ({
-  comment,
-  isLoading,
-  onReply,
-  onEdit,
-  onRemove,
-}: CommentActionsProps) => {
+const CommentActions = ({ comment, isLoading, onReply, onEdit, onRemove }: CommentActionsProps) => {
   const dialog = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
