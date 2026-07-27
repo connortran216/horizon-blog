@@ -103,6 +103,7 @@ export interface CommentPagination {
 }
 
 export interface CommentDiscussion {
+  available: boolean
   commentsOpen: boolean
   commentCount: number
   canCreate: boolean

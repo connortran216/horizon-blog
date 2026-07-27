@@ -45,6 +45,7 @@ As a commenter or blog owner, I want authorized actions displayed clearly so tha
 - **FR-015**: Closed discussions MUST remain readable while hiding or disabling new participation.
 - **FR-016**: A newly accepted comment MUST be visibly confirmed even when older cursor pages remain unloaded.
 - **FR-017**: The interaction bar comment control MUST navigate to the discussion section.
+- **FR-018**: A comments-specific not-found response on an otherwise valid article MUST render as a neutral unavailable discussion state without transport error text or a retry action; retry UI is reserved for transient failures.
 
 ## Non-Goals
 

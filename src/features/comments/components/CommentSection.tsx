@@ -36,11 +36,13 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
               Discussion
             </Heading>
             <Text color="text.secondary" mt={1}>
-              {discussion
-                ? `${discussion.commentCount} ${
-                    discussion.commentCount === 1 ? 'comment' : 'comments'
-                  }`
-                : 'Reader comments'}
+              {discussion?.available === false
+                ? 'No discussion'
+                : discussion
+                  ? `${discussion.commentCount} ${
+                      discussion.commentCount === 1 ? 'comment' : 'comments'
+                    }`
+                  : 'Reader comments'}
             </Text>
           </Box>
           {discussion?.canManageComments ? (
@@ -65,7 +67,16 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
           </Alert>
         ) : null}
 
-        {discussion?.commentsOpen ? (
+        {discussion?.available === false ? (
+          <Box bg="bg.tertiary" borderRadius="xl" px={5} py={6}>
+            <Text color="text.primary" fontWeight="semibold">
+              This article doesn’t have a discussion yet.
+            </Text>
+            <Text color="text.secondary" mt={1}>
+              You can keep reading—there’s nothing else you need to do.
+            </Text>
+          </Box>
+        ) : discussion?.commentsOpen ? (
           user && discussion.canCreate ? (
             <CommentComposer
               label="Join the discussion"
@@ -101,18 +112,31 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
         ) : null}
 
         {comments.topLevel.error ? (
-          <Box>
-            <Text color="red.400">{comments.topLevel.error}</Text>
-            <Button mt={2} size="sm" variant="outline" onClick={comments.reload}>
-              Retry comments
-            </Button>
-          </Box>
+          <Alert status="warning" variant="subtle" borderRadius="xl" alignItems="flex-start">
+            <AlertIcon mt={0.5} />
+            <Box>
+              <AlertDescription color="text.primary">
+                Comments couldn’t load right now. The article is still available.
+              </AlertDescription>
+              <Button mt={3} size="sm" variant="outline" onClick={comments.reload}>
+                Try comments again
+              </Button>
+            </Box>
+          </Alert>
         ) : null}
 
         {!comments.topLevel.loading &&
         !comments.topLevel.error &&
+        discussion?.available !== false &&
         comments.topLevel.items.length === 0 ? (
-          <Text color="text.secondary">No comments yet. Start the conversation.</Text>
+          <Box borderWidth="1px" borderColor="border.default" borderRadius="xl" px={5} py={6}>
+            <Text color="text.primary" fontWeight="semibold">
+              No comments yet
+            </Text>
+            <Text color="text.secondary" mt={1}>
+              Be the first to share a thought or question.
+            </Text>
+          </Box>
         ) : null}
 
         <CommentThread

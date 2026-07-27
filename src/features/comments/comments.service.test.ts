@@ -133,6 +133,7 @@ describe('comments service', () => {
         hasMore: true,
       },
       discussion: {
+        available: true,
         commentsOpen: true,
         commentCount: 23,
         canCreate: true,
@@ -180,7 +181,7 @@ describe('comments service', () => {
     })
   })
 
-  it('throws status-aware errors from repository failures', async () => {
+  it('maps a missing discussion to a calm unavailable state', async () => {
     const repository = new FakeCommentsRepository()
     repository.listResult = {
       success: false,
@@ -189,10 +190,20 @@ describe('comments service', () => {
     }
     const service = new CommentsService(repository)
 
-    await expect(service.listComments(76)).rejects.toMatchObject({
-      name: 'ApiError',
-      message: 'Blog not found.',
-      status: 404,
+    await expect(service.listComments(76)).resolves.toEqual({
+      comments: [],
+      pagination: {
+        limit: 20,
+        nextCursor: null,
+        hasMore: false,
+      },
+      discussion: {
+        available: false,
+        commentsOpen: false,
+        commentCount: 0,
+        canCreate: false,
+        canManageComments: false,
+      },
     })
   })
 

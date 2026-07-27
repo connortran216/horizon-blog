@@ -15,6 +15,7 @@ Comments extend the reading experience but must remain isolated from article loa
 - Guest reads, cursor loads, reply expansion, tombstones, and local retries work.
 - Plain text is never treated as markup.
 - Article content survives all comment failures.
+- A comments-only 404 becomes a neutral unavailable state, while transient failures retain a clear retry action without exposing HTTP text.
 
 ## Verify and Pass
 

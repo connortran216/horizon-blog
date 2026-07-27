@@ -21,10 +21,26 @@ export class CommentsService {
   constructor(private readonly repository: CommentsRepositoryPort = new ApiCommentsRepository()) {}
 
   async listComments(postId: number, query: ListCommentsQuery = {}): Promise<CommentPage> {
-    const response = this.unwrap(
-      await this.repository.listComments(postId, query),
-      'Failed to load comments.',
-    )
+    const result = await this.repository.listComments(postId, query)
+    if (!result.success && result.statusCode === 404) {
+      return {
+        comments: [],
+        pagination: {
+          limit: 20,
+          nextCursor: null,
+          hasMore: false,
+        },
+        discussion: {
+          available: false,
+          commentsOpen: false,
+          commentCount: 0,
+          canCreate: false,
+          canManageComments: false,
+        },
+      }
+    }
+
+    const response = this.unwrap(result, 'Failed to load comments.')
 
     return {
       comments: response.data.map((comment) => this.mapComment(comment)),
@@ -34,6 +50,7 @@ export class CommentsService {
         hasMore: response.pagination.has_more,
       },
       discussion: {
+        available: true,
         commentsOpen: response.discussion.comments_open,
         commentCount: response.discussion.comment_count,
         canCreate: response.discussion.can_create,
