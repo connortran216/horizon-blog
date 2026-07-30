@@ -52,6 +52,8 @@ export interface IBlogRepository {
     post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt'>,
   ): Promise<RepositoryResult<BlogPost>>
   updatePost(id: string, updates: Partial<BlogPost>): Promise<RepositoryResult<BlogPost>>
+  schedulePost(id: string, scheduledPublishAt: string): Promise<RepositoryResult<PublicPostRecord>>
+  cancelPostSchedule(id: string): Promise<RepositoryResult<PublicPostRecord>>
   deletePost(id: string): Promise<RepositoryResult<boolean>>
 
   // User-specific operations

@@ -42,6 +42,10 @@ export class EditorPostService {
   async publish(id: string | null, input: EditorPostInput): Promise<BlogPost> {
     return this.blogService.publishPost(id, toBlogServiceInput(input))
   }
+
+  async schedule(id: string, scheduledPublishAt: string): Promise<PublicPostRecord> {
+    return this.blogService.schedulePost(id, scheduledPublishAt)
+  }
 }
 
 export const editorPostService = new EditorPostService()

@@ -15,7 +15,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatedCard, LoadingPanel, toPublicPostPath } from '../../../core'
+import { AnimatedCard, LoadingPanel } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import { ApiError } from '../../../core/services/api.service'
 import { useAutoSave } from '../hooks/useAutoSave'
@@ -59,20 +59,11 @@ const BlogEditorPage = () => {
 
   const handlePublish = useCallback(async (): Promise<boolean> => {
     try {
-      const publishedPost = await autoSave.publishPost()
-      autoSave.clearLocalStorage()
-
-      toast({
-        title: 'Success',
-        description: postId ? 'Blog updated successfully' : 'Blog is now live',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
+      const targetPostId = await autoSave.saveToBackend()
+      if (!targetPostId) return false
+      navigate(`/blog-editor/publish?id=${targetPostId}`, {
+        state: { authorizedEdit: true },
       })
-
-      if (publishedPost?.id) {
-        navigate(toPublicPostPath(publishedPost.id))
-      }
 
       return true
     } catch (error) {
@@ -86,7 +77,7 @@ const BlogEditorPage = () => {
       })
       return false
     }
-  }, [autoSave, navigate, postId, toast])
+  }, [autoSave, navigate, toast])
 
   useEffect(() => {
     window.editorState = {

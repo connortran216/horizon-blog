@@ -360,6 +360,16 @@ export class BlogService implements IBlogService {
     return this.unwrapResult(result, 'Failed to publish blog post')
   }
 
+  async schedulePost(id: string, scheduledPublishAt: string): Promise<PublicPostRecord> {
+    const result = await this.repository.schedulePost(id, scheduledPublishAt)
+    return this.unwrapResult(result, 'Failed to schedule blog')
+  }
+
+  async cancelPostSchedule(id: string): Promise<PublicPostRecord> {
+    const result = await this.repository.cancelPostSchedule(id)
+    return this.unwrapResult(result, 'Failed to remove schedule')
+  }
+
   /**
    * Delete blog post
    * Delegates to repository for data access

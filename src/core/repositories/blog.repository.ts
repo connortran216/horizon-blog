@@ -524,6 +524,43 @@ export class ApiBlogRepository implements IBlogRepository {
     }
   }
 
+  async schedulePost(
+    id: string,
+    scheduledPublishAt: string,
+  ): Promise<RepositoryResult<PublicPostRecord>> {
+    try {
+      const response = await apiService.put<{ data: PublicPostRecord }>(`/posts/${id}/schedule`, {
+        scheduled_publish_at: scheduledPublishAt,
+      })
+      this.clearRelatedCaches()
+      this.removeFromCache(`post_${id}`)
+      return { success: true, data: response.data }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to schedule blog',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
+  async cancelPostSchedule(id: string): Promise<RepositoryResult<PublicPostRecord>> {
+    try {
+      const response = await apiService.delete<{ data: PublicPostRecord }>(
+        `/posts/${id}/schedule`,
+      )
+      this.clearRelatedCaches()
+      this.removeFromCache(`post_${id}`)
+      return { success: true, data: response.data }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to remove schedule',
+        statusCode: this.getStatusCode(error),
+      }
+    }
+  }
+
   /**
    * Delete blog post
    */

@@ -16,6 +16,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const AuthorArchive = lazy(() => import('./pages/AuthorArchive'))
 const BlogEditor = lazy(() => import('./pages/BlogEditor'))
+const PublishBlog = lazy(() => import('./pages/PublishBlog'))
 const Profile = lazy(() => import('./pages/Profile'))
 const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 const ProfileBlogDetail = lazy(() => import('./pages/ProfileBlogDetail'))
@@ -52,6 +53,14 @@ const Routes = () => {
           element={
             <ProtectedRoute>
               <BlogEditor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/blog-editor/publish"
+          element={
+            <ProtectedRoute>
+              <PublishBlog />
             </ProtectedRoute>
           }
         />

@@ -84,6 +84,8 @@ export interface PublicPostRecord {
   user_id: number
   created_at: string
   updated_at: string
+  published_at?: string | null
+  scheduled_publish_at?: string | null
   owner?: PublicPostOwner
   user?: {
     name: string

@@ -94,6 +94,8 @@ export interface IBlogService {
   createDraft(input: BlogServicePostInput): Promise<BlogPost>
   updateDraft(id: string, input: BlogServicePostInput): Promise<BlogPost>
   publishPost(id: string | null, input: BlogServicePostInput): Promise<BlogPost>
+  schedulePost(id: string, scheduledPublishAt: string): Promise<PublicPostRecord>
+  cancelPostSchedule(id: string): Promise<PublicPostRecord>
   deletePostOrThrow(id: string): Promise<void>
 }
 

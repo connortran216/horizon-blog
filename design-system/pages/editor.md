@@ -9,6 +9,7 @@ The writing surface is more important than the tooling around it.
 ## Covered Routes
 
 - `/blog-editor`
+- `/blog-editor/publish`
 
 ## Primary Actions
 
@@ -16,6 +17,7 @@ The writing surface is more important than the tooling around it.
 - edit a blog
 - save confidently
 - publish when ready
+- choose immediate or scheduled publication while reviewing the landing-page card
 
 ## Layout
 
@@ -29,6 +31,8 @@ The writing surface is more important than the tooling around it.
 - save state and controls
 - editor surface
 - publish and preview affordances
+- publishing route uses a two-area desktop layout: settings on the left and a non-interactive landing-card preview on the right
+- publishing areas stack settings-first on smaller screens
 
 ## Core Components
 
