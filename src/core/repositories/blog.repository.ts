@@ -546,9 +546,7 @@ export class ApiBlogRepository implements IBlogRepository {
 
   async cancelPostSchedule(id: string): Promise<RepositoryResult<PublicPostRecord>> {
     try {
-      const response = await apiService.delete<{ data: PublicPostRecord }>(
-        `/posts/${id}/schedule`,
-      )
+      const response = await apiService.delete<{ data: PublicPostRecord }>(`/posts/${id}/schedule`)
       this.clearRelatedCaches()
       this.removeFromCache(`post_${id}`)
       return { success: true, data: response.data }

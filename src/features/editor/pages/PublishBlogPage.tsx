@@ -162,10 +162,12 @@ const PublishBlogPage = () => {
             When should it go live?
           </Heading>
 
-          {([
-            ['now', 'Publish now', 'Make it public immediately.'],
-            ['schedule', 'Schedule for later', 'Choose a date and time.'],
-          ] as const).map(([value, label, description]) => (
+          {(
+            [
+              ['now', 'Publish now', 'Make it public immediately.'],
+              ['schedule', 'Schedule for later', 'Choose a date and time.'],
+            ] as const
+          ).map(([value, label, description]) => (
             <Box
               key={value}
               as="label"
@@ -231,7 +233,8 @@ const PublishBlogPage = () => {
 
           {mode === 'schedule' ? (
             <Text color="text.tertiary" fontSize="sm">
-              {timezone} · {hasValidSchedule ? scheduledAt.toLocaleString() : 'Select a date and time'}
+              {timezone} ·{' '}
+              {hasValidSchedule ? scheduledAt.toLocaleString() : 'Select a date and time'}
             </Text>
           ) : null}
           {error ? (

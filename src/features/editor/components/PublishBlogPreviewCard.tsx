@@ -9,10 +9,7 @@ interface PublishBlogPreviewCardProps {
   publicationDate: string
 }
 
-const PublishBlogPreviewCard = ({
-  blog,
-  publicationDate,
-}: PublishBlogPreviewCardProps) => {
+const PublishBlogPreviewCard = ({ blog, publicationDate }: PublishBlogPreviewCardProps) => {
   const cover = useResolvedCoverImage(blog.featuredImage)
 
   return (
