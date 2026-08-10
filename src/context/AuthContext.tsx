@@ -1,207 +1,190 @@
-import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+} from 'react'
 import { User } from '../core/types/common.types'
 import { authService } from '../core/services/auth.service'
 import {
-  AUTH_STORAGE_KEYS,
   AuthContextValue,
+  AuthState,
   AuthStatus,
   LoginCredentials,
+  LogoutResult,
   RegisterData,
 } from '../core/types/auth.types'
 import { getProfileService } from '../core/di/container'
 import { ApiError } from '../core/services/api.service'
+import { authSessionService } from '../core/services/auth-session.service'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+export type AuthLifecycleAction =
+  | { type: 'loading' }
+  | { type: 'authenticated'; user: User }
+  | { type: 'unauthenticated'; error?: string | null }
+  | { type: 'clear-error' }
+
+export const initialAuthState: AuthState = {
+  user: null,
+  status: AuthStatus.LOADING,
+  isLoading: true,
+  error: null,
+}
+
+export const authLifecycleReducer = (state: AuthState, action: AuthLifecycleAction): AuthState => {
+  switch (action.type) {
+    case 'loading':
+      return { ...state, status: AuthStatus.LOADING, isLoading: true, error: null }
+    case 'authenticated':
+      return {
+        user: action.user,
+        status: AuthStatus.AUTHENTICATED,
+        isLoading: false,
+        error: null,
+      }
+    case 'unauthenticated':
+      return {
+        user: null,
+        status: AuthStatus.UNAUTHENTICATED,
+        isLoading: false,
+        error: action.error ?? null,
+      }
+    case 'clear-error':
+      return { ...state, error: null }
+  }
+}
+
+const LEGACY_AUTH_KEYS = [
+  'horizon_blog_token',
+  'horizon_blog_user',
+  'horizon_blog_refresh_token',
+] as const
+
+export const clearLegacyAuthStorage = (storage?: Pick<Storage, 'removeItem'>): void => {
+  const target = storage ?? (typeof window !== 'undefined' ? window.localStorage : undefined)
+  if (!target) {
+    return
+  }
+  LEGACY_AUTH_KEYS.forEach((key) => target.removeItem(key))
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [status, setStatus] = useState<AuthStatus>(AuthStatus.LOADING)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(authLifecycleReducer, initialAuthState)
+  const hydratingRef = useRef(true)
 
   const refreshUserProfile = useCallback(async (): Promise<User | null> => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
-    if (!token) {
-      setUser(null)
-      setStatus(AuthStatus.UNAUTHENTICATED)
-      return null
-    }
-
     try {
       const profileService = getProfileService()
       const profile = await profileService.getCurrentProfile()
       const refreshedUser = profileService.toAuthUser(profile)
-      setUser(refreshedUser)
-      setStatus(AuthStatus.AUTHENTICATED)
-      setError(null)
+      dispatch({ type: 'authenticated', user: refreshedUser })
       return refreshedUser
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
-        setUser(null)
-        setStatus(AuthStatus.UNAUTHENTICATED)
-        setError('Session expired. Please log in again.')
-        return null
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        dispatch({
+          type: 'unauthenticated',
+          error: 'Session expired. Please log in again.',
+        })
       }
-
       return null
     }
   }, [])
 
-  // Restore user session on app initialization
+  useEffect(() => {
+    return authSessionService.subscribe((event) => {
+      if (event.type === 'signed-out') {
+        dispatch({
+          type: 'unauthenticated',
+          error:
+            event.reason === 'session-invalid' ? 'Session expired. Please log in again.' : null,
+        })
+        return
+      }
+
+      if (!hydratingRef.current && state.status === AuthStatus.UNAUTHENTICATED) {
+        void refreshUserProfile()
+      }
+    })
+  }, [refreshUserProfile, state.status])
+
   useEffect(() => {
     const restoreSession = async () => {
+      clearLegacyAuthStorage()
+      dispatch({ type: 'loading' })
+
       try {
-        const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
-        if (!token) {
-          setStatus(AuthStatus.UNAUTHENTICATED)
-          setIsLoading(false)
+        const restored = await authService.restoreSession()
+        if (!restored) {
+          dispatch({ type: 'unauthenticated' })
           return
         }
 
-        // Decode JWT to validate token expiration first.
-        const decodedUser = authService.decodeToken(token)
-        if (!decodedUser) {
-          // Token invalid or expired, clear it
-          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
-          setStatus(AuthStatus.UNAUTHENTICATED)
-          setIsLoading(false)
-          return
+        const user = await refreshUserProfile()
+        if (!user) {
+          dispatch({ type: 'unauthenticated' })
         }
-
-        // Set a quick local user first, then refresh full profile from /users/me.
-        setUser(decodedUser)
-        setStatus(AuthStatus.AUTHENTICATED)
-        await refreshUserProfile()
-      } catch (err) {
-        console.error('Failed to restore session:', err)
-        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
-        setUser(null)
-        setStatus(AuthStatus.UNAUTHENTICATED)
+      } catch {
+        dispatch({ type: 'unauthenticated' })
       } finally {
-        setIsLoading(false)
+        hydratingRef.current = false
       }
     }
 
     void restoreSession()
   }, [refreshUserProfile])
 
-  // Listen for unauthorized events from API service
-  useEffect(() => {
-    const handleUnauthorized = () => {
-      setUser(null)
-      setStatus(AuthStatus.UNAUTHENTICATED)
-      setError('Session expired. Please log in again.')
-    }
-
-    window.addEventListener('auth:unauthorized', handleUnauthorized)
-    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized)
-  }, [])
-
   const login = async (credentials: LoginCredentials) => {
-    setIsLoading(true)
-    setStatus(AuthStatus.LOADING)
-    setError(null)
+    dispatch({ type: 'loading' })
     try {
       const loggedInUser = await authService.login(credentials)
-      setUser(loggedInUser)
-      setStatus(AuthStatus.AUTHENTICATED)
+      dispatch({ type: 'authenticated', user: loggedInUser })
       await refreshUserProfile()
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed'
-      setError(errorMessage)
-      setStatus(AuthStatus.UNAUTHENTICATED)
-      throw err // Re-throw for component handling
-    } finally {
-      setIsLoading(false)
+    } catch (error: unknown) {
+      dispatch({
+        type: 'unauthenticated',
+        error: error instanceof Error ? error.message : 'Login failed',
+      })
+      throw error
     }
   }
 
   const register = async (data: RegisterData) => {
-    setIsLoading(true)
-    setStatus(AuthStatus.LOADING)
-    setError(null)
+    dispatch({ type: 'loading' })
     try {
       const registeredUser = await authService.register(data)
-      setUser(registeredUser)
-      setStatus(AuthStatus.AUTHENTICATED)
+      dispatch({ type: 'authenticated', user: registeredUser })
       await refreshUserProfile()
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed'
-      setError(errorMessage)
-      setStatus(AuthStatus.UNAUTHENTICATED)
-      throw err // Re-throw for component handling
-    } finally {
-      setIsLoading(false)
+    } catch (error: unknown) {
+      dispatch({
+        type: 'unauthenticated',
+        error: error instanceof Error ? error.message : 'Registration failed',
+      })
+      throw error
     }
   }
 
-  const completeOAuthLogin = useCallback(
-    async (token: string): Promise<User | null> => {
-      setIsLoading(true)
-      setStatus(AuthStatus.LOADING)
-      setError(null)
-
-      try {
-        const initialUser = await authService.completeOAuthLogin(token)
-        if (!initialUser) {
-          setUser(null)
-          setStatus(AuthStatus.UNAUTHENTICATED)
-          setError('Could not complete sign-in. Please try again.')
-          return null
-        }
-
-        setUser(initialUser)
-        setStatus(AuthStatus.AUTHENTICATED)
-
-        const refreshedUser = await refreshUserProfile()
-        if (refreshedUser) {
-          return refreshedUser
-        }
-
-        if (!localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)) {
-          setUser(null)
-          setStatus(AuthStatus.UNAUTHENTICATED)
-          return null
-        }
-
-        return initialUser
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'OAuth sign-in failed'
-        setError(errorMessage)
-        setStatus(AuthStatus.UNAUTHENTICATED)
-        throw err
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [refreshUserProfile],
-  )
-
-  const logout = () => {
-    authService.logout()
-    setUser(null)
-    setError(null)
-    setStatus(AuthStatus.UNAUTHENTICATED)
-  }
-
-  const clearError = () => {
-    setError(null)
+  const logout = async (): Promise<LogoutResult> => {
+    try {
+      return await authService.logout()
+    } finally {
+      dispatch({ type: 'unauthenticated' })
+    }
   }
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        status,
-        isLoading,
-        error,
+        ...state,
         login,
         register,
-        completeOAuthLogin,
         logout,
         refreshUserProfile,
-        clearError,
+        clearError: () => dispatch({ type: 'clear-error' }),
       }}
     >
       {children}
@@ -209,7 +192,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// Ensure useAuth is a stable function reference for HMR
 const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {

@@ -66,10 +66,17 @@ describe('blog repository performance contract', () => {
 
     const result = await repository.getPublishedPosts({ limit: 9 })
 
-    expect(get).toHaveBeenCalledWith('/posts/summaries', {
-      status: 'published',
-      limit: 9,
-    })
+    expect(get).toHaveBeenCalledWith(
+      '/posts/summaries',
+      {
+        status: 'published',
+        limit: 9,
+      },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
     expect(result).toMatchObject({
       success: true,
       data: [
@@ -112,11 +119,18 @@ describe('blog repository performance contract', () => {
       limit: 2,
     })
 
-    expect(get).toHaveBeenCalledWith('/posts/summaries', {
-      page: 2,
-      limit: 2,
-      status: 'published',
-    })
+    expect(get).toHaveBeenCalledWith(
+      '/posts/summaries',
+      {
+        page: 2,
+        limit: 2,
+        status: 'published',
+      },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
     expect(result.metadata).toEqual({
       page: 2,
       limit: 2,
@@ -140,16 +154,32 @@ describe('blog repository performance contract', () => {
     await repository.getPublishedPostSummaries({ page: 1, limit: 2 })
     await repository.getPublishedPostRecords({ page: 1, limit: 2 })
 
-    expect(get).toHaveBeenNthCalledWith(1, '/posts/summaries', {
-      page: 1,
-      limit: 2,
-      status: 'published',
-    })
-    expect(get).toHaveBeenNthCalledWith(2, '/posts', {
-      page: 1,
-      limit: 2,
-      status: 'published',
-    })
+    expect(get).toHaveBeenNthCalledWith(
+      1,
+      '/posts/summaries',
+      {
+        page: 1,
+        limit: 2,
+        status: 'published',
+      },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
+    expect(get).toHaveBeenNthCalledWith(
+      2,
+      '/posts',
+      {
+        page: 1,
+        limit: 2,
+        status: 'published',
+      },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
   })
 
   it('loads related posts with score metadata from the dedicated endpoint', async () => {
@@ -158,7 +188,14 @@ describe('blog repository performance contract', () => {
 
     const result = await repository.getRelatedPosts('42', 3)
 
-    expect(get).toHaveBeenCalledWith('/posts/42/related', { limit: 3 })
+    expect(get).toHaveBeenCalledWith(
+      '/posts/42/related',
+      { limit: 3 },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
     expect(result).toMatchObject({
       success: true,
       data: [

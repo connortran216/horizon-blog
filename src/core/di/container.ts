@@ -9,6 +9,8 @@ import { IBlogRepository } from '../types/blog-repository.types'
 import { ApiBlogRepository } from '../repositories/blog.repository'
 import { IAuthService } from '../types/auth.types'
 import { authService } from '../services/auth.service'
+import { AccessTokenStore, accessTokenStore } from '../services/access-token.store'
+import { AuthSessionService, authSessionService } from '../services/auth-session.service'
 import { IBlogService } from '../types/blog-service.types'
 import { createBlogServiceInstance } from '../services/blog.service'
 import { IProfileRepository } from '../types/profile-repository.types'
@@ -121,6 +123,8 @@ export class DIContainer {
 
     // Register auth service
     this.register('IAuthService', () => authService)
+    this.register('AccessTokenStore', () => accessTokenStore)
+    this.register('AuthSessionService', () => authSessionService)
 
     // Register blog service
     this.register('IBlogService', () => createBlogServiceInstance(this.resolve('IBlogRepository')))
@@ -156,6 +160,8 @@ export function Inject(token: string | symbol) {
 export const SERVICE_TOKENS = {
   BLOG_REPOSITORY: 'IBlogRepository' as const,
   AUTH_SERVICE: 'IAuthService' as const,
+  ACCESS_TOKEN_STORE: 'AccessTokenStore' as const,
+  AUTH_SESSION_SERVICE: 'AuthSessionService' as const,
   BLOG_SERVICE: 'IBlogService' as const,
   PROFILE_REPOSITORY: 'IProfileRepository' as const,
   PROFILE_SERVICE: 'IProfileService' as const,
@@ -167,6 +173,10 @@ export const SERVICE_TOKENS = {
 export const getBlogRepository = (): IBlogRepository =>
   container.resolve(SERVICE_TOKENS.BLOG_REPOSITORY)
 export const getAuthService = (): IAuthService => container.resolve(SERVICE_TOKENS.AUTH_SERVICE)
+export const getAccessTokenStore = (): AccessTokenStore =>
+  container.resolve(SERVICE_TOKENS.ACCESS_TOKEN_STORE)
+export const getAuthSessionService = (): AuthSessionService =>
+  container.resolve(SERVICE_TOKENS.AUTH_SESSION_SERVICE)
 export const getBlogService = (): IBlogService => container.resolve(SERVICE_TOKENS.BLOG_SERVICE)
 export const getProfileRepository = (): IProfileRepository =>
   container.resolve(SERVICE_TOKENS.PROFILE_REPOSITORY)

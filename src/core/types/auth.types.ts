@@ -33,6 +33,35 @@ export interface ResetPasswordData {
   confirmPassword: string
 }
 
+export interface ApiAuthenticatedUser {
+  id: number
+  email: string
+  name: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface AuthAccessResponse {
+  access_token?: string
+  token?: string
+  token_type: 'Bearer'
+  expires_in: number
+  data: ApiAuthenticatedUser
+  message: string
+}
+
+export type RequestAuthMode = 'required' | 'optional' | 'transport'
+
+export interface ApiRequestOptions {
+  authMode?: RequestAuthMode
+  allowGuestFallback?: boolean
+  keepalive?: boolean
+}
+
+export interface LogoutResult {
+  serverRevoked: boolean
+}
+
 // Authentication context state
 export interface AuthState {
   user: User | null
@@ -45,8 +74,7 @@ export interface AuthState {
 export interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
-  completeOAuthLogin: (token: string) => Promise<User | null>
-  logout: () => void
+  logout: () => Promise<LogoutResult>
   refreshUserProfile: () => Promise<User | null>
   clearError: () => void
 }
@@ -58,20 +86,13 @@ export interface AuthContextValue extends AuthState, AuthActions {}
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<User>
   register(data: RegisterData): Promise<User>
-  completeOAuthLogin(token: string): Promise<User | null>
   requestPasswordReset(email: string): Promise<string>
   resetPassword(data: ResetPasswordData): Promise<string>
-  logout(): Promise<void>
+  restoreSession(): Promise<boolean>
+  logout(): Promise<LogoutResult>
   getCurrentUser(): Promise<User | null>
-  refreshToken(): Promise<User | null>
+  refreshToken(): Promise<boolean>
 }
-
-// Storage keys for authentication
-export const AUTH_STORAGE_KEYS = {
-  USER: 'horizon_blog_user',
-  TOKEN: 'horizon_blog_token',
-  REFRESH_TOKEN: 'horizon_blog_refresh_token',
-} as const
 
 // Authentication errors
 export class AuthError extends Error {

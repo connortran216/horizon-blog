@@ -3,62 +3,64 @@ import { Box, Stack, Text } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import { LoadingSignal } from '../../../components/core/animations/LoadingState'
 import { useAuth } from '../../../context/AuthContext'
+import { AuthStatus } from '../../../core/types/auth.types'
 import AuthShell from '../components/AuthShell'
 import { parseOAuthCallbackFragment } from '../utils/googleSso'
 
+export type LoginCallbackOutcome =
+  | { type: 'pending' }
+  | { type: 'success'; redirectTo: string }
+  | { type: 'failure'; error: string; redirectTo: string }
+
+export const resolveLoginCallbackOutcome = (
+  status: AuthStatus,
+  hasUser: boolean,
+  hash: string,
+): LoginCallbackOutcome => {
+  const { redirectTo, error } = parseOAuthCallbackFragment(hash)
+  if (status === AuthStatus.LOADING) {
+    return { type: 'pending' }
+  }
+  if (error) {
+    return { type: 'failure', error, redirectTo }
+  }
+  if (status === AuthStatus.AUTHENTICATED && hasUser) {
+    return { type: 'success', redirectTo }
+  }
+  return { type: 'failure', error: 'oauth_finalize_failed', redirectTo }
+}
+
 const LoginCallbackPage = () => {
   const navigate = useNavigate()
-  const { completeOAuthLogin } = useAuth()
+  const { status, user } = useAuth()
   const handledRef = useRef(false)
-  const [statusText, setStatusText] = useState('Finishing your Google sign in...')
-  const [statusDescription, setStatusDescription] = useState(
-    'We are verifying your account and restoring your session.',
-  )
+  const [statusText] = useState('Finishing your Google sign in...')
+  const [statusDescription] = useState('We are verifying your account and restoring your session.')
 
   useEffect(() => {
     if (handledRef.current) {
       return
     }
-    handledRef.current = true
 
-    const finishOAuthLogin = async () => {
-      const { token, redirectTo, error } = parseOAuthCallbackFragment(window.location.hash)
-
-      if (!token) {
-        navigate('/login', {
-          replace: true,
-          state: {
-            oauthError: error || 'oauth_missing_token',
-            ...(redirectTo ? { from: redirectTo } : {}),
-          },
-        })
-        return
-      }
-
-      try {
-        setStatusText('Loading your account...')
-        setStatusDescription(
-          'This usually takes a moment. Keep this tab open while we finish sign in.',
-        )
-        const user = await completeOAuthLogin(token)
-        if (!user) {
-          throw new Error('oauth_finalize_failed')
-        }
-
-        navigate(redirectTo, { replace: true })
-      } catch {
-        navigate('/login', {
-          replace: true,
-          state: {
-            oauthError: 'oauth_finalize_failed',
-            ...(redirectTo ? { from: redirectTo } : {}),
-          },
-        })
-      }
+    const outcome = resolveLoginCallbackOutcome(status, Boolean(user), window.location.hash)
+    if (outcome.type === 'pending') {
+      return
     }
 
-    void finishOAuthLogin()
-  }, [completeOAuthLogin, navigate])
+    handledRef.current = true
+    if (outcome.type === 'success') {
+      navigate(outcome.redirectTo, { replace: true })
+      return
+    }
+
+    navigate('/login', {
+      replace: true,
+      state: {
+        oauthError: outcome.error,
+        ...(outcome.redirectTo !== '/' ? { from: outcome.redirectTo } : {}),
+      },
+    })
+  }, [navigate, status, user])
 
   return (
     <AuthShell

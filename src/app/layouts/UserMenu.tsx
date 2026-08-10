@@ -7,10 +7,17 @@ interface UserMenuProps {
   user: User
   colorMode: string
   onToggleColorMode: () => void
-  onLogout: () => void
+  onLogout: () => Promise<void>
+  isLoggingOut: boolean
 }
 
-const UserMenu = ({ user, colorMode, onToggleColorMode, onLogout }: UserMenuProps) => {
+const UserMenu = ({
+  user,
+  colorMode,
+  onToggleColorMode,
+  onLogout,
+  isLoggingOut,
+}: UserMenuProps) => {
   return (
     <Menu>
       <MenuButton>
@@ -29,7 +36,9 @@ const UserMenu = ({ user, colorMode, onToggleColorMode, onLogout }: UserMenuProp
         >
           {colorMode === 'dark' ? 'Light Mode' : 'Dark Mode'}
         </MenuItem>
-        <MenuItem onClick={onLogout}>Sign out</MenuItem>
+        <MenuItem onClick={() => void onLogout()} isDisabled={isLoggingOut}>
+          {isLoggingOut ? 'Signing out...' : 'Sign out'}
+        </MenuItem>
       </MenuList>
     </Menu>
   )

@@ -1,4 +1,5 @@
 import { ApiError, apiService } from '../../core/services/api.service'
+import { ApiRequestOptions } from '../../core/types/auth.types'
 import { RepositoryResult } from '../../core/types/blog-repository.types'
 import {
   ApiCommentResponse,
@@ -11,7 +12,11 @@ import {
 } from './comments.types'
 
 export interface CommentsHttpClient {
-  get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T>
+  get<T>(
+    endpoint: string,
+    params?: Record<string, unknown>,
+    options?: ApiRequestOptions,
+  ): Promise<T>
   post<T>(endpoint: string, data?: unknown): Promise<T>
   patch<T>(endpoint: string, data?: unknown): Promise<T>
   delete<T>(endpoint: string, data?: unknown): Promise<T>
@@ -56,7 +61,11 @@ export class ApiCommentsRepository implements CommentsRepositoryPort {
     if (query.limit !== undefined) params.limit = query.limit
 
     return this.getResult(
-      () => this.http.get<ApiListCommentsResponse>(`/posts/${postId}/comments`, params),
+      () =>
+        this.http.get<ApiListCommentsResponse>(`/posts/${postId}/comments`, params, {
+          authMode: 'optional',
+          allowGuestFallback: true,
+        }),
       'Failed to load comments.',
     )
   }

@@ -60,7 +60,6 @@
     "dompurify": "^3.3.1",
     "framer-motion": "^10.17.4",
     "highlight.js": "^11.11.1",
-    "jwt-decode": "^4.0.0",
     "marked": "^17.0.1",
     "mermaid": "^11.14.0",
     "prismjs": "^1.30.0",

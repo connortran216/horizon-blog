@@ -104,6 +104,13 @@ Routing matrix:
 - API snapshot: `api-docs.json`
 - RTK global guide: `/Users/trantuancanh/.codex/RTK.md`
 
+## Beads Coordination And Memory
+
+- Run `bd prime` when starting a session or recovering context; this `AGENTS.md` remains authoritative when its repository-specific rules differ.
+- Use Beads for operational issue tracking and durable project memory: `bd ready`, `bd create`, `bd update <id> --claim`, `bd close <id>`, `bd remember`, `bd memories`, and `bd recall`.
+- Keep the Spec Kit artifacts required above. Beads coordinates work and retains context; it does not replace `spec.md`, `plan.md`, `tasks.md`, or approved design documents.
+- Do not commit or push Git or Dolt changes unless the user explicitly requests it.
+
 <!-- SPECKIT START -->
-Current plan: `specs/009-public-post-codes/plan.md`
+Current plan: `specs/013-authentication-session-lifecycle/plan.md`
 <!-- SPECKIT END -->

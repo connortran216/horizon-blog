@@ -3,15 +3,22 @@
  * Follows Single Responsibility Principle by separating auth concerns from HTTP concerns
  */
 
-import { AUTH_STORAGE_KEYS } from '../types/auth.types'
+import { RequestAuthMode } from '../types/auth.types'
+import { AccessTokenStore, accessTokenStore } from './access-token.store'
 
 export class AuthInterceptor {
+  constructor(private readonly tokens: AccessTokenStore = accessTokenStore) {}
+
   /**
    * Get headers with optional Authorization token
    *
    * @param skipContentType - If true, skips setting Content-Type header (for FormData uploads)
    */
-  getHeaders(skipContentType = false): HeadersInit {
+  getHeaders(
+    skipContentType = false,
+    authMode: RequestAuthMode = 'required',
+    accessToken: string | null = this.tokens.getSnapshot().token,
+  ): HeadersInit {
     const headers: HeadersInit = {}
 
     // Only set Content-Type for non-FormData requests
@@ -19,46 +26,29 @@ export class AuthInterceptor {
       headers['Content-Type'] = 'application/json'
     }
 
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
+    if (authMode !== 'transport' && accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`
     }
 
     return headers
   }
 
   /**
-   * Handle authentication errors and auth-state cleanup
-   */
-  handleAuthError(status: number, endpoint: string): void {
-    // Handle authentication errors ONLY for protected endpoints
-    if (status === 401) {
-      // Don't redirect if this is a login/register attempt (wrong credentials)
-      const normalizedEndpoint = endpoint.split('?')[0]
-      const isAuthEndpoint = normalizedEndpoint === '/auth/login' || normalizedEndpoint === '/users'
-
-      if (!isAuthEndpoint) {
-        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
-
-        // Dispatch custom event for auth context to handle
-        window.dispatchEvent(new CustomEvent('auth:unauthorized'))
-      }
-    }
-  }
-
-  /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN)
-    return !!token
+    return this.tokens.getSnapshot().token !== null
+  }
+
+  getAccessSnapshot() {
+    return this.tokens.getSnapshot()
   }
 
   /**
    * Clear authentication data
    */
   clearAuth(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN)
+    this.tokens.clear()
   }
 }
 

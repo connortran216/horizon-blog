@@ -1,11 +1,19 @@
 import { getRuntimeConfig } from '../../../config/runtime'
 
 export const normalizeRedirectTo = (value?: string | null) => {
-  if (!value) {
+  const candidate = value?.trim()
+  if (!candidate || !candidate.startsWith('/') || candidate.startsWith('//')) {
     return '/'
   }
 
-  return value.startsWith('/') ? value : '/'
+  try {
+    const parsed = new URL(candidate, 'https://horizon.invalid')
+    return parsed.origin === 'https://horizon.invalid'
+      ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+      : '/'
+  } catch {
+    return '/'
+  }
 }
 
 export const buildGoogleSsoStartUrl = (redirectTo?: string | null) => {
@@ -20,7 +28,6 @@ export const parseOAuthCallbackFragment = (hash: string) => {
   const params = new URLSearchParams(fragment)
 
   return {
-    token: params.get('token'),
     redirectTo: normalizeRedirectTo(params.get('redirect_to')),
     error: params.get('error'),
   }

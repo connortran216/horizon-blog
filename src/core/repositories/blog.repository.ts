@@ -32,6 +32,7 @@ import {
   ApiRelatedPostsResponse,
 } from '../types/blog-service.types'
 import { ApiError, apiService } from '../services/api.service'
+import { ApiRequestOptions } from '../types/auth.types'
 import {
   extractFirstImageFromMarkdown,
   mapApiPostSummaryToBlogSummary,
@@ -51,6 +52,11 @@ const DEFAULT_CONFIG: RepositoryConfig = {
   cache: DEFAULT_CACHE_CONFIG,
   retryAttempts: 3,
   retryDelay: 1000,
+}
+
+const PUBLIC_OPTIONAL_AUTH: ApiRequestOptions = {
+  authMode: 'optional',
+  allowGuestFallback: true,
 }
 
 /**
@@ -248,6 +254,7 @@ export class ApiBlogRepository implements IBlogRepository {
       const response = await apiService.get<ApiListPostSummariesResponse>(
         '/posts/summaries',
         params,
+        PUBLIC_OPTIONAL_AUTH,
       )
 
       const posts = response.data.map(mapApiPostSummaryToBlogSummary)
@@ -297,11 +304,15 @@ export class ApiBlogRepository implements IBlogRepository {
         }
       }
 
-      const response = await apiService.get<ApiListPostSummariesResponse>('/posts/summaries', {
-        page: options.page,
-        limit: options.limit,
-        status: 'published',
-      })
+      const response = await apiService.get<ApiListPostSummariesResponse>(
+        '/posts/summaries',
+        {
+          page: options.page,
+          limit: options.limit,
+          status: 'published',
+        },
+        PUBLIC_OPTIONAL_AUTH,
+      )
       const summariesPage = this.normalizePostSummariesPage(response)
       this.setCache(cacheKey, summariesPage)
       this.lastUpdate = new Date()
@@ -348,11 +359,15 @@ export class ApiBlogRepository implements IBlogRepository {
         }
       }
 
-      const response = await apiService.get<ApiListPostsResponse>('/posts', {
-        page: options.page,
-        limit: options.limit,
-        status: 'published',
-      })
+      const response = await apiService.get<ApiListPostsResponse>(
+        '/posts',
+        {
+          page: options.page,
+          limit: options.limit,
+          status: 'published',
+        },
+        PUBLIC_OPTIONAL_AUTH,
+      )
       const postsPage = this.normalizePublicPostsPage(response)
 
       this.setCache(cacheKey, postsPage)
@@ -392,7 +407,11 @@ export class ApiBlogRepository implements IBlogRepository {
         return { success: true, data: cached }
       }
 
-      const response = await apiService.get<{ data: BlogPost }>(`/posts/${id}`)
+      const response = await apiService.get<{ data: BlogPost }>(
+        `/posts/${id}`,
+        undefined,
+        PUBLIC_OPTIONAL_AUTH,
+      )
 
       // Transform API data if needed
       const post = this.transformFullPost(response.data)
@@ -422,7 +441,11 @@ export class ApiBlogRepository implements IBlogRepository {
         return { success: true, data: cached }
       }
 
-      const response = await apiService.get<{ data: ApiBlogPost }>(`/posts/${id}`)
+      const response = await apiService.get<{ data: ApiBlogPost }>(
+        `/posts/${id}`,
+        undefined,
+        PUBLIC_OPTIONAL_AUTH,
+      )
       const post = this.normalizePublicPost(response.data)
 
       this.setCache(cacheKey, post)
@@ -451,9 +474,11 @@ export class ApiBlogRepository implements IBlogRepository {
         return { success: true, data: cached }
       }
 
-      const response = await apiService.get<ApiRelatedPostsResponse>(`/posts/${postId}/related`, {
-        limit,
-      })
+      const response = await apiService.get<ApiRelatedPostsResponse>(
+        `/posts/${postId}/related`,
+        { limit },
+        PUBLIC_OPTIONAL_AUTH,
+      )
       const items = response.data.map((item) => ({
         post: mapApiPostSummaryToBlogSummary(item.post),
         score: item.score,
@@ -598,7 +623,11 @@ export class ApiBlogRepository implements IBlogRepository {
       }
 
       const params: Record<string, unknown> = { author: username, ...options }
-      const response = await apiService.get<ApiListPostsResponse>('/posts', params)
+      const response = await apiService.get<ApiListPostsResponse>(
+        '/posts',
+        params,
+        PUBLIC_OPTIONAL_AUTH,
+      )
 
       const posts = response.data.map((post) => this.transformPostForDisplay(post))
 
@@ -746,6 +775,8 @@ export class ApiBlogRepository implements IBlogRepository {
 
       const response = await apiService.get<ApiPublicAuthorProfileResponse>(
         `/users/${authorId}/public-profile`,
+        undefined,
+        PUBLIC_OPTIONAL_AUTH,
       )
       const profile = this.normalizePublicAuthorProfile(response.data)
 
@@ -798,6 +829,7 @@ export class ApiBlogRepository implements IBlogRepository {
           page,
           limit,
         },
+        PUBLIC_OPTIONAL_AUTH,
       )
       const postsPage = this.normalizePublicAuthorPosts(response)
 
@@ -842,7 +874,11 @@ export class ApiBlogRepository implements IBlogRepository {
       }
 
       const params: Record<string, unknown> = { q: query, ...options }
-      const response = await apiService.get<ApiListPostsResponse>('/search/posts', params)
+      const response = await apiService.get<ApiListPostsResponse>(
+        '/search/posts',
+        params,
+        PUBLIC_OPTIONAL_AUTH,
+      )
 
       const posts = response.data.map((post) => this.transformPostForDisplay(post))
 
@@ -888,12 +924,16 @@ export class ApiBlogRepository implements IBlogRepository {
         }
       }
 
-      const response = await apiService.get<ApiListPostsResponse>('/search/posts', {
-        q: options.q || undefined,
-        tags: options.tags?.join(',') || undefined,
-        page: options.page,
-        limit: options.limit,
-      })
+      const response = await apiService.get<ApiListPostsResponse>(
+        '/search/posts',
+        {
+          q: options.q || undefined,
+          tags: options.tags?.join(',') || undefined,
+          page: options.page,
+          limit: options.limit,
+        },
+        PUBLIC_OPTIONAL_AUTH,
+      )
       const postsPage = this.normalizePublicPostsPage(response)
 
       this.setCache(cacheKey, postsPage)
@@ -932,6 +972,7 @@ export class ApiBlogRepository implements IBlogRepository {
       const response = await apiService.get<{ data: PublicPostTag[]; total: number }>(
         '/tags/popular',
         { limit },
+        PUBLIC_OPTIONAL_AUTH,
       )
 
       this.setCache(cacheKey, response.data)

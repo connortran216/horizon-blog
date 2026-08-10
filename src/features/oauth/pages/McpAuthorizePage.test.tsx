@@ -6,21 +6,16 @@ import theme from '../../../theme'
 import { McpAuthorizationSuccess } from './McpAuthorizePage'
 
 describe('McpAuthorizationSuccess', () => {
-  it('shows a successful authentication message and copyable bearer token', () => {
+  it('shows a successful authentication message without exposing a bearer token', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>
-        <McpAuthorizationSuccess
-          bearerToken="Bearer fallback-jwt"
-          copied={false}
-          onCopy={() => undefined}
-          onReturnToClient={() => undefined}
-        />
+        <McpAuthorizationSuccess onReturnToClient={() => undefined} />
       </ChakraProvider>,
     )
 
     expect(markup).toContain('Authentication successful')
-    expect(markup).toContain('Bearer fallback-jwt')
-    expect(markup).toContain('Copy token')
     expect(markup).toContain('Return to MCP client')
+    expect(markup).not.toContain('Bearer fallback-jwt')
+    expect(markup).not.toContain('Copy token')
   })
 })

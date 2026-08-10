@@ -40,11 +40,12 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 - `BE_HOST` overrides backend host.
 - Local development currently targets `https://blog-api.connortran.io.vn` unless configured otherwise.
 - `apiService` uses JSON by default, handles FormData uploads, parses JSON bodies, handles 204, and throws `ApiError` on non-2xx responses.
-- Auth interceptor adds `Authorization: Bearer <token>` and dispatches unauthorized behavior on 401.
+- `apiService` reads the access token from the in-memory store, includes browser credentials, and retries an original request at most once after coordinated refresh.
+- `401` may enter the refresh flow; `403` is Authorization denial and must not refresh, clear auth, or silently retry as guest.
 
 ## Observed Endpoints
 
-- Auth: `POST /auth/login`, `GET /auth/providers/google/start`, `POST /auth/forgot-password`, `POST /auth/reset-password`.
+- Auth: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/providers/google/start`, `POST /auth/forgot-password`, `POST /auth/reset-password`.
 - Users: `POST /users`, `GET /users/me`, `PATCH /users/me`, avatar upload/delete endpoints.
 - Posts: `GET /posts`, `GET /posts/:id`, `POST /posts`, `PUT /posts/:id`, `PATCH /posts/:id`, `DELETE /posts/:id`, `GET /posts/search`, `GET /users/me/posts`.
 - Authors: `GET /users/:id/public-profile`, `GET /users/:id/posts`.
@@ -53,12 +54,15 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 
 ## Auth
 
-- Token key: `horizon_blog_token`.
-- Reserved keys: `horizon_blog_user`, `horizon_blog_refresh_token`.
-- Login validates credentials, posts email/password, stores JWT, decodes initial user data, then refreshes `/users/me` on session restore.
-- Google OpenID returns to `/login/callback` with `token`, `redirect_to`, and optional `error` in URL hash.
+- Access tokens live only in `AccessTokenStore` memory. Do not add localStorage, sessionStorage, IndexedDB, URL, or analytics persistence.
+- The backend owns the opaque refresh token in a host-only HttpOnly cookie; frontend code never reads, copies, logs, or deletes it directly.
+- Auth bootstrap starts loading, coordinates `POST /auth/refresh`, then loads `/users/me`; public pages settle signed out when no session exists.
+- Same-context refresh is single-flight. Same-origin tabs coordinate strict rotation through Web Locks and BroadcastChannel and share only ephemeral access/logout state.
+- Login and registration install the returned `access_token` in memory. The temporary `token` response alias is rollout compatibility only.
+- Google OpenID returns to `/login/callback` without Horizon credentials; the callback waits for normal cookie-backed session restoration.
 - Register sends `name`, `email`, and `password` to `POST /users`.
-- Session restore removes invalid/expired tokens.
+- Logout calls the server and clears memory in `finally`; network failure means local sign-out is certain but server revocation is not.
+- The legacy `horizon_blog_token` key is removed during bootstrap and is never exchanged for a long-lived session.
 - Forgot/reset password use the corresponding auth endpoints.
 - Reset token should stay in page state only.
 
@@ -66,4 +70,3 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 
 - CV/resume: user-provided resume text/PDF is source of truth. Improve wording but do not invent employers, dates, responsibilities, metrics, or outcomes.
 - About page: frame Horizon around curiosity, useful notes, and endless learning. Avoid manifesto, defensive, or overly corporate language unless requested.
-

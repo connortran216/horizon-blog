@@ -1,10 +1,7 @@
-/**
- * API Service - Handles HTTP requests
- * Authentication logic is handled by AuthInterceptor
- */
-
 import { getRuntimeConfig } from '../../config/runtime'
-import { authInterceptor } from './auth.interceptor'
+import { ApiRequestOptions, RequestAuthMode } from '../types/auth.types'
+import { authInterceptor, AuthInterceptor } from './auth.interceptor'
+import { authSessionService } from './auth-session.service'
 
 export class ApiError extends Error {
   constructor(
@@ -16,154 +13,144 @@ export class ApiError extends Error {
   }
 }
 
+interface SessionRefreshPort {
+  refreshAccessToken(): Promise<string>
+}
+
+type Fetcher = typeof fetch
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
+interface InternalRequest {
+  method: HttpMethod
+  endpoint: string
+  params?: Record<string, unknown>
+  data?: unknown
+  options?: ApiRequestOptions
+}
+
 export class ApiService {
-  private baseUrl: string
+  constructor(
+    private readonly baseUrl: string = getRuntimeConfig().beHost,
+    private readonly interceptor: AuthInterceptor = authInterceptor,
+    private readonly sessions: SessionRefreshPort = authSessionService,
+    private readonly fetcher: Fetcher = fetch,
+  ) {}
 
-  constructor() {
-    // Get base URL from runtime configuration
-    this.baseUrl = getRuntimeConfig().beHost
+  get<T>(
+    endpoint: string,
+    params?: Record<string, unknown>,
+    options?: ApiRequestOptions,
+  ): Promise<T> {
+    return this.request<T>({ method: 'GET', endpoint, params, options })
   }
 
-  /**
-   * Get headers with optional Authorization token
-   *
-   * @param skipContentType - If true, skips setting Content-Type header (for FormData uploads)
-   */
-  private getHeaders(skipContentType = false): HeadersInit {
-    return authInterceptor.getHeaders(skipContentType)
+  post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+    return this.request<T>({ method: 'POST', endpoint, data, options })
   }
 
-  /**
-   * Generic GET request
-   */
-  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
+  put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+    return this.request<T>({ method: 'PUT', endpoint, data, options })
+  }
+
+  delete<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+    return this.request<T>({ method: 'DELETE', endpoint, data, options })
+  }
+
+  patch<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+    return this.request<T>({ method: 'PATCH', endpoint, data, options })
+  }
+
+  private async request<T>(request: InternalRequest): Promise<T> {
+    const authMode = request.options?.authMode ?? 'required'
+    const attempted = this.interceptor.getAccessSnapshot()
+    const response = await this.send(request, authMode, attempted.token)
+
+    if (response.status !== 401 || authMode === 'transport' || !attempted.token) {
+      return this.handleResponse<T>(response)
+    }
+
+    const current = this.interceptor.getAccessSnapshot()
+    if (current.token && current.version !== attempted.version) {
+      return this.handleResponse<T>(await this.send(request, authMode, current.token))
+    }
+
+    try {
+      const refreshedToken = await this.sessions.refreshAccessToken()
+      return this.handleResponse<T>(await this.send(request, authMode, refreshedToken))
+    } catch {
+      if (authMode === 'optional' && request.options?.allowGuestFallback) {
+        return this.handleResponse<T>(await this.send(request, authMode, null))
+      }
+
+      return this.handleResponse<T>(response)
+    }
+  }
+
+  private send(
+    request: InternalRequest,
+    authMode: RequestAuthMode,
+    accessToken: string | null,
+  ): Promise<Response> {
+    const isFormData = request.data instanceof FormData
+    return this.fetcher(this.buildUrl(request.endpoint, request.params), {
+      method: request.method,
+      credentials: 'include',
+      headers: this.interceptor.getHeaders(isFormData, authMode, accessToken),
+      body: this.buildBody(request.data),
+      keepalive: request.options?.keepalive,
+    })
+  }
+
+  private buildUrl(endpoint: string, params?: Record<string, unknown>): string {
     const url = new URL(endpoint, this.baseUrl)
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined || value === null) {
-          return
-        }
-
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
         url.searchParams.append(key, String(value))
-      })
+      }
+    })
+    return url.toString()
+  }
+
+  private buildBody(data: unknown): BodyInit | undefined {
+    if (data === undefined) {
+      return undefined
     }
-
-    let response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: this.getHeaders(),
-    })
-
-    // If a stale token causes a 401 on a GET request, clear auth and retry once as guest.
-    if (response.status === 401 && authInterceptor.isAuthenticated()) {
-      authInterceptor.handleAuthError(response.status, endpoint)
-      response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: this.getHeaders(),
-      })
+    if (data instanceof FormData) {
+      const copy = new FormData()
+      data.forEach((value, key) => copy.append(key, value))
+      return copy
     }
-
-    return this.handleResponse<T>(response, endpoint)
+    return JSON.stringify(data)
   }
 
-  /**
-   * Generic POST request
-   */
-  async post<T>(endpoint: string, data?: unknown, options?: { keepalive?: boolean }): Promise<T> {
-    // Handle FormData differently (for file uploads)
-    const isFormData = data instanceof FormData
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
-      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
-      keepalive: options?.keepalive,
-    })
-
-    return this.handleResponse<T>(response, endpoint)
-  }
-
-  /**
-   * Generic PUT request
-   */
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    // Handle FormData differently (for file uploads)
-    const isFormData = data instanceof FormData
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PUT',
-      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
-      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
-    })
-
-    return this.handleResponse<T>(response, endpoint)
-  }
-
-  /**
-   * Generic DELETE request
-   */
-  async delete<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-    })
-
-    return this.handleResponse<T>(response, endpoint)
-  }
-
-  /**
-   * PATCH request
-   */
-  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    // Handle FormData differently (for file uploads)
-    const isFormData = data instanceof FormData
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PATCH',
-      headers: isFormData ? this.getHeaders(true) : this.getHeaders(),
-      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
-    })
-
-    return this.handleResponse<T>(response, endpoint)
-  }
-
-  /**
-   * Handle API response and errors
-   */
-  private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
+  private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}`
-
       try {
         const errorData = (await response.json()) as Record<string, unknown>
-
         if (typeof errorData.message === 'string' && errorData.message.length > 0) {
           errorMessage = errorData.message
         } else if (typeof errorData.error === 'string' && errorData.error.length > 0) {
           errorMessage = errorData.error
+        } else if (
+          typeof errorData.error === 'object' &&
+          errorData.error !== null &&
+          'message' in errorData.error &&
+          typeof errorData.error.message === 'string'
+        ) {
+          errorMessage = errorData.error.message
         }
       } catch {
-        // Response is not JSON, use status text
         errorMessage = response.statusText || errorMessage
       }
-
-      const error = new ApiError(errorMessage, response.status)
-
-      // Handle authentication errors using interceptor
-      authInterceptor.handleAuthError(response.status, endpoint)
-
-      throw error
+      throw new ApiError(errorMessage, response.status)
     }
 
-    // Handle successful responses
     if (response.status === 204) {
-      // No content response
       return {} as T
     }
-
-    return response.json()
+    return response.json() as Promise<T>
   }
 }
 
-// Export singleton instance
 export const apiService = new ApiService()

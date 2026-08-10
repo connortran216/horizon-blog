@@ -36,6 +36,7 @@ const Navbar = () => {
     content_markdown: string
     handlePublish?: () => Promise<boolean>
   }>({ title: '', content_markdown: '' })
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   useEffect(() => {
     const checkEditorState = () => {
@@ -49,9 +50,28 @@ const Navbar = () => {
     return () => clearInterval(interval)
   }, [])
 
-  const handleLogout = () => {
-    logout()
-    navigate('/')
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return
+    }
+
+    setIsLoggingOut(true)
+    try {
+      const result = await logout()
+      if (!result.serverRevoked) {
+        toast({
+          title: 'Signed out on this tab',
+          description:
+            'Server revocation could not be confirmed. Sign in again only after checking your connection.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        })
+      }
+      navigate('/')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   const handlePublish = async () => {
@@ -162,6 +182,7 @@ const Navbar = () => {
                   colorMode={colorMode}
                   onToggleColorMode={toggleColorMode}
                   onLogout={handleLogout}
+                  isLoggingOut={isLoggingOut}
                 />
               ) : (
                 <RouterLink to="/login">
