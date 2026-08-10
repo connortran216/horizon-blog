@@ -67,7 +67,7 @@ export class AuthTransport {
   }
 
   private async request<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await this.fetcher(`${this.baseUrl}${endpoint}`, {
+    const response = await this.fetcher.call(globalThis, `${this.baseUrl}${endpoint}`, {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',

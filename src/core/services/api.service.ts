@@ -92,7 +92,7 @@ export class ApiService {
     accessToken: string | null,
   ): Promise<Response> {
     const isFormData = request.data instanceof FormData
-    return this.fetcher(this.buildUrl(request.endpoint, request.params), {
+    return this.fetcher.call(globalThis, this.buildUrl(request.endpoint, request.params), {
       method: request.method,
       credentials: 'include',
       headers: this.interceptor.getHeaders(isFormData, authMode, accessToken),

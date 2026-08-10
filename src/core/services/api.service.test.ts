@@ -11,6 +11,27 @@ const jsonResponse = (status: number, body: unknown) =>
   })
 
 describe('ApiService authentication pipeline', () => {
+  it('calls a receiver-sensitive fetcher with the global receiver', async () => {
+    const fetcher = vi.fn(async function (
+      this: typeof globalThis,
+      _input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation')
+      }
+      return jsonResponse(200, { data: ['published'] })
+    })
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    await expect(api.get('/posts')).resolves.toEqual({ data: ['published'] })
+  })
+
   it('refreshes a 401 once and reconstructs a JSON mutation with the new token', async () => {
     const tokens = new AccessTokenStore()
     tokens.install('expired-token', 1)

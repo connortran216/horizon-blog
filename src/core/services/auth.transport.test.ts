@@ -13,6 +13,25 @@ const accessResponse = {
 describe('AuthTransport', () => {
   afterEach(() => vi.restoreAllMocks())
 
+  it('calls a receiver-sensitive fetcher with the global receiver', async () => {
+    const fetcher = vi.fn(async function (
+      this: typeof globalThis,
+      _input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation')
+      }
+      return new Response(JSON.stringify(accessResponse), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+    const transport = new AuthTransport('https://api.example.com', fetcher)
+
+    await expect(transport.refresh()).resolves.toEqual(accessResponse)
+  })
+
   it('uses credentialed raw fetch without an Authorization header', async () => {
     const fetcher = vi.fn().mockResolvedValue(
       new Response(JSON.stringify(accessResponse), {
