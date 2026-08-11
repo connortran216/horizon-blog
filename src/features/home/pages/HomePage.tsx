@@ -23,6 +23,7 @@ import {
   getBlogService,
 } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
+import { can } from '../../../core/authorization/authorization'
 import HeroArchivePreview from '../components/HeroArchivePreview'
 import StoryCard from '../components/StoryCard'
 
@@ -38,6 +39,7 @@ const HomePage = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPostSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { user } = useAuth()
+  const canWrite = can(user?.authorization, 'content:manage:own')
 
   useEffect(() => {
     const loadBlogPosts = async () => {
@@ -140,14 +142,20 @@ const HomePage = () => {
                     </Button>
                     <Link
                       as={RouterLink}
-                      to={user ? '/blog-editor' : '/register'}
+                      to={
+                        canWrite ? '/blog-editor' : user ? `/profile/${user.username}` : '/register'
+                      }
                       color="text.secondary"
                       fontSize={{ base: 'lg', md: 'xl' }}
                       fontWeight="semibold"
                       textDecoration="none"
                       _hover={{ color: 'text.primary', textDecoration: 'none' }}
                     >
-                      {user ? 'Write your next blog' : 'Create an account'}
+                      {canWrite
+                        ? 'Write your next blog'
+                        : user
+                          ? 'View your profile'
+                          : 'Create an account'}
                     </Link>
                   </HStack>
 
@@ -194,13 +202,13 @@ const HomePage = () => {
                   </Text>
                   <Button
                     as={RouterLink}
-                    to={user ? '/blog-editor' : '/register'}
+                    to={canWrite ? '/blog-editor' : user ? '/blog' : '/register'}
                     mt={6}
                     bg="action.primary"
                     color="white"
                     _hover={{ bg: 'action.hover' }}
                   >
-                    {user ? 'Start writing' : 'Join Horizon'}
+                    {canWrite ? 'Start writing' : user ? 'Explore the blog' : 'Join Horizon'}
                   </Button>
                 </Box>
               </MotionWrapper>

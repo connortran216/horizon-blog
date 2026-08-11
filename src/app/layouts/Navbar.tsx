@@ -22,6 +22,7 @@ import '../../features/editor/editor.window'
 import NavLinkButton from './NavLinkButton'
 import UserMenu from './UserMenu'
 import { SITE_LINKS } from './nav-links'
+import { can } from '../../core/authorization/authorization'
 
 const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure()
@@ -37,6 +38,7 @@ const Navbar = () => {
     handlePublish?: () => Promise<boolean>
   }>({ title: '', content_markdown: '' })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const canWrite = can(user?.authorization, 'content:manage:own')
 
   useEffect(() => {
     const checkEditorState = () => {
@@ -168,10 +170,10 @@ const Navbar = () => {
 
           <MotionWrapper variant="fadeInRight" delay={0.4}>
             <Flex alignItems="center" gap={4}>
-              {user && !isEditorPage ? (
+              {user && canWrite && !isEditorPage ? (
                 <NavLinkButton to="/blog-editor">Write</NavLinkButton>
               ) : null}
-              {user && isEditorPage ? (
+              {user && canWrite && isEditorPage ? (
                 <AnimatedPrimaryButton onClick={handlePublish} mr={2}>
                   Publish
                 </AnimatedPrimaryButton>

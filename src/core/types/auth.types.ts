@@ -1,4 +1,5 @@
 import { User } from './common.types'
+import { AuthorizationContext } from '../authorization/authorization'
 
 /**
  * Authentication-specific types and interfaces
@@ -39,6 +40,7 @@ export interface ApiAuthenticatedUser {
   name: string
   created_at?: string
   updated_at?: string
+  authorization?: AuthorizationContext
 }
 
 export interface AuthAccessResponse {

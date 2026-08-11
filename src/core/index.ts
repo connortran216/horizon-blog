@@ -8,6 +8,7 @@ export * from './types/common.types'
 export * from './types/blog.types'
 export * from './types/auth.types'
 export * from './types/profile.types'
+export * from './authorization/authorization'
 
 // Services
 export * from './services/api.service'

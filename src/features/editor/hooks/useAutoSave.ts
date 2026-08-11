@@ -13,6 +13,7 @@ interface UseAutoSaveOptions {
   autoSaveDelay?: number // Auto-save delay in milliseconds (default: 5000)
   localSaveDelay?: number // Local storage delay in milliseconds (default: 1000)
   enabled?: boolean // Enable/disable auto-save (default: true)
+  onPermissionLost?: () => void | Promise<unknown>
 }
 
 interface AutoSaveState {
@@ -20,6 +21,25 @@ interface AutoSaveState {
   saveStatus: 'saved' | 'saving' | 'error'
   lastSaved?: Date
   validationMessage?: string
+  permissionLost: boolean
+}
+
+interface PermissionLossRecovery {
+  preserveDraft: () => void
+  stopBackendSave: () => void
+  refreshAuthorization?: () => void | Promise<unknown>
+}
+
+export const recoverFromPermissionLoss = async (
+  error: unknown,
+  recovery: PermissionLossRecovery,
+): Promise<boolean> => {
+  if (!(error instanceof ApiError) || error.status !== 403) return false
+
+  recovery.preserveDraft()
+  recovery.stopBackendSave()
+  await recovery.refreshAuthorization?.()
+  return true
 }
 
 export function useAutoSave(
@@ -30,15 +50,17 @@ export function useAutoSave(
   postId: number | null,
   options: UseAutoSaveOptions = {},
 ) {
-  const { autoSaveDelay = 5000, localSaveDelay = 1000, enabled = true } = options
+  const { autoSaveDelay = 5000, localSaveDelay = 1000, enabled = true, onPermissionLost } = options
   const [currentPostId, setCurrentPostId] = useState<number | null>(postId)
   const postIdRef = useRef<number | null>(postId)
   const createInFlightRef = useRef<Promise<number | null> | null>(null)
+  const permissionLostRef = useRef(false)
 
   // State management
   const [state, setState] = useState<AutoSaveState>({
     isSaving: false,
     saveStatus: 'saved',
+    permissionLost: false,
   })
 
   // Refs for timers
@@ -98,9 +120,27 @@ export function useAutoSave(
     }
   }, [title, contentMarkdown, contentJSON, tags])
 
+  const handlePermissionLost = useCallback(
+    (error: unknown) =>
+      recoverFromPermissionLoss(error, {
+        preserveDraft: saveToLocalStorage,
+        stopBackendSave: () => {
+          permissionLostRef.current = true
+          setState((prev) => ({
+            ...prev,
+            saveStatus: 'error',
+            isSaving: false,
+            permissionLost: true,
+          }))
+        },
+        refreshAuthorization: onPermissionLost,
+      }),
+    [onPermissionLost, saveToLocalStorage],
+  )
+
   // Backend auto-save
   const saveToBackend = useCallback(async () => {
-    if (!title.trim() || !contentMarkdown) return
+    if (!title.trim() || !contentMarkdown || permissionLostRef.current) return
 
     setState((prev) => ({ ...prev, saveStatus: 'saving', isSaving: true }))
 
@@ -140,12 +180,16 @@ export function useAutoSave(
         saveStatus: 'saved',
         lastSaved: new Date(),
         validationMessage: undefined,
+        permissionLost: false,
       })
 
       // Return the updated post ID in case it was newly created
       return updatedPostId
     } catch (error) {
       console.error('Error auto-saving to backend:', error)
+      if (await handlePermissionLost(error)) {
+        return null
+      }
       setValidationState(error)
       setState((prev) => ({
         ...prev,
@@ -156,7 +200,7 @@ export function useAutoSave(
       // Don't show toast for auto-save errors to avoid interrupting user
       return null
     }
-  }, [buildEditorPostInput, contentMarkdown, setValidationState, title])
+  }, [buildEditorPostInput, contentMarkdown, handlePermissionLost, setValidationState, title])
 
   // Manual publish function (extracted from original component)
   const publishPost = useCallback(async () => {
@@ -201,6 +245,7 @@ export function useAutoSave(
         return publishedPost
       }
     } catch (error: unknown) {
+      await handlePermissionLost(error)
       setValidationState(error)
       if (error instanceof Error) {
         throw error
@@ -208,7 +253,7 @@ export function useAutoSave(
 
       throw new Error(`Failed to ${postIdRef.current ? 'update' : 'publish'} blog post`)
     }
-  }, [buildEditorPostInput, contentMarkdown, setValidationState, title])
+  }, [buildEditorPostInput, contentMarkdown, handlePermissionLost, setValidationState, title])
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {
@@ -229,7 +274,9 @@ export function useAutoSave(
 
     // Set new timers
     localSaveTimer.current = setTimeout(saveToLocalStorage, localSaveDelay)
-    autoSaveTimer.current = setTimeout(saveToBackend, autoSaveDelay)
+    if (!state.permissionLost) {
+      autoSaveTimer.current = setTimeout(saveToBackend, autoSaveDelay)
+    }
 
     return () => {
       if (localSaveTimer.current) {
@@ -239,7 +286,14 @@ export function useAutoSave(
         clearTimeout(autoSaveTimer.current)
       }
     }
-  }, [saveToLocalStorage, saveToBackend, enabled, localSaveDelay, autoSaveDelay])
+  }, [
+    saveToLocalStorage,
+    saveToBackend,
+    enabled,
+    localSaveDelay,
+    autoSaveDelay,
+    state.permissionLost,
+  ])
 
   // Public API
   return {
@@ -249,6 +303,7 @@ export function useAutoSave(
     lastSaved: state.lastSaved,
     currentPostId,
     validationMessage: state.validationMessage,
+    permissionLost: state.permissionLost,
 
     // Methods
     saveToBackend,
@@ -258,6 +313,7 @@ export function useAutoSave(
     // Status helpers
     getSaveStatusText: () => {
       if (state.isSaving || state.saveStatus === 'saving') return 'Saving...'
+      if (state.permissionLost) return 'Access changed — saved locally'
       if (state.saveStatus === 'error') return 'Save failed'
       if (postIdRef.current) return 'Draft saved'
       return 'Draft'

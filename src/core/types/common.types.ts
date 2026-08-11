@@ -2,6 +2,8 @@
  * Common types and interfaces used across the application
  */
 
+import { AuthorizationContext } from '../authorization/authorization'
+
 // Base entity interface for all domain objects
 export interface BaseEntity {
   id: string
@@ -18,6 +20,7 @@ export interface User {
   bio?: string
   website?: string
   location?: string
+  authorization?: AuthorizationContext
 }
 
 // Author information for blog posts

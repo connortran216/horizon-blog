@@ -7,6 +7,7 @@ import {
   UpdateUserProfileRequest,
   UserProfile,
 } from '../types/profile.types'
+import { isAuthorizationContext } from '../authorization/authorization'
 
 const normalizeOptionalText = (value?: string | null): string | undefined => {
   if (typeof value !== 'string') return undefined
@@ -40,6 +41,9 @@ export class ApiProfileRepository implements IProfileRepository {
       website: normalizeOptionalText(apiProfile.website),
       location: normalizeOptionalText(apiProfile.location),
       avatarUrl: normalizeAvatarUrl(apiProfile.avatar_url),
+      authorization: isAuthorizationContext(apiProfile.authorization)
+        ? apiProfile.authorization
+        : undefined,
     }
   }
 

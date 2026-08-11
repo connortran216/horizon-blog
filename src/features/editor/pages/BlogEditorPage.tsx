@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   Badge,
+  Alert,
+  AlertDescription,
+  AlertIcon,
   Box,
   Container,
   FormControl,
@@ -26,7 +29,7 @@ import EditorWorkspace from '../components/EditorWorkspace'
 import '../editor.window'
 
 const BlogEditorPage = () => {
-  useAuth()
+  const { refreshUserProfile } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
   const [tabIndex, setTabIndex] = useState(0)
@@ -49,6 +52,7 @@ const BlogEditorPage = () => {
     editorContent.contentJSON,
     editorContent.tags,
     postId,
+    { onPermissionLost: refreshUserProfile },
   )
 
   const ensurePostId = useCallback(async (): Promise<number | null> => {
@@ -221,6 +225,15 @@ const BlogEditorPage = () => {
                 px={{ base: 6, md: 8 }}
                 py={{ base: 6, md: 8 }}
               >
+                {autoSave.permissionLost ? (
+                  <Alert status="warning" borderRadius="xl" alignItems="flex-start">
+                    <AlertIcon mt={1} />
+                    <AlertDescription>
+                      Your writing permission changed. Automatic server saves have stopped, but this
+                      draft remains saved in this browser so you can copy or recover it.
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
                 <FormControl>
                   <FormLabel
                     htmlFor="blog-title"

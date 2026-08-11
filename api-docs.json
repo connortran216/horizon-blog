@@ -41,6 +41,135 @@
                 }
             }
         },
+        "/admin/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "authorization"
+                ],
+                "summary": "List private user role assignments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role filter",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email or name search",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ListRoleAssignmentsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/{user_id}/role": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "authorization"
+                ],
+                "summary": "Assign a supported role",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Role assignment",
+                        "name": "role",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schemas.AssignRoleInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.AssignRoleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/analytics/events/batch": {
             "post": {
                 "tags": [
@@ -3085,6 +3214,30 @@
                 }
             }
         },
+        "schemas.AssignRoleInput": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "example": "author"
+                }
+            }
+        },
+        "schemas.AssignRoleResponse": {
+            "type": "object",
+            "properties": {
+                "changed": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "data": {
+                    "$ref": "#/definitions/schemas.RoleAssignmentData"
+                }
+            }
+        },
         "schemas.AuthResponse": {
             "type": "object",
             "properties": {
@@ -3111,6 +3264,26 @@
                 "token_type": {
                     "type": "string",
                     "example": "Bearer"
+                }
+            }
+        },
+        "schemas.AuthorizationData": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "profile:manage:self",
+                        "comments:participate",
+                        "content:manage:own"
+                    ]
+                },
+                "role": {
+                    "type": "string",
+                    "example": "author"
                 }
             }
         },
@@ -3545,6 +3718,29 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "schemas.ListRoleAssignmentsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.RoleAssignmentData"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -4106,6 +4302,27 @@
                 }
             }
         },
+        "schemas.RoleAssignmentData": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "author@example.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Example Author"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "author"
+                }
+            }
+        },
         "schemas.SchedulePostRequest": {
             "type": "object",
             "required": [
@@ -4316,6 +4533,9 @@
         "schemas.UserData": {
             "type": "object",
             "properties": {
+                "authorization": {
+                    "$ref": "#/definitions/schemas.AuthorizationData"
+                },
                 "bio": {
                     "type": "string",
                     "example": "Backend engineer and blogger"
@@ -4353,6 +4573,9 @@
         "schemas.UserProfileData": {
             "type": "object",
             "properties": {
+                "authorization": {
+                    "$ref": "#/definitions/schemas.AuthorizationData"
+                },
                 "avatar_url": {
                     "type": "string",
                     "example": "https://minio.example.com/..."

@@ -2,6 +2,7 @@ import { Avatar, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
 import { MoonIcon, SunIcon } from '@chakra-ui/icons'
 import { Link as RouterLink } from 'react-router-dom'
 import { User } from '../../core'
+import { can } from '../../core/authorization/authorization'
 
 interface UserMenuProps {
   user: User
@@ -18,6 +19,9 @@ const UserMenu = ({
   onLogout,
   isLoggingOut,
 }: UserMenuProps) => {
+  const canReadAnalytics = can(user.authorization, 'analytics:read:own')
+  const canAssignRoles = can(user.authorization, 'roles:assign')
+
   return (
     <Menu>
       <MenuButton>
@@ -27,9 +31,16 @@ const UserMenu = ({
         <MenuItem as={RouterLink} to={`/profile/${user.username}`}>
           Profile
         </MenuItem>
-        <MenuItem as={RouterLink} to="/analytics">
-          Analytics
-        </MenuItem>
+        {canReadAnalytics ? (
+          <MenuItem as={RouterLink} to="/analytics">
+            Analytics
+          </MenuItem>
+        ) : null}
+        {canAssignRoles ? (
+          <MenuItem as={RouterLink} to="/admin/access">
+            Access management
+          </MenuItem>
+        ) : null}
         <MenuItem
           onClick={onToggleColorMode}
           icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}

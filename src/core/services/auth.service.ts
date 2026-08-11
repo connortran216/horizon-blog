@@ -12,6 +12,7 @@ import {
 } from '../types/auth.types'
 import { AuthSessionService, authSessionService } from './auth-session.service'
 import { AuthTransport, AuthTransportError, authTransport } from './auth.transport'
+import { isAuthorizationContext } from '../authorization/authorization'
 
 export class AuthService implements IAuthService {
   constructor(
@@ -153,6 +154,9 @@ export class AuthService implements IAuthService {
       id: apiUser.id,
       username: apiUser.name,
       email: apiUser.email,
+      authorization: isAuthorizationContext(apiUser.authorization)
+        ? apiUser.authorization
+        : undefined,
     }
   }
 }

@@ -22,6 +22,9 @@ const BlogDetail = lazy(() => import('./pages/BlogDetail'))
 const ProfileBlogDetail = lazy(() => import('./pages/ProfileBlogDetail'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const BlogAnalytics = lazy(() => import('./pages/BlogAnalytics'))
+const AccessManagement = lazy(
+  () => import('./features/access-management/pages/AccessManagementPage'),
+)
 
 const Routes = () => {
   return (
@@ -51,7 +54,7 @@ const Routes = () => {
         <Route
           path="/blog-editor"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="content:manage:own">
               <BlogEditor />
             </ProtectedRoute>
           }
@@ -59,7 +62,7 @@ const Routes = () => {
         <Route
           path="/blog-editor/publish"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="content:manage:own">
               <PublishBlog />
             </ProtectedRoute>
           }
@@ -67,7 +70,7 @@ const Routes = () => {
         <Route
           path="/profile/:username"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="analytics:read:own">
               <Profile />
             </ProtectedRoute>
           }
@@ -75,7 +78,7 @@ const Routes = () => {
         <Route
           path="/profile/:username/blog/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="analytics:read:own">
               <ProfileBlogDetail />
             </ProtectedRoute>
           }
@@ -93,6 +96,14 @@ const Routes = () => {
           element={
             <ProtectedRoute>
               <BlogAnalytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/access"
+          element={
+            <ProtectedRoute requiredPermission="roles:assign">
+              <AccessManagement />
             </ProtectedRoute>
           }
         />

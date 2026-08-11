@@ -10,6 +10,7 @@ export interface ApiUserProfile {
   website?: string | null
   location?: string | null
   avatar_url?: string | null
+  authorization?: AuthorizationContext
 }
 
 export interface ApiUserProfileResponse {
@@ -25,6 +26,7 @@ export interface UserProfile {
   website?: string
   location?: string
   avatarUrl?: string
+  authorization?: AuthorizationContext
 }
 
 export interface UpdateUserProfileRequest {
@@ -36,3 +38,4 @@ export interface UpdateUserProfileRequest {
 
 export const AVATAR_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024
 export const ALLOWED_AVATAR_MIME_TYPES = ['image/jpeg', 'image/png'] as const
+import { AuthorizationContext } from '../authorization/authorization'

@@ -22,6 +22,7 @@ import { FiArrowRight, FiEdit3, FiMapPin, FiGlobe, FiMail } from 'react-icons/fi
 import { Link as RouterLink } from 'react-router-dom'
 import { AnimatedCard, AnimatedGhostButton } from '../../../core'
 import { UserProfile } from '../../../core/types/profile.types'
+import { can } from '../../../core/authorization/authorization'
 
 interface ProfileHeaderCardProps {
   profile: UserProfile | null
@@ -52,6 +53,7 @@ const ProfileHeaderCard = ({
   onSelectAvatar,
   onAvatarChange,
 }: ProfileHeaderCardProps) => {
+  const canWrite = can(profile?.authorization, 'content:manage:own')
   return (
     <AnimatedCard
       overflow="hidden"
@@ -106,17 +108,19 @@ const ProfileHeaderCard = ({
               </Badge>
 
               <HStack spacing={3} flexWrap="wrap">
-                <Button
-                  as={RouterLink}
-                  to="/blog-editor"
-                  bg="action.primary"
-                  color="white"
-                  _hover={{ bg: 'action.hover' }}
-                  rightIcon={<FiArrowRight />}
-                  borderRadius="full"
-                >
-                  Write a blog
-                </Button>
+                {canWrite ? (
+                  <Button
+                    as={RouterLink}
+                    to="/blog-editor"
+                    bg="action.primary"
+                    color="white"
+                    _hover={{ bg: 'action.hover' }}
+                    rightIcon={<FiArrowRight />}
+                    borderRadius="full"
+                  >
+                    Write a blog
+                  </Button>
+                ) : null}
                 <AnimatedGhostButton
                   px={5}
                   py={2}

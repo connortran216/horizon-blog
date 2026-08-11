@@ -104,6 +104,7 @@ export class ProfileService implements IProfileService {
       bio: profile.bio,
       website: profile.website,
       location: profile.location,
+      authorization: profile.authorization,
     }
   }
 

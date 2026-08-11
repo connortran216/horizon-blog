@@ -49,6 +49,7 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 - Users: `POST /users`, `GET /users/me`, `PATCH /users/me`, avatar upload/delete endpoints.
 - Posts: `GET /posts`, `GET /posts/:id`, `POST /posts`, `PUT /posts/:id`, `PATCH /posts/:id`, `DELETE /posts/:id`, `GET /posts/search`, `GET /users/me/posts`.
 - Authors: `GET /users/:id/public-profile`, `GET /users/:id/posts`.
+- Authorization admin: `GET /admin/users`, `PATCH /admin/users/:user_id/role`.
 - Media/images: `POST /images/upload` and media endpoints in `src/features/media/media.api.ts`.
 - Public author links render as `/authors/:authorName` and carry `authorId` in router state because backend still resolves public author data by id.
 
@@ -65,6 +66,17 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 - The legacy `horizon_blog_token` key is removed during bootstrap and is never exchanged for a long-lived session.
 - Forgot/reset password use the corresponding auth endpoints.
 - Reset token should stay in page state only.
+
+## Authorization
+
+- The backend is authoritative. Frontend permission checks only gate routes and controls for a clearer experience.
+- Private login, registration, refresh, and `/users/me` data may include `authorization: { role, permissions }`; public user/profile DTOs must not expose it.
+- Supported roles are fixed: `member`, `author`, and `admin`. Unknown or missing authorization data denies protected UI capabilities by default.
+- Canonical permissions are `profile:manage:self`, `comments:participate`, `content:manage:own`, `analytics:read:own`, `comments:moderate:own`, `content:manage:any`, `taxonomy:manage`, and `roles:assign`.
+- Do not derive permissions from JWT claims. A role change takes effect when the backend resolves the current principal on the next protected request.
+- Editor and analytics routes require their matching permissions. `/admin/access` requires `roles:assign`.
+- A protected `403` keeps the user signed in. In the editor it also stops backend autosave, preserves a local draft, refreshes `/users/me`, and shows persistent access-loss guidance.
+- Comment actions continue to use backend-projected capability flags such as `can_edit`, `can_remove`, and `can_manage_comments`; do not duplicate comment ownership rules in the frontend.
 
 ## Content Pages
 

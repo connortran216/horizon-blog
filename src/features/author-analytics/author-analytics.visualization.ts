@@ -102,6 +102,14 @@ export const getAnalyticsErrorCopy = (
     }
   }
 
+  if (error.kind === 'forbidden') {
+    return {
+      title: 'Analytics access is not available',
+      description:
+        'You are still signed in, but this account does not currently have author analytics permission.',
+    }
+  }
+
   if (error.kind === 'not_found') {
     return {
       title: 'Analytics not found',
