@@ -22,6 +22,7 @@ const PRIVATE_PATHS = new Set([
   '/oauth/authorize',
   '/blog-editor',
   '/analytics',
+  '/admin/access',
 ]);
 
 const STATIC_PATHS = new Set(['/about', '/contact', '/cv']);
