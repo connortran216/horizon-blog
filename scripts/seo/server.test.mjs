@@ -191,6 +191,17 @@ describe('SEO HTTP gateway', () => {
     expect(privateHtml).not.toContain('data-seo-fallback="true"');
     expect(privateHtml).toContain('<script type="module" src="/assets/app.js"></script>');
     expect(privateHtml).not.toContain('data-horizon-entry-loader="deferred"');
+    expect(privateResponse.headers.get('cache-control')).toBe('no-store');
+
+    const verifyResponse = await fetch(`${baseUrl}/verify-email?token=selector.secret`, {
+      headers: browserHeaders,
+    });
+    const verifyHtml = await verifyResponse.text();
+    expect(verifyResponse.status).toBe(200);
+    expect(verifyResponse.headers.get('cache-control')).toBe('no-store');
+    expect(verifyHtml).toContain('<div id="root"></div>');
+    expect(verifyHtml).toContain('<script type="module" src="/assets/app.js"></script>');
+    expect(verifyHtml).not.toContain('selector.secret');
 
     const filteredResponse = await fetch(`${baseUrl}/blog?query=api&utm_source=test`, {
       headers: browserHeaders,

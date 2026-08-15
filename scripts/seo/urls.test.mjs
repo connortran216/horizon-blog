@@ -95,6 +95,7 @@ describe('SEO URL policy', () => {
       '/register',
       '/forgot-password',
       '/reset-password',
+      '/verify-email',
       '/oauth/authorize',
       '/blog-editor',
       '/admin/access',

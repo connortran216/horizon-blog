@@ -19,6 +19,7 @@ const PRIVATE_PATHS = new Set([
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/verify-email',
   '/oauth/authorize',
   '/blog-editor',
   '/analytics',

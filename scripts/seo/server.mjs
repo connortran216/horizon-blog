@@ -338,11 +338,13 @@ export const createSeoServer = ({
     const cacheControl =
       status === 503
         ? 'no-store'
-        : status === 404 || policy.kind === 'private'
-          ? 'public, max-age=60'
-          : policy.kind === 'article' || policy.kind === 'author'
-            ? 'public, max-age=300, stale-while-revalidate=3600'
-            : 'public, max-age=60, stale-while-revalidate=300';
+        : policy.kind === 'private'
+          ? 'no-store'
+          : status === 404
+            ? 'public, max-age=60'
+            : policy.kind === 'article' || policy.kind === 'author'
+              ? 'public, max-age=300, stale-while-revalidate=3600'
+              : 'public, max-age=60, stale-while-revalidate=300';
 
     writeResponse(
       request,
