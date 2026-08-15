@@ -45,7 +45,7 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 
 ## Observed Endpoints
 
-- Auth: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/providers/google/start`, `POST /auth/forgot-password`, `POST /auth/reset-password`.
+- Auth: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/providers/google/start`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `POST /auth/verify-email`, `POST /auth/resend-verification`.
 - Users: `POST /users`, `GET /users/me`, `PATCH /users/me`, avatar upload/delete endpoints.
 - Posts: `GET /posts`, `GET /posts/:id`, `POST /posts`, `PUT /posts/:id`, `PATCH /posts/:id`, `DELETE /posts/:id`, `GET /posts/search`, `GET /users/me/posts`.
 - Authors: `GET /users/:id/public-profile`, `GET /users/:id/posts`.
@@ -59,9 +59,9 @@ Use this guide for blog, auth, API, profile, CV/about content, editor, media, an
 - The backend owns the opaque refresh token in a host-only HttpOnly cookie; frontend code never reads, copies, logs, or deletes it directly.
 - Auth bootstrap starts loading, coordinates `POST /auth/refresh`, then loads `/users/me`; public pages settle signed out when no session exists.
 - Same-context refresh is single-flight. Same-origin tabs coordinate strict rotation through Web Locks and BroadcastChannel and share only ephemeral access/logout state.
-- Login and registration install the returned `access_token` in memory. The temporary `token` response alias is rollout compatibility only.
+- Login installs the returned `access_token` in memory. Registration creates a pending local account and never installs an access token or refresh session.
 - Google OpenID returns to `/login/callback` without Horizon credentials; the callback waits for normal cookie-backed session restoration.
-- Register sends `name`, `email`, and `password` to `POST /users`.
+- Register sends `name`, `email`, and `password` to `POST /users`, then directs the user to `/verify-email`. Verification credentials are removed from the URL before the API request completes and are never persisted.
 - Logout calls the server and clears memory in `finally`; network failure means local sign-out is certain but server revocation is not.
 - The legacy `horizon_blog_token` key is removed during bootstrap and is never exchanged for a long-lived session.
 - Forgot/reset password use the corresponding auth endpoints.

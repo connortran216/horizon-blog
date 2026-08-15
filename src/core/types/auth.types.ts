@@ -34,6 +34,12 @@ export interface ResetPasswordData {
   confirmPassword: string
 }
 
+export interface RegistrationResult {
+  pending: boolean
+  message: string
+  user?: User
+}
+
 export interface ApiAuthenticatedUser {
   id: number
   email: string
@@ -75,7 +81,7 @@ export interface AuthState {
 // Authentication actions
 export interface AuthActions {
   login: (credentials: LoginCredentials) => Promise<void>
-  register: (data: RegisterData) => Promise<void>
+  register: (data: RegisterData) => Promise<RegistrationResult>
   logout: () => Promise<LogoutResult>
   refreshUserProfile: () => Promise<User | null>
   clearError: () => void
@@ -87,7 +93,9 @@ export interface AuthContextValue extends AuthState, AuthActions {}
 // Authentication service interface
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<User>
-  register(data: RegisterData): Promise<User>
+  register(data: RegisterData): Promise<RegistrationResult>
+  verifyEmail(token: string): Promise<void>
+  resendVerification(email: string): Promise<string>
   requestPasswordReset(email: string): Promise<string>
   resetPassword(data: ResetPasswordData): Promise<string>
   restoreSession(): Promise<boolean>

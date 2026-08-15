@@ -156,9 +156,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterData) => {
     dispatch({ type: 'loading' })
     try {
-      const registeredUser = await authService.register(data)
-      dispatch({ type: 'authenticated', user: registeredUser })
+      const result = await authService.register(data)
+      if (result.pending || !result.user) {
+        dispatch({ type: 'unauthenticated' })
+        return result
+      }
+      dispatch({ type: 'authenticated', user: result.user })
       await refreshUserProfile()
+      return result
     } catch (error: unknown) {
       dispatch({
         type: 'unauthenticated',

@@ -52,6 +52,7 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `/register` -> Register.
 - `/forgot-password` -> Forgot password.
 - `/reset-password` -> Reset password.
+- `/verify-email` -> Verify email or request a replacement verification link.
 - `/blog-editor` -> Blog editor, protected.
 - `/analytics` -> Author analytics overview, protected.
 - `/analytics/blog/:id` -> Author blog analytics detail, protected.

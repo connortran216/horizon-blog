@@ -14,6 +14,7 @@ const LoginCallback = lazy(() => import('./features/auth/pages/LoginCallbackPage
 const OAuthAuthorize = lazy(() => import('./pages/OAuthAuthorize'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const AuthorArchive = lazy(() => import('./pages/AuthorArchive'))
 const BlogEditor = lazy(() => import('./pages/BlogEditor'))
 const PublishBlog = lazy(() => import('./pages/PublishBlog'))
@@ -51,6 +52,7 @@ const Routes = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="/blog-editor"
           element={

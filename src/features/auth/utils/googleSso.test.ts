@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeRedirectTo, parseOAuthCallbackFragment } from './googleSso'
+import { getOAuthErrorMessage, normalizeRedirectTo, parseOAuthCallbackFragment } from './googleSso'
 
 describe('Google SSO redirect handling', () => {
   it.each(['https://evil.example/path', '//evil.example/path', 'javascript:alert(1)', 'profile'])(
@@ -17,5 +17,12 @@ describe('Google SSO redirect handling', () => {
 
     expect(result).toEqual({ redirectTo: '/profile/example', error: null })
     expect(result).not.toHaveProperty('token')
+  })
+
+  it('maps an account conflict without exposing provider details', () => {
+    const message = getOAuthErrorMessage('oauth_account_conflict')
+
+    expect(message).toBe('An account already uses this email. Sign in with your existing method.')
+    expect(message).not.toContain('Google account')
   })
 })

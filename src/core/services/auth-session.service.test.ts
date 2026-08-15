@@ -25,13 +25,12 @@ const createCoordinator = (beforeWork?: () => void) =>
 
 const createTransport = (): AuthSessionTransport => ({
   login: vi.fn().mockResolvedValue(response('login-token')),
-  register: vi.fn().mockResolvedValue(response('register-token')),
   refresh: vi.fn().mockResolvedValue(response('refresh-token')),
   logout: vi.fn().mockResolvedValue(undefined),
 })
 
 describe('AuthSessionService', () => {
-  it('installs login and registration access only in the memory store', async () => {
+  it('installs login access only in the memory store', async () => {
     const store = new AccessTokenStore()
     const transport = createTransport()
     const service = new AuthSessionService(store, transport, createCoordinator())
@@ -39,12 +38,7 @@ describe('AuthSessionService', () => {
     await service.login({ email: 'user@example.com', password: 'password' })
     expect(store.getSnapshot().token).toBe('login-token')
 
-    await service.register({
-      username: 'Example',
-      email: 'user@example.com',
-      password: 'password',
-      confirmPassword: 'password',
-    })
+    service.installLegacyRegistrationResponse(response('register-token'))
     expect(store.getSnapshot().token).toBe('register-token')
   })
 

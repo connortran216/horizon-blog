@@ -51,6 +51,8 @@ export const getOAuthErrorMessage = (errorCode?: string | null) => {
       return 'Google sign in failed while finishing the login.'
     case 'oauth_user_resolution_failed':
       return 'Google sign in could not be linked to your account. Please try another sign-in method.'
+    case 'oauth_account_conflict':
+      return 'An account already uses this email. Sign in with your existing method.'
     case 'oauth_start_failed':
     case 'oauth_finalize_failed':
     case 'oauth_missing_token':

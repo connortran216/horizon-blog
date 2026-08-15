@@ -76,6 +76,66 @@ describe('AuthTransport', () => {
     )
   })
 
+  it('treats registration as a pending message without auth credentials', async () => {
+    const pending = {
+      message: 'If this address can be registered, check your email to continue.',
+    }
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(pending), {
+        status: 202,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const transport = new AuthTransport('https://api.example.com', fetcher)
+
+    await expect(
+      transport.register({
+        username: 'Example',
+        email: 'user@example.com',
+        password: 'correct-horse-battery',
+        confirmPassword: 'correct-horse-battery',
+      }),
+    ).resolves.toEqual(pending)
+    expect(fetcher).toHaveBeenCalledWith(
+      'https://api.example.com/users',
+      expect.objectContaining({
+        body: JSON.stringify({
+          name: 'Example',
+          email: 'user@example.com',
+          password: 'correct-horse-battery',
+        }),
+      }),
+    )
+  })
+
+  it('supports verification and enumeration-safe resend contracts', async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'Check your email.' }), {
+          status: 202,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    const transport = new AuthTransport('https://api.example.com', fetcher)
+
+    await expect(transport.verifyEmail('selector.secret')).resolves.toBeUndefined()
+    await expect(transport.resendVerification('user@example.com')).resolves.toEqual({
+      message: 'Check your email.',
+    })
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      'https://api.example.com/auth/verify-email',
+      expect.objectContaining({ body: JSON.stringify({ token: 'selector.secret' }) }),
+    )
+    expect(fetcher).toHaveBeenNthCalledWith(
+      2,
+      'https://api.example.com/auth/resend-verification',
+      expect.objectContaining({ body: JSON.stringify({ email: 'user@example.com' }) }),
+    )
+  })
+
   it('maps nested stable authentication failures without exposing response secrets', async () => {
     const fetcher = vi.fn().mockResolvedValue(
       new Response(

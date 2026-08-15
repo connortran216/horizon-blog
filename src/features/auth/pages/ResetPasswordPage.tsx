@@ -14,6 +14,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
 import { authService } from '../../../core/services/auth.service'
 import { AuthError } from '../../../core/types/auth.types'
+import { getPasswordPolicyError } from '../../../core/utils/passwordPolicy'
 import AuthShell, { AuthInlineLink } from '../components/AuthShell'
 
 const ResetPasswordPage = () => {
@@ -45,10 +46,11 @@ const ResetPasswordPage = () => {
   const validateForm = () => {
     const nextErrors: Record<string, string> = {}
 
+    const passwordError = getPasswordPolicyError(newPassword)
     if (!newPassword) {
       nextErrors.newPassword = 'New password is required'
-    } else if (newPassword.length < 6) {
-      nextErrors.newPassword = 'Password must be at least 6 characters'
+    } else if (passwordError) {
+      nextErrors.newPassword = passwordError
     }
 
     if (!confirmPassword) {

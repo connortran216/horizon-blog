@@ -19,6 +19,7 @@ import AuthMethodDivider from '../components/AuthMethodDivider'
 import AuthShell, { AuthInlineLink } from '../components/AuthShell'
 import GoogleAuthButton from '../components/GoogleAuthButton'
 import { getOAuthErrorMessage } from '../utils/googleSso'
+import { AuthError } from '../../../core/types/auth.types'
 
 type LoginLocationState = {
   from?: string
@@ -93,7 +94,23 @@ const LoginPage = () => {
 
       const destination = locationState?.from || '/'
       navigate(destination, { replace: true })
-    } catch {
+    } catch (error: unknown) {
+      if (error instanceof AuthError && error.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        navigate('/verify-email', {
+          state: {
+            email: email.trim(),
+            ...(locationState?.from ? { from: locationState.from } : {}),
+          },
+        })
+        toast({
+          title: 'Verify your email',
+          description: error.message,
+          status: 'info',
+          duration: 4000,
+          isClosable: true,
+        })
+        return
+      }
       toast({
         title: 'Login failed',
         description: 'Please check your credentials and try again.',

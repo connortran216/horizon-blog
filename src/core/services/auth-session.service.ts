@@ -1,9 +1,4 @@
-import {
-  AuthAccessResponse,
-  LoginCredentials,
-  LogoutResult,
-  RegisterData,
-} from '../types/auth.types'
+import { AuthAccessResponse, LoginCredentials, LogoutResult } from '../types/auth.types'
 import { AccessTokenStore, accessTokenStore } from './access-token.store'
 import {
   AuthSessionCoordinator,
@@ -14,7 +9,6 @@ import { AuthTransport, authTransport } from './auth.transport'
 
 export interface AuthSessionTransport {
   login(credentials: LoginCredentials): Promise<AuthAccessResponse>
-  register(data: RegisterData): Promise<AuthAccessResponse>
   refresh(): Promise<AuthAccessResponse>
   logout(): Promise<void>
 }
@@ -53,8 +47,8 @@ export class AuthSessionService {
     return this.installResponse(await this.transport.login(credentials), true)
   }
 
-  async register(data: RegisterData): Promise<AuthAccessResponse> {
-    return this.installResponse(await this.transport.register(data), true)
+  installLegacyRegistrationResponse(response: AuthAccessResponse): AuthAccessResponse {
+    return this.installResponse(response, true)
   }
 
   async bootstrap(): Promise<boolean> {

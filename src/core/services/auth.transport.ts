@@ -6,7 +6,7 @@ import {
   ResetPasswordData,
 } from '../types/auth.types'
 
-interface MessageResponse {
+export interface MessageResponse {
   message: string
 }
 
@@ -38,12 +38,20 @@ export class AuthTransport {
     return this.request<AuthAccessResponse>('/auth/login', credentials)
   }
 
-  register(data: RegisterData): Promise<AuthAccessResponse> {
-    return this.request<AuthAccessResponse>('/users', {
+  register(data: RegisterData): Promise<MessageResponse | AuthAccessResponse> {
+    return this.request<MessageResponse | AuthAccessResponse>('/users', {
       name: data.username,
       email: data.email,
       password: data.password,
     })
+  }
+
+  verifyEmail(token: string): Promise<void> {
+    return this.request<void>('/auth/verify-email', { token })
+  }
+
+  resendVerification(email: string): Promise<MessageResponse> {
+    return this.request<MessageResponse>('/auth/resend-verification', { email })
   }
 
   refresh(): Promise<AuthAccessResponse> {

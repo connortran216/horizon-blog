@@ -11,6 +11,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
 import { useAuth } from '../../../context/AuthContext'
+import { getPasswordPolicyError } from '../../../core/utils/passwordPolicy'
 import AuthMethodDivider from '../components/AuthMethodDivider'
 import AuthShell, { AuthInlineLink } from '../components/AuthShell'
 import GoogleAuthButton from '../components/GoogleAuthButton'
@@ -47,10 +48,11 @@ const RegisterPage = () => {
       nextErrors.email = 'Email is invalid'
     }
 
+    const passwordError = getPasswordPolicyError(formData.password)
     if (!formData.password) {
       nextErrors.password = 'Password is required'
-    } else if (formData.password.length < 6) {
-      nextErrors.password = 'Password must be at least 6 characters'
+    } else if (passwordError) {
+      nextErrors.password = passwordError
     }
 
     if (!formData.confirmPassword) {
@@ -90,12 +92,31 @@ const RegisterPage = () => {
       const trimmedName = formData.name.trim()
       const trimmedEmail = formData.email.trim()
 
-      await register({
+      const result = await register({
         username: trimmedName,
         email: trimmedEmail,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
       })
+
+      if (result.pending) {
+        toast({
+          title: 'Check your email',
+          description: 'Use the verification link before signing in.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        })
+
+        navigate('/verify-email', {
+          replace: true,
+          state: {
+            email: trimmedEmail,
+            ...(locationState?.from ? { from: locationState.from } : {}),
+          },
+        })
+        return
+      }
 
       toast({
         title: 'Registration successful',
@@ -104,7 +125,6 @@ const RegisterPage = () => {
         duration: 3000,
         isClosable: true,
       })
-
       navigate(redirectTo, { replace: true })
     } catch {
       toast({
