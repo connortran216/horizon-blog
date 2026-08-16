@@ -53,8 +53,12 @@ vi.mock('../../reader-interactions/useReaderInteractions', () => ({
   }),
 }))
 
+vi.mock('../../series/useSeriesContext', () => ({
+  useSeriesContext: () => null,
+}))
+
 describe('BlogDetailPage dependency independence', () => {
-  it('renders the article while analytics is delayed and reactions are unavailable', () => {
+  it('renders the article while analytics, reactions, or series context are unavailable', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
@@ -71,5 +75,6 @@ describe('BlogDetailPage dependency independence', () => {
     expect(markup).toContain('Loading content...')
     expect(markup).toContain('Reactions unavailable')
     expect(markup).toContain('Discussion')
+    expect(markup).not.toContain('Series navigation')
   })
 })
