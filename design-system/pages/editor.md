@@ -18,6 +18,8 @@ The writing surface is more important than the tooling around it.
 - save confidently
 - publish when ready
 - choose immediate or scheduled publication while reviewing the landing-page card
+- assign a blog to zero or one owned series
+- create, edit, remove, and reorder owned learning paths
 
 ## Layout
 
@@ -33,6 +35,7 @@ The writing surface is more important than the tooling around it.
 - publish and preview affordances
 - publishing route uses a two-area desktop layout: settings on the left and a non-interactive landing-card preview on the right
 - publishing areas stack settings-first on smaller screens
+- series management uses a single-column form and explicit up/down controls that remain usable without drag-and-drop
 
 ## Core Components
 
@@ -41,6 +44,7 @@ The writing surface is more important than the tooling around it.
 - `EditorTagField`
 - `CrepeEditor`
 - `CrepePreview`
+- `SeriesManager`
 
 ## Motion
 
@@ -52,9 +56,11 @@ The writing surface is more important than the tooling around it.
 
 - keyboard navigation across metadata and editor controls must work
 - editor actions need visible focus and clear labels
+- ordering controls need unique accessible names and disabled boundary states
 - code blocks and selection states must remain legible in both color modes
 
 ## Content Notes
 
 - editor labels should say `blog`, not `post`
 - draft state matters here and may be explicit
+- deleting a series must clearly state that its blogs remain

@@ -5,24 +5,28 @@ import {
   Container,
   FormControl,
   FormErrorMessage,
+  FormHelperText,
   FormLabel,
   Heading,
   HStack,
   Input,
   Radio,
+  Select,
   SimpleGrid,
   Stack,
   Text,
   useToast,
 } from '@chakra-ui/react'
 import { FiArrowLeft } from 'react-icons/fi'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { LoadingPanel, toPublicPostPath } from '../../../core'
 import { PublicPostRecord } from '../../../core/types/blog.types'
 import { mapApiPostToSummary } from '../../../core/utils/blog-mapping.utils'
 import { useAuth } from '../../../context/AuthContext'
 import PublishBlogPreviewCard from '../components/PublishBlogPreviewCard'
 import { getEditorPostService } from '../editor-post.service'
+import { getSeriesService } from '../../series/series.dependencies'
+import { OwnerSeries } from '../../series/series.types'
 
 type PublishMode = 'now' | 'schedule'
 
@@ -51,6 +55,10 @@ const PublishBlogPage = () => {
   const [time, setTime] = useState('09:00')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [ownedSeries, setOwnedSeries] = useState<OwnerSeries[]>([])
+  const [selectedSeriesId, setSelectedSeriesId] = useState('')
+  const [seriesLoaded, setSeriesLoaded] = useState(false)
+  const [seriesLoadError, setSeriesLoadError] = useState('')
   const existingSchedule = blog?.scheduled_publish_at
 
   useEffect(() => {
@@ -60,6 +68,36 @@ const PublishBlogPage = () => {
       .then(setBlog)
       .catch(() => navigate(user.username ? `/profile/${user.username}` : '/', { replace: true }))
   }, [navigate, postId, user])
+
+  useEffect(() => {
+    if (!postId || !user) return
+
+    let current = true
+    setSeriesLoaded(false)
+    setSeriesLoadError('')
+    getSeriesService()
+      .listOwned()
+      .then((series) => {
+        if (!current) return
+        setOwnedSeries(series)
+        const assigned = series.find((item) =>
+          item.parts.some((part) => part.postId === Number(postId)),
+        )
+        setSelectedSeriesId(assigned ? String(assigned.id) : '')
+        setSeriesLoaded(true)
+      })
+      .catch(() => {
+        if (!current) return
+        setOwnedSeries([])
+        setSeriesLoadError(
+          'Series could not be loaded. Your current assignment will stay unchanged.',
+        )
+      })
+
+    return () => {
+      current = false
+    }
+  }, [postId, user])
 
   useEffect(() => {
     if (!existingSchedule) return
@@ -96,6 +134,12 @@ const PublishBlogPage = () => {
     setIsSubmitting(true)
     setError('')
     try {
+      if (seriesLoaded) {
+        await getSeriesService().assignPost(
+          Number(postId),
+          selectedSeriesId ? Number(selectedSeriesId) : null,
+        )
+      }
       if (mode === 'now') {
         const published = await getEditorPostService().publish(postId, {
           title: blog.title,
@@ -161,6 +205,31 @@ const PublishBlogPage = () => {
           <Heading size="lg" color="text.primary">
             When should it go live?
           </Heading>
+
+          <FormControl isDisabled={!seriesLoaded}>
+            <FormLabel color="text.secondary">Series</FormLabel>
+            <Select
+              value={selectedSeriesId}
+              onChange={(event) => setSelectedSeriesId(event.target.value)}
+              bg="bg.page"
+              borderColor="border.default"
+            >
+              <option value="">Standalone blog</option>
+              {ownedSeries.map((series) => (
+                <option key={series.id} value={series.id}>
+                  {series.title}
+                </option>
+              ))}
+            </Select>
+            <FormHelperText color={seriesLoadError ? 'red.500' : 'text.tertiary'}>
+              {seriesLoadError || (
+                <>
+                  A blog can belong to one series.{' '}
+                  <RouterLink to="/series/manage">Manage learning paths</RouterLink>
+                </>
+              )}
+            </FormHelperText>
+          </FormControl>
 
           {(
             [

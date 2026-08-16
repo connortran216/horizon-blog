@@ -12,11 +12,14 @@ import { BlogPostSummary } from '../../../core/types/blog.types'
 import { extractMarkdownHeadings, getBlogService } from '../../../core'
 import TableOfContents from '../components/TableOfContents'
 import CommentSection from '../../comments/components/CommentSection'
+import SeriesContextCard from '../../series/components/SeriesContextCard'
+import { useSeriesContext } from '../../series/useSeriesContext'
 
 const BlogDetailPage = () => {
   const navigate = useNavigate()
   const { post, loading, emptyStateMessage } = useBlogPostDetail()
   const [relatedPosts, setRelatedPosts] = useState<BlogPostSummary[]>([])
+  const seriesContext = useSeriesContext(post?.id)
 
   const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
   const tableOfContentsItems = useMemo(
@@ -87,6 +90,7 @@ const BlogDetailPage = () => {
         />
       }
       discussionSection={post?.id ? <CommentSection postId={post.id} /> : undefined}
+      helperSection={seriesContext ? <SeriesContextCard context={seriesContext} /> : undefined}
       tableOfContentsRail={
         shouldShowTableOfContents ? <TableOfContents items={tableOfContentsItems} /> : undefined
       }

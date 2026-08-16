@@ -44,6 +44,7 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `/` -> Home.
 - `/blog` -> Blog archive.
 - `/blog/:id` -> Blog detail.
+- `/series/:slug` -> Public ordered learning path containing published blogs.
 - `/authors/:authorName` -> Author archive.
 - `/contact` -> Contact.
 - `/about` -> About.
@@ -54,6 +55,8 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `/reset-password` -> Reset password.
 - `/verify-email` -> Verify email or request a replacement verification link.
 - `/blog-editor` -> Blog editor, protected.
+- `/blog-editor/publish` -> Publish or schedule a blog and optionally assign it to one owned series, protected.
+- `/series/manage` -> Create, edit, order, and delete owned series, protected.
 - `/analytics` -> Author analytics overview, protected.
 - `/analytics/blog/:id` -> Author blog analytics detail, protected.
 - `/profile/:username` -> Profile, protected.
@@ -64,7 +67,7 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `ProtectedRoute` checks auth status and user.
 - Loading auth state should show shared `LoadingState`, not a raw spinner.
 - Unauthenticated users redirect to `/login` and preserve destination.
-- Protected routes cover authoring and profile content.
+- Protected routes cover authoring, series management, analytics, and profile content.
 
 ## Configuration
 

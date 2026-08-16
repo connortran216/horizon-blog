@@ -10,12 +10,14 @@ They are the highest-sensitivity surfaces in the product.
 
 - `/blog/:id`
 - `/profile/:username/blog/:id`
+- `/series/:slug`
 
 ## Primary Actions
 
 - read the blog
 - heart or share the blog without leaving the reader
 - return to browsing or profile context
+- follow an ordered series without exposing draft or scheduled blogs
 
 ## Layout
 
@@ -30,6 +32,7 @@ They are the highest-sensitivity surfaces in the product.
 - optional subtitle
 - author/date/reading time
 - body
+- optional series context with previous/next public blogs
 - closing feedback with a compact interaction icon row
 - follow-up navigation if needed
 
@@ -39,6 +42,7 @@ They are the highest-sensitivity surfaces in the product.
 - `MarkdownReader`
 - feature-owned `ReaderInteractionBar` for public reader hearts and sharing
 - optional shared back navigation
+- `SeriesContextCard` and `SeriesPartList` for ordered learning paths
 
 ## Motion
 
@@ -53,6 +57,8 @@ They are the highest-sensitivity surfaces in the product.
 - failed analytics delivery must not block reading, sharing, or link navigation
 - link tracking is delegated from the reader frame and must never call `preventDefault`
 - active-time measurement must ignore hidden, unfocused, or idle tabs
+- series progress means opened on this browser; it is optional local state, not account-synced completion
+- series API failure must not block or replace the article reader
 
 ## Accessibility Notes
 
