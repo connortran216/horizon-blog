@@ -35,6 +35,33 @@ const postSummary = (overrides = {}) => ({
   ...overrides,
 });
 
+const seriesSummary = (overrides = {}) => ({
+  id: 9,
+  slug: 'database-engineering',
+  title: 'Database Engineering',
+  description: 'Practical database design.',
+  author: { id: 1, name: 'Connor Tran' },
+  part_count: 2,
+  updated_at: '2026-06-12T10:00:00Z',
+  ...overrides,
+});
+
+const publicSeries = (overrides = {}) => ({
+  ...seriesSummary(),
+  parts: [
+    {
+      post_id: 76,
+      title: 'API Performance',
+      excerpt: 'Measure first.',
+      reading_time: 6,
+      tags: [{ id: 3, name: 'api' }],
+      position: 1,
+      published_at: '2026-06-10T10:00:00Z',
+    },
+  ],
+  ...overrides,
+});
+
 describe('SEO backend adapter', () => {
   it('falls back across backend hosts and normalizes a published post', async () => {
     const fetchImpl = vi
@@ -123,9 +150,7 @@ describe('SEO backend adapter', () => {
     );
     const backend = createBackendClient(createSeoConfig({}), { fetchImpl });
 
-    await expect(
-      backend.listPublishedPostSummaries({ page: 1, limit: 9 }),
-    ).resolves.toMatchObject({
+    await expect(backend.listPublishedPostSummaries({ page: 1, limit: 9 })).resolves.toMatchObject({
       page: 1,
       limit: 9,
       total: 1,
@@ -146,6 +171,32 @@ describe('SEO backend adapter', () => {
       'https://blog-api.connortran.io.vn/posts/summaries?page=1&limit=9&status=published',
       expect.any(Object),
     );
+  });
+
+  it('loads public Series summaries and enriched detail', async () => {
+    const fetchImpl = vi.fn(async (url) => {
+      if (url.includes('/series?')) {
+        return jsonResponse({
+          data: [seriesSummary()],
+          pagination: { page: 1, limit: 9, total: 1, total_pages: 1 },
+        });
+      }
+      if (url.endsWith('/series/database-engineering')) {
+        return jsonResponse({ data: publicSeries() });
+      }
+      throw new Error(`unexpected ${url}`);
+    });
+    const backend = createBackendClient(createSeoConfig({}), { fetchImpl });
+
+    await expect(backend.listPublicSeries()).resolves.toMatchObject({
+      items: [{ id: 9, slug: 'database-engineering', partCount: 2 }],
+      totalPages: 1,
+    });
+    await expect(backend.getPublicSeries('database-engineering')).resolves.toMatchObject({
+      id: 9,
+      partCount: 1,
+      parts: [{ postId: 76, readingTime: 6, tags: ['api'] }],
+    });
   });
 
   it('does not use the public site origin as a backend host', async () => {
@@ -211,7 +262,9 @@ describe('SEO backend adapter', () => {
     });
     const backend = createBackendClient(createSeoConfig({}), { fetchImpl });
 
-    await expect(backend.getAuthorBySlug('connor-tran', { page: 2, limit: 1 })).resolves.toMatchObject({
+    await expect(
+      backend.getAuthorBySlug('connor-tran', { page: 2, limit: 1 }),
+    ).resolves.toMatchObject({
       id: 1,
       name: 'Connor Tran',
       slug: 'connor-tran',

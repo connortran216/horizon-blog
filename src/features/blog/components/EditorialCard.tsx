@@ -6,6 +6,7 @@ import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
+import SeriesPostContext from '../../series/components/SeriesPostContext'
 
 interface EditorialCardProps {
   post: BlogArchiveSummary
@@ -65,6 +66,8 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
               <Text>{post.readingTime || 1} min read</Text>
             </HStack>
           </HStack>
+
+          <SeriesPostContext series={post.series} />
 
           <VStack align="stretch" spacing={3}>
             <Heading

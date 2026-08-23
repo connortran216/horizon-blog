@@ -7,16 +7,17 @@
 
 ## Context
 
-Readers need a calm ordered roadmap and series-aware article navigation without losing the existing reader experience.
+Readers need a calm ordered Series and Series-aware article navigation without losing the existing reader experience.
 
 ## Acceptance Criteria
 
-- Public series route renders ordered parts and local opened progress.
+- Public Series route renders its editorial header, total reading metadata, topics, and ordered parts with excerpt and read time.
 - Member blogs show series position and adjacent navigation.
 - Context failure never blocks article content.
+- Public Series UI shows no opened/completion state.
 - Mobile, keyboard, light/dark, and reduced-motion behavior follow the design system.
 
 ## Definition of Done
 
-- Mapping, progress, page, and reader fallback tests pass.
+- Mapping, page, ordered-part, and reader fallback tests pass.
 - Existing public blog tests remain green.

@@ -196,6 +196,22 @@ Rules:
 
 ## Reading Components
 
+### Series Discovery And Reading
+
+Implementation:
+- `src/features/series/components/SeriesShelf.tsx`
+- `src/features/series/components/SeriesCard.tsx`
+- `src/features/series/components/SeriesDetailHeader.tsx`
+- `src/features/series/components/SeriesPartList.tsx`
+- `src/features/series/components/SeriesContextCard.tsx`
+
+Rules:
+- Series cards represent an ordered group and must not imitate normal blog cards.
+- Home and Blog shelves fail independently from the normal blog feed.
+- Public Series parts use ordered numbering, excerpt, and reading time without completion state.
+- Public copy uses `Series` and `Part X of Y`; do not use course or collection language.
+- Blog reader context remains compact and failure-isolated.
+
 ### BlogReaderFrame
 
 Implementation:

@@ -1,8 +1,9 @@
 import { buildExcerpt } from './content.mjs';
-import { toCanonicalUrl, toPublicPostPath } from './urls.mjs';
+import { toCanonicalUrl, toPublicPostPath, toPublicSeriesPath } from './urls.mjs';
 
 const BLOG_PAGE_SIZE = 9;
 const AUTHOR_PAGE_SIZE = 6;
+const SERIES_PAGE_SIZE = 9;
 
 const escapeXml = (value) =>
   String(value ?? '')
@@ -49,7 +50,7 @@ Allow: /
 Sitemap: ${toCanonicalUrl(origin, '/sitemap.xml')}
 `;
 
-export const renderSitemap = ({ origin, posts }) => {
+export const renderSitemap = ({ origin, posts, series = [] }) => {
   const published = posts.filter((post) => post.status === 'published');
   const urls = [
     { location: toCanonicalUrl(origin, '/') },
@@ -65,6 +66,21 @@ export const renderSitemap = ({ origin, posts }) => {
     posts: published,
     pageSize: BLOG_PAGE_SIZE,
   });
+
+  addPaginatedUrls({
+    urls,
+    origin,
+    basePath: '/series',
+    posts: series,
+    pageSize: SERIES_PAGE_SIZE,
+  });
+
+  for (const item of series) {
+    urls.push({
+      location: toCanonicalUrl(origin, toPublicSeriesPath(item.slug)),
+      lastModified: toIsoDate(item.updatedAt),
+    });
+  }
 
   const postsByAuthor = new Map();
   for (const post of published) {

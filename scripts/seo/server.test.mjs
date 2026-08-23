@@ -20,6 +20,26 @@ const post = {
   tags: ['api'],
 };
 
+const series = {
+  id: 9,
+  slug: 'database-engineering',
+  title: 'Database Engineering',
+  description: 'Connected blogs about practical database design.',
+  author: { id: 1, name: 'Connor Tran' },
+  partCount: 1,
+  updatedAt: '2026-06-12T10:00:00.000Z',
+  parts: [
+    {
+      postId: 76,
+      title: 'API Performance',
+      description: 'Measure first, then optimize.',
+      readingTime: 6,
+      tags: ['api'],
+      position: 1,
+    },
+  ],
+};
+
 const indexHtml = `<!doctype html>
 <html lang="en"><head>
 <!--app-meta:start--><meta name="description" content="old"><!--app-meta:end-->
@@ -51,6 +71,15 @@ const createBackend = () => ({
     total: 1,
   }),
   listAllPublishedPosts: vi.fn().mockResolvedValue([post]),
+  listPublicSeries: vi.fn().mockResolvedValue({
+    items: [series],
+    page: 1,
+    limit: 9,
+    total: 1,
+    totalPages: 1,
+  }),
+  listAllPublicSeries: vi.fn().mockResolvedValue([series]),
+  getPublicSeries: vi.fn().mockResolvedValue(series),
   getAuthorBySlug: vi.fn().mockResolvedValue({
     id: 1,
     name: 'Connor Tran',
@@ -173,13 +202,13 @@ describe('SEO HTTP gateway', () => {
     expect(sitemap.headers.get('content-type')).toContain('application/xml');
     const sitemapBody = await sitemap.text();
     expect(sitemapBody).toContain(`<loc>${baseUrl}${articlePath}</loc>`);
+    expect(sitemapBody).toContain(`<loc>${baseUrl}/series</loc>`);
+    expect(sitemapBody).toContain(`<loc>${baseUrl}/series/database-engineering</loc>`);
     expect(sitemapBody).not.toContain('<!doctype html>');
 
     const feed = await fetch(`${baseUrl}/feed.xml`);
     expect(feed.headers.get('content-type')).toContain('application/rss+xml');
-    expect(await feed.text()).toContain(
-      `<guid isPermaLink="true">${baseUrl}${articlePath}</guid>`,
-    );
+    expect(await feed.text()).toContain(`<guid isPermaLink="true">${baseUrl}${articlePath}</guid>`);
   });
 
   it('marks private and duplicate query routes noindex with clean canonicals', async () => {
@@ -215,6 +244,53 @@ describe('SEO HTTP gateway', () => {
     expect(filteredHtml).not.toContain('data-horizon-entry-loader="deferred"');
   });
 
+  it('serves public Series routes with canonical metadata and keeps management private', async () => {
+    for (const pathname of ['/series', '/series/database-engineering']) {
+      const response = await fetch(`${baseUrl}${pathname}`, { headers: browserHeaders });
+      const html = await response.text();
+
+      expect(response.status).toBe(200);
+      expect(html).toContain('content="index,follow,max-image-preview:large"');
+      expect(html).toContain(`rel="canonical" href="${baseUrl}${pathname}"`);
+      expect(html).toContain('<div id="root"></div>');
+      expect(html).toContain('<script type="module" src="/assets/app.js"></script>');
+      expect(html).not.toContain('Page not found');
+    }
+
+    const crawler = await fetch(`${baseUrl}/series/database-engineering`, {
+      headers: crawlerHeaders,
+    });
+    const crawlerHtml = await crawler.text();
+    expect(crawler.status).toBe(200);
+    expect(crawlerHtml).toContain('<h1>Database Engineering</h1>');
+    expect(crawlerHtml).toContain('Measure first, then optimize.');
+
+    for (const pathname of ['/series/manage', '/series/manage/']) {
+      const manage = await fetch(`${baseUrl}${pathname}`, { headers: browserHeaders });
+      const manageHtml = await manage.text();
+      expect(manage.status).toBe(200);
+      expect(manage.headers.get('cache-control')).toBe('no-store');
+      expect(manageHtml).toContain('content="noindex,nofollow,noarchive"');
+    }
+  });
+
+  it('keeps the public Series index valid when no Series are visible', async () => {
+    backend.listPublicSeries.mockResolvedValueOnce({
+      items: [],
+      page: 1,
+      limit: 9,
+      total: 0,
+      totalPages: 0,
+    });
+
+    const response = await fetch(`${baseUrl}/series`, { headers: crawlerHeaders });
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain('No public Series are available yet.');
+    expect(html).toContain(`rel="canonical" href="${baseUrl}/series"`);
+  });
+
   it('returns real 404 responses for unknown routes and missing assets', async () => {
     const route = await fetch(`${baseUrl}/definitely-missing`);
     expect(route.status).toBe(404);
@@ -226,6 +302,15 @@ describe('SEO HTTP gateway', () => {
     const asset = await fetch(`${baseUrl}/missing.png`);
     expect(asset.status).toBe(404);
     expect(await asset.text()).not.toContain('<script type="module"');
+
+    backend.getPublicSeries.mockRejectedValueOnce(
+      new BackendError('missing Series', { status: 404, transient: false }),
+    );
+    const missingSeries = await fetch(`${baseUrl}/series/missing-series`, {
+      headers: crawlerHeaders,
+    });
+    expect(missingSeries.status).toBe(404);
+    expect(await missingSeries.text()).toContain('Page not found');
   });
 
   it('redirects the physical index file to the canonical root', async () => {
@@ -327,10 +412,13 @@ describe('SEO HTTP gateway', () => {
 
   it('rejects oversized image streams without a declared content length', async () => {
     imageFetch.mockResolvedValueOnce(
-      new Response(Uint8Array.from({ length: 65 }, (_, index) => index), {
-        status: 200,
-        headers: { 'content-type': 'image/png' },
-      }),
+      new Response(
+        Uint8Array.from({ length: 65 }, (_, index) => index),
+        {
+          status: 200,
+          headers: { 'content-type': 'image/png' },
+        },
+      ),
     );
 
     const response = await fetch(`${baseUrl}/seo/post-image/76`, { redirect: 'manual' });

@@ -25,9 +25,9 @@ describe('SEO URL policy', () => {
 
     expect(firstForwardedValue('http, https')).toBe('http');
     expect(getRequestOrigin(request, config)).toBe('https://blog.connortran.io.vn');
-    expect(getRequestOrigin(request, createSeoConfig({ PUBLIC_SITE_URL: 'http://localhost:3100/' }))).toBe(
-      'http://localhost:3100',
-    );
+    expect(
+      getRequestOrigin(request, createSeoConfig({ PUBLIC_SITE_URL: 'http://localhost:3100/' })),
+    ).toBe('http://localhost:3100');
   });
 
   it('builds safe slugs and absolute canonical URLs', () => {
@@ -66,6 +66,20 @@ describe('SEO URL policy', () => {
       kind: 'sitemap',
       indexing: 'noindex-nofollow',
     });
+    expect(classifyRoute(new URL('https://example.com/series'))).toMatchObject({
+      kind: 'series-index',
+      page: 1,
+      indexing: 'index-follow',
+      canonicalPath: '/series',
+    });
+    expect(classifyRoute(new URL('https://example.com/series/database-engineering'))).toMatchObject(
+      {
+        kind: 'series',
+        slug: 'database-engineering',
+        indexing: 'index-follow',
+        canonicalPath: '/series/database-engineering',
+      },
+    );
   });
 
   it('consolidates filtered and tracking variants without indexing them', () => {
@@ -98,6 +112,8 @@ describe('SEO URL policy', () => {
       '/verify-email',
       '/oauth/authorize',
       '/blog-editor',
+      '/series/manage',
+      '/series/manage/',
       '/admin/access',
       '/profile/connor',
       '/analytics',
@@ -119,6 +135,9 @@ describe('SEO URL policy', () => {
     expect(classifyRoute(new URL('https://example.com/missing.png'))).toMatchObject({
       kind: 'asset',
       indexing: 'noindex-nofollow',
+    });
+    expect(classifyRoute(new URL('https://example.com/series?page=0'))).toMatchObject({
+      kind: 'not-found',
     });
   });
 

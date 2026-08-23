@@ -24,6 +24,7 @@ const ProfileBlogDetail = lazy(() => import('./pages/ProfileBlogDetail'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const BlogAnalytics = lazy(() => import('./pages/BlogAnalytics'))
 const Series = lazy(() => import('./pages/Series'))
+const SeriesIndex = lazy(() => import('./pages/SeriesIndex'))
 const ManageSeries = lazy(() => import('./pages/ManageSeries'))
 const AccessManagement = lazy(
   () => import('./features/access-management/pages/AccessManagementPage'),
@@ -44,6 +45,7 @@ const Routes = () => {
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
+        <Route path="/series" element={<SeriesIndex />} />
         <Route path="/series/:slug" element={<Series />} />
         <Route path="/authors/:authorName" element={<AuthorArchive />} />
         <Route path="/contact" element={<Contact />} />

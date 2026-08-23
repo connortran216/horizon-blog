@@ -6,17 +6,33 @@ import {
   ApiPublicSeries,
   ApiPublicSeriesContext,
   ApiPublicSeriesPart,
+  ApiPublicSeriesSummary,
   CreateSeriesInput,
   OwnerSeries,
   OwnerSeriesPart,
   PublicSeries,
   PublicSeriesContext,
+  PublicSeriesListPage,
   PublicSeriesPart,
+  PublicSeriesSummary,
   UpdateSeriesInput,
 } from './series.types'
 
 export class SeriesService {
   constructor(private readonly api: SeriesApiPort = new SeriesApi()) {}
+
+  async listPublic(page = 1, limit = 12): Promise<PublicSeriesListPage> {
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1
+    const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 50) : 12
+    const response = await this.api.listPublic(safePage, safeLimit)
+    return {
+      items: response.data.map((series) => this.mapPublicSeriesSummary(series)),
+      page: response.pagination.page,
+      limit: response.pagination.limit,
+      total: response.pagination.total,
+      totalPages: response.pagination.total_pages,
+    }
+  }
 
   async getPublicSeries(slug: string): Promise<PublicSeries> {
     if (!slug.trim()) throw new ApiError('Series not found.', 404)
@@ -92,6 +108,9 @@ export class SeriesService {
     return {
       postId: part.post_id,
       title: part.title,
+      excerpt: part.excerpt,
+      readingTime: Math.max(1, part.reading_time),
+      tags: part.tags?.map((tag) => tag.name) ?? [],
       position: part.position,
       publishedAt: part.published_at ?? null,
     }
@@ -105,6 +124,19 @@ export class SeriesService {
       description: series.description ?? '',
       author: series.author,
       parts: series.parts.map((part) => this.mapPublicPart(part)),
+      updatedAt: series.updated_at,
+    }
+  }
+
+  private mapPublicSeriesSummary(series: ApiPublicSeriesSummary): PublicSeriesSummary {
+    return {
+      id: series.id,
+      slug: series.slug,
+      title: series.title,
+      description: series.description ?? '',
+      author: series.author,
+      partCount: series.part_count,
+      updatedAt: series.updated_at,
     }
   }
 

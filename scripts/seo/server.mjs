@@ -23,6 +23,8 @@ import {
   renderErrorPage,
   renderHome,
   renderPrivateShell,
+  renderSeries,
+  renderSeriesIndex,
   renderStaticPage,
 } from './render.mjs';
 import { classifyRoute, getRequestOrigin, getSafeAssetPath } from './urls.mjs';
@@ -130,7 +132,11 @@ const withDescriptions = (posts) =>
 
 const pagePath = (basePath, page) => (page > 1 ? `${basePath}?page=${page}` : basePath);
 
-const normalizeContentType = (value) => String(value || '').split(';', 1)[0].trim().toLowerCase();
+const normalizeContentType = (value) =>
+  String(value || '')
+    .split(';', 1)[0]
+    .trim()
+    .toLowerCase();
 
 const isCrawlerRequest = (request) => {
   const value = request.headers['user-agent'];
@@ -227,6 +233,45 @@ export const createSeoServer = ({
             policy.page > 1 ? pagePath('/blog', Math.max(1, policy.page - 1)) : undefined,
           nextUrl: policy.page < totalPages ? pagePath('/blog', policy.page + 1) : undefined,
           jsonLd: createBlogSchemas({ config, origin, posts }),
+        };
+      } else if (policy.kind === 'series-index') {
+        const result = await backend.listPublicSeries({ page: policy.page, limit: 9 });
+        const totalPages = Math.max(1, result.totalPages || Math.ceil(result.total / result.limit));
+        if (policy.page > totalPages) {
+          throw new BackendError('Series page not found', { status: 404, transient: false });
+        }
+        bodyHtml = renderSeriesIndex({
+          series: result.items,
+          page: policy.page,
+          total: result.total,
+          totalPages,
+        });
+        metadataInput = {
+          title: policy.page > 1 ? `Series - Page ${policy.page}` : 'Series',
+          description:
+            'Browse connected Horizon blogs arranged by their authors to be read in order.',
+          canonicalPath: policy.canonicalPath,
+          indexing: policy.indexing,
+          type: 'website',
+          previousUrl:
+            policy.page > 1 ? pagePath('/series', Math.max(1, policy.page - 1)) : undefined,
+          nextUrl: policy.page < totalPages ? pagePath('/series', policy.page + 1) : undefined,
+          jsonLd: createSiteSchemas({ config, origin }),
+        };
+      } else if (policy.kind === 'series') {
+        const series = await backend.getPublicSeries(policy.slug);
+        bodyHtml = renderSeries(series);
+        metadataInput = {
+          title: series.title,
+          description:
+            series.description ||
+            `Read ${series.partCount} connected blogs in the ${series.title} Series on Horizon.`,
+          canonicalPath: policy.canonicalPath,
+          indexing: policy.indexing,
+          type: 'website',
+          author: series.author.name,
+          tags: [...new Set(series.parts.flatMap((part) => part.tags))],
+          jsonLd: createSiteSchemas({ config, origin }),
         };
       } else if (policy.kind === 'article') {
         const normalized = await backend.getPublishedPost(policy.id);
@@ -365,7 +410,8 @@ export const createSeoServer = ({
     const fileStat = await stat(assetPath);
     const headers = {
       ...securityHeaders(config),
-      'content-type': MIME_TYPES.get(extname(assetPath).toLowerCase()) || 'application/octet-stream',
+      'content-type':
+        MIME_TYPES.get(extname(assetPath).toLowerCase()) || 'application/octet-stream',
       'content-length': String(fileStat.size),
       'cache-control': /^\/assets\/.+-[a-zA-Z0-9_-]{6,}\./.test(pathname)
         ? 'public, max-age=31536000, immutable'
@@ -424,10 +470,7 @@ export const createSeoServer = ({
 
       const contentType = normalizeContentType(source.headers.get('content-type'));
       const declaredLength = Number(source.headers.get('content-length') || 0);
-      if (
-        !ALLOWED_PROXY_IMAGE_TYPES.has(contentType) ||
-        declaredLength > config.maxImageBytes
-      ) {
+      if (!ALLOWED_PROXY_IMAGE_TYPES.has(contentType) || declaredLength > config.maxImageBytes) {
         redirectResponse(request, response, config.defaultImagePath, config);
         return;
       }
@@ -447,8 +490,7 @@ export const createSeoServer = ({
           'content-type': contentType,
           ...(contentType === 'image/svg+xml'
             ? {
-              'content-security-policy':
-                'default-src \'none\'; style-src \'unsafe-inline\'; sandbox',
+              'content-security-policy': 'default-src \'none\'; style-src \'unsafe-inline\'; sandbox',
             }
             : {}),
           'cache-control': 'public, max-age=86400, stale-while-revalidate=604800',
@@ -526,8 +568,11 @@ export const createSeoServer = ({
 
       if (policy.kind === 'sitemap' || policy.kind === 'feed') {
         try {
-          const posts = await backend.listAllPublishedPosts();
           const isSitemap = policy.kind === 'sitemap';
+          const [posts, series] = await Promise.all([
+            backend.listAllPublishedPosts(),
+            isSitemap ? backend.listAllPublicSeries() : Promise.resolve([]),
+          ]);
           writeResponse(
             request,
             response,
@@ -540,7 +585,7 @@ export const createSeoServer = ({
               'cache-control': 'public, max-age=300, stale-while-revalidate=3600',
             },
             isSitemap
-              ? renderSitemap({ origin, posts })
+              ? renderSitemap({ origin, posts, series })
               : renderRss({ origin, posts, config }),
           );
         } catch (error) {

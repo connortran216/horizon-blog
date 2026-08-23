@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Series Learning Paths
+# Specification Quality Checklist: Series Discovery and Reading
 
 **Purpose**: Validate specification completeness and quality before planning
 **Created**: 2026-08-15
@@ -31,4 +31,6 @@
 
 ## Notes
 
-- Product clarification resolved: one blog belongs to at most one series.
+- Product clarification resolved: one blog belongs to at most one Series.
+- UI clarification resolved: public copy uses only `Series`; navbar stays unchanged; public progress is out of scope.
+- Discovery placement, failure isolation, responsive states, and SEO boundaries are captured in `ui-ux.md` and the functional requirements.

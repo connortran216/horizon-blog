@@ -1,6 +1,6 @@
 import { getReadingTime, renderMarkdown } from './content.mjs';
 import { escapeHtml } from './metadata.mjs';
-import { toPublicPostPath } from './urls.mjs';
+import { toPublicPostPath, toPublicSeriesPath } from './urls.mjs';
 
 const formatDate = (value) => {
   if (!value) return undefined;
@@ -58,6 +58,63 @@ export const renderArchive = ({ posts, page, total, totalPages }) =>
 </header>
 ${renderPostList(posts)}
 ${renderPagination('/blog', page, totalPages)}`);
+
+const renderSeriesList = (series) => {
+  if (!series.length) return '<p>No public Series are available yet.</p>';
+  return `<ol>
+${series
+    .map(
+      (item) => `  <li>
+    <article>
+      <h2><a href="${toPublicSeriesPath(item.slug)}">${escapeHtml(item.title)}</a></h2>
+      ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}
+      <p>By ${escapeHtml(item.author.name)}. ${escapeHtml(item.partCount)} published blog${item.partCount === 1 ? '' : 's'}.</p>
+    </article>
+  </li>`,
+    )
+    .join('\n')}
+</ol>`;
+};
+
+export const renderSeriesIndex = ({ series, page, total, totalPages }) =>
+  fallbackMain(`<header>
+  <p>Horizon Series</p>
+  <h1>Connected blogs, arranged to be read in order</h1>
+  <p>${escapeHtml(total)} public Series. Page ${escapeHtml(page)} of ${escapeHtml(Math.max(totalPages, 1))}.</p>
+</header>
+${renderSeriesList(series)}
+${renderPagination('/series', page, totalPages)}`);
+
+export const renderSeries = (series) =>
+  fallbackMain(`<nav aria-label="Breadcrumb">
+  <a href="/">Home</a> / <a href="/series">Series</a> / <span aria-current="page">${escapeHtml(series.title)}</span>
+</nav>
+<article>
+  <header>
+    <p>Series</p>
+    <h1>${escapeHtml(series.title)}</h1>
+    ${series.description ? `<p>${escapeHtml(series.description)}</p>` : ''}
+    <p>By ${escapeHtml(series.author.name)}. ${escapeHtml(series.partCount)} published blog${series.partCount === 1 ? '' : 's'}.</p>
+  </header>
+  <section aria-labelledby="series-parts">
+    <h2 id="series-parts">In this series</h2>
+    <ol>
+${series.parts
+    .map(
+      (part) => `      <li>
+        <article>
+          <p>${part.position === 1 ? 'Start here' : `Part ${escapeHtml(part.position)}`}</p>
+          <h3><a href="${toPublicPostPath(part.postId)}">${escapeHtml(part.title)}</a></h3>
+          ${part.description ? `<p>${escapeHtml(part.description)}</p>` : ''}
+          <p>${escapeHtml(part.readingTime)} min read.</p>
+        </article>
+      </li>`,
+    )
+    .join('\n')}
+    </ol>
+  </section>
+</article>
+<p><a href="/series">Back to all Series</a></p>`);
 
 const renderPagination = (basePath, page, totalPages) => {
   if (totalPages <= 1) return '';
@@ -250,10 +307,7 @@ const transformModuleEntry = (html, entryMode) => {
   );
 };
 
-export const injectDocument = (
-  indexHtml,
-  { headHtml, bodyHtml, entryMode = 'immediate' },
-) => {
+export const injectDocument = (indexHtml, { headHtml, bodyHtml, entryMode = 'immediate' }) => {
   let html = String(indexHtml).replace(/<title>[\s\S]*?<\/title>\s*/i, '');
 
   if (/<!--app-meta:start-->[\s\S]*?<!--app-meta:end-->/.test(html)) {

@@ -21,6 +21,8 @@ It should feel like a clean index of blogs, with strong search and a clear path 
 
 - one top hero shell with headline, short support copy, and search
 - the hero should not repeat the same metadata in multiple places
+- show the compact Series shelf before results only on the unfiltered first page
+- hide the Series shelf during search, tag filters, later pages, empty data, or Series request failure
 - the content list should feel tighter and more utilitarian than the home hero
 
 ## Hierarchy
@@ -37,6 +39,7 @@ It should feel like a clean index of blogs, with strong search and a clear path 
 ## Core Components
 
 - `BlogArchiveHero`
+- `SeriesShelf`
 - `FeaturedStory`
 - `EditorialCard`
 - `Pagination`
@@ -57,5 +60,6 @@ It should feel like a clean index of blogs, with strong search and a clear path 
 ## Content Notes
 
 - use `blog` and `blogs`, not `posts`
+- use `Series` and `Part X of Y`; never `learning path` or `collection`
 - public cards do not need `published` labels
 - the page should feel like a blog index, not a generic archive tool

@@ -29,6 +29,14 @@ const posts = [
     tags: [],
   },
 ];
+const series = [
+  {
+    id: 9,
+    slug: 'database-engineering',
+    title: 'Database Engineering',
+    updatedAt: '2026-06-12T10:00:00Z',
+  },
+];
 
 describe('SEO discovery documents', () => {
   it('renders crawler policy as plain directives with one sitemap', () => {
@@ -43,7 +51,7 @@ Sitemap: https://blog.connortran.io.vn/sitemap.xml
   });
 
   it('renders unique canonical public URLs and article modification dates in sitemap XML', () => {
-    const sitemap = renderSitemap({ origin, posts });
+    const sitemap = renderSitemap({ origin, posts, series });
 
     expect(sitemap).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>/);
     expect(sitemap).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"');
@@ -52,6 +60,8 @@ Sitemap: https://blog.connortran.io.vn/sitemap.xml
     }
     expect(sitemap).toContain(`<loc>${origin}${toPublicPostPath(2)}</loc>`);
     expect(sitemap).toContain(`<loc>${origin}${toPublicPostPath(1)}</loc>`);
+    expect(sitemap).toContain(`<loc>${origin}/series</loc>`);
+    expect(sitemap).toContain(`<loc>${origin}/series/database-engineering</loc>`);
     expect(sitemap).toContain('<lastmod>2026-06-11T10:00:00.000Z</lastmod>');
     expect(sitemap).toContain(
       '<image:loc>https://blog.connortran.io.vn/seo/post-image/2</image:loc>',
@@ -101,9 +111,7 @@ Sitemap: https://blog.connortran.io.vn/sitemap.xml
     expect(rss.indexOf(toPublicPostPath(2))).toBeLessThan(rss.indexOf(toPublicPostPath(1)));
     expect(rss).toContain('<title>New &lt;Post&gt;</title>');
     expect(rss).toContain('<description>New &amp; useful writing.</description>');
-    expect(rss).toContain(
-      `<guid isPermaLink="true">${origin}${toPublicPostPath(2)}</guid>`,
-    );
+    expect(rss).toContain(`<guid isPermaLink="true">${origin}${toPublicPostPath(2)}</guid>`);
     expect(rss).toContain('<dc:creator>Connor Tran</dc:creator>');
     expect(rss).not.toContain('<author>Connor Tran</author>');
     expect(rss).toContain('<category>api</category>');

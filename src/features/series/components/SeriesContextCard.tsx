@@ -42,7 +42,7 @@ const SeriesContextCard = ({ context }: SeriesContextCardProps) => (
           fontWeight="semibold"
           _hover={{ color: 'action.hover', textDecoration: 'none' }}
         >
-          View learning path
+          View full series
         </Link>
       </HStack>
 

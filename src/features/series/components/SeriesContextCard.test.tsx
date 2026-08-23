@@ -6,7 +6,7 @@ import theme from '../../../theme'
 import SeriesContextCard from './SeriesContextCard'
 
 describe('SeriesContextCard', () => {
-  it('links the learning path and adjacent public blogs', () => {
+  it('links the Series and adjacent public blogs', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>
         <MemoryRouter>
@@ -15,8 +15,24 @@ describe('SeriesContextCard', () => {
               series: { id: 7, slug: 'database-engineering', title: 'Database Engineering' },
               position: 2,
               total: 3,
-              previous: { postId: 42, title: 'Indexes first', position: 1, publishedAt: null },
-              next: { postId: 44, title: 'Replication', position: 3, publishedAt: null },
+              previous: {
+                postId: 42,
+                title: 'Indexes first',
+                excerpt: '',
+                readingTime: 6,
+                tags: [],
+                position: 1,
+                publishedAt: null,
+              },
+              next: {
+                postId: 44,
+                title: 'Replication',
+                excerpt: '',
+                readingTime: 7,
+                tags: [],
+                position: 3,
+                publishedAt: null,
+              },
             }}
           />
         </MemoryRouter>

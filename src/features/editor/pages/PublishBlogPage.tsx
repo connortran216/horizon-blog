@@ -225,7 +225,7 @@ const PublishBlogPage = () => {
               {seriesLoadError || (
                 <>
                   A blog can belong to one series.{' '}
-                  <RouterLink to="/series/manage">Manage learning paths</RouterLink>
+                  <RouterLink to="/series/manage">Manage Series</RouterLink>
                 </>
               )}
             </FormHelperText>
