@@ -26,6 +26,7 @@ import { useAuth } from '../../../context/AuthContext'
 import { can } from '../../../core/authorization/authorization'
 import HeroArchivePreview from '../components/HeroArchivePreview'
 import StoryCard from '../components/StoryCard'
+import SeriesShelf from '../../series/components/SeriesShelf'
 
 const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString('en-US', {
@@ -173,6 +174,8 @@ const HomePage = () => {
               </SimpleGrid>
             </Box>
           </MotionWrapper>
+
+          <SeriesShelf />
 
           <AnimatePresence mode="wait">
             {isLoading ? (

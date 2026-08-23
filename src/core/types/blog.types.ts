@@ -75,6 +75,14 @@ export interface PublicPostTag {
   usage_count?: number
 }
 
+export interface PublicPostSeriesRecord {
+  id: number
+  slug: string
+  title: string
+  position: number
+  total: number
+}
+
 export interface PublicPostRecord {
   id: number
   title: string
@@ -108,6 +116,7 @@ export interface PublicPostSummaryRecord {
   published_at?: string | null
   created_at: string
   updated_at: string
+  series?: PublicPostSeriesRecord | null
 }
 
 export interface PublicAuthor {
@@ -186,6 +195,14 @@ export interface UpdateBlogPostData extends Partial<Omit<BlogPost, keyof BaseEnt
 }
 
 // Blog post summary (for listings)
+export interface BlogSeriesContext {
+  id: number
+  slug: string
+  title: string
+  position: number
+  total: number
+}
+
 export type BlogPostSummary = Pick<
   BlogPost,
   | 'id'
@@ -202,7 +219,9 @@ export type BlogPostSummary = Pick<
   | 'slug'
   | 'viewCount'
   | 'likeCount'
->
+> & {
+  series?: BlogSeriesContext | null
+}
 
 // Blog storage operations result
 export interface BlogStorageResult<T> {

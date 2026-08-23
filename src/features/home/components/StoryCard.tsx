@@ -15,6 +15,7 @@ import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard, BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
 import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
+import SeriesPostContext from '../../series/components/SeriesPostContext'
 
 const DEFAULT_AVATAR =
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
@@ -91,6 +92,8 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
                 {index === 0 ? 'Lead blog' : 'Recent blog'}
               </Badge>
             </HStack>
+
+            <SeriesPostContext series={post.series} />
 
             <Heading
               size="lg"

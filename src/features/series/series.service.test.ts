@@ -35,6 +35,23 @@ class FakeSeriesApi implements SeriesApiPort {
   replacement: number[] | null = null
   assignment: { postId: number; seriesId: number | null } | null = null
 
+  async listPublic() {
+    return {
+      data: [
+        {
+          id: 7,
+          slug: 'database-engineering',
+          title: 'Database Engineering',
+          description: 'A practical Series',
+          author: { id: 1, name: 'Connor' },
+          part_count: 1,
+          updated_at: '2026-08-02T00:00:00Z',
+        },
+      ],
+      pagination: { page: 1, limit: 12, total: 1, total_pages: 1 },
+    }
+  }
+
   async getPublicSeries(): Promise<ApiPublicSeriesResponse> {
     return {
       data: {
@@ -42,7 +59,17 @@ class FakeSeriesApi implements SeriesApiPort {
         slug: 'database-engineering',
         title: 'Database Engineering',
         author: { id: 1, name: 'Connor' },
-        parts: [{ post_id: 42, title: 'Indexes first', position: 1 }],
+        parts: [
+          {
+            post_id: 42,
+            title: 'Indexes first',
+            excerpt: 'How indexes shape reads.',
+            reading_time: 6,
+            tags: [{ id: 3, name: 'database' }],
+            position: 1,
+          },
+        ],
+        updated_at: '2026-08-02T00:00:00Z',
       },
     }
   }
@@ -85,7 +112,12 @@ describe('SeriesService', () => {
     await expect(service.getPublicSeries('database-engineering')).resolves.toMatchObject({
       id: 7,
       description: '',
-      parts: [{ postId: 42, publishedAt: null }],
+      updatedAt: '2026-08-02T00:00:00Z',
+      parts: [{ postId: 42, publishedAt: null, readingTime: 6, tags: ['database'] }],
+    })
+    await expect(service.listPublic()).resolves.toMatchObject({
+      items: [{ id: 7, partCount: 1 }],
+      totalPages: 1,
     })
     await expect(service.listOwned()).resolves.toMatchObject([
       { id: 7, parts: [{ postId: 42, status: 'published' }] },

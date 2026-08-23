@@ -111,6 +111,71 @@ const normalizePostSummary = (record, config) => {
   };
 };
 
+const normalizeSeriesAuthor = (record) => {
+  const id = Number(record?.id);
+  const name = normalizeOptionalText(record?.name);
+  if (!id || !name) {
+    throw new BackendError('Public Series author not found', { status: 404, transient: false });
+  }
+  return { id, name };
+};
+
+const normalizeSeriesSummary = (record) => {
+  const id = Number(record?.id);
+  const slug = normalizeOptionalText(record?.slug);
+  const title = normalizeOptionalText(record?.title);
+  const partCount = Number(record?.part_count);
+  if (!id || !slug || !title || !Number.isInteger(partCount) || partCount < 1) {
+    throw new BackendError('Public Series not found', { status: 404, transient: false });
+  }
+  return {
+    id,
+    slug,
+    title,
+    description: normalizeOptionalText(record?.description),
+    author: normalizeSeriesAuthor(record?.author),
+    partCount,
+    updatedAt: normalizeOptionalText(record?.updated_at),
+  };
+};
+
+const normalizeSeries = (record) => {
+  const parts = Array.isArray(record?.parts)
+    ? record.parts.flatMap((part) => {
+      const postId = Number(part?.post_id);
+      const title = normalizeOptionalText(part?.title);
+      const position = Number(part?.position);
+      if (!postId || !title || !Number.isInteger(position) || position < 1) return [];
+      return [
+        {
+          postId,
+          title,
+          description: normalizeSummaryExcerpt(part?.excerpt),
+          readingTime: Math.max(1, Number(part?.reading_time) || 1),
+          tags: Array.isArray(part?.tags)
+            ? part.tags.map((tag) => normalizeOptionalText(tag?.name)).filter(Boolean)
+            : [],
+          position,
+          publishedAt: normalizeOptionalText(part?.published_at),
+        },
+      ];
+    })
+    : [];
+  if (!record?.id || !record?.slug || !record?.title || parts.length === 0) {
+    throw new BackendError('Public Series not found', { status: 404, transient: false });
+  }
+  return {
+    id: Number(record.id),
+    slug: String(record.slug),
+    title: String(record.title),
+    description: normalizeOptionalText(record.description),
+    author: normalizeSeriesAuthor(record.author),
+    parts,
+    partCount: parts.length,
+    updatedAt: normalizeOptionalText(record.updated_at),
+  };
+};
+
 const extractFirstImageUrl = (markdown) => {
   const markdownMatch = String(markdown || '').match(/!\[[^\]]*]\(([^)]+)\)/);
   if (markdownMatch?.[1]) {
@@ -180,7 +245,8 @@ export const createBackendClient = (
         });
 
         if (!response.ok) {
-          const transient = response.status >= 500 || response.status === 408 || response.status === 429;
+          const transient =
+            response.status >= 500 || response.status === 408 || response.status === 429;
           const error = new BackendError(`Backend returned ${response.status} for ${path}`, {
             status: transient ? 503 : response.status,
             transient,
@@ -274,6 +340,45 @@ export const createBackendClient = (
       return pages.flat();
     });
 
+  const listPublicSeries = ({ page = 1, limit = 9 } = {}) =>
+    cache.load(`series:${page}:${limit}`, async () => {
+      const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+      const payload = await requestJson(`/series?${query}`);
+      const records = Array.isArray(payload?.data) ? payload.data : [];
+      const items = records.flatMap((record) => {
+        try {
+          return [normalizeSeriesSummary(record)];
+        } catch (error) {
+          if (error instanceof BackendError && error.status === 404) return [];
+          throw error;
+        }
+      });
+      const pagination = payload?.pagination || {};
+      return {
+        items,
+        page: Number(pagination.page || page),
+        limit: Number(pagination.limit || limit),
+        total: Number(pagination.total ?? items.length),
+        totalPages: Number(pagination.total_pages ?? Math.ceil(items.length / limit)),
+      };
+    });
+
+  const listAllPublicSeries = ({ limit = 50 } = {}) =>
+    cache.load(`series:all:${limit}`, async () => {
+      const first = await listPublicSeries({ page: 1, limit });
+      const pages = [first.items];
+      for (let page = 2; page <= first.totalPages; page += 1) {
+        pages.push((await listPublicSeries({ page, limit })).items);
+      }
+      return pages.flat();
+    });
+
+  const getPublicSeries = (slug) =>
+    cache.load(`series-detail:${slug}`, async () => {
+      const payload = await requestJson(`/series/${encodeURIComponent(slug)}`);
+      return normalizeSeries(payload?.data ?? payload);
+    });
+
   const getAuthorBySlug = (slug, { page = 1, limit = 6 } = {}) =>
     cache.load(`author:${slug}:${page}:${limit}`, async () => {
       const allPosts = await listAllPublishedPosts();
@@ -352,6 +457,9 @@ export const createBackendClient = (
     listPublishedPosts,
     listPublishedPostSummaries,
     listAllPublishedPosts,
+    listPublicSeries,
+    listAllPublicSeries,
+    getPublicSeries,
     getAuthorBySlug,
     resolvePostImageSource,
   };

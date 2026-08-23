@@ -23,6 +23,13 @@ const summaryResponse: ApiListPostSummariesResponse = {
       created_at: '2026-06-01T00:00:00Z',
       updated_at: '2026-06-02T00:00:00Z',
       published_at: '2026-06-02T00:00:00Z',
+      series: {
+        id: 9,
+        slug: 'database-engineering',
+        title: 'Database Engineering',
+        position: 2,
+        total: 4,
+      },
     },
     {
       id: 43,
@@ -93,6 +100,13 @@ describe('blog repository performance contract', () => {
           },
           tags: ['performance'],
           status: 'published',
+          series: {
+            id: 9,
+            slug: 'database-engineering',
+            title: 'Database Engineering',
+            position: 2,
+            total: 4,
+          },
         },
         {
           id: '43',
@@ -105,6 +119,7 @@ describe('blog repository performance contract', () => {
             avatar: undefined,
           },
           tags: [],
+          series: null,
         },
       ],
     })

@@ -1,4 +1,4 @@
-# Implementation Plan: Series Learning Paths
+# Implementation Plan: Series Discovery and Reading
 
 **Branch**: `agent/series-learning-path`
 **Spec**: [spec.md](./spec.md)
@@ -8,16 +8,18 @@
 ## Technical Context
 
 - **Stack**: React 18, TypeScript, Chakra UI, React Router, Vitest.
-- **Architecture**: Feature-local series API/service/hooks/components/pages; existing blog service remains intact.
+- **Architecture**: Feature-local Series API/service/hooks/components/pages; public blog summary mapping gains additive optional Series context.
 - **Reader integration**: Existing `helperSection` slot in `BlogReaderFrame`.
 - **Author integration**: New protected management route and additive selector in publication review.
-- **Progress**: Versioned, failure-safe local storage for visited parts.
+- **Discovery integration**: Home shelf after the unchanged hero, default Blog shelf before results, and a new public `/series` route.
+- **Public metadata**: Part excerpt/read time/tags, total reading time, last-updated date, canonical metadata, and sitemap coverage.
+- **Progress**: No public opened/completion state; remove the current local-progress presentation and unused helper path.
 - **Dependencies**: No new production dependency.
-- **Validation**: Focused mapping/progress/component tests, reader failure regression, type check, lint, and production build.
+- **Validation**: Focused mapping/discovery/component tests, reader failure regression, SEO gateway tests, type check, lint, production build, and responsive visual review.
 
 ## Constitution Check
 
-- **Spec-first user value**: Pass. Reader continuity, author control, fallback, and accessibility are testable.
+- **Spec-first user value**: Pass. Public discovery, ordered reading, author control, fallback, and accessibility are testable.
 - **Superpowers execution discipline**: Pass with local fallback. Clarification, research, focused test-first implementation, and verification preserve the gates.
 - **Contract alignment**: Pass. The frontend consumes only the backend series contract.
 - **Design system**: Pass. Existing semantic tokens and reader/editor/profile rules override generic skill suggestions.
@@ -33,6 +35,9 @@
 - `design-system/MASTER.md`
 - `design-system/components/README.md`
 - `design-system/pages/reader.md`
+- `design-system/pages/home.md`
+- `design-system/pages/blog.md`
+- `design-system/pages/series.md`
 - `design-system/pages/editor.md`
 - `design-system/pages/profile.md`
 
@@ -50,31 +55,36 @@ See [research.md](./research.md).
 
 ```mermaid
 flowchart LR
-    API["Backend series API"] --> Adapter["Series API adapter"]
+    API["Backend Series list/detail/context API"] --> Adapter["Series API adapter"]
     Adapter --> Service["Series service"]
-    Service --> Hooks["Public and owner hooks"]
-    Hooks --> Public["Series page and reader context"]
+    Service --> Hooks["Discovery, public, and owner hooks"]
+    Hooks --> Discovery["Home, Blog, and /series"]
+    Hooks --> Public["Series detail and reader context"]
     Hooks --> Owner["Management page and publish selector"]
-    Public --> Progress["Local visited progress"]
+    API --> BlogSummary["Optional Series context on blog summaries"]
+    BlogSummary --> Discovery
 ```
 
 ## Implementation Boundaries
 
-1. Add typed DTO/domain mapping, transport methods, and a feature-local service factory.
-2. Add pure local-progress helpers and focused tests.
-3. Add public series/context hooks and accessible reader components.
-4. Add public and protected routes through thin page wrappers.
-5. Add owner CRUD/order management and publication-review assignment.
-6. Add failure-isolation and component tests, then run full static/build gates.
+1. Preserve the completed typed Series transport, detail/context, owner service, management route, and publication assignment.
+2. Extend the backend-owned contract with public Series summaries, enriched public parts, and optional Series context on public blog summaries.
+3. Add public list mapping and an independent discovery hook with shelf-safe failure behavior.
+4. Add reusable Series cards/shelf, integrate Home and Blog, and add `/series` through a thin route wrapper.
+5. Align `/series/:slug` with the approved editorial detail design and remove public progress presentation.
+6. Keep reader context failure-isolated and update public copy to use Series terminology only.
+7. Add canonical metadata, sitemap coverage, route/server regressions, component tests, and responsive/accessibility validation.
 
 ## Risks and Mitigations
 
 - **Article regression**: Series context owns its failure state and uses the existing helper slot.
 - **Transport leakage**: DTOs remain in adapter/service files.
-- **Misleading progress**: Copy says opened/read progress, never completed.
-- **Stale storage**: Intersect stored IDs with current public parts.
+- **Discovery regression**: Home/Blog shelves own independent loading and failure state and never gate the blog feed.
+- **N+1 requests**: Blog summaries carry compact Series context; shelves use a bounded list request.
+- **Misleading progress**: Remove opened/completion UI and its unused local-storage path.
 - **Publish inconsistency**: Save atomic backend membership before publishing/scheduling.
 - **Layout drift**: Use standard panels, semantic tokens, and no new typography or decorative system.
+- **SEO regression**: Treat public Series routes separately from protected `/series/manage`; assert metadata, sitemap, status, and crawler behavior.
 
 ## Post-Design Constitution Check
 
@@ -82,3 +92,4 @@ flowchart LR
 - Public and owner state are separated.
 - No new dependency or architecture change is required.
 - No unresolved clarification blocks task generation.
+- Approved UI is captured in `ui-ux.md` and governed by `design-system/pages/series.md`.

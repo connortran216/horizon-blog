@@ -17,6 +17,7 @@ Override order:
 - `blog.md`
 - `author-archive.md`
 - `reader.md`
+- `series.md`
 - `about.md`
 - `contact.md`
 

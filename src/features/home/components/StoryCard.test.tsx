@@ -19,6 +19,13 @@ const summary: BlogPostSummary = {
   featuredImage: 'https://cdn.example.com/complete-cover.png',
   status: 'published',
   slug: 'keep-the-complete-cover-visible',
+  series: {
+    id: 9,
+    slug: 'database-engineering',
+    title: 'Database Engineering',
+    position: 2,
+    total: 4,
+  },
 }
 
 describe('StoryCard', () => {
@@ -46,6 +53,8 @@ describe('StoryCard', () => {
     expect(markup).toContain('Keep the complete cover visible')
     expect(markup).toContain('Connor Tran')
     expect(markup).toContain('10 min read')
+    expect(markup).toContain('Database Engineering')
+    expect(markup).toContain('Part 2 of 4')
     expect(markup).toContain(`href="${toPublicPostPath(87)}"`)
   })
 })

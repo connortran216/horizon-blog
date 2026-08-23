@@ -18,6 +18,7 @@ import BlogFilterToolbar from '../components/BlogFilterToolbar'
 import EditorialCard from '../components/EditorialCard'
 import FeaturedStory from '../components/FeaturedStory'
 import { useBlogArchive } from '../useBlogArchive'
+import SeriesShelf from '../../series/components/SeriesShelf'
 
 const BlogPage = () => {
   const limit = 9
@@ -97,6 +98,8 @@ const BlogPage = () => {
               onClearAll={clearAllFilters}
             />
           </MotionWrapper>
+
+          {page === 1 && !hasActiveFilters && !searchInput.trim() ? <SeriesShelf compact /> : null}
 
           <AnimatePresence mode="wait">
             {loading ? (

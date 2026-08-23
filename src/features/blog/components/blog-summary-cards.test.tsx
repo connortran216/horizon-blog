@@ -21,6 +21,13 @@ const summary: BlogPostSummary = {
   featuredImage: undefined,
   status: 'published',
   slug: '42',
+  series: {
+    id: 9,
+    slug: 'database-engineering',
+    title: 'Database Engineering',
+    position: 1,
+    total: 3,
+  },
 }
 
 const relatedSummaries = [
@@ -44,8 +51,24 @@ describe('blog summary cards', () => {
     expect(markup).toContain('This card renders without downloading markdown.')
     expect(markup).toContain('Summary Author')
     expect(markup).toContain('6 min')
+    expect(markup).toContain('Database Engineering')
+    expect(markup).toContain('Part 1 of 3')
     expect(markup).toContain(`href="${toPublicPostPath(42)}"`)
     expect(markup).not.toContain('href="/blog/42"')
+  })
+
+  it('keeps standalone cards free of redundant Series labels', () => {
+    const markup = renderToStaticMarkup(
+      <MemoryRouter>
+        <ChakraProvider theme={theme}>
+          <EditorialCard post={{ ...summary, series: null }} index={1} />
+        </ChakraProvider>
+      </MemoryRouter>,
+    )
+
+    expect(markup).not.toContain('Database Engineering')
+    expect(markup).not.toContain('Part 1 of 3')
+    expect(markup).not.toContain('Standalone')
   })
 
   it('does not emit unresolved media tokens as image sources on initial render', () => {

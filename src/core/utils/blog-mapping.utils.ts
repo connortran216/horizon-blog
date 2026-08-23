@@ -90,6 +90,15 @@ export function mapApiPostSummaryToBlogSummary(post: PublicPostSummaryRecord): B
     featuredImage: post.cover_image || undefined,
     status: post.status as BlogStatus,
     slug: post.id.toString(),
+    series: post.series
+      ? {
+          id: post.series.id,
+          slug: post.series.slug,
+          title: post.series.title,
+          position: post.series.position,
+          total: post.series.total,
+        }
+      : null,
   }
 }
 

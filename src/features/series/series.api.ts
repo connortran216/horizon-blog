@@ -4,12 +4,14 @@ import {
   ApiOwnerSeriesListResponse,
   ApiOwnerSeriesResponse,
   ApiPublicSeriesContextResponse,
+  ApiPublicSeriesListResponse,
   ApiPublicSeriesResponse,
   CreateSeriesInput,
   UpdateSeriesInput,
 } from './series.types'
 
 export interface SeriesApiPort {
+  listPublic(page: number, limit: number): Promise<ApiPublicSeriesListResponse>
   getPublicSeries(slug: string): Promise<ApiPublicSeriesResponse>
   getPublicContext(postId: number): Promise<ApiPublicSeriesContextResponse>
   listOwned(): Promise<ApiOwnerSeriesListResponse>
@@ -21,6 +23,17 @@ export interface SeriesApiPort {
 }
 
 export class SeriesApi implements SeriesApiPort {
+  listPublic(page: number, limit: number): Promise<ApiPublicSeriesListResponse> {
+    return apiService.get(
+      '/series',
+      { page, limit },
+      {
+        authMode: 'optional',
+        allowGuestFallback: true,
+      },
+    )
+  }
+
   getPublicSeries(slug: string): Promise<ApiPublicSeriesResponse> {
     return apiService.get(`/series/${encodeURIComponent(slug)}`, undefined, {
       authMode: 'optional',

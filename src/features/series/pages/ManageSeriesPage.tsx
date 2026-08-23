@@ -81,7 +81,7 @@ const ManageSeriesPage = () => {
   }
 
   if (owner.loading || blogsLoading) {
-    return <LoadingPanel label="Loading your series" description="Preparing your learning paths." />
+    return <LoadingPanel label="Loading your Series" description="Preparing your Series." />
   }
 
   return (
@@ -103,7 +103,7 @@ const ManageSeriesPage = () => {
           </Text>
           <Heading color="text.primary">Manage series</Heading>
           <Text color="text.secondary" maxW="2xl">
-            Group related blogs into one ordered learning path. Each blog can belong to one series.
+            Group related blogs into one ordered Series. Each blog can belong to one Series.
           </Text>
         </Stack>
 
@@ -153,7 +153,7 @@ const ManageSeriesPage = () => {
         </Box>
 
         {owner.series.length === 0 ? (
-          <Text color="text.secondary">No series yet. Create the first learning path above.</Text>
+          <Text color="text.secondary">No Series yet. Create the first Series above.</Text>
         ) : (
           <Stack spacing={6}>
             {owner.series.map((series) => (

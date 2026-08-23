@@ -28,6 +28,7 @@ const PRIVATE_PATHS = new Set([
 
 const STATIC_PATHS = new Set(['/about', '/contact', '/cv']);
 const TRACKING_QUERY = /^(utm_.+|fbclid|gclid|ref)$/i;
+const SERIES_PATH = /^\/series\/([\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*)\/?$/u;
 
 export const firstForwardedValue = (value) => {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -50,6 +51,8 @@ export const getRequestOrigin = (_request, config) => config.siteUrl;
 
 export const toCanonicalUrl = (origin, canonicalPath) =>
   new URL(canonicalPath, `${String(origin).replace(/\/+$/, '')}/`).toString();
+
+export const toPublicSeriesPath = (slug) => `/series/${encodeURIComponent(String(slug))}`;
 
 const noindexForQuery = (searchParams, allowedKeys = new Set()) => {
   for (const key of searchParams.keys()) {
@@ -107,6 +110,8 @@ export const classifyRoute = (url) => {
 
   if (
     PRIVATE_PATHS.has(pathname) ||
+    pathname === '/series/manage' ||
+    pathname === '/series/manage/' ||
     pathname.startsWith('/profile/') ||
     pathname.startsWith('/analytics/') ||
     pathname.startsWith('/blog-editor/')
@@ -137,10 +142,34 @@ export const classifyRoute = (url) => {
     };
   }
 
+  if (pathname === '/series' || pathname === '/series/') {
+    const { page, valid } = parsePage(url.searchParams);
+    if (!valid) {
+      return { kind: 'not-found', indexing: 'noindex-nofollow', canonicalPath: undefined };
+    }
+
+    const duplicate = noindexForQuery(url.searchParams, new Set(['page']));
+    return {
+      kind: 'series-index',
+      page,
+      indexing: duplicate ? 'noindex-follow' : 'index-follow',
+      canonicalPath: duplicate ? '/series' : canonicalPagePath('/series', page),
+    };
+  }
+
+  const seriesMatch = pathname.match(SERIES_PATH);
+  if (seriesMatch && seriesMatch[1] !== 'manage') {
+    const canonicalPath = `/series/${seriesMatch[1]}`;
+    return {
+      kind: 'series',
+      slug: seriesMatch[1],
+      indexing: url.search ? 'noindex-follow' : 'index-follow',
+      canonicalPath,
+    };
+  }
+
   const articleMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
-  const articleRoute = articleMatch
-    ? resolvePublicPostRouteSegment(articleMatch[1])
-    : undefined;
+  const articleRoute = articleMatch ? resolvePublicPostRouteSegment(articleMatch[1]) : undefined;
   if (articleRoute) {
     return {
       kind: articleRoute.legacy ? 'legacy-article' : 'article',

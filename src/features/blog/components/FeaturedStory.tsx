@@ -18,6 +18,7 @@ import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
+import SeriesPostContext from '../../series/components/SeriesPostContext'
 
 interface FeaturedStoryProps {
   post: BlogArchiveSummary
@@ -79,6 +80,8 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
                   {formatArchiveDate(post.createdAt)}
                 </Text>
               </HStack>
+
+              <SeriesPostContext series={post.series} />
 
               <Stack spacing={4}>
                 <Text

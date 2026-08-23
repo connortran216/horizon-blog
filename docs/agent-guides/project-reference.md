@@ -44,7 +44,8 @@ Use this guide when you need repo map, route, stack, or configuration facts.
 - `/` -> Home.
 - `/blog` -> Blog archive.
 - `/blog/:id` -> Blog detail.
-- `/series/:slug` -> Public ordered learning path containing published blogs.
+- `/series` -> Public Series discovery index.
+- `/series/:slug` -> Public ordered Series containing published blogs.
 - `/authors/:authorName` -> Author archive.
 - `/contact` -> Contact.
 - `/about` -> About.

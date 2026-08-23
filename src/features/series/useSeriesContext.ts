@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { getSeriesService } from './series.dependencies'
-import { markSeriesPostVisited } from './series.progress'
 import { PublicSeriesContext } from './series.types'
 
 export const useSeriesContext = (postId?: number) => {
@@ -18,7 +17,6 @@ export const useSeriesContext = (postId?: number) => {
       .then((data) => {
         if (!current) return
         setContext(data)
-        if (data) markSeriesPostVisited(data.series.id, postId)
       })
       .catch(() => {
         if (current) setContext(null)
