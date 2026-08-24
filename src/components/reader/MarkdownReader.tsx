@@ -75,16 +75,46 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
         'hr',
       ],
       ALLOWED_ATTR: allowStyle
-        ? ['href', 'src', 'alt', 'title', 'class', 'id', 'style', 'tabindex']
-        : ['href', 'src', 'alt', 'title', 'class', 'id', 'tabindex'],
+        ? [
+            'href',
+            'src',
+            'srcset',
+            'sizes',
+            'alt',
+            'title',
+            'class',
+            'id',
+            'style',
+            'tabindex',
+            'loading',
+            'decoding',
+            'width',
+            'height',
+          ]
+        : [
+            'href',
+            'src',
+            'srcset',
+            'sizes',
+            'alt',
+            'title',
+            'class',
+            'id',
+            'tabindex',
+            'loading',
+            'decoding',
+            'width',
+            'height',
+          ],
     })
 
   const rawHTML = useMemo(() => {
     try {
-      return marked.parse(content, {
+      const html = marked.parse(content, {
         gfm: true,
         breaks: true,
       }) as string
+      return html.replace(/<img /g, '<img loading="lazy" decoding="async" ')
     } catch (error) {
       console.error('Error rendering markdown:', error)
       return '<p>Error rendering content</p>'

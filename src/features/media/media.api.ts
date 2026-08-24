@@ -7,12 +7,26 @@ interface UploadMediaResult {
   expiresAt?: string
 }
 
-interface ResolveMediaResult {
-  [mediaId: string]: {
-    url: string
-    expiresAt?: string
-  }
+export interface ResolvedMediaVariant {
+  url: string
+  expiresAt?: string
+  mimeType: string
+  sizeBytes: number
+  width: number
+  height: number
 }
+
+export interface ResolvedMediaSource {
+  id: string
+  url: string
+  expiresAt?: string
+  width?: number
+  height?: number
+  variants: ResolvedMediaVariant[]
+}
+
+export type ResolveMediaSourceResult = Record<string, ResolvedMediaSource>
+export type ResolveMediaResult = Record<string, { url: string; expiresAt?: string }>
 
 interface PostMediaItem {
   mediaId: string
@@ -22,7 +36,24 @@ interface PostMediaItem {
 
 type UnknownRecord = Record<string, unknown>
 
-const mediaCache = new Map<string, { url: string; expiresAt?: string }>()
+const RESOLVE_BATCH_LIMIT = 100
+const CACHE_EXPIRY_SKEW_MS = 30_000
+const CACHE_FALLBACK_TTL_MS = 5 * 60_000
+
+interface CachedMediaSource {
+  source: ResolvedMediaSource
+  validUntil: number
+}
+
+interface PendingResolution {
+  resolve: (source: ResolvedMediaSource | undefined) => void
+  reject: (error: unknown) => void
+}
+
+const mediaCache = new Map<string, CachedMediaSource>()
+const inFlightMedia = new Map<string, Promise<ResolvedMediaSource | undefined>>()
+const pendingMedia = new Map<string, PendingResolution>()
+let flushScheduled = false
 
 const getNestedData = (payload: unknown): unknown => {
   if (!payload || typeof payload !== 'object') return payload
@@ -39,12 +70,36 @@ const getString = (payload: UnknownRecord, keys: string[]): string | undefined =
   return undefined
 }
 
-const isExpired = (expiresAt?: string): boolean => {
-  if (!expiresAt) return false
-  const expiresAtMs = Date.parse(expiresAt)
-  if (Number.isNaN(expiresAtMs)) return false
-  // 30 second skew to avoid using near-expiry URLs.
-  return Date.now() >= expiresAtMs - 30000
+const getPositiveNumber = (payload: UnknownRecord, keys: string[]): number | undefined => {
+  for (const key of keys) {
+    const value = payload[key]
+    const numberValue = typeof value === 'number' ? value : Number(value)
+    if (Number.isFinite(numberValue) && numberValue > 0) return numberValue
+  }
+  return undefined
+}
+
+const getCacheValidUntil = (source: ResolvedMediaSource): number => {
+  const expiries = [source.expiresAt, ...source.variants.map((variant) => variant.expiresAt)]
+    .map((value) => (value ? Date.parse(value) : Number.NaN))
+    .filter(Number.isFinite)
+
+  if (expiries.length === 0) return Date.now() + CACHE_FALLBACK_TTL_MS
+  return Math.min(...expiries) - CACHE_EXPIRY_SKEW_MS
+}
+
+const getCachedSource = (mediaId: string): ResolvedMediaSource | undefined => {
+  const cached = mediaCache.get(mediaId)
+  if (!cached) return undefined
+  if (Date.now() >= cached.validUntil) {
+    mediaCache.delete(mediaId)
+    return undefined
+  }
+  return cached.source
+}
+
+const cacheSource = (source: ResolvedMediaSource): void => {
+  mediaCache.set(source.id, { source, validUntil: getCacheValidUntil(source) })
 }
 
 const normalizeResolveItems = (payload: unknown): UnknownRecord[] => {
@@ -62,7 +117,34 @@ const normalizeResolveItems = (payload: unknown): UnknownRecord[] => {
   return []
 }
 
-const resolveViaApi = async (mediaIds: string[]): Promise<ResolveMediaResult> => {
+const normalizeVariants = (item: UnknownRecord): ResolvedMediaVariant[] => {
+  if (!Array.isArray(item.variants)) return []
+
+  const byWidth = new Map<number, ResolvedMediaVariant>()
+  item.variants.forEach((rawVariant) => {
+    if (!rawVariant || typeof rawVariant !== 'object') return
+    const variant = rawVariant as UnknownRecord
+    const url = getString(variant, ['signed_url', 'signedUrl', 'presigned_url', 'url'])
+    const width = getPositiveNumber(variant, ['width'])
+    const height = getPositiveNumber(variant, ['height'])
+    const sizeBytes = getPositiveNumber(variant, ['size_bytes', 'sizeBytes'])
+    const mimeType = getString(variant, ['mime_type', 'mimeType'])
+    if (!url || !width || !height || !sizeBytes || mimeType !== 'image/webp') return
+
+    byWidth.set(width, {
+      url,
+      width,
+      height,
+      sizeBytes,
+      mimeType,
+      expiresAt: getString(variant, ['expires_at', 'expiresAt']),
+    })
+  })
+
+  return Array.from(byWidth.values()).sort((left, right) => left.width - right.width)
+}
+
+const resolveViaApi = async (mediaIds: string[]): Promise<ResolveMediaSourceResult> => {
   if (mediaIds.length === 0) return {}
 
   const numericMediaIds = mediaIds
@@ -76,7 +158,7 @@ const resolveViaApi = async (mediaIds: string[]): Promise<ResolveMediaResult> =>
   })
 
   const items = normalizeResolveItems(response)
-  const result: ResolveMediaResult = {}
+  const result: ResolveMediaSourceResult = {}
 
   items.forEach((item) => {
     const mediaId = getString(item, ['media_id', 'mediaId', 'id', 'token'])
@@ -84,35 +166,91 @@ const resolveViaApi = async (mediaIds: string[]): Promise<ResolveMediaResult> =>
     const expiresAt = getString(item, ['expires_at', 'expiresAt'])
 
     if (mediaId && url) {
-      result[mediaId] = { url, expiresAt }
-      mediaCache.set(mediaId, { url, expiresAt })
+      const source: ResolvedMediaSource = {
+        id: mediaId,
+        url,
+        expiresAt,
+        width: getPositiveNumber(item, ['width']),
+        height: getPositiveNumber(item, ['height']),
+        variants: normalizeVariants(item),
+      }
+      result[mediaId] = source
+      cacheSource(source)
     }
   })
 
   return result
 }
 
-export const resolveMediaUrls = async (mediaIds: string[]): Promise<ResolveMediaResult> => {
+const chunkMediaIds = (mediaIds: string[]): string[][] => {
+  const chunks: string[][] = []
+  for (let index = 0; index < mediaIds.length; index += RESOLVE_BATCH_LIMIT) {
+    chunks.push(mediaIds.slice(index, index + RESOLVE_BATCH_LIMIT))
+  }
+  return chunks
+}
+
+const flushPendingMedia = async (): Promise<void> => {
+  flushScheduled = false
+  const entries = Array.from(pendingMedia.entries())
+  pendingMedia.clear()
+  if (entries.length === 0) return
+
+  const pendingById = new Map(entries)
+  await Promise.all(
+    chunkMediaIds(entries.map(([mediaId]) => mediaId)).map(async (chunk) => {
+      try {
+        const resolved = await resolveViaApi(chunk)
+        chunk.forEach((mediaId) => pendingById.get(mediaId)?.resolve(resolved[mediaId]))
+      } catch (error) {
+        chunk.forEach((mediaId) => pendingById.get(mediaId)?.reject(error))
+      }
+    }),
+  )
+}
+
+const resolveOneMediaSource = (mediaId: string): Promise<ResolvedMediaSource | undefined> => {
+  const cached = getCachedSource(mediaId)
+  if (cached) return Promise.resolve(cached)
+
+  const inFlight = inFlightMedia.get(mediaId)
+  if (inFlight) return inFlight
+
+  const request = new Promise<ResolvedMediaSource | undefined>((resolve, reject) => {
+    pendingMedia.set(mediaId, { resolve, reject })
+    if (!flushScheduled) {
+      flushScheduled = true
+      queueMicrotask(() => void flushPendingMedia())
+    }
+  }).finally(() => {
+    inFlightMedia.delete(mediaId)
+  })
+  inFlightMedia.set(mediaId, request)
+  return request
+}
+
+export const resolveMediaSources = async (
+  mediaIds: string[],
+): Promise<ResolveMediaSourceResult> => {
   const deduped = Array.from(new Set(mediaIds.filter(Boolean)))
   if (deduped.length === 0) return {}
 
-  const result: ResolveMediaResult = {}
-  const unresolved: string[] = []
-
-  deduped.forEach((mediaId) => {
-    const cached = mediaCache.get(mediaId)
-    if (cached && !isExpired(cached.expiresAt)) {
-      result[mediaId] = { url: cached.url, expiresAt: cached.expiresAt }
-    } else {
-      unresolved.push(mediaId)
-    }
+  const result: ResolveMediaSourceResult = {}
+  const resolved = await Promise.all(
+    deduped.map(async (mediaId) => [mediaId, await resolveOneMediaSource(mediaId)] as const),
+  )
+  resolved.forEach(([mediaId, source]) => {
+    if (source) result[mediaId] = source
   })
+  return result
+}
 
-  if (unresolved.length > 0) {
-    const resolved = await resolveViaApi(unresolved)
-    Object.assign(result, resolved)
-  }
-
+export const resolveMediaUrls = async (mediaIds: string[]): Promise<ResolveMediaResult> => {
+  const sources = await resolveMediaSources(mediaIds)
+  const result: ResolveMediaResult = {}
+  Object.entries(sources).forEach(([mediaId, source]) => {
+    result[mediaId] = { url: source.url, expiresAt: source.expiresAt }
+  })
   return result
 }
 
@@ -185,7 +323,7 @@ export const uploadPostMedia = async (postId: number, file: File): Promise<Uploa
   const expiresAt = getString(uploadPayload, ['expires_at', 'expiresAt'])
 
   if (url) {
-    mediaCache.set(mediaId, { url, expiresAt })
+    cacheSource({ id: mediaId, url, expiresAt, variants: [] })
     return { mediaId, url, expiresAt }
   }
 
@@ -217,4 +355,8 @@ export const getPostMedia = async (postId: number): Promise<PostMediaItem[]> => 
 export const deletePostMedia = async (postId: number, mediaId: string): Promise<void> => {
   await apiService.delete<unknown>(`/posts/${postId}/media/${mediaId}`)
   mediaCache.delete(mediaId)
+}
+
+export const clearResolvedMediaCache = (): void => {
+  mediaCache.clear()
 }

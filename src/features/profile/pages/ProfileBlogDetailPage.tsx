@@ -2,7 +2,7 @@ import { Badge, Heading, HStack, Text } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../context/AuthContext'
-import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
+import { useResolvedMarkdownMedia } from '../../media/useResolvedMarkdown'
 import BlogReaderFrame from '../../blog/components/BlogReaderFrame'
 import { useOwnerBlogPostDetail } from '../useOwnerBlogPostDetail'
 
@@ -20,7 +20,7 @@ const ProfileBlogDetailPage = () => {
     authenticatedUsername: user?.username,
   })
 
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
+  const resolvedMedia = useResolvedMarkdownMedia(post?.content_markdown || '')
 
   const isOwnProfile = user && username === user.username
 
@@ -28,7 +28,8 @@ const ProfileBlogDetailPage = () => {
     <BlogReaderFrame
       post={post}
       loading={loading}
-      resolvedContent={resolvedContent}
+      resolvedContent={resolvedMedia.content}
+      resolvedMedia={resolvedMedia.sources}
       onBack={() => navigate(redirectPath)}
       backLabel="Back to Profile"
       emptyLabel="Blog not found"

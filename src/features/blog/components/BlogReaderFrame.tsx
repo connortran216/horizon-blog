@@ -28,6 +28,8 @@ import {
 } from '../../../core'
 import { BlogArchivePost } from '../blog.types'
 import { getPostAuthorAvatar, getPostAuthorName } from '../blog.utils'
+import type { ResolveMediaSourceResult } from '../../media/media.api'
+import { applyResponsiveMediaAttributes } from '../../media/media.presentation'
 
 const LazyCrepeEditor = lazy(() => import('../../../components/editor/CrepeEditor'))
 
@@ -35,6 +37,7 @@ interface BlogReaderFrameProps {
   post: BlogArchivePost | null
   loading: boolean
   resolvedContent: string
+  resolvedMedia?: ResolveMediaSourceResult
   onBack: () => void
   backLabel: string
   emptyLabel: string
@@ -57,6 +60,7 @@ const BlogReaderFrame = ({
   post,
   loading,
   resolvedContent,
+  resolvedMedia = {},
   onBack,
   backLabel,
   emptyLabel,
@@ -76,6 +80,20 @@ const BlogReaderFrame = ({
 }: BlogReaderFrameProps) => {
   const [readingProgress, setReadingProgress] = useState(0)
   const contentRef = useRef<HTMLDivElement>(null)
+  const articleMediaRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const root = articleMediaRef.current
+    if (!root || Object.keys(resolvedMedia).length === 0) return
+
+    const apply = () => applyResponsiveMediaAttributes(root, resolvedMedia)
+    apply()
+    if (typeof MutationObserver === 'undefined') return
+
+    const observer = new MutationObserver(apply)
+    observer.observe(root, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [resolvedContent, resolvedMedia])
 
   useEffect(() => {
     if (!showReadingProgress) {
@@ -325,7 +343,13 @@ const BlogReaderFrame = ({
                   </Stack>
                 </Box>
 
-                <Box maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
+                <Box
+                  ref={articleMediaRef}
+                  maxW="5xl"
+                  mx="auto"
+                  w="full"
+                  onClick={onContentClick}
+                >
                   <ContentAnimation hasPaddingBottom={bottomPadding}>
                     {resolvedContent ? (
                       <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>

@@ -22,6 +22,8 @@ import { FiArrowRight, FiMoreVertical } from 'react-icons/fi'
 import PaginationControls from '../../../components/PaginationControls'
 import { AnimatedCard } from '../../../core'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import { ProfileBlogPost } from '../profile.types'
 import { formatBlogDate } from '../profile.utils'
 
@@ -34,6 +36,19 @@ interface ProfileBlogGridProps {
   onEdit: (blogId: string) => void
   onDelete: (blogId: string) => void
   profileUsername: string
+}
+
+const ProfileBlogCover = ({ blog }: { blog: ProfileBlogPost }) => {
+  const coverMedia = useResolvedCoverMedia(blog.featuredImage)
+  const cover = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 100vw, 50vw')
+    : undefined
+
+  return cover ? (
+    <Image {...cover} alt={blog.title} w="full" h="full" objectFit="cover" />
+  ) : (
+    <DefaultPostCover title={blog.title} eyebrow={blog.status} h="full" />
+  )
 }
 
 const ProfileBlogGrid = ({
@@ -74,17 +89,7 @@ const ProfileBlogGrid = ({
                 >
                   <VStack align="stretch" spacing={0}>
                     <Box h="210px" overflow="hidden" position="relative">
-                      {blog.featuredImage ? (
-                        <Image
-                          src={blog.featuredImage}
-                          alt={blog.title}
-                          w="full"
-                          h="full"
-                          objectFit="cover"
-                        />
-                      ) : (
-                        <DefaultPostCover title={blog.title} eyebrow={blog.status} h="full" />
-                      )}
+                      <ProfileBlogCover blog={blog} />
                     </Box>
 
                     <VStack p={5} spacing={4} align="stretch" flex={1}>

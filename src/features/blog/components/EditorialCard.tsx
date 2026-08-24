@@ -2,7 +2,8 @@ import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard, toPublicPostPath } from '../../../core'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
@@ -13,7 +14,10 @@ interface EditorialCardProps {
 }
 
 const EditorialCard = ({ post, index }: EditorialCardProps) => {
-  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw')
+    : undefined
   const authorName = post.author.username || 'Anonymous'
   const authorAvatar = post.author.avatar
 
@@ -31,7 +35,7 @@ const EditorialCard = ({ post, index }: EditorialCardProps) => {
           {coverImage ? (
             <>
               <Image
-                src={coverImage}
+                {...coverImage}
                 alt={post.title}
                 w="full"
                 h="full"

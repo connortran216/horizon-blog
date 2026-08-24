@@ -2,7 +2,8 @@ import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { BlogPostSummary } from '../../../core'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 
 interface PublishBlogPreviewCardProps {
   blog: BlogPostSummary
@@ -10,7 +11,10 @@ interface PublishBlogPreviewCardProps {
 }
 
 const PublishBlogPreviewCard = ({ blog, publicationDate }: PublishBlogPreviewCardProps) => {
-  const cover = useResolvedCoverImage(blog.featuredImage)
+  const coverMedia = useResolvedCoverMedia(blog.featuredImage)
+  const cover = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 100vw, 640px')
+    : undefined
 
   return (
     <Box
@@ -23,7 +27,7 @@ const PublishBlogPreviewCard = ({ blog, publicationDate }: PublishBlogPreviewCar
     >
       <Box h={{ base: '220px', xl: '320px' }} bg="bg.page">
         {cover ? (
-          <Image src={cover} alt={blog.title} w="full" h="full" objectFit="cover" />
+          <Image {...cover} alt={blog.title} w="full" h="full" objectFit="cover" />
         ) : (
           <DefaultPostCover title={blog.title} eyebrow="Recent blog" h="full" />
         )}

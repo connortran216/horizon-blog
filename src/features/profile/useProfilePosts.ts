@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { getBlogService } from '../../core'
 import { User } from '../../core/types/common.types'
 import { AuthStatus } from '../../core/types/auth.types'
-import { resolveMediaUrls } from '../media/media.api'
 import { ProfileBlogPost, ProfilePaginationState } from './profile.types'
 import { mapBlogSummaryToProfilePost } from './profile.utils'
 
@@ -22,35 +21,6 @@ interface UseProfilePostsResult {
   handleDraftPageChange: (page: number) => void
   handleEdit: (blogId: string) => void
   handleDelete: (blogId: string) => Promise<void>
-}
-
-const resolveFeaturedImages = async (
-  posts: Array<{ featuredImage?: string }>,
-): Promise<Record<string, string>> => {
-  const tokenToMediaId = new Map<string, string>()
-
-  posts.forEach((post) => {
-    const cover = post.featuredImage
-    if (!cover) return
-    const match = cover.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)
-    if (match?.[1]) tokenToMediaId.set(cover, match[1])
-  })
-
-  if (tokenToMediaId.size === 0) return {}
-
-  try {
-    const mediaMap = await resolveMediaUrls(Array.from(tokenToMediaId.values()))
-    const resolvedByToken: Record<string, string> = {}
-
-    tokenToMediaId.forEach((mediaId, token) => {
-      const resolved = mediaMap[mediaId]?.url
-      if (resolved) resolvedByToken[token] = resolved
-    })
-
-    return resolvedByToken
-  } catch {
-    return {}
-  }
 }
 
 export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UseProfilePostsResult => {
@@ -78,10 +48,7 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
       publishedPagination.page,
       publishedPagination.limit,
     )
-    const resolvedPublishedImages = await resolveFeaturedImages(publishedPage.posts)
-    const mappedPublished = publishedPage.posts.map((post) =>
-      mapBlogSummaryToProfilePost(post, resolvedPublishedImages),
-    )
+    const mappedPublished = publishedPage.posts.map((post) => mapBlogSummaryToProfilePost(post))
     setPublishedBlogs(mappedPublished)
     setPublishedPagination((prev) => ({ ...prev, total: publishedPage.total }))
 
@@ -90,10 +57,7 @@ export const useProfilePosts = ({ status, user }: UseProfilePostsParams): UsePro
       draftPagination.page,
       draftPagination.limit,
     )
-    const resolvedDraftImages = await resolveFeaturedImages(draftPage.posts)
-    const mappedDrafts = draftPage.posts.map((post) =>
-      mapBlogSummaryToProfilePost(post, resolvedDraftImages),
-    )
+    const mappedDrafts = draftPage.posts.map((post) => mapBlogSummaryToProfilePost(post))
     setDraftBlogs(mappedDrafts)
     setDraftPagination((prev) => ({ ...prev, total: draftPage.total }))
   }

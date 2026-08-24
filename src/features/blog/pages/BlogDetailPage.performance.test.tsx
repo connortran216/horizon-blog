@@ -33,6 +33,7 @@ Independent article body
 
 vi.mock('../../media/useResolvedMarkdown', () => ({
   useResolvedMarkdown: () => 'Independent article body',
+  useResolvedMarkdownMedia: () => ({ content: 'Independent article body', sources: {} }),
 }))
 
 vi.mock('../../reader-interactions/useReaderSession', () => ({
