@@ -4,7 +4,8 @@ import { FiClock } from 'react-icons/fi'
 import { Icon } from '@chakra-ui/react'
 import { toPublicPostPath } from '../../../core'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
 
@@ -36,7 +37,10 @@ interface RelatedPostCardProps {
 }
 
 const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
-  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 160px, 280px')
+    : undefined
 
   return (
     <LinkBox
@@ -59,7 +63,7 @@ const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
         bg="bg.tertiary"
       >
         {coverImage ? (
-          <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
+          <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
         ) : (
           <DefaultPostCover title={post.title} eyebrow="" h="full" />
         )}

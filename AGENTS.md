@@ -112,5 +112,5 @@ Routing matrix:
 - Do not commit or push Git or Dolt changes unless the user explicitly requests it.
 
 <!-- SPECKIT START -->
-Current plan: `specs/013-authentication-session-lifecycle/plan.md`
+Current plan: `specs/016-responsive-media-delivery/plan.md`
 <!-- SPECKIT END -->

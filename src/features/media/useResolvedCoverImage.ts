@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { resolveMediaUrls } from './media.api'
+import {
+  ResolvedMediaSource,
+  resolveMediaSources,
+} from './media.api'
 
 const getMediaId = (value?: string): string | undefined => {
   return value?.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)?.[1]
@@ -9,9 +12,14 @@ const getInitialCoverImage = (rawValue?: string): string | undefined => {
   return getMediaId(rawValue) ? undefined : rawValue
 }
 
-export const useResolvedCoverImage = (rawValue?: string): string | undefined => {
-  const [coverImage, setCoverImage] = useState<string | undefined>(() =>
-    getInitialCoverImage(rawValue),
+const getInitialCoverMedia = (rawValue?: string): ResolvedMediaSource | undefined => {
+  const url = getInitialCoverImage(rawValue)
+  return url ? { id: '', url, variants: [] } : undefined
+}
+
+export const useResolvedCoverMedia = (rawValue?: string): ResolvedMediaSource | undefined => {
+  const [coverMedia, setCoverMedia] = useState<ResolvedMediaSource | undefined>(() =>
+    getInitialCoverMedia(rawValue),
   )
 
   useEffect(() => {
@@ -19,25 +27,25 @@ export const useResolvedCoverImage = (rawValue?: string): string | undefined => 
 
     const resolveCover = async () => {
       if (!rawValue) {
-        setCoverImage(undefined)
+        setCoverMedia(undefined)
         return
       }
 
       const mediaId = getMediaId(rawValue)
       if (!mediaId) {
-        setCoverImage(rawValue)
+        setCoverMedia({ id: '', url: rawValue, variants: [] })
         return
       }
 
-      setCoverImage(undefined)
+      setCoverMedia(undefined)
 
       try {
-        const mediaMap = await resolveMediaUrls([mediaId])
+        const mediaMap = await resolveMediaSources([mediaId])
         if (!active) return
-        setCoverImage(mediaMap[mediaId]?.url)
+        setCoverMedia(mediaMap[mediaId])
       } catch {
         if (!active) return
-        setCoverImage(undefined)
+        setCoverMedia(undefined)
       }
     }
 
@@ -48,5 +56,9 @@ export const useResolvedCoverImage = (rawValue?: string): string | undefined => 
     }
   }, [rawValue])
 
-  return coverImage
+  return coverMedia
+}
+
+export const useResolvedCoverImage = (rawValue?: string): string | undefined => {
+  return useResolvedCoverMedia(rawValue)?.url
 }

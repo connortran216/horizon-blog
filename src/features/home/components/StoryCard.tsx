@@ -13,7 +13,8 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { AnimatedCard, BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import SeriesPostContext from '../../series/components/SeriesPostContext'
 
@@ -27,7 +28,10 @@ interface StoryCardProps {
 }
 
 const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
-  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 50vw')
+    : undefined
   const previewText =
     extractPreviewText(post.excerpt || post.subtitle || '') || 'A new blog from the site.'
 
@@ -55,7 +59,7 @@ const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
         <Box p={{ base: 3, md: 4 }}>
           <Box aspectRatio={16 / 9} w="full" overflow="hidden" borderRadius="lg" bg="bg.page">
             {coverImage ? (
-              <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
+              <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
             ) : (
               <DefaultPostCover
                 title={post.title}

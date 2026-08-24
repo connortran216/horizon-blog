@@ -13,7 +13,8 @@ import {
 import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowUpRight, FiClock } from 'react-icons/fi'
 import { BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 
 const DEFAULT_AVATAR =
@@ -25,7 +26,10 @@ interface HeroArchivePreviewProps {
 }
 
 const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
-  const coverImage = useResolvedCoverImage(post?.featuredImage)
+  const coverMedia = useResolvedCoverMedia(post?.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 520px', true)
+    : undefined
   const previewText =
     extractPreviewText(post?.excerpt || post?.subtitle || '') ||
     'Blogs, essays, and technical writing shared with a calmer rhythm.'
@@ -33,7 +37,7 @@ const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
     <>
       {coverImage ? (
         <Image
-          src={coverImage}
+          {...coverImage}
           alt={post?.title || 'Latest blog'}
           w="full"
           h="220px"

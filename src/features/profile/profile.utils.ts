@@ -81,11 +81,15 @@ export const sanitizeImageSrc = (value?: string): string | undefined => {
 
 export const mapBlogSummaryToProfilePost = (
   post: BlogPostSummary,
-  resolvedImageByToken: Record<string, string>,
+  resolvedImageByToken: Record<string, string> = {},
 ): ProfileBlogPost => ({
-  featuredImage: sanitizeImageSrc(
-    post.featuredImage ? resolvedImageByToken[post.featuredImage] || post.featuredImage : undefined,
-  ),
+  featuredImage: post.featuredImage?.startsWith('media://')
+    ? post.featuredImage
+    : sanitizeImageSrc(
+        post.featuredImage
+          ? resolvedImageByToken[post.featuredImage] || post.featuredImage
+          : undefined,
+      ),
   id: String(post.id),
   title: post.title,
   subtitle: extractPreviewText(post.subtitle || post.excerpt || ''),

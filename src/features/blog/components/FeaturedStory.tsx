@@ -14,7 +14,8 @@ import { Link as RouterLink } from 'react-router-dom'
 import { FiArrowRight, FiFileText } from 'react-icons/fi'
 import { MotionWrapper, toPublicPostPath } from '../../../core'
 import StatChip from '../../../components/ui/StatChip'
-import { useResolvedCoverImage } from '../../media/useResolvedCoverImage'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
@@ -25,7 +26,10 @@ interface FeaturedStoryProps {
 }
 
 const FeaturedStory = ({ post }: FeaturedStoryProps) => {
-  const coverImage = useResolvedCoverImage(post.featuredImage)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw', true)
+    : undefined
   const authorName = post.author.username || 'Anonymous'
 
   return (
@@ -141,7 +145,7 @@ const FeaturedStory = ({ post }: FeaturedStoryProps) => {
               borderColor="border.subtle"
             >
               {coverImage ? (
-                <Image src={coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
+                <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
               ) : (
                 <DefaultPostCover
                   title={post.title}

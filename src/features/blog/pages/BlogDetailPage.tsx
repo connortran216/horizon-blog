@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
 import { getPostAuthorArchivePath, getPostAuthorArchiveState } from '../blog.utils'
-import { useResolvedMarkdown } from '../../media/useResolvedMarkdown'
+import { useResolvedMarkdownMedia } from '../../media/useResolvedMarkdown'
 import ReaderInteractionBar from '../../reader-interactions/components/ReaderInteractionBar'
 import { useReaderInteractions } from '../../reader-interactions/useReaderInteractions'
 import { useReaderSession } from '../../reader-interactions/useReaderSession'
@@ -21,7 +21,7 @@ const BlogDetailPage = () => {
   const [relatedPosts, setRelatedPosts] = useState<BlogPostSummary[]>([])
   const seriesContext = useSeriesContext(post?.id)
 
-  const resolvedContent = useResolvedMarkdown(post?.content_markdown || '')
+  const resolvedMedia = useResolvedMarkdownMedia(post?.content_markdown || '')
   const tableOfContentsItems = useMemo(
     () => extractMarkdownHeadings(post?.content_markdown || ''),
     [post?.content_markdown],
@@ -71,7 +71,8 @@ const BlogDetailPage = () => {
     <BlogReaderFrame
       post={post}
       loading={loading}
-      resolvedContent={resolvedContent}
+      resolvedContent={resolvedMedia.content}
+      resolvedMedia={resolvedMedia.sources}
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
       emptyLabel={emptyStateMessage}
