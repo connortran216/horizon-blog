@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiService } from '../../core/services/api.service'
-import {
-  clearResolvedMediaCache,
-  resolveMediaSources,
-  resolveMediaUrls,
-} from './media.api'
+import { clearResolvedMediaCache, resolveMediaSources, resolveMediaUrls } from './media.api'
 
 describe('media resolver', () => {
   beforeEach(() => {

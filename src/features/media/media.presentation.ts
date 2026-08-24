@@ -56,10 +56,7 @@ export const applyResponsiveMediaAttributes = (
     const source = byUrl.get(element.getAttribute('src') || '')
     if (!source) return
 
-    const attributes = getResponsiveImageAttributes(
-      source,
-      '(max-width: 768px) 100vw, 736px',
-    )
+    const attributes = getResponsiveImageAttributes(source, '(max-width: 768px) 100vw, 736px')
     setOptionalAttribute(element, 'srcset', attributes.srcSet)
     setOptionalAttribute(element, 'sizes', attributes.sizes)
     setOptionalAttribute(element, 'width', attributes.width)

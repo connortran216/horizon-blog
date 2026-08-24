@@ -343,13 +343,7 @@ const BlogReaderFrame = ({
                   </Stack>
                 </Box>
 
-                <Box
-                  ref={articleMediaRef}
-                  maxW="5xl"
-                  mx="auto"
-                  w="full"
-                  onClick={onContentClick}
-                >
+                <Box ref={articleMediaRef} maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
                   <ContentAnimation hasPaddingBottom={bottomPadding}>
                     {resolvedContent ? (
                       <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>

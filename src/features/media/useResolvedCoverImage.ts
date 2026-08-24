@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  ResolvedMediaSource,
-  resolveMediaSources,
-} from './media.api'
+import { ResolvedMediaSource, resolveMediaSources } from './media.api'
 
 const getMediaId = (value?: string): string | undefined => {
   return value?.match(/^media:\/\/([a-zA-Z0-9_-]+)$/)?.[1]
