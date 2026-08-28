@@ -14,6 +14,7 @@ import {
   PublicPostTag,
   PublicPostRecord,
   PublicPostSummaryRecord,
+  OwnerPublicationView,
 } from './blog.types'
 
 /**
@@ -87,6 +88,11 @@ export interface IBlogService {
   searchPosts(query: string): Promise<BlogPostSummary[]>
   getCurrentUserPostsPage(
     status: 'draft' | 'published',
+    page: number,
+    limit: number,
+  ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }>
+  getCurrentUserPublicationPage(
+    view: OwnerPublicationView,
     page: number,
     limit: number,
   ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }>

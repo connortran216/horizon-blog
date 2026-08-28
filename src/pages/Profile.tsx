@@ -49,12 +49,19 @@ const Profile = () => {
   const {
     postsLoading,
     publishedBlogs,
+    scheduledBlogs,
     draftBlogs,
     publishedPagination,
+    scheduledPagination,
     draftPagination,
+    scheduleClock,
     handlePublishedPageChange,
+    handleScheduledPageChange,
     handleDraftPageChange,
     handleEdit,
+    handleReschedule,
+    handlePublishNow,
+    handleCancelSchedule,
     handleDelete,
   } = useProfilePosts({
     status,
@@ -110,12 +117,21 @@ const Profile = () => {
               postsLoading={postsLoading}
               profileUsername={profileUsername}
               publishedBlogs={publishedBlogs}
+              scheduledBlogs={scheduledBlogs}
               draftBlogs={draftBlogs}
               publishedPagination={publishedPagination}
+              scheduledPagination={scheduledPagination}
               draftPagination={draftPagination}
+              scheduleClock={scheduleClock}
               onPublishedPageChange={handlePublishedPageChange}
+              onScheduledPageChange={handleScheduledPageChange}
               onDraftPageChange={handleDraftPageChange}
               onEdit={handleEdit}
+              onReschedule={handleReschedule}
+              onPublishNow={handlePublishNow}
+              onCancelSchedule={(blog) => {
+                void handleCancelSchedule(blog)
+              }}
               onDelete={(blogId) => {
                 void handleDelete(blogId)
               }}

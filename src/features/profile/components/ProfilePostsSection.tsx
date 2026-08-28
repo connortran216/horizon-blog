@@ -13,17 +13,25 @@ import {
 } from '@chakra-ui/react'
 import ProfileBlogGrid from './ProfileBlogGrid'
 import { ProfileBlogPost, ProfilePaginationState } from '../profile.types'
+import ProfileScheduledList from './ProfileScheduledList'
 
 interface ProfilePostsSectionProps {
   postsLoading: boolean
   profileUsername: string
   publishedBlogs: ProfileBlogPost[]
+  scheduledBlogs: ProfileBlogPost[]
   draftBlogs: ProfileBlogPost[]
   publishedPagination: ProfilePaginationState
+  scheduledPagination: ProfilePaginationState
   draftPagination: ProfilePaginationState
+  scheduleClock: Date
   onPublishedPageChange: (page: number) => void
+  onScheduledPageChange: (page: number) => void
   onDraftPageChange: (page: number) => void
   onEdit: (blogId: string) => void
+  onReschedule: (blogId: string) => void
+  onPublishNow: (blogId: string) => void
+  onCancelSchedule: (blog: ProfileBlogPost) => void
   onDelete: (blogId: string) => void
 }
 
@@ -31,12 +39,19 @@ const ProfilePostsSection = ({
   postsLoading,
   profileUsername,
   publishedBlogs,
+  scheduledBlogs,
   draftBlogs,
   publishedPagination,
+  scheduledPagination,
   draftPagination,
+  scheduleClock,
   onPublishedPageChange,
+  onScheduledPageChange,
   onDraftPageChange,
   onEdit,
+  onReschedule,
+  onPublishNow,
+  onCancelSchedule,
   onDelete,
 }: ProfilePostsSectionProps) => {
   const tabColor = 'text.secondary'
@@ -79,7 +94,8 @@ const ProfilePostsSection = ({
             letterSpacing="0.14em"
             fontSize="10px"
           >
-            {publishedPagination.total + draftPagination.total} total blogs
+            {publishedPagination.total + scheduledPagination.total + draftPagination.total} total
+            blogs
           </Badge>
         </HStack>
 
@@ -94,6 +110,7 @@ const ProfilePostsSection = ({
                 borderRadius="full"
                 px={4}
                 py={2}
+                h="44px"
                 bg="bg.page"
                 color={tabColor}
                 _selected={{
@@ -102,12 +119,28 @@ const ProfilePostsSection = ({
                   borderColor: tabBorderColor,
                 }}
               >
-                Blogs ({publishedPagination.total})
+                Published ({publishedPagination.total})
               </Tab>
               <Tab
                 borderRadius="full"
                 px={4}
                 py={2}
+                h="44px"
+                bg="bg.page"
+                color={tabColor}
+                _selected={{
+                  bg: 'action.subtle',
+                  color: tabSelectedColor,
+                  borderColor: tabBorderColor,
+                }}
+              >
+                Scheduled ({scheduledPagination.total})
+              </Tab>
+              <Tab
+                borderRadius="full"
+                px={4}
+                py={2}
+                h="44px"
                 bg="bg.page"
                 color={tabColor}
                 _selected={{
@@ -143,6 +176,33 @@ const ProfilePostsSection = ({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     profileUsername={profileUsername}
+                  />
+                )}
+              </TabPanel>
+              <TabPanel px={0} pt={6}>
+                {scheduledBlogs.length === 0 ? (
+                  <Box
+                    border="1px solid"
+                    borderColor="border.subtle"
+                    borderRadius="2xl"
+                    bg="bg.page"
+                    px={6}
+                    py={10}
+                    textAlign="center"
+                  >
+                    <Text color="text.secondary">No scheduled publications.</Text>
+                  </Box>
+                ) : (
+                  <ProfileScheduledList
+                    blogs={scheduledBlogs}
+                    pagination={scheduledPagination}
+                    now={scheduleClock}
+                    onPageChange={onScheduledPageChange}
+                    onEdit={onEdit}
+                    onReschedule={onReschedule}
+                    onPublishNow={onPublishNow}
+                    onCancelSchedule={onCancelSchedule}
+                    onDelete={onDelete}
                   />
                 )}
               </TabPanel>
