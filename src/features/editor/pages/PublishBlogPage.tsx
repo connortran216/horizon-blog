@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Box,
+  Alert,
+  AlertDescription,
+  AlertIcon,
   Button,
   Container,
   FormControl,
@@ -27,8 +30,7 @@ import PublishBlogPreviewCard from '../components/PublishBlogPreviewCard'
 import { getEditorPostService } from '../editor-post.service'
 import { getSeriesService } from '../../series/series.dependencies'
 import { OwnerSeries } from '../../series/series.types'
-
-type PublishMode = 'now' | 'schedule'
+import { PublishMode, resolvePublishMode } from '../publish-mode.utils'
 
 const localDateValue = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60_000
@@ -43,14 +45,17 @@ const PublishBlogPage = () => {
   const location = useLocation()
   const toast = useToast()
   const { user } = useAuth()
-  const postId = new URLSearchParams(location.search).get('id')
+  const searchParams = new URLSearchParams(location.search)
+  const postId = searchParams.get('id')
+  const requestedMode = searchParams.get('mode')
+  const initialMode = resolvePublishMode(requestedMode, false)
   const tomorrow = useMemo(() => {
     const value = new Date()
     value.setDate(value.getDate() + 1)
     return value
   }, [])
   const [blog, setBlog] = useState<PublicPostRecord | null>(null)
-  const [mode, setMode] = useState<PublishMode>('now')
+  const [mode, setMode] = useState<PublishMode>(initialMode)
   const [date, setDate] = useState(localDateValue(tomorrow))
   const [time, setTime] = useState('09:00')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -104,10 +109,10 @@ const PublishBlogPage = () => {
     const scheduled = new Date(existingSchedule)
     if (!Number.isFinite(scheduled.getTime())) return
 
-    setMode('schedule')
+    setMode(resolvePublishMode(requestedMode, true))
     setDate(localDateValue(scheduled))
     setTime(localTimeValue(scheduled))
-  }, [existingSchedule])
+  }, [existingSchedule, requestedMode])
 
   const scheduledAt = useMemo(() => new Date(`${date}T${time}`), [date, time])
   const hasValidSchedule = Number.isFinite(scheduledAt.getTime())
@@ -153,7 +158,7 @@ const PublishBlogPage = () => {
       await getEditorPostService().schedule(postId, scheduledAt.toISOString())
       toast({
         title: 'Blog scheduled',
-        description: `It will go live ${scheduledAt.toLocaleString()}.`,
+        description: `Scheduled for ${scheduledAt.toLocaleString()} (${timezone}).`,
         status: 'success',
         duration: 4000,
         isClosable: true,
@@ -205,6 +210,16 @@ const PublishBlogPage = () => {
           <Heading size="lg" color="text.primary">
             When should it go live?
           </Heading>
+
+          {existingSchedule ? (
+            <Alert status="info" borderRadius="xl" alignItems="flex-start">
+              <AlertIcon mt={1} />
+              <AlertDescription>
+                Current schedule: {new Date(existingSchedule).toLocaleString()} ({timezone}).
+                {mode === 'now' ? ' Publishing now will cancel this schedule.' : ''}
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
           <FormControl isDisabled={!seriesLoaded}>
             <FormLabel color="text.secondary">Series</FormLabel>

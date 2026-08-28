@@ -70,6 +70,8 @@ export function mapApiPostToSummary(
     featuredImage: extractFirstImageFromMarkdown(post.content_markdown),
     status: post.status as BlogStatus,
     slug: post.id.toString(),
+    publishedAt: post.published_at ?? null,
+    scheduledPublishAt: post.scheduled_publish_at ?? null,
   }
 }
 
@@ -90,6 +92,7 @@ export function mapApiPostSummaryToBlogSummary(post: PublicPostSummaryRecord): B
     featuredImage: post.cover_image || undefined,
     status: post.status as BlogStatus,
     slug: post.id.toString(),
+    publishedAt: post.published_at ?? null,
     series: post.series
       ? {
           id: post.series.id,

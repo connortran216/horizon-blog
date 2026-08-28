@@ -22,6 +22,7 @@ import {
   PublicPostsPage,
   PublicPostRecord,
   RelatedPostItem,
+  OwnerPublicationView,
 } from '../types/blog.types'
 import {
   ApiBlogPost,
@@ -659,8 +660,31 @@ export class ApiBlogRepository implements IBlogRepository {
     page: number = 1,
     limit: number = 10,
   ): Promise<RepositoryResult<BlogPostSummary[]>> {
+    const params: Record<string, unknown> = { page, limit }
+    if (status) params.status = status
+    return this.getCurrentUserPostsForQuery({ status }, params, page, limit)
+  }
+
+  async getCurrentUserPublicationPosts(
+    view: OwnerPublicationView,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
+    const params: Record<string, unknown> = { page, limit }
+    if (view === 'published') params.status = 'published'
+    if (view === 'scheduled') params.schedule = 'scheduled'
+    if (view === 'draft') params.schedule = 'unscheduled'
+    return this.getCurrentUserPostsForQuery({ view }, params, page, limit)
+  }
+
+  private async getCurrentUserPostsForQuery(
+    projection: Record<string, unknown>,
+    params: Record<string, unknown>,
+    page: number,
+    limit: number,
+  ): Promise<RepositoryResult<BlogPostSummary[]>> {
     try {
-      const cacheKey = this.generateCacheKey('current-user', { status, page, limit })
+      const cacheKey = this.generateCacheKey('current-user', { ...projection, page, limit })
 
       // Check cache first
       const cached = this.getFromCache(cacheKey) as BlogPostSummary[] | null
@@ -669,9 +693,6 @@ export class ApiBlogRepository implements IBlogRepository {
         // For simplicity, we'll re-call the API if we need metadata
         // This could be improved by caching metadata separately
       }
-
-      const params: Record<string, unknown> = { page, limit }
-      if (status) params.status = status
 
       const response = await apiService.get<ApiListPostsResponse>('/users/me/posts', params)
       this.cacheCurrentUserPostRecords(response.data)

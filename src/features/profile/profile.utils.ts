@@ -94,6 +94,9 @@ export const mapBlogSummaryToProfilePost = (
   title: post.title,
   subtitle: extractPreviewText(post.subtitle || post.excerpt || ''),
   createdAt: post.createdAt,
+  updatedAt: post.updatedAt,
+  publishedAt: post.publishedAt,
+  scheduledPublishAt: post.scheduledPublishAt,
   status: post.status,
 })
 

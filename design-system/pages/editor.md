@@ -42,6 +42,7 @@ The writing surface is more important than the tooling around it.
 - `EditorWorkspace`
 - `EditorMetaBar`
 - `EditorTagField`
+- `ActiveScheduleNotice`
 - `CrepeEditor`
 - `CrepePreview`
 - `SeriesManager`
@@ -58,6 +59,15 @@ The writing surface is more important than the tooling around it.
 - editor actions need visible focus and clear labels
 - ordering controls need unique accessible names and disabled boundary states
 - code blocks and selection states must remain legible in both color modes
+
+## Scheduled Publication Context
+
+- an active schedule remains visible while the owner edits the blog
+- the notice states that content changes do not remove the schedule
+- Manage schedule opens the existing publish review with the active time prefilled
+- explicit `mode=schedule` opens rescheduling; explicit `mode=now` keeps Publish now selected
+- when an active schedule exists, Publish now warns that the old schedule will be canceled
+- schedule confirmations include the browser's current timezone
 
 ## Content Notes
 

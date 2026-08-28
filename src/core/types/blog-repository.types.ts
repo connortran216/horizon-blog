@@ -16,6 +16,7 @@ import {
   PublicPostsPage,
   PublicPostRecord,
   RelatedPostItem,
+  OwnerPublicationView,
 } from './blog.types'
 
 /**
@@ -64,6 +65,11 @@ export interface IBlogRepository {
   getUserDrafts(username: string): Promise<RepositoryResult<BlogPostSummary[]>>
   getCurrentUserPosts(
     status?: 'draft' | 'published',
+    page?: number,
+    limit?: number,
+  ): Promise<RepositoryResult<BlogPostSummary[]>>
+  getCurrentUserPublicationPosts(
+    view: OwnerPublicationView,
     page?: number,
     limit?: number,
   ): Promise<RepositoryResult<BlogPostSummary[]>>

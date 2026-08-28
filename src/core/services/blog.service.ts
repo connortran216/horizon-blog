@@ -20,6 +20,7 @@ import {
   PublicAuthorPostsPage,
   PublicPostRecord,
   PublicPostTag,
+  OwnerPublicationView,
 } from '../types/blog.types'
 import { IBlogRepository } from '../types/blog-repository.types'
 import { RepositoryResult } from '../types/blog-repository.types'
@@ -281,6 +282,22 @@ export class BlogService implements IBlogService {
     limit: number,
   ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }> {
     const result = await this.repository.getCurrentUserPosts(status, page, limit)
+    const posts = this.unwrapResult(result, 'Failed to fetch current user posts')
+
+    return {
+      posts,
+      page: result.metadata?.page ?? page,
+      limit: result.metadata?.limit ?? limit,
+      total: result.metadata?.total ?? posts.length,
+    }
+  }
+
+  async getCurrentUserPublicationPage(
+    view: OwnerPublicationView,
+    page: number,
+    limit: number,
+  ): Promise<{ posts: BlogPostSummary[]; page: number; limit: number; total: number }> {
+    const result = await this.repository.getCurrentUserPublicationPosts(view, page, limit)
     const posts = this.unwrapResult(result, 'Failed to fetch current user posts')
 
     return {

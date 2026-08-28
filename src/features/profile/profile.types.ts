@@ -6,9 +6,14 @@ export interface ProfileBlogPost {
   title: string
   subtitle?: string
   createdAt: string
+  updatedAt: string
+  publishedAt?: string | null
+  scheduledPublishAt?: string | null
   status: string
   featuredImage?: string
 }
+
+export type ScheduleDisplayState = 'scheduled' | 'publishing' | 'needs_attention'
 
 export interface ProfilePaginationState {
   page: number

@@ -7,6 +7,8 @@ import { BaseEntity, Author } from './common.types'
 // Blog status enumeration
 export type BlogStatus = 'draft' | 'published' | 'archived'
 
+export type OwnerPublicationView = 'published' | 'scheduled' | 'draft'
+
 // Blog content block types for rich text editor
 export type BlockType =
   | 'paragraph'
@@ -221,6 +223,8 @@ export type BlogPostSummary = Pick<
   | 'likeCount'
 > & {
   series?: BlogSeriesContext | null
+  publishedAt?: string | null
+  scheduledPublishAt?: string | null
 }
 
 // Blog storage operations result

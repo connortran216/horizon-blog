@@ -26,6 +26,7 @@ import { useBlogPost } from '../hooks/useBlogPost'
 import { useEditorContent } from '../hooks/useEditorContent'
 import EditorTagField from '../components/EditorTagField'
 import EditorWorkspace from '../components/EditorWorkspace'
+import ActiveScheduleNotice from '../components/ActiveScheduleNotice'
 import '../editor.window'
 
 const BlogEditorPage = () => {
@@ -225,6 +226,16 @@ const BlogEditorPage = () => {
                 px={{ base: 6, md: 8 }}
                 py={{ base: 6, md: 8 }}
               >
+                {post?.scheduled_publish_at ? (
+                  <ActiveScheduleNotice
+                    scheduledAt={post.scheduled_publish_at}
+                    onManage={() =>
+                      navigate(`/blog-editor/publish?id=${post.id}&mode=schedule`, {
+                        state: { authorizedEdit: true },
+                      })
+                    }
+                  />
+                ) : null}
                 {autoSave.permissionLost ? (
                   <Alert status="warning" borderRadius="xl" alignItems="flex-start">
                     <AlertIcon mt={1} />
