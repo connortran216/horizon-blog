@@ -1,28 +1,36 @@
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Routes from './Routes'
 import AppLayout from './app/layouts/AppLayout'
 import ClientSeoSync from './components/seo/ClientSeoSync'
 import BrandFaviconSync from './components/ui/BrandFaviconSync'
-import theme from './theme'
+import { themeForPath } from './theme/route-theme'
 
-function App() {
+function ThemedApp() {
+  const { pathname } = useLocation()
+  const theme = themeForPath(pathname)
   return (
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       <ChakraProvider theme={theme}>
         <BrandFaviconSync />
         <AuthProvider>
-          <Router>
-            <ClientSeoSync />
-            <AppLayout>
-              <Routes />
-            </AppLayout>
-          </Router>
+          <ClientSeoSync />
+          <AppLayout>
+            <Routes />
+          </AppLayout>
         </AuthProvider>
       </ChakraProvider>
     </>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <ThemedApp />
+    </Router>
   )
 }
 

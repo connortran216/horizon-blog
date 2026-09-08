@@ -1,0 +1,438 @@
+{
+  "waves": {
+    "0": [
+      "B1"
+    ],
+    "1": [
+      "B2"
+    ],
+    "2": [
+      "B3"
+    ],
+    "3": [
+      "B4"
+    ],
+    "4": [
+      "B5"
+    ],
+    "5": [
+      "B6"
+    ]
+  },
+  "checks": [
+    "281 tests / 79 files passed",
+    "Final ESLint, TypeScript, Vite build passed",
+    "7 Home tests passed after final cleanup",
+    "Browser mobile dark mode, navigation collapse and populated desktop sample inspected"
+  ],
+  "remote": "git@github.com:connortran216/horizon-blog.git",
+  "status": "in_progress",
+  "bundles": {
+    "B1": {
+      "id": "horizon-blog-y2e.1",
+      "repo": "frontend",
+      "wave": 0,
+      "branch": "codex/horizon-blog-y2e-B1-foundations",
+      "checks": [
+        "281 tests / 79 files passed",
+        "Final ESLint, TypeScript, Vite build passed",
+        "7 Home tests passed after final cleanup",
+        "Browser mobile dark mode, navigation collapse and populated desktop sample inspected"
+      ],
+      "status": "implemented",
+      "release": "R1",
+      "worktree": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/.codex/worktrees/uiux-B1",
+      "remaining": "Backend-connected acceptance pending; no commit/integration/deployment.",
+      "dependencies": [],
+      "start_commit": "34dba9130b72624557d59bb1261ff71dab13bedf",
+      "target_branch": "codex/epic-horizon-blog-y2e",
+      "ticket_work_units": [
+        "horizon-blog-y2e.1.1",
+        "horizon-blog-y2e.1.2",
+        "horizon-blog-y2e.2.1"
+      ],
+      "report": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/.codex/worktrees/uiux-B1/specs/018-signal-uiux-redesign/R1-report.md"
+    },
+    "B2": {
+      "id": "horizon-blog-y2e.2",
+      "repo": "frontend",
+      "wave": 1,
+      "status": "planned",
+      "dependencies": [
+        "B1"
+      ],
+      "ticket_work_units": [
+        "horizon-blog-y2e.2.2"
+      ]
+    },
+    "B3": {
+      "id": "horizon-blog-y2e.3",
+      "repo": "frontend",
+      "wave": 2,
+      "status": "planned",
+      "dependencies": [
+        "B2"
+      ],
+      "ticket_work_units": [
+        "horizon-blog-y2e.3.1",
+        "horizon-blog-y2e.3.2"
+      ]
+    },
+    "B4": {
+      "id": "horizon-blog-y2e.4",
+      "repo": "frontend",
+      "wave": 3,
+      "status": "planned",
+      "dependencies": [
+        "B3"
+      ],
+      "ticket_work_units": [
+        "horizon-blog-y2e.4.1",
+        "horizon-blog-y2e.4.2"
+      ]
+    },
+    "B5": {
+      "id": "horizon-blog-y2e.5",
+      "repo": "frontend",
+      "wave": 4,
+      "status": "planned",
+      "dependencies": [
+        "B4"
+      ],
+      "ticket_work_units": [
+        "horizon-blog-y2e.5.1",
+        "horizon-blog-y2e.5.2"
+      ]
+    },
+    "B6": {
+      "id": "horizon-blog-y2e.6",
+      "repo": "frontend",
+      "wave": 5,
+      "status": "planned",
+      "dependencies": [
+        "B5"
+      ],
+      "ticket_work_units": [
+        "horizon-blog-y2e.6.1",
+        "horizon-blog-y2e.6.2"
+      ]
+    }
+  },
+  "epic_id": "horizon-blog-y2e",
+  "tickets": {
+    "horizon-blog-y2e.1.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.1.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.1.1/spec.md",
+      "files": [
+        "design-system/MASTER.md",
+        "design-system/components/README.md"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "validated",
+      "summary": "Design handoff and canonical documentation",
+      "plan_hash": "9515f89481fda62719ff5ff7dcbae9faf7ce7fd0f207f76a95166aec69805493",
+      "description": "Approved tokens, motion, coverage, references and QA limits are indexed with hashes; old guidance is explicitly superseded.",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Approved tokens, motion, coverage, references and QA limits are indexed with hashes; old guidance is explicitly superseded.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.1.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.1.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.1.2/spec.md",
+      "files": [
+        "src/theme/index.ts",
+        "src/theme/index.test.ts",
+        "src/index.css",
+        "src/main.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "coded",
+      "summary": "Signal Chakra tokens and typography",
+      "plan_hash": "cfd3d911b780bce4059ae5f42e336e50692a3817c1f84e671df15c364593a971",
+      "description": "Semantic light/dark values match approved baseline; old names stay compatible; dark button labels and focus are readable; fonts load locally; reduced motion disables theme transitions.",
+      "dependencies": [
+        "horizon-blog-y2e.1.1"
+      ],
+      "acceptance_criteria": [
+        "Semantic light/dark values match approved baseline; old names stay compatible; dark button labels and focus are readable; fonts load locally; reduced motion disables theme transitions.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.2.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.2.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.2.1/spec.md",
+      "files": [
+        "src/app/layouts/Navbar.tsx",
+        "src/app/layouts/NavLinkButton.tsx",
+        "src/features/home/pages/HomePage.tsx",
+        "src/features/home/components/StoryCard.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "coded",
+      "summary": "Compact navigation and Home Signature",
+      "plan_hash": "a88a9fb2ac769b198e2f55f9b42b38ae7c17264e7cf31b606ce5396b6153ffd2",
+      "description": "Header is 72px desktop/64px mobile; auth/editor controls remain usable; Signature plus six unique Latest blogs uses real service summaries; separate Series.",
+      "dependencies": [
+        "horizon-blog-y2e.1.2"
+      ],
+      "acceptance_criteria": [
+        "Header is 72px desktop/64px mobile; auth/editor controls remain usable; Signature plus six unique Latest blogs uses real service summaries; separate Series.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.2.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.2.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.2.2/spec.md",
+      "files": [
+        "src/features/about/pages/AboutPage.tsx",
+        "src/features/about/components/AboutStatCard.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Founder About and editorial depth",
+      "plan_hash": "e7a8c5dc25fa532c82fa0f9e6d65eb771b7f14363a42bb13aeeffd9ae7b5b94b",
+      "description": "Founder identity, avatar, bio and links preserved; responsive paired themes match prototype; reveal/depth honor reduced motion.",
+      "dependencies": [
+        "horizon-blog-y2e.2.1"
+      ],
+      "acceptance_criteria": [
+        "Founder identity, avatar, bio and links preserved; responsive paired themes match prototype; reveal/depth honor reduced motion.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.3.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.3.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.3.1/spec.md",
+      "files": [
+        "src/features/blog/pages/BlogPage.tsx",
+        "src/features/authors/pages/AuthorArchivePage.tsx",
+        "src/features/blog/components/FeaturedStory.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Blog and author discovery",
+      "plan_hash": "aed2cff686afd43bcd7c7bd32243f324d7952533aa2b922f5fdf6fc06a0da87e",
+      "description": "Real search/filter/pagination and author navigation preserved; cards match prototype; reorder animation remains optional.",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Real search/filter/pagination and author navigation preserved; cards match prototype; reorder animation remains optional.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.3.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.3.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.3.2/spec.md",
+      "files": [
+        "src/features/series/pages/SeriesIndexPage.tsx",
+        "src/features/series/pages/SeriesPage.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Public Series journey",
+      "plan_hash": "dfd41848decf947e41d60070cf5f4798a2e6a1808887111d6f7ab91587b417b6",
+      "description": "Public ordered published parts use existing service; empty/error behavior retained; connector has hover and keyboard emphasis.",
+      "dependencies": [
+        "horizon-blog-y2e.3.1"
+      ],
+      "acceptance_criteria": [
+        "Public ordered published parts use existing service; empty/error behavior retained; connector has hover and keyboard emphasis.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.4.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.4.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.4.1/spec.md",
+      "files": [
+        "src/features/blog/pages/BlogDetailPage.tsx",
+        "src/features/profile/pages/ProfileBlogDetailPage.tsx",
+        "src/components/core/animations/BlogDetailAnimations.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Reader presentation and feedback",
+      "plan_hash": "7737dd5a08b5ed428a716f3e6144db03192fe0ffd060c7608fc829d2237deb4d",
+      "description": "Prose/code/diagrams/media preserve real content; progress and TOC track reading; copy and reaction feedback reflects real success and error.",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Prose/code/diagrams/media preserve real content; progress and TOC track reading; copy and reaction feedback reflects real success and error.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.4.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.4.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.4.2/spec.md",
+      "files": [
+        "src/components/core/animations/MotionWrapper.tsx",
+        "src/components/core/animations/AnimatedCard.tsx",
+        "src/components/core/animations/Accessibility.tsx",
+        "src/Routes.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Shared navigation and editorial motion",
+      "plan_hash": "109cd40f75a8891aaffa340f77ab0605cb9a8392ef4a45f6cb268311d30de5b7",
+      "description": "Selected cover transition has safe fallback; Signature pointer light is mouse-only; OS reduced motion and cleanup work; no auth route or data lifecycle changes.",
+      "dependencies": [
+        "horizon-blog-y2e.4.1"
+      ],
+      "acceptance_criteria": [
+        "Selected cover transition has safe fallback; Signature pointer light is mouse-only; OS reduced motion and cleanup work; no auth route or data lifecycle changes.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.5.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.5.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.5.1/spec.md",
+      "files": [
+        "src/features/auth/pages/LoginPage.tsx",
+        "src/features/auth/pages/RegisterPage.tsx",
+        "src/features/auth/pages/VerifyEmailPage.tsx",
+        "src/features/auth/pages/ForgotPasswordPage.tsx",
+        "src/features/auth/pages/ResetPasswordPage.tsx",
+        "src/features/auth/pages/LoginCallbackPage.tsx",
+        "src/features/oauth/pages/McpAuthorizePage.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Account and OAuth presentation",
+      "plan_hash": "9b6f7abd906364463ed23f8ff8cae0c20eb07afe458e6f6b599a7fff28457b1a",
+      "description": "All account states match new system without token persistence, fabricated OAuth consent or changed session/authorization contracts.",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "All account states match new system without token persistence, fabricated OAuth consent or changed session/authorization contracts.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.5.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.5.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.5.2/spec.md",
+      "files": [
+        "src/features/cv/pages/CvPage.tsx",
+        "src/features/contact/pages/ContactPage.tsx",
+        "src/index.css"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "CV and Contact presentation",
+      "plan_hash": "ff3f041f6ecdffe00d986f999464c1c5d14497e41db5df77d7f02918f2c2962c",
+      "description": "Actual CV content/direct contact links retained; print remains legible; mobile and themes match prototype.",
+      "dependencies": [
+        "horizon-blog-y2e.5.1"
+      ],
+      "acceptance_criteria": [
+        "Actual CV content/direct contact links retained; print remains legible; mobile and themes match prototype.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.6.1": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.6.1/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.6.1/spec.md",
+      "files": [
+        "src/features/editor/pages/BlogEditorPage.tsx",
+        "src/features/editor/pages/PublishBlogPage.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Editor and publishing",
+      "plan_hash": "78ac9c6777fb89960f071fd0048b0d68b0a358eac1b5f1b978174e6cbf8f3d85",
+      "description": "Writing/preview/upload/schedule controls match design; preserve autosave, permission loss, draft recovery, local dates and real publication contract.",
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Writing/preview/upload/schedule controls match design; preserve autosave, permission loss, draft recovery, local dates and real publication contract.",
+        "preserve contracts",
+        "validate"
+      ]
+    },
+    "horizon-blog-y2e.6.2": {
+      "plan": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.6.2/plan.md",
+      "repo": "frontend",
+      "spec": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/tickets/horizon-blog-y2e.6.2/spec.md",
+      "files": [
+        "src/features/profile/components/ProfileHeaderCard.tsx",
+        "src/features/profile/components/ProfilePostsSection.tsx",
+        "src/features/series/pages/ManageSeriesPage.tsx",
+        "src/features/author-analytics/pages/AnalyticsOverviewPage.tsx",
+        "src/features/author-analytics/pages/BlogAnalyticsPage.tsx",
+        "src/features/access-management/pages/AccessManagementPage.tsx"
+      ],
+      "source": "Beads horizon-blog-721 final approval and prototype docs",
+      "status": "planned",
+      "summary": "Profile, Series management, analytics and access",
+      "plan_hash": "c9fad737b5b074ed7f0dd2661a51b7a63a94e6867116f210304d8ce825e0064c",
+      "description": "Owner states and role gates remain authoritative; loading/empty/error/denied states and responsive charts/tables use new system; no fixture data enters production.",
+      "dependencies": [
+        "horizon-blog-y2e.6.1"
+      ],
+      "acceptance_criteria": [
+        "Owner states and role gates remain authoritative; loading/empty/error/denied states and responsive charts/tables use new system; no fixture data enters production.",
+        "preserve contracts",
+        "validate"
+      ]
+    }
+  },
+  "endpoint": "Prepare validated Release 1 local diff for incremental delivery; no remote operations until concrete review-ready result.",
+  "provider": "github",
+  "authority": "Beads epic metadata orchestrate_epic",
+  "repo_paths": {
+    "frontend": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog"
+  },
+  "base_branch": "main",
+  "base_commit": "34dba9130b72624557d59bb1261ff71dab13bedf",
+  "epic_branch": "codex/epic-horizon-blog-y2e",
+  "next_action": "Backend-connected R1 acceptance, then authorized review/release handoff; reconcile future release dependency grouping before R2.",
+  "authorization": {
+    "design": "User approved prototype 2026-09-06",
+    "remote": false,
+    "commits": false,
+    "implementation": "User requested begin orchestrate-epic 2026-09-07"
+  },
+  "release_order": {
+    "R1": [
+      "horizon-blog-y2e.1.1",
+      "horizon-blog-y2e.1.2",
+      "horizon-blog-y2e.2.1"
+    ],
+    "R2": [
+      "horizon-blog-y2e.2.2",
+      "horizon-blog-y2e.5.2"
+    ],
+    "R3": [
+      "horizon-blog-y2e.3.1",
+      "horizon-blog-y2e.3.2"
+    ],
+    "R4": [
+      "horizon-blog-y2e.4.1",
+      "horizon-blog-y2e.4.2"
+    ],
+    "R5": [
+      "horizon-blog-y2e.5.1"
+    ],
+    "R6": [
+      "horizon-blog-y2e.6.1",
+      "horizon-blog-y2e.6.2"
+    ]
+  }
+}

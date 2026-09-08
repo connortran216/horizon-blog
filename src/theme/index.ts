@@ -1,14 +1,7 @@
-/**
- * Obsidian-Inspired Dark Mode Theme for Chakra UI
- *
- * This theme provides an Obsidian-like experience with:
- * - Deep dark backgrounds with subtle variations
- * - Purple/blue accent colors
- * - Soft shadows and borders
- * - Excellent readability and contrast
- */
+/** Approved Signal theme with compatible Chakra component recipes. */
 
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
+import { signalColors } from './signal'
 
 // Color mode configuration
 const config: ThemeConfig = {
@@ -72,121 +65,7 @@ const colors = {
 }
 
 // Semantic tokens that switch based on color mode
-const semanticTokens = {
-  colors: {
-    // Backgrounds
-    'bg.page': {
-      default: 'obsidian.light.bg',
-      _dark: 'obsidian.dark.bg',
-    },
-    'bg.secondary': {
-      default: 'obsidian.light.bgSecondary',
-      _dark: 'obsidian.dark.bgSecondary',
-    },
-    'bg.tertiary': {
-      default: 'obsidian.light.bgTertiary',
-      _dark: 'obsidian.dark.bgTertiary',
-    },
-    'bg.elevated': {
-      default: 'obsidian.light.bgElevated',
-      _dark: 'obsidian.dark.bgElevated',
-    },
-    'bg.glass': {
-      default: 'rgba(255, 255, 255, 0.92)',
-      _dark: 'rgba(42, 42, 42, 0.92)',
-    },
-
-    // Borders
-    'border.default': {
-      default: 'obsidian.light.border',
-      _dark: 'obsidian.dark.border',
-    },
-    'border.subtle': {
-      default: 'obsidian.light.borderSubtle',
-      _dark: 'obsidian.dark.borderSubtle',
-    },
-
-    // Text
-    'text.primary': {
-      default: 'obsidian.text.lightPrimary',
-      _dark: 'obsidian.text.primary',
-    },
-    'text.secondary': {
-      default: 'obsidian.text.lightSecondary',
-      _dark: 'obsidian.text.secondary',
-    },
-    'text.tertiary': {
-      default: 'obsidian.text.lightTertiary',
-      _dark: 'obsidian.text.tertiary',
-    },
-
-    // Accents
-    'accent.primary': {
-      default: 'obsidian.accent.primary',
-      _dark: 'obsidian.accent.primary',
-    },
-    'accent.hover': {
-      default: 'obsidian.accent.hover',
-      _dark: 'obsidian.accent.hover',
-    },
-    'accent.glow': {
-      default: 'rgba(139, 127, 199, 0.24)',
-      _dark: 'rgba(139, 127, 199, 0.3)',
-    },
-    'action.primary': {
-      default: 'obsidian.action.primary',
-      _dark: 'obsidian.action.primary',
-    },
-    'action.hover': {
-      default: 'obsidian.action.hover',
-      _dark: 'obsidian.action.hover',
-    },
-    'action.active': {
-      default: 'obsidian.action.active',
-      _dark: 'obsidian.action.active',
-    },
-    'action.subtle': {
-      default: 'rgba(95, 114, 148, 0.1)',
-      _dark: 'rgba(109, 130, 167, 0.16)',
-    },
-    'action.glow': {
-      default: 'rgba(95, 114, 148, 0.18)',
-      _dark: 'rgba(109, 130, 167, 0.22)',
-    },
-
-    // Loading
-    'loading.base': {
-      default: 'rgba(90, 108, 125, 0.12)',
-      _dark: 'rgba(185, 187, 190, 0.12)',
-    },
-    'loading.highlight': {
-      default: 'rgba(255, 255, 255, 0.88)',
-      _dark: 'rgba(255, 255, 255, 0.14)',
-    },
-    'loading.track': {
-      default: 'rgba(95, 114, 148, 0.12)',
-      _dark: 'rgba(109, 130, 167, 0.18)',
-    },
-    'loading.stroke': {
-      default: 'rgba(95, 114, 148, 0.88)',
-      _dark: 'rgba(140, 160, 196, 0.92)',
-    },
-    'loading.glow': {
-      default: 'rgba(95, 114, 148, 0.16)',
-      _dark: 'rgba(109, 130, 167, 0.24)',
-    },
-
-    // Links
-    'link.default': {
-      default: 'obsidian.link',
-      _dark: 'obsidian.link',
-    },
-    'link.hover': {
-      default: 'obsidian.linkHover',
-      _dark: 'obsidian.linkHover',
-    },
-  },
-}
+const semanticTokens = { colors: signalColors }
 
 // Component style overrides for Obsidian feel
 const components = {
@@ -220,6 +99,8 @@ const components = {
     baseStyle: {
       transition: 'all 0.2s ease-in-out',
       fontWeight: 'semibold',
+      borderRadius: '12px',
+      _focusVisible: { outline: '2px solid', outlineColor: 'focus.ring', outlineOffset: '3px' },
     },
     variants: {
       ghost: {
@@ -231,7 +112,7 @@ const components = {
       },
       solid: {
         bg: 'action.primary',
-        color: 'white',
+        color: 'text.onAction',
         boxShadow: 'sm',
         _hover: {
           bg: 'action.hover',
@@ -269,8 +150,8 @@ const components = {
             borderColor: 'border.subtle',
           },
           _focus: {
-            borderColor: 'accent.primary',
-            boxShadow: '0 0 0 1px var(--chakra-colors-accent-primary)',
+            borderColor: 'focus.ring',
+            boxShadow: '0 0 0 1px var(--chakra-colors-focus-ring)',
           },
           _placeholder: {
             color: 'text.tertiary',
@@ -291,8 +172,8 @@ const components = {
           borderColor: 'border.subtle',
         },
         _focus: {
-          borderColor: 'accent.primary',
-          boxShadow: '0 0 0 1px var(--chakra-colors-accent-primary)',
+          borderColor: 'focus.ring',
+          boxShadow: '0 0 0 1px var(--chakra-colors-focus-ring)',
         },
         _placeholder: {
           color: 'text.tertiary',
@@ -361,7 +242,7 @@ const shadows = {
   lg: '0 8px 16px 0 rgba(0, 0, 0, 0.3)',
   xl: '0 12px 24px 0 rgba(0, 0, 0, 0.35)',
   '2xl': '0 16px 32px 0 rgba(0, 0, 0, 0.4)',
-  outline: '0 0 0 3px rgba(139, 127, 199, 0.4)', // Purple outline
+  outline: '0 0 0 2px var(--chakra-colors-focus-ring)',
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.2)',
 }
 
@@ -372,16 +253,17 @@ const radii = {
   base: '0.375rem',
   md: '0.5rem',
   lg: '0.75rem',
-  xl: '1rem',
-  '2xl': '1.5rem',
+  xl: '20px',
+  '2xl': '28px',
   '3xl': '2rem',
   full: '9999px',
 }
 
 // Typography enhancements
 const fonts = {
-  heading: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  body: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  heading:
+    '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  body: '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   mono: '"Monaco", "Menlo", "Ubuntu Mono", monospace',
 }
 
@@ -392,7 +274,7 @@ const fontSizes = {
   md: '1rem',
   lg: '1.125rem',
   xl: '1.25rem',
-  '2xl': '1.5rem',
+  '2xl': '28px',
   '3xl': '1.875rem',
   '4xl': '2.25rem',
   '5xl': '3rem',
@@ -464,16 +346,19 @@ const theme = extendTheme({
   lineHeights,
   animations: animationConfig,
   styles: {
-    global: (props: { colorMode: 'light' | 'dark' }) => ({
+    global: {
       body: {
-        bg: props.colorMode === 'dark' ? 'obsidian.dark.bg' : 'obsidian.light.bg',
-        color: props.colorMode === 'dark' ? 'obsidian.text.primary' : 'obsidian.text.lightPrimary',
+        bg: 'bg.page',
+        color: 'text.primary',
       },
-      // Framer Motion optimization
-      '*[data-framer]': {
-        willChange: 'transform',
+      '@media (prefers-reduced-motion: reduce)': {
+        '*, *::before, *::after': {
+          transition: 'none !important',
+          animation: 'none !important',
+          scrollBehavior: 'auto !important',
+        },
       },
-    }),
+    },
   },
 })
 

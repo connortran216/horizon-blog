@@ -1,3 +1,5 @@
+> Release 1 precedence: Signal Home uses Signature, up to six unique Latest posts, then Series. See ../signal/README.md and ../../specs/018-signal-uiux-redesign/R1-report.md. Earlier layout guidance below is historical.
+
 # Home
 
 ## Intent
