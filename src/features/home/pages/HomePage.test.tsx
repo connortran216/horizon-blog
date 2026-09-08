@@ -7,7 +7,7 @@ import theme from '../../../theme'
 import HomePage from './HomePage'
 
 describe('HomePage Series placement', () => {
-  it('places Series discovery after the unchanged hero', () => {
+  it('places Series discovery after the Signal introduction', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>
         <AuthProvider>
@@ -18,8 +18,8 @@ describe('HomePage Series placement', () => {
       </ChakraProvider>,
     )
 
-    const hero = markup.indexOf('Human stories, blogs, and thoughtful writing for curious readers.')
-    const series = markup.indexOf('View all series')
+    const hero = markup.indexOf('Ideas worth')
+    const series = markup.indexOf('All Series')
     expect(hero).toBeGreaterThanOrEqual(0)
     expect(series).toBeGreaterThan(hero)
   })

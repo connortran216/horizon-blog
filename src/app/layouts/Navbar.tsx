@@ -6,18 +6,16 @@ import {
   HStack,
   IconButton,
   Stack,
+  Button,
   useColorMode,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react'
-import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
+import { CloseIcon, HamburgerIcon, SunIcon, MoonIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogService, toPublicPostPath } from '../../core'
 import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
-import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
-import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
-import BrandLogo from '../../components/ui/BrandLogo'
 import '../../features/editor/editor.window'
 import NavLinkButton from './NavLinkButton'
 import UserMenu from './UserMenu'
@@ -25,7 +23,7 @@ import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
 
 const Navbar = () => {
-  const { isOpen, onToggle } = useDisclosure()
+  const { isOpen, onToggle, onClose } = useDisclosure()
   const { user, logout } = useAuth()
   const { colorMode, toggleColorMode } = useColorMode()
   const navigate = useNavigate()
@@ -122,92 +120,113 @@ const Navbar = () => {
     }
   }
 
+  useEffect(() => {
+    onClose()
+  }, [location.pathname, onClose])
+
   return (
-    <Glassmorphism
+    <Box
+      as="header"
       className="app-navbar"
-      px={4}
-      intensity="light"
-      position="sticky"
-      top={0}
+      mx={{ base: 4, md: 'auto' }}
+      mt={4}
+      px={{ base: 3, md: 6 }}
+      w={{ md: 'calc(100% - 48px)' }}
+      maxW="1120px"
+      border="1px solid"
+      borderColor="border.subtle"
+      borderRadius="20px"
+      bg="bg.secondary"
+      boxShadow="sm"
+      position="relative"
       zIndex={1000}
-      backdropFilter="blur(20px)"
     >
-      <Container maxW="container.xl">
-        <Flex h={16} alignItems="center" justifyContent="space-between">
-          <MotionWrapper variant="fadeInLeft" delay={0.1}>
+      <Container maxW="full" p={0}>
+        <Flex minH={{ base: '64px', md: '72px' }} align="center" gap={{ base: 2, md: 7 }}>
+          <Box as={RouterLink} to="/" aria-label="Horizon home" flexShrink={0}>
+            <Box
+              as="span"
+              fontFamily="'Be Vietnam Pro', sans-serif"
+              fontSize={{ base: '25px', md: '28px' }}
+              fontWeight={700}
+              letterSpacing="-1.5px"
+              lineHeight={1}
+            >
+              horizon
+              <Box as="span" color="action.primary">
+                .
+              </Box>
+            </Box>
+          </Box>
+          <HStack
+            as="nav"
+            aria-label="Main navigation"
+            spacing={4}
+            display={{ base: 'none', md: 'flex' }}
+          >
+            {SITE_LINKS.map((link) => (
+              <NavLinkButton key={link.path} to={link.path}>
+                {link.name}
+              </NavLinkButton>
+            ))}
+          </HStack>
+          <Flex ml="auto" align="center" gap={{ base: 1, md: 3 }}>
             <IconButton
-              size="md"
+              aria-label={colorMode === 'light' ? 'Use dark mode' : 'Use light mode'}
+              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+              onClick={toggleColorMode}
+              variant="ghost"
+              size="sm"
+            />
+            {user && canWrite && !isEditorPage ? (
+              <NavLinkButton to="/blog-editor">Write</NavLinkButton>
+            ) : null}
+            {user && canWrite && isEditorPage ? (
+              <AnimatedPrimaryButton onClick={handlePublish}>Publish</AnimatedPrimaryButton>
+            ) : null}
+            {user ? (
+              <UserMenu
+                user={user}
+                colorMode={colorMode}
+                onToggleColorMode={toggleColorMode}
+                onLogout={handleLogout}
+                isLoggingOut={isLoggingOut}
+              />
+            ) : (
+              <Button as={RouterLink} to="/login" variant="ghost" size="sm">
+                Sign in
+              </Button>
+            )}
+            <IconButton
+              size="sm"
               icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-              aria-label="Open Menu"
+              aria-label="Toggle navigation"
+              aria-expanded={isOpen}
+              aria-controls="mobile-navigation"
               display={{ md: 'none' }}
               onClick={onToggle}
+              variant="ghost"
             />
-          </MotionWrapper>
-
-          <MotionWrapper variant="fadeInUp" delay={0.2}>
-            <HStack spacing={{ base: 4, md: 8 }} alignItems="center">
-              <Box
-                as={RouterLink}
-                to="/"
-                aria-label="Horizon home"
-                display="inline-flex"
-                alignItems="center"
-                lineHeight="0"
-                flexShrink={0}
-              >
-                <BrandLogo variant="icon" display={{ base: 'block', md: 'none' }} />
-                <BrandLogo variant="full" display={{ base: 'none', md: 'block' }} />
-              </Box>
-              <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
-                {SITE_LINKS.map((link, index) => (
-                  <MotionWrapper key={link.path} variant="fadeInUp" delay={0.3 + index * 0.1}>
-                    <NavLinkButton to={link.path}>{link.name}</NavLinkButton>
-                  </MotionWrapper>
-                ))}
-              </HStack>
-            </HStack>
-          </MotionWrapper>
-
-          <MotionWrapper variant="fadeInRight" delay={0.4}>
-            <Flex alignItems="center" gap={4}>
-              {user && canWrite && !isEditorPage ? (
-                <NavLinkButton to="/blog-editor">Write</NavLinkButton>
-              ) : null}
-              {user && canWrite && isEditorPage ? (
-                <AnimatedPrimaryButton onClick={handlePublish} mr={2}>
-                  Publish
-                </AnimatedPrimaryButton>
-              ) : null}
-              {user ? (
-                <UserMenu
-                  user={user}
-                  colorMode={colorMode}
-                  onToggleColorMode={toggleColorMode}
-                  onLogout={handleLogout}
-                  isLoggingOut={isLoggingOut}
-                />
-              ) : (
-                <RouterLink to="/login">
-                  <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
-                </RouterLink>
-              )}
-            </Flex>
-          </MotionWrapper>
+          </Flex>
         </Flex>
-
         {isOpen ? (
-          <Box pb={4} display={{ md: 'none' }}>
-            <Stack as="nav" spacing={4}>
-              {SITE_LINKS.map((link) => (
-                <NavLinkButton key={link.path} to={link.path}>
-                  {link.name}
-                </NavLinkButton>
-              ))}
-            </Stack>
-          </Box>
+          <Stack
+            id="mobile-navigation"
+            as="nav"
+            aria-label="Mobile navigation"
+            pb={4}
+            spacing={2}
+            display={{ md: 'none' }}
+          >
+            {SITE_LINKS.map((link) => (
+              <NavLinkButton key={link.path} to={link.path}>
+                {link.name}
+              </NavLinkButton>
+            ))}
+          </Stack>
         ) : null}
       </Container>
-    </Glassmorphism>
+    </Box>
   )
 }
 

@@ -1,5 +1,10 @@
 # Horizon Blog Design System
 
+## Approved Signal migration (2026-09-06)
+
+The [Signal handoff](signal/README.md) supersedes the historical palette, typography and motion below. Exact tokens: [tokens.json](signal/tokens.json). Component and route migration proceeds in Beads epic horizon-blog-y2e. B1 installs foundations; older route-specific styling remains until its assigned bundle. Current heading/body font is Be Vietnam Pro, actions cobalt, accent lime. Legacy token names remain aliases. Preserve all existing domain and accessibility rules.
+
+
 This folder is the canonical source of truth for Horizon Blog UI rules.
 
 Use this documentation before changing:

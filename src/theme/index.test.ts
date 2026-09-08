@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import theme from './index'
+import { signalColors } from './signal'
 
 const luminance = (hex: string) => {
   const channels = hex
@@ -28,5 +29,40 @@ describe('theme accessibility', () => {
     expect(contrastRatio(tertiary, theme.colors.obsidian.light.bgSecondary)).toBeGreaterThanOrEqual(
       4.5,
     )
+  })
+})
+
+describe('Signal semantic theme', () => {
+  it.each(['default', '_dark'] as const)(
+    'keeps normal text and action labels readable in %s',
+    (mode) => {
+      for (const surface of ['bg.page', 'bg.surface', 'bg.elevated'] as const) {
+        for (const text of ['text.primary', 'text.secondary', 'text.muted'] as const) {
+          expect(
+            contrastRatio(signalColors[text][mode], signalColors[surface][mode]),
+          ).toBeGreaterThanOrEqual(4.5)
+        }
+      }
+      for (const action of ['action.primary', 'action.hover'] as const) {
+        expect(
+          contrastRatio(signalColors['text.onAction'][mode], signalColors[action][mode]),
+        ).toBeGreaterThanOrEqual(4.5)
+      }
+      expect(
+        contrastRatio(signalColors['focus.ring'][mode], signalColors['bg.surface'][mode]),
+      ).toBeGreaterThanOrEqual(3)
+    },
+  )
+  it('preserves existing consumers through semantic aliases', () => {
+    expect(signalColors['bg.secondary']).toEqual(signalColors['bg.surface'])
+    expect(signalColors['bg.tertiary']).toEqual(signalColors['bg.subtle'])
+    expect(signalColors['text.tertiary']).toEqual(signalColors['text.muted'])
+    const solid = theme.components.Button.variants.solid({
+      theme,
+      colorMode: 'dark',
+      colorScheme: 'gray',
+    })
+    expect(solid.color).toBe('text.onAction')
+    expect(theme.fonts.body).toContain('Be Vietnam Pro')
   })
 })
