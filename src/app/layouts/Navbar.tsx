@@ -124,15 +124,37 @@ const Navbar = () => {
     onClose()
   }, [location.pathname, onClose])
 
+  useEffect(() => {
+    if (!isOpen) return
+    document.querySelector<HTMLElement>('#mobile-navigation a')?.focus()
+    const dismiss = (event: PointerEvent) => {
+      const target = event.target as Element
+      if (!target.closest('#mobile-navigation, #mobile-menu-toggle')) onClose()
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+        document.getElementById('mobile-menu-toggle')?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', dismiss)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', dismiss)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [isOpen, onClose])
+
   return (
     <Box
       as="header"
       className="app-navbar"
-      mx={{ base: 4, md: 'auto' }}
+      mx="auto"
       mt={4}
       px={{ base: 3, md: 6 }}
-      w={{ md: 'calc(100% - 48px)' }}
-      maxW="1120px"
+      w="calc(100% - 80px)"
+      sx={{ '@media (max-width: 680px)': { width: 'calc(100% - 40px)' } }}
+      maxW="1168px"
       border="1px solid"
       borderColor="border.subtle"
       borderRadius="20px"
@@ -142,7 +164,7 @@ const Navbar = () => {
       zIndex={1000}
     >
       <Container maxW="full" p={0}>
-        <Flex minH={{ base: '64px', md: '72px' }} align="center" gap={{ base: 2, md: 7 }}>
+        <Flex minH="64px" align="center" gap={{ base: 2, md: 7 }}>
           <Box as={RouterLink} to="/" aria-label="Horizon home" flexShrink={0}>
             <Box
               as="span"
@@ -161,6 +183,9 @@ const Navbar = () => {
           <HStack
             as="nav"
             aria-label="Main navigation"
+            position="absolute"
+            left="50%"
+            transform="translateX(-50%)"
             spacing={4}
             display={{ base: 'none', md: 'flex' }}
           >
@@ -200,6 +225,7 @@ const Navbar = () => {
             <IconButton
               size="sm"
               icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              id="mobile-menu-toggle"
               aria-label="Toggle navigation"
               aria-expanded={isOpen}
               aria-controls="mobile-navigation"
@@ -214,7 +240,17 @@ const Navbar = () => {
             id="mobile-navigation"
             as="nav"
             aria-label="Mobile navigation"
-            pb={4}
+            position="absolute"
+            top="calc(100% + 10px)"
+            left={0}
+            right={0}
+            p={3}
+            borderRadius="16px"
+            border="1px solid"
+            borderColor="border.subtle"
+            bg="bg.elevated"
+            boxShadow="xl"
+            className="signal-mobile-menu"
             spacing={2}
             display={{ md: 'none' }}
           >

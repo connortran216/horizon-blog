@@ -6,8 +6,8 @@ import { AuthProvider } from '../../../context/AuthContext'
 import theme from '../../../theme'
 import HomePage from './HomePage'
 
-describe('HomePage Series placement', () => {
-  it('places Series discovery after the Signal introduction', () => {
+describe('HomePage initial loading', () => {
+  it('shows branded loading before Series discovery', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>
         <AuthProvider>
@@ -18,9 +18,8 @@ describe('HomePage Series placement', () => {
       </ChakraProvider>,
     )
 
-    const hero = markup.indexOf('Ideas worth')
-    const series = markup.indexOf('All Series')
-    expect(hero).toBeGreaterThanOrEqual(0)
-    expect(series).toBeGreaterThan(hero)
+    expect(markup).toContain('horizon-loading')
+    expect(markup).toContain('Đang mở những trang viết…')
+    expect(markup).not.toContain('All Series')
   })
 })

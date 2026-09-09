@@ -12,3 +12,8 @@ R6: horizon-blog-y2e.6.1, horizon-blog-y2e.6.2
 R1 scope: route-based theme selection enables Signal only on `/`; all other routes retain the exact prior theme. Compact shared navigation keeps auth, logout and editor publish behavior. Home reuses getPublishedPosts, media resolution and public Series services; six unique latest entries exclude Signature. Loading, empty, error/retry required. Existing uploaded covers retain aspect and use responsive media attributes.
 
 Checks: route-theme isolation; partition deduplication/empty/short input; lint/types/full tests/build; browser desktop/mobile light/dark and old-route regression. No dev/backend server is launched against repo instructions; built static preview is permitted for visual validation. Live API failures must be disclosed rather than replaced by production fixtures.
+
+
+## Reader interaction direction — 2026-09-08
+
+User requires a lively website with abundant purposeful motion and reader interaction across R1 revisions and R2-R6. Motion is part of each release acceptance, not deferred wholesale to R4. Preserve successful interactions from the previous UI; lighter surfaces must not mean static experiences. Define and visually check hover, press, focus, reveal and navigation feedback on desktop and touch, light/dark. Respect reduced-motion preferences with clear alternate feedback and keep reading text stable. R4 owns shared consolidation and reader-specific motion. Series cover-stack direction remains a proposal awaiting review.

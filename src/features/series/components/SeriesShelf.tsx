@@ -1,3 +1,4 @@
+import EditorialSeriesShelf from './EditorialSeriesShelf'
 import { Box, Heading, HStack, Link, SimpleGrid, Skeleton, Stack, Text } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePublicSeriesList } from '../usePublicSeriesList'
@@ -8,47 +9,10 @@ interface SeriesShelfProps {
   editorial?: boolean
 }
 
-const SeriesShelf = ({ compact = false, editorial = false }: SeriesShelfProps) => {
+const StaticSeriesShelf = ({ compact = false }: SeriesShelfProps) => {
   const { items, loading, error } = usePublicSeriesList({ limit: 2 })
 
   if (error || (!loading && items.length === 0)) return null
-
-  if (editorial)
-    return (
-      <Box as="section" aria-labelledby="home-series-heading">
-        <div className="signal-section-heading">
-          <div>
-            <span className="signal-eyebrow">Follow a thread</span>
-            <h2 id="home-series-heading">A little deeper.</h2>
-          </div>
-          <Link as={RouterLink} to="/series">
-            All Series
-          </Link>
-        </div>
-        {loading ? (
-          <Skeleton height="90px" borderRadius="20px" />
-        ) : (
-          <div className="signal-grid">
-            {items.map((series) => (
-              <Link
-                as={RouterLink}
-                to={'/series/' + series.slug}
-                key={series.id}
-                className="signal-series-link"
-              >
-                <div>
-                  <h3>{series.title}</h3>
-                  <p>
-                    {series.partCount} {series.partCount === 1 ? 'blog' : 'blogs'}
-                  </p>
-                </div>
-                <span aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </Box>
-    )
 
   return (
     <Box as="section" aria-labelledby={compact ? 'blog-series-heading' : 'home-series-heading'}>
@@ -97,4 +61,6 @@ const SeriesShelf = ({ compact = false, editorial = false }: SeriesShelfProps) =
   )
 }
 
+const SeriesShelf = (props: SeriesShelfProps) =>
+  props.editorial ? <EditorialSeriesShelf /> : <StaticSeriesShelf {...props} />
 export default SeriesShelf

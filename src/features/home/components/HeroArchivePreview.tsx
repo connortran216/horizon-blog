@@ -1,15 +1,14 @@
+import { cleanHomeExcerpt } from '../home.presentation'
 import { Link } from 'react-router-dom'
 import { FiArrowRight } from 'react-icons/fi'
 import { useReducedMotion } from 'framer-motion'
-import { type BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
+import { type BlogPostSummary, toPublicPostPath } from '../../../core'
 import { HomePostMedia, HomePostMeta } from './HomePostMedia'
 const HeroArchivePreview = ({ post }: { post: BlogPostSummary }) => {
   const reduced = useReducedMotion()
   return (
     <section className="signal-feature">
-      <Link
-        to={toPublicPostPath(post.id)}
-        aria-label={'Read ' + post.title}
+      <div
         className="signal-hero-art"
         onPointerMove={(e) => {
           if (reduced || e.pointerType !== 'mouse') return
@@ -19,13 +18,13 @@ const HeroArchivePreview = ({ post }: { post: BlogPostSummary }) => {
         }}
       >
         <HomePostMedia post={post} priority />
-      </Link>
+      </div>
       <div>
         <span className="signal-eyebrow">✧ Signature</span>
         <h2>
           <Link to={toPublicPostPath(post.id)}>{post.title}</Link>
         </h2>
-        <p>{extractPreviewText(post.excerpt || post.subtitle || '')}</p>
+        <p>{cleanHomeExcerpt(post.subtitle || post.excerpt || '')}</p>
         <HomePostMeta post={post} />
         <Link to={toPublicPostPath(post.id)} className="signal-primary">
           Read the story <FiArrowRight aria-hidden="true" />

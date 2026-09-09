@@ -1,4 +1,6 @@
-import { Button, Skeleton } from '@chakra-ui/react'
+import { AnimatePresence } from 'framer-motion'
+import HorizonLoading from '../../../components/ui/HorizonLoading'
+import { Button } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
 import { FiArrowRight } from 'react-icons/fi'
 import HeroArchivePreview from '../components/HeroArchivePreview'
@@ -10,23 +12,13 @@ const HomePage = () => {
   const { signature, latest, loading, error, retry } = useHomeWriting()
   return (
     <div className="signal-home">
+      <AnimatePresence>{loading && <HorizonLoading key="home-loading" />}</AnimatePresence>
       <header className="signal-intro">
         <h1>
-          Ideas worth
-          <br />
-          understanding<span>.</span>
+          Ideas worth understanding<span>.</span>
         </h1>
-        <p>
-          Góc nhìn về phần mềm, <br />
-          hệ thống và những điều <br />
-          <mark>học được</mark> khi xây dựng chúng.
-        </p>
       </header>
-      {loading ? (
-        <div role="status" aria-label="Loading writing">
-          <Skeleton height="340px" borderRadius="28px" />
-        </div>
-      ) : error ? (
+      {loading ? null : error ? (
         <section className="signal-feedback" role="alert">
           <h2>Writing could not load</h2>
           <p>Please try again.</p>
@@ -35,6 +27,9 @@ const HomePage = () => {
       ) : signature ? (
         <>
           <HeroArchivePreview post={signature} />
+          <div className="signal-series">
+            <SeriesShelf editorial />
+          </div>
           {latest.length > 0 && (
             <section className="signal-latest">
               <div className="signal-section-heading">
@@ -61,9 +56,11 @@ const HomePage = () => {
           <Link to="/blog">Explore the blog</Link>
         </section>
       )}
-      <div className="signal-series">
-        <SeriesShelf editorial />
-      </div>
+      {!loading && (error || !signature) && (
+        <div className="signal-series">
+          <SeriesShelf editorial />
+        </div>
+      )}
     </div>
   )
 }

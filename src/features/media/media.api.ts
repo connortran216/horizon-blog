@@ -231,10 +231,12 @@ const resolveOneMediaSource = (mediaId: string): Promise<ResolvedMediaSource | u
 
 export const resolveMediaSources = async (
   mediaIds: string[],
+  refresh = false,
 ): Promise<ResolveMediaSourceResult> => {
   const deduped = Array.from(new Set(mediaIds.filter(Boolean)))
   if (deduped.length === 0) return {}
 
+  if (refresh) deduped.forEach((id) => mediaCache.delete(id))
   const result: ResolveMediaSourceResult = {}
   const resolved = await Promise.all(
     deduped.map(async (mediaId) => [mediaId, await resolveOneMediaSource(mediaId)] as const),
