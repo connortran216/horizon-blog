@@ -12,3 +12,10 @@ describe('Home editorial selection', () => {
     expect(partitionHomeWriting([{ id: 'only' }]).latest).toEqual([])
   })
 })
+
+import { cleanHomeExcerpt } from './home.presentation'
+it('cleans markdown and TOC artifacts without dropping technical decimals in prose', () => {
+  expect(cleanHomeExcerpt('1.00 _Hello world._ Table of Contents 1. Intro')).toBe('Hello world.')
+  expect(cleanHomeExcerpt('Uses version 1.00 safely.')).toBe('Uses version 1.00 safely.')
+  expect(cleanHomeExcerpt('Hello tr�...')).toBe('Hello')
+})

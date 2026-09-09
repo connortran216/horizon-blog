@@ -1,18 +1,21 @@
+import { cleanHomeExcerpt } from '../home.presentation'
 import SeriesPostContext from '../../series/components/SeriesPostContext'
 import { Link } from 'react-router-dom'
-import { type BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
+import { type BlogPostSummary, toPublicPostPath } from '../../../core'
 import { HomePostMedia, HomePostMeta } from './HomePostMedia'
 const StoryCard = ({ post }: { post: BlogPostSummary }) => (
   <article className="signal-story">
-    <Link to={toPublicPostPath(post.id)} tabIndex={-1} aria-hidden="true" className="signal-thumb">
+    <div className="signal-thumb">
       <HomePostMedia post={post} />
-    </Link>
-    <div>
+    </div>
+    <div className="signal-story-body">
       <h3>
         <Link to={toPublicPostPath(post.id)}>{post.title}</Link>
       </h3>
-      <p>{extractPreviewText(post.excerpt || post.subtitle || '')}</p>
-      <SeriesPostContext series={post.series} />
+      <p>{cleanHomeExcerpt(post.subtitle || post.excerpt || '')}</p>
+      <div className="signal-story-series">
+        <SeriesPostContext series={post.series} />
+      </div>
       <HomePostMeta post={post} />
     </div>
   </article>
