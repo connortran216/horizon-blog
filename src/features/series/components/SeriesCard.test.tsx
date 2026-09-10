@@ -29,31 +29,5 @@ describe('SeriesCard', () => {
     expect(markup).toContain('Database Engineering')
     expect(markup).toContain('Series · 4 blogs')
     expect(markup).toContain('Connor Tran')
-    expect(markup).toContain('class="series-book series-book--standard"')
-    expect(markup).toContain('READ · EXPLORE · CONNECT')
-  })
-
-  it('keeps the compact shelf card text-led', () => {
-    const markup = renderToStaticMarkup(
-      <ChakraProvider theme={theme}>
-        <MemoryRouter>
-          <SeriesCard
-            compact
-            series={{
-              id: 10,
-              slug: 'compact-series',
-              title: 'Compact Series',
-              description: 'A compact shelf entry.',
-              author: { id: 1, name: 'Connor Tran' },
-              partCount: 2,
-              updatedAt: '2026-08-16T00:00:00Z',
-            }}
-          />
-        </MemoryRouter>
-      </ChakraProvider>,
-    )
-
-    expect(markup).toContain('Compact Series')
-    expect(markup).not.toContain('series-book')
   })
 })

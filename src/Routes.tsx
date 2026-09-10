@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Routes as RouterRoutes, Route } from 'react-router-dom'
-import HorizonLoading from './components/ui/HorizonLoading'
+import { LoadingScreen } from './core'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -32,7 +32,15 @@ const AccessManagement = lazy(
 
 const Routes = () => {
   return (
-    <Suspense fallback={<HorizonLoading />}>
+    <Suspense
+      fallback={
+        <LoadingScreen
+          label="Loading page"
+          description="Preparing the next reading surface."
+          minH="50vh"
+        />
+      }
+    >
       <RouterRoutes>
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<Blog />} />

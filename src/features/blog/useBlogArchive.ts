@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getBlogService } from '../../core'
 import { BlogArchiveSummary, BlogArchiveTag } from './blog.types'
@@ -27,8 +27,6 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const [page, setPageState] = useState(parsePage(searchParams.get('page')))
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
-  const [postsError, setPostsError] = useState<string | null>(null)
-  const [postsRequestVersion, setPostsRequestVersion] = useState(0)
 
   const query = useMemo(() => searchParams.get('q') ?? '', [searchParams])
   const activeTags = useMemo(() => parseTags(searchParams.get('tags')), [searchParams])
@@ -67,7 +65,6 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     const loadPosts = async () => {
       try {
         setLoading(true)
-        setPostsError(null)
         const response = await getBlogService().getPublishedArchivePosts({
           q: query || undefined,
           tags: activeTags,
@@ -86,7 +83,6 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
         setPosts([])
         setTotal(0)
         setTotalPages(1)
-        setPostsError('The blog archive could not load. Please try again in a moment.')
       } finally {
         if (!cancelled) {
           setLoading(false)
@@ -99,7 +95,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       cancelled = true
     }
-  }, [activeTags, page, pageSize, postsRequestVersion, query])
+  }, [activeTags, page, pageSize, query])
 
   useEffect(() => {
     let cancelled = false
@@ -188,10 +184,6 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     setSearchParams(next)
   }
 
-  const retryPosts = useCallback(() => {
-    setPostsRequestVersion((value) => value + 1)
-  }, [])
-
   return {
     searchInput,
     setSearchInput,
@@ -203,7 +195,6 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     page,
     totalPages,
     total,
-    postsError,
     activeTags,
     hasActiveFilters,
     setPage,
@@ -211,6 +202,5 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     clearQuery,
     removeTag,
     clearAllFilters,
-    retryPosts,
   }
 }

@@ -1,4 +1,3 @@
-import EditorialSeriesShelf from './EditorialSeriesShelf'
 import { Box, Heading, HStack, Link, SimpleGrid, Skeleton, Stack, Text } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { usePublicSeriesList } from '../usePublicSeriesList'
@@ -6,10 +5,9 @@ import SeriesCard from './SeriesCard'
 
 interface SeriesShelfProps {
   compact?: boolean
-  editorial?: boolean
 }
 
-const StaticSeriesShelf = ({ compact = false }: SeriesShelfProps) => {
+const SeriesShelf = ({ compact = false }: SeriesShelfProps) => {
   const { items, loading, error } = usePublicSeriesList({ limit: 2 })
 
   if (error || (!loading && items.length === 0)) return null
@@ -61,6 +59,4 @@ const StaticSeriesShelf = ({ compact = false }: SeriesShelfProps) => {
   )
 }
 
-const SeriesShelf = (props: SeriesShelfProps) =>
-  props.editorial ? <EditorialSeriesShelf /> : <StaticSeriesShelf {...props} />
 export default SeriesShelf

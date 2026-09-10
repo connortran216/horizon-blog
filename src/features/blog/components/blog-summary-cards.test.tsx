@@ -89,7 +89,7 @@ describe('blog summary cards', () => {
     expect(markup).not.toContain('src="media://40"')
   })
 
-  it('uses the shared media state frame for a standard blog cover', () => {
+  it('rounds the standard blog card cover frame', () => {
     const postWithCover = {
       ...summary,
       featuredImage: 'https://cdn.example.com/rounded-cover.png',
@@ -104,9 +104,7 @@ describe('blog summary cards', () => {
     )
 
     expect(markup).toContain('src="https://cdn.example.com/rounded-cover.png"')
-    expect(markup).toContain('class="post-media-frame signal-discovery-media"')
-    expect(markup).toContain('data-media-state="loading"')
-    expect(markup).toContain('object-fit:contain')
+    expect(markup).toContain('height:240px;overflow:hidden;border-radius:var(--chakra-radii-xl)')
   })
 
   it('renders related posts without score or reason labels', () => {

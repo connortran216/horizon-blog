@@ -37,8 +37,6 @@ describe('SeriesPartList', () => {
     )
 
     expect(markup).toContain('aria-label="Series blogs"')
-    expect(markup).toContain('signal-series-parts')
-    expect(markup).toContain('signal-series-part-marker')
     expect(markup).toContain('Indexes first')
     expect(markup).toContain('Query plans')
     expect(markup.indexOf('Indexes first')).toBeLessThan(markup.indexOf('Query plans'))

@@ -47,18 +47,9 @@ It should feel like a clean index of blogs, with strong search and a clear path 
 
 ## Motion
 
-- card lift, shadow, title, media, and arrow feedback should be clearly perceptible
-- search and filter result changes fade/rise without moving controls or causing layout jumps
-- press and touch feedback must remain visible without hover
-- no bouncing cards or autoplay
-- reduced motion removes translation while retaining color, border, shadow, and result feedback
-
-## State And Validation Contract
-
-- cover media supports loading, ready, no-media, error, and retry
-- current results remain stable while the next state is resolving when the data hook permits it
-- test long Vietnamese and English titles/excerpts with production-shaped data
-- visually check desktop/mobile, light/dark, mouse/keyboard/touch, and reduced motion
+- subtle hover and entry transitions only
+- no bouncing cards
+- fallback cover motion may exist, but should remain ambient
 
 ## Accessibility Notes
 

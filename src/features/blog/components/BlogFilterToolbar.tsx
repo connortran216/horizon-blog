@@ -25,7 +25,16 @@ const BlogFilterToolbar = ({
   const hasFilters = Boolean(activeQuery || activeTags.length > 0)
 
   return (
-    <Box borderY="1px solid" borderColor="border.subtle" px={0} py={{ base: 4, md: 5 }}>
+    <Box
+      border="1px solid"
+      borderColor="border.subtle"
+      borderRadius="3xl"
+      bg="bg.glass"
+      backdropFilter="blur(18px)"
+      px={{ base: 5, md: 6 }}
+      py={{ base: 5, md: 6 }}
+      boxShadow="sm"
+    >
       <Wrap spacing={3} align="center">
         <WrapItem>
           <Text
@@ -52,18 +61,9 @@ const BlogFilterToolbar = ({
                     size="sm"
                     borderRadius="full"
                     variant="ghost"
-                    bg={isActive ? 'action.primary' : 'bg.surface'}
-                    color={isActive ? 'text.onAction' : 'text.secondary'}
-                    border="1px solid"
-                    borderColor={isActive ? 'action.primary' : 'border.subtle'}
-                    _hover={{
-                      bg: isActive ? 'action.hover' : 'bg.tertiary',
-                      color: isActive ? 'text.onAction' : 'text.primary',
-                      transform: 'translateY(-2px)',
-                      boxShadow: 'sm',
-                    }}
-                    _active={{ transform: 'scale(0.97)' }}
-                    transition="transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease"
+                    bg={isActive ? 'action.subtle' : 'bg.page'}
+                    color={isActive ? 'action.primary' : 'text.secondary'}
+                    _hover={{ bg: isActive ? 'action.subtle' : 'bg.tertiary' }}
                     onClick={() => onToggleTag(tag.name)}
                   >
                     #{tag.name}

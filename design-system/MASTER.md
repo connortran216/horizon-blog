@@ -1,10 +1,5 @@
 # Horizon Blog Design System
 
-## Approved Signal migration (2026-09-06)
-
-The [Signal handoff](signal/README.md) supersedes the historical palette, typography and motion below. Exact tokens: [tokens.json](signal/tokens.json). Component and route migration proceeds in Beads epic horizon-blog-y2e. B1 installs foundations; older route-specific styling remains until its assigned bundle. Current heading/body font is Be Vietnam Pro, actions cobalt, accent lime. Legacy token names remain aliases. Preserve all existing domain and accessibility rules.
-
-
 This folder is the canonical source of truth for Horizon Blog UI rules.
 
 Use this documentation before changing:
@@ -50,27 +45,6 @@ The visual system should feel:
 - modern
 - editorial
 - personal rather than corporate
-- lively through purposeful feedback
-- tactile without becoming card-heavy
-
-## Signal Behavioral Contract
-
-Signal combines editorial clarity, soft tactile depth, purposeful motion, real-content resilience,
-and equal light/dark quality. Minimal means controlled hierarchy and chrome; it must not collapse
-discovery pages into flat, motionless lists.
-
-Every reusable interactive component defines:
-
-- its semantic role and content hierarchy
-- one resting surface depth and one interaction depth
-- hover, press, keyboard-focus, touch, entry/reveal, and navigation feedback where relevant
-- a reduced-motion alternative that preserves state through color, border, shadow, or copy
-- loading, ready, empty, no-media, error, and retry states where data or media is involved
-- desktop, intermediate, and mobile behavior for real long titles and excerpts
-
-Share behavioral primitives where they repeat. Keep domain identities distinct: Signature,
-writing cards, Series books, reader context, auth panels, and analytics panels must not become one
-universal rounded card.
 
 ## Implementation Map
 
@@ -351,22 +325,6 @@ Rules:
 - no important information should rely on continuous motion
 - fallback covers and decorative particles must respect reduced motion
 - reading surfaces should be almost static once loaded
-
-Discovery surfaces may use richer reveal, lift, pointer light, media transitions, and directional
-feedback. Motion is part of each release acceptance rather than work deferred to a later motion
-release. Do not autoplay discovery rails or continuously animate ordered reading timelines.
-
-### Visual Acceptance Matrix
-
-Reusable UI is checked with production-shaped content across:
-
-- desktop and mobile, plus the intermediate layout when its structure changes
-- light and dark modes
-- mouse, keyboard, and touch where relevant
-- normal and reduced motion
-- long content, empty/error states, and failed or absent media
-
-Tests, builds, and HTTP health do not replace rendered visual and interaction checks.
 
 ## Surface Model
 
