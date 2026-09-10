@@ -1,4 +1,4 @@
-import { Badge, Box, HStack, Link, Stack, Text, Wrap, WrapItem } from '@chakra-ui/react'
+import { Badge, Box, HStack, Icon, Link, Stack, Text, Wrap, WrapItem } from '@chakra-ui/react'
 import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { Link as RouterLink } from 'react-router-dom'
 import { toPublicPostPath } from '../../../core'
@@ -9,22 +9,63 @@ interface SeriesPartListProps {
 }
 
 const SeriesPartList = ({ parts }: SeriesPartListProps) => (
-  <Box as="ol" listStyleType="none" m={0} p={0} aria-label="Series blogs">
-    <Stack spacing={4}>
-      {parts.map((part) => {
-        return (
+  <Box
+    as="ol"
+    className="signal-series-parts"
+    position="relative"
+    listStyleType="none"
+    m={0}
+    p={0}
+    aria-label="Series blogs"
+    _before={{
+      content: '""',
+      position: 'absolute',
+      top: 8,
+      bottom: 8,
+      left: { base: '23px', md: '27px' },
+      w: '2px',
+      bg: 'border.subtle',
+    }}
+  >
+    <Stack spacing={5}>
+      {parts.map((part) => (
+        <HStack as="li" key={part.postId} position="relative" align="stretch" spacing={4}>
           <Box
-            as="li"
-            key={part.postId}
+            position="relative"
+            zIndex={1}
+            display="grid"
+            placeItems="center"
+            alignSelf="flex-start"
+            w={{ base: '48px', md: '56px' }}
+            h={{ base: '48px', md: '56px' }}
+            flexShrink={0}
+            border="1px solid"
+            borderColor={part.position === 1 ? 'action.primary' : 'border.subtle'}
+            borderRadius="full"
+            bg={part.position === 1 ? 'action.primary' : 'bg.surface'}
+            color={part.position === 1 ? 'text.onAction' : 'text.primary'}
+            fontWeight="bold"
+            boxShadow="sm"
+            transition="transform 220ms ease, background-color 220ms ease, border-color 220ms ease"
+            className="signal-series-part-marker"
+          >
+            {String(part.position).padStart(2, '0')}
+          </Box>
+
+          <Box
+            data-group=""
+            flex={1}
+            minW={0}
             border="1px solid"
             borderColor="border.subtle"
             borderRadius="2xl"
-            bg="bg.secondary"
-            transition="border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease"
+            bg="bg.surface"
+            boxShadow="sm"
+            transition="border-color 220ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease"
             _hover={{
               borderColor: 'action.primary',
-              transform: 'translateY(-1px)',
-              boxShadow: 'sm',
+              transform: 'translateX(6px)',
+              boxShadow: 'lg',
             }}
           >
             <Link
@@ -35,12 +76,10 @@ const SeriesPartList = ({ parts }: SeriesPartListProps) => (
               py={{ base: 5, md: 6 }}
               color="inherit"
               _hover={{ textDecoration: 'none' }}
+              _active={{ transform: 'scale(0.987)' }}
               _focusVisible={{ boxShadow: 'outline' }}
             >
               <HStack align="start" spacing={{ base: 4, md: 6 }}>
-                <Text minW="2.5rem" color="text.tertiary" fontSize="lg" fontWeight="semibold">
-                  {String(part.position).padStart(2, '0')}
-                </Text>
                 <Stack spacing={3} flex={1} minW={0}>
                   <Text
                     color="action.primary"
@@ -89,14 +128,19 @@ const SeriesPartList = ({ parts }: SeriesPartListProps) => (
                     ) : null}
                   </HStack>
                 </Stack>
-                <Box color="action.primary" pt={1} aria-hidden>
-                  <FiArrowRight />
-                </Box>
+                <Icon
+                  as={FiArrowRight}
+                  color="action.primary"
+                  mt={1}
+                  flexShrink={0}
+                  transition="transform 220ms ease"
+                  _groupHover={{ transform: 'translateX(5px)' }}
+                />
               </HStack>
             </Link>
           </Box>
-        )
-      })}
+        </HStack>
+      ))}
     </Stack>
   </Box>
 )

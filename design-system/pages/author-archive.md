@@ -66,3 +66,13 @@ Legacy numeric links like `/authors/:id` should still resolve through the page h
 - omit empty bio instead of adding filler copy
 - the archive should read like a calm index, not a dashboard or marketing page
 - follower and following values are mocked until the backend exposes public social stats
+
+Do not render mocked follower or following counts in production. Omit those rows until the backend
+provides public values.
+
+## State And Validation Contract
+
+- the identity rail and writing list load independently without losing route context
+- archive rows provide hover, focus, press, and reduced-motion feedback
+- use real profile and long writing data; do not invent missing public biography or social fields
+- visually check sticky desktop, stacked mobile, light/dark, keyboard/touch, and empty/error states

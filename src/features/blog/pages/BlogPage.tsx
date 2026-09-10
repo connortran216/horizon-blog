@@ -19,6 +19,7 @@ import EditorialCard from '../components/EditorialCard'
 import FeaturedStory from '../components/FeaturedStory'
 import { useBlogArchive } from '../useBlogArchive'
 import SeriesShelf from '../../series/components/SeriesShelf'
+import '../signal-discovery.css'
 
 const BlogPage = () => {
   const limit = 9
@@ -33,6 +34,7 @@ const BlogPage = () => {
     page,
     totalPages,
     total,
+    postsError,
     activeTags,
     hasActiveFilters,
     setPage,
@@ -40,6 +42,7 @@ const BlogPage = () => {
     clearQuery,
     removeTag,
     clearAllFilters,
+    retryPosts,
   } = useBlogArchive(limit)
 
   const featuredPost = posts[0]
@@ -106,6 +109,51 @@ const BlogPage = () => {
               <FadeInShimmer key="loading" delay={0.2}>
                 <ShimmerLoader variant="blog" count={9} />
               </FadeInShimmer>
+            ) : postsError ? (
+              <MotionWrapper
+                key="error"
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                duration={0.35}
+              >
+                <Box
+                  border="1px solid"
+                  borderColor="border.subtle"
+                  borderRadius="3xl"
+                  bg="bg.secondary"
+                  px={{ base: 6, md: 10 }}
+                  py={{ base: 10, md: 14 }}
+                  textAlign="center"
+                >
+                  <VStack spacing={4} align="center">
+                    <Badge
+                      px={3}
+                      py={1}
+                      borderRadius="full"
+                      bg="bg.tertiary"
+                      color="text.secondary"
+                    >
+                      Archive unavailable
+                    </Badge>
+                    <Heading size="lg" color="text.primary">
+                      The writing could not load.
+                    </Heading>
+                    <Text maxW="2xl" color="text.secondary" lineHeight="tall">
+                      {postsError}
+                    </Text>
+                    <Button
+                      onClick={retryPosts}
+                      bg="action.primary"
+                      color="text.onAction"
+                      borderRadius="full"
+                      _hover={{ bg: 'action.hover', transform: 'translateY(-2px)' }}
+                    >
+                      Try again
+                    </Button>
+                  </VStack>
+                </Box>
+              </MotionWrapper>
             ) : posts.length === 0 ? (
               <MotionWrapper
                 key="empty"
@@ -153,7 +201,7 @@ const BlogPage = () => {
               </MotionWrapper>
             ) : (
               <motion.div
-                key="results"
+                key={`results:${query}:${activeTags.join(',')}:${page}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -179,9 +227,7 @@ const BlogPage = () => {
                       </Heading>
                     </Stack>
                     <Text color="text.secondary" fontSize="sm">
-                      {hasActiveFilters
-                        ? `Showing page ${page} of ${Math.max(totalPages, 1)}.`
-                        : `Showing page ${page} of ${Math.max(totalPages, 1)}.`}
+                      Showing page {page} of {Math.max(totalPages, 1)}.
                     </Text>
                   </Flex>
 
