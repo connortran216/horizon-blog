@@ -63,18 +63,9 @@ Series discovery and reader components stay feature-owned under `src/features/se
 
 ## Motion
 
-- Use tactile book depth and perceptible entry, hover, focus, press, and directional transitions.
+- Use only restrained entry and hover transitions.
 - Do not animate an ordered timeline continuously.
-- Hover and keyboard focus emphasize the active part number and its outgoing connector.
-- Touch receives press feedback without relying on hover.
-- Reduced motion removes translation and cover rotation while retaining emphasis.
-
-## State And Validation Contract
-
-- validate zero, one, and many parts plus long titles and descriptions
-- loading, empty, error, retry, not-found, and retained partial data are first-class states
-- use production-shaped public Series data and preserve backend order
-- visually check desktop/mobile, light/dark, mouse/keyboard/touch, and reduced motion
+- Respect reduced-motion preferences.
 
 ## Accessibility Notes
 

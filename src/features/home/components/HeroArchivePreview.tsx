@@ -1,36 +1,181 @@
-import { cleanHomeExcerpt } from '../home.presentation'
-import { Link } from 'react-router-dom'
-import { FiArrowRight } from 'react-icons/fi'
-import { useReducedMotion } from 'framer-motion'
-import { type BlogPostSummary, toPublicPostPath } from '../../../core'
-import { HomePostMedia, HomePostMeta } from './HomePostMedia'
-const HeroArchivePreview = ({ post }: { post: BlogPostSummary }) => {
-  const reduced = useReducedMotion()
+import {
+  Avatar,
+  Badge,
+  Box,
+  Heading,
+  HStack,
+  Icon,
+  Image,
+  Stack,
+  Text,
+  VStack,
+} from '@chakra-ui/react'
+import { Link as RouterLink } from 'react-router-dom'
+import { FiArrowUpRight, FiClock } from 'react-icons/fi'
+import { BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
+
+const DEFAULT_AVATAR =
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
+
+interface HeroArchivePreviewProps {
+  post?: BlogPostSummary
+  formatDate: (dateString: string) => string
+}
+
+const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
+  const coverMedia = useResolvedCoverMedia(post?.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 520px', true)
+    : undefined
+  const previewText =
+    extractPreviewText(post?.excerpt || post?.subtitle || '') ||
+    'Blogs, essays, and technical writing shared with a calmer rhythm.'
+  const previewContent = (
+    <>
+      {coverImage ? (
+        <Image
+          {...coverImage}
+          alt={post?.title || 'Latest blog'}
+          w="full"
+          h="220px"
+          objectFit="cover"
+        />
+      ) : (
+        <DefaultPostCover
+          title={post?.title || 'Start with the latest story'}
+          eyebrow="Latest blog"
+          h="220px"
+          borderBottom="1px solid"
+          borderColor="border.subtle"
+        />
+      )}
+
+      <Stack spacing={5} px={{ base: 5, lg: 7 }} py={{ base: 5, lg: 7 }}>
+        <HStack justify="space-between" align="flex-start" spacing={4}>
+          <Badge
+            px={3}
+            py={1}
+            borderRadius="full"
+            bg="bg.tertiary"
+            color="text.secondary"
+            textTransform="uppercase"
+            letterSpacing="0.14em"
+            fontSize="10px"
+          >
+            Latest blog
+          </Badge>
+          <Icon as={FiArrowUpRight} color="action.primary" boxSize={5} />
+        </HStack>
+
+        <VStack align="stretch" spacing={3}>
+          <Text
+            fontSize="xs"
+            textTransform="uppercase"
+            letterSpacing="0.14em"
+            color="text.tertiary"
+          >
+            {post ? formatDate(post.createdAt) : 'Latest published'}
+          </Text>
+          <Heading
+            size="lg"
+            color="text.primary"
+            lineHeight="1.05"
+            letterSpacing="-0.03em"
+            noOfLines={3}
+          >
+            {post?.title || 'Start with the latest story'}
+          </Heading>
+          <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
+            {previewText}
+          </Text>
+        </VStack>
+
+        <HStack justify="space-between" pt={1} flexWrap="wrap" spacing={3}>
+          <HStack spacing={3}>
+            <Avatar
+              size="2xs"
+              src={post?.author.avatar || DEFAULT_AVATAR}
+              name={post?.author.username || 'Connor Tran'}
+            />
+            <Text fontSize="sm" color="text.secondary">
+              {post?.author.username || 'Connor Tran'}
+            </Text>
+          </HStack>
+          <HStack spacing={1.5} color="text.tertiary" fontSize="sm">
+            <Icon as={FiClock} />
+            <Text>{post?.readingTime || 1} min read</Text>
+          </HStack>
+        </HStack>
+      </Stack>
+    </>
+  )
+
   return (
-    <section className="signal-feature">
-      <div
-        className="signal-hero-art"
-        onPointerMove={(e) => {
-          if (reduced || e.pointerType !== 'mouse') return
-          const rect = e.currentTarget.getBoundingClientRect()
-          e.currentTarget.style.setProperty('--pointer-x', e.clientX - rect.left + 'px')
-          e.currentTarget.style.setProperty('--pointer-y', e.clientY - rect.top + 'px')
-        }}
-      >
-        <HomePostMedia post={post} priority />
-      </div>
-      <div>
-        <span className="signal-eyebrow">✧ Signature</span>
-        <h2>
-          <Link to={toPublicPostPath(post.id)}>{post.title}</Link>
-        </h2>
-        <p>{cleanHomeExcerpt(post.subtitle || post.excerpt || '')}</p>
-        <HomePostMeta post={post} />
-        <Link to={toPublicPostPath(post.id)} className="signal-primary">
-          Read the story <FiArrowRight aria-hidden="true" />
-        </Link>
-      </div>
-    </section>
+    <Box position="relative" minH={{ base: '340px', lg: '520px' }}>
+      <Box
+        position="absolute"
+        top={{ base: 10, lg: 6 }}
+        right={{ base: 8, lg: 12 }}
+        w={{ base: 20, lg: 28 }}
+        h={{ base: 20, lg: 28 }}
+        borderRadius="full"
+        bg="accent.glow"
+        filter="blur(18px)"
+        opacity={0.95}
+      />
+      <Box
+        position="absolute"
+        bottom={{ base: 12, lg: 16 }}
+        left={{ base: 2, lg: 4 }}
+        w={{ base: 14, lg: 20 }}
+        h={{ base: 14, lg: 20 }}
+        borderRadius="2xl"
+        border="1px solid"
+        borderColor="border.subtle"
+        bg="bg.tertiary"
+        transform="rotate(-14deg)"
+        opacity={0.9}
+      />
+
+      {post ? (
+        <Box
+          as={RouterLink}
+          to={toPublicPostPath(post.id)}
+          position="relative"
+          display="block"
+          border="1px solid"
+          borderColor="border.subtle"
+          borderRadius="3xl"
+          overflow="hidden"
+          bg="bg.secondary"
+          boxShadow="xl"
+          transform={{ base: 'none', lg: 'rotate(1.5deg)' }}
+          _hover={{ transform: { base: 'none', lg: 'rotate(0.5deg) translateY(-4px)' } }}
+          transition="transform 0.25s ease, box-shadow 0.25s ease"
+        >
+          {previewContent}
+        </Box>
+      ) : (
+        <Box
+          position="relative"
+          display="block"
+          border="1px solid"
+          borderColor="border.subtle"
+          borderRadius="3xl"
+          overflow="hidden"
+          bg="bg.secondary"
+          boxShadow="xl"
+          transform={{ base: 'none', lg: 'rotate(1.5deg)' }}
+          transition="transform 0.25s ease, box-shadow 0.25s ease"
+        >
+          {previewContent}
+        </Box>
+      )}
+    </Box>
   )
 }
+
 export default HeroArchivePreview

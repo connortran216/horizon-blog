@@ -7,7 +7,6 @@ import {
   AuthorArchiveUser,
   AuthorPostsPage,
 } from './authors.types'
-import { resolveAuthorIdFromSlug } from './author-route'
 
 const DEFAULT_PAGE_SIZE = 6
 const AUTHOR_ROUTE_ID_CACHE_KEY = 'horizon_blog_author_route_ids'
@@ -139,73 +138,10 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const currentPage = useMemo(() => parsePage(searchParams.get('page')), [searchParams])
   const routeState = location.state as { authorId?: number | string } | null
   const cachedAuthorId = useMemo(() => readCachedAuthorId(authorName), [authorName])
-  const immediateAuthorId = useMemo(
+  const authorId = useMemo(
     () => parseAuthorId(authorName, routeState?.authorId, cachedAuthorId),
     [authorName, cachedAuthorId, routeState?.authorId],
   )
-  const [resolvedAuthorRoute, setResolvedAuthorRoute] = useState<{
-    authorName: string
-    authorId: string
-    loading: boolean
-    error: AuthorArchiveErrorState | null
-  } | null>(null)
-  const currentResolvedRoute =
-    resolvedAuthorRoute?.authorName === authorName ? resolvedAuthorRoute : null
-  const authorId = immediateAuthorId || currentResolvedRoute?.authorId || ''
-  const authorIdLoading = Boolean(authorName && !immediateAuthorId && !currentResolvedRoute)
-
-  useEffect(() => {
-    if (immediateAuthorId || !authorName) {
-      return
-    }
-
-    let isCancelled = false
-
-    setResolvedAuthorRoute({ authorName, authorId: '', loading: true, error: null })
-    setProfile(null)
-    setPostsPage(null)
-    setProfileLoading(true)
-    setPostsLoading(true)
-    setPageErrorState(null)
-    setPostsErrorState(null)
-
-    void resolveAuthorIdFromSlug(authorName, (options) =>
-      getBlogService().getPublishedArchivePosts(options),
-    )
-      .then((resolvedAuthorId) => {
-        if (isCancelled) return
-
-        setResolvedAuthorRoute({
-          authorName,
-          authorId: resolvedAuthorId,
-          loading: false,
-          error: resolvedAuthorId
-            ? null
-            : {
-                statusCode: 404,
-                title: 'Author not found',
-                description: 'This author page does not exist or is no longer available.',
-              },
-        })
-      })
-      .catch((error: unknown) => {
-        if (isCancelled) return
-
-        setResolvedAuthorRoute({
-          authorName,
-          authorId: '',
-          loading: false,
-          error: mapPageError(error),
-        })
-      })
-
-    return () => {
-      isCancelled = true
-    }
-  }, [authorName, immediateAuthorId])
-
-  const isResolvingAuthorId = authorIdLoading || Boolean(currentResolvedRoute?.loading)
-  const authorResolutionError = currentResolvedRoute?.error || null
 
   useEffect(() => {
     if (authorName && authorId && !/^\d+$/.test(authorName)) {
@@ -214,20 +150,14 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   }, [authorId, authorName])
 
   useEffect(() => {
-    if (isResolvingAuthorId) {
-      return
-    }
-
     if (!authorId) {
       setProfile(null)
       setPostsPage(null)
-      setPageErrorState(
-        authorResolutionError || {
-          statusCode: 400,
-          title: 'Invalid author',
-          description: 'The author identifier is invalid.',
-        },
-      )
+      setPageErrorState({
+        statusCode: 400,
+        title: 'Invalid author',
+        description: 'The author identifier is invalid.',
+      })
       setProfileLoading(false)
       setPostsLoading(false)
       return
@@ -260,10 +190,10 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [authorId, authorResolutionError, isResolvingAuthorId])
+  }, [authorId])
 
   useEffect(() => {
-    if (!authorId || isResolvingAuthorId) {
+    if (!authorId) {
       return
     }
 
@@ -300,7 +230,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [authorId, currentPage, isResolvingAuthorId, pageSize, postsRequestVersion])
+  }, [authorId, currentPage, pageSize, postsRequestVersion])
 
   const setPage = useCallback(
     (page: number) => {

@@ -13,7 +13,6 @@ import { Link as RouterLink, useSearchParams } from 'react-router-dom'
 import PaginationControls from '../../../components/PaginationControls'
 import SeriesCard from '../components/SeriesCard'
 import { usePublicSeriesList } from '../usePublicSeriesList'
-import '../signal-series.css'
 
 const PAGE_SIZE = 9
 
@@ -132,7 +131,7 @@ const SeriesIndexPage = () => {
                   >
                     Featured Series
                   </Text>
-                  <SeriesCard series={featured} featured />
+                  <SeriesCard series={featured} />
                 </Stack>
               ) : null}
 

@@ -6,16 +6,18 @@ import {
   HStack,
   IconButton,
   Stack,
-  Button,
   useColorMode,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react'
-import { CloseIcon, HamburgerIcon, SunIcon, MoonIcon } from '@chakra-ui/icons'
+import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogService, toPublicPostPath } from '../../core'
 import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
+import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
+import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
+import BrandLogo from '../../components/ui/BrandLogo'
 import '../../features/editor/editor.window'
 import NavLinkButton from './NavLinkButton'
 import UserMenu from './UserMenu'
@@ -23,7 +25,7 @@ import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
 
 const Navbar = () => {
-  const { isOpen, onToggle, onClose } = useDisclosure()
+  const { isOpen, onToggle } = useDisclosure()
   const { user, logout } = useAuth()
   const { colorMode, toggleColorMode } = useColorMode()
   const navigate = useNavigate()
@@ -120,149 +122,92 @@ const Navbar = () => {
     }
   }
 
-  useEffect(() => {
-    onClose()
-  }, [location.pathname, onClose])
-
-  useEffect(() => {
-    if (!isOpen) return
-    document.querySelector<HTMLElement>('#mobile-navigation a')?.focus()
-    const dismiss = (event: PointerEvent) => {
-      const target = event.target as Element
-      if (!target.closest('#mobile-navigation, #mobile-menu-toggle')) onClose()
-    }
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-        document.getElementById('mobile-menu-toggle')?.focus()
-      }
-    }
-    document.addEventListener('pointerdown', dismiss)
-    document.addEventListener('keydown', escape)
-    return () => {
-      document.removeEventListener('pointerdown', dismiss)
-      document.removeEventListener('keydown', escape)
-    }
-  }, [isOpen, onClose])
-
   return (
-    <Box
-      as="header"
+    <Glassmorphism
       className="app-navbar"
-      mx="auto"
-      mt={4}
-      px={{ base: 3, md: 6 }}
-      w="calc(100% - 80px)"
-      sx={{ '@media (max-width: 680px)': { width: 'calc(100% - 40px)' } }}
-      maxW="1168px"
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="20px"
-      bg="bg.secondary"
-      boxShadow="sm"
-      position="relative"
+      px={4}
+      intensity="light"
+      position="sticky"
+      top={0}
       zIndex={1000}
+      backdropFilter="blur(20px)"
     >
-      <Container maxW="full" p={0}>
-        <Flex minH="64px" align="center" gap={{ base: 2, md: 7 }}>
-          <Box as={RouterLink} to="/" aria-label="Horizon home" flexShrink={0}>
-            <Box
-              as="span"
-              fontFamily="'Be Vietnam Pro', sans-serif"
-              fontSize={{ base: '25px', md: '28px' }}
-              fontWeight={700}
-              letterSpacing="-1.5px"
-              lineHeight={1}
-            >
-              horizon
-              <Box as="span" color="action.primary">
-                .
-              </Box>
-            </Box>
-          </Box>
-          <HStack
-            as="nav"
-            aria-label="Main navigation"
-            position="absolute"
-            left="50%"
-            transform="translateX(-50%)"
-            spacing={4}
-            display={{ base: 'none', md: 'flex' }}
-          >
-            {SITE_LINKS.map((link) => (
-              <NavLinkButton key={link.path} to={link.path}>
-                {link.name}
-              </NavLinkButton>
-            ))}
-          </HStack>
-          <Flex ml="auto" align="center" gap={{ base: 1, md: 3 }}>
+      <Container maxW="container.xl">
+        <Flex h={16} alignItems="center" justifyContent="space-between">
+          <MotionWrapper variant="fadeInLeft" delay={0.1}>
             <IconButton
-              aria-label={colorMode === 'light' ? 'Use dark mode' : 'Use light mode'}
-              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              onClick={toggleColorMode}
-              variant="ghost"
-              size="sm"
-            />
-            {user && canWrite && !isEditorPage ? (
-              <NavLinkButton to="/blog-editor">Write</NavLinkButton>
-            ) : null}
-            {user && canWrite && isEditorPage ? (
-              <AnimatedPrimaryButton onClick={handlePublish}>Publish</AnimatedPrimaryButton>
-            ) : null}
-            {user ? (
-              <UserMenu
-                user={user}
-                colorMode={colorMode}
-                onToggleColorMode={toggleColorMode}
-                onLogout={handleLogout}
-                isLoggingOut={isLoggingOut}
-              />
-            ) : (
-              <Button as={RouterLink} to="/login" variant="ghost" size="sm">
-                Sign in
-              </Button>
-            )}
-            <IconButton
-              size="sm"
+              size="md"
               icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-              id="mobile-menu-toggle"
-              aria-label="Toggle navigation"
-              aria-expanded={isOpen}
-              aria-controls="mobile-navigation"
+              aria-label="Open Menu"
               display={{ md: 'none' }}
               onClick={onToggle}
-              variant="ghost"
             />
-          </Flex>
+          </MotionWrapper>
+
+          <MotionWrapper variant="fadeInUp" delay={0.2}>
+            <HStack spacing={{ base: 4, md: 8 }} alignItems="center">
+              <Box
+                as={RouterLink}
+                to="/"
+                aria-label="Horizon home"
+                display="inline-flex"
+                alignItems="center"
+                lineHeight="0"
+                flexShrink={0}
+              >
+                <BrandLogo variant="icon" display={{ base: 'block', md: 'none' }} />
+                <BrandLogo variant="full" display={{ base: 'none', md: 'block' }} />
+              </Box>
+              <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
+                {SITE_LINKS.map((link, index) => (
+                  <MotionWrapper key={link.path} variant="fadeInUp" delay={0.3 + index * 0.1}>
+                    <NavLinkButton to={link.path}>{link.name}</NavLinkButton>
+                  </MotionWrapper>
+                ))}
+              </HStack>
+            </HStack>
+          </MotionWrapper>
+
+          <MotionWrapper variant="fadeInRight" delay={0.4}>
+            <Flex alignItems="center" gap={4}>
+              {user && canWrite && !isEditorPage ? (
+                <NavLinkButton to="/blog-editor">Write</NavLinkButton>
+              ) : null}
+              {user && canWrite && isEditorPage ? (
+                <AnimatedPrimaryButton onClick={handlePublish} mr={2}>
+                  Publish
+                </AnimatedPrimaryButton>
+              ) : null}
+              {user ? (
+                <UserMenu
+                  user={user}
+                  colorMode={colorMode}
+                  onToggleColorMode={toggleColorMode}
+                  onLogout={handleLogout}
+                  isLoggingOut={isLoggingOut}
+                />
+              ) : (
+                <RouterLink to="/login">
+                  <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
+                </RouterLink>
+              )}
+            </Flex>
+          </MotionWrapper>
         </Flex>
+
         {isOpen ? (
-          <Stack
-            id="mobile-navigation"
-            as="nav"
-            aria-label="Mobile navigation"
-            position="absolute"
-            top="calc(100% + 10px)"
-            left={0}
-            right={0}
-            p={3}
-            borderRadius="16px"
-            border="1px solid"
-            borderColor="border.subtle"
-            bg="bg.elevated"
-            boxShadow="xl"
-            className="signal-mobile-menu"
-            spacing={2}
-            display={{ md: 'none' }}
-          >
-            {SITE_LINKS.map((link) => (
-              <NavLinkButton key={link.path} to={link.path}>
-                {link.name}
-              </NavLinkButton>
-            ))}
-          </Stack>
+          <Box pb={4} display={{ md: 'none' }}>
+            <Stack as="nav" spacing={4}>
+              {SITE_LINKS.map((link) => (
+                <NavLinkButton key={link.path} to={link.path}>
+                  {link.name}
+                </NavLinkButton>
+              ))}
+            </Stack>
+          </Box>
         ) : null}
       </Container>
-    </Box>
+    </Glassmorphism>
   )
 }
 

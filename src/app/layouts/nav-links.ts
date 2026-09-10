@@ -1,5 +1,6 @@
 export const SITE_LINKS = [
+  { name: 'Home', path: '/' },
   { name: 'Blog', path: '/blog' },
-  { name: 'Series', path: '/series' },
   { name: 'About', path: '/about' },
+  { name: 'Contact', path: '/contact' },
 ]

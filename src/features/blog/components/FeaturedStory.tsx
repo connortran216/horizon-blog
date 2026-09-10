@@ -1,145 +1,162 @@
 import {
-  Avatar,
   Badge,
   Box,
   Heading,
   HStack,
   Icon,
+  Image,
   SimpleGrid,
   Stack,
   Text,
+  Wrap,
 } from '@chakra-ui/react'
-import { FiArrowRight, FiClock } from 'react-icons/fi'
 import { Link as RouterLink } from 'react-router-dom'
+import { FiArrowRight, FiFileText } from 'react-icons/fi'
 import { MotionWrapper, toPublicPostPath } from '../../../core'
-import PostMediaFrame from '../../media/components/PostMediaFrame'
-import SeriesPostContext from '../../series/components/SeriesPostContext'
+import StatChip from '../../../components/ui/StatChip'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
+import SeriesPostContext from '../../series/components/SeriesPostContext'
 
 interface FeaturedStoryProps {
   post: BlogArchiveSummary
 }
 
 const FeaturedStory = ({ post }: FeaturedStoryProps) => {
-  const postPath = toPublicPostPath(post.id)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw', true)
+    : undefined
   const authorName = post.author.username || 'Anonymous'
 
   return (
-    <MotionWrapper initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} duration={0.48}>
-      <Box
-        as="article"
-        data-group=""
-        className="signal-discovery-card signal-discovery-feature"
-        position="relative"
-        overflow="hidden"
-        border="1px solid"
-        borderColor="border.subtle"
-        borderRadius="3xl"
-        bg="bg.glass"
-        boxShadow="sm"
-        transition="transform 280ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease, box-shadow 280ms ease"
-        _hover={{ transform: 'translateY(-6px)', borderColor: 'action.primary', boxShadow: 'xl' }}
-      >
-        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={0}>
+    <MotionWrapper
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      duration={0.6}
+      delay={0.15}
+    >
+      <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
+        <Box
+          position="relative"
+          border="1px solid"
+          borderColor="border.subtle"
+          borderRadius="3xl"
+          overflow="hidden"
+          bg="bg.glass"
+          backdropFilter="blur(18px)"
+          boxShadow="lg"
+        >
           <Box
-            minH={{ base: '240px', md: '320px', lg: '100%' }}
-            borderRight={{ base: 'none', lg: '1px solid' }}
-            borderColor="border.subtle"
-            overflow="hidden"
-          >
-            <PostMediaFrame
-              rawSource={post.featuredImage}
-              title={post.title}
-              priority
-              sizes="(max-width: 991px) 100vw, 50vw"
-              fit="contain"
-              className="signal-discovery-media"
-            />
-          </Box>
+            position="absolute"
+            insetX={{ base: '-15%', lg: '45%' }}
+            top="-25%"
+            h="260px"
+            bg="accent.glow"
+            filter="blur(90px)"
+            pointerEvents="none"
+          />
 
-          <Stack spacing={{ base: 5, md: 6 }} px={{ base: 6, md: 9 }} py={{ base: 7, md: 9 }}>
-            <HStack spacing={3} flexWrap="wrap">
-              <Badge
-                px={3}
-                py={1.5}
-                borderRadius="full"
-                bg="accent.lime"
-                color="text.onAccent"
-                textTransform="uppercase"
-                letterSpacing="0.12em"
-                fontSize="10px"
-              >
-                Signature
-              </Badge>
-              <Text fontSize="xs" letterSpacing="0.08em" color="text.tertiary">
-                {formatArchiveDate(post.createdAt)}
-              </Text>
-            </HStack>
+          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={0} position="relative">
+            <Stack spacing={6} px={{ base: 6, md: 10 }} py={{ base: 8, md: 10 }} justify="center">
+              <HStack spacing={3} flexWrap="wrap">
+                <Badge
+                  px={3}
+                  py={1}
+                  borderRadius="full"
+                  bg="action.primary"
+                  color="white"
+                  textTransform="uppercase"
+                  letterSpacing="0.12em"
+                  fontSize="10px"
+                >
+                  Editor&apos;s pick
+                </Badge>
+                <Text
+                  fontSize="xs"
+                  textTransform="uppercase"
+                  letterSpacing="0.14em"
+                  color="text.tertiary"
+                >
+                  {formatArchiveDate(post.createdAt)}
+                </Text>
+              </HStack>
 
-            <SeriesPostContext series={post.series} />
+              <SeriesPostContext series={post.series} />
 
-            <Stack spacing={4} flex={1}>
-              <Text
-                color="action.primary"
-                fontSize="xs"
-                fontWeight="bold"
-                letterSpacing="0.14em"
-                textTransform="uppercase"
-              >
-                Start with one strong idea
-              </Text>
-              <Heading
-                as={RouterLink}
-                to={postPath}
-                fontSize={{ base: '3xl', md: '4xl' }}
-                lineHeight={1.08}
-                letterSpacing="-0.045em"
-                color="text.primary"
-                _hover={{ color: 'link.default', textDecoration: 'none' }}
-                _focusVisible={{ boxShadow: 'outline', borderRadius: 'md' }}
-              >
-                {post.title}
-              </Heading>
-              <Text color="text.secondary" fontSize={{ base: 'md', md: 'lg' }} lineHeight="tall">
-                {post.excerpt || 'Fresh thoughts are on the way.'}
-              </Text>
+              <Stack spacing={4}>
+                <Text
+                  fontSize="sm"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  letterSpacing="0.14em"
+                >
+                  Quiet writing. Sharp ideas.
+                </Text>
+                <Heading
+                  fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+                  lineHeight={{ base: 1.1, md: 1 }}
+                  letterSpacing="-0.05em"
+                  color="text.primary"
+                >
+                  {post.title}
+                </Heading>
+                <Text
+                  maxW="2xl"
+                  color="text.secondary"
+                  fontSize={{ base: 'md', md: 'lg' }}
+                  lineHeight="tall"
+                >
+                  {post.excerpt || 'Fresh thoughts are on the way.'}
+                </Text>
+              </Stack>
+
+              <Wrap spacing={3}>
+                <StatChip label="Author" value={authorName} />
+                <StatChip label="Reading time" value={`${post.readingTime || 1} min`} />
+              </Wrap>
+
+              <HStack pt={2} spacing={4} flexWrap="wrap">
+                <HStack
+                  spacing={2}
+                  px={4}
+                  py={3}
+                  borderRadius="full"
+                  bg="action.primary"
+                  color="white"
+                  fontWeight="semibold"
+                >
+                  <Text fontSize="sm">Read featured story</Text>
+                  <Icon as={FiArrowRight} />
+                </HStack>
+                <HStack spacing={2} color="text.secondary">
+                  <Icon as={FiFileText} />
+                  <Text fontSize="sm">Long-form blog posts, essays, and technical writing</Text>
+                </HStack>
+              </HStack>
             </Stack>
 
-            <HStack spacing={3} color="text.tertiary" fontSize="sm" flexWrap="wrap">
-              <Avatar size="2xs" name={authorName} src={post.author.avatar} />
-              <Text color="text.secondary">{authorName}</Text>
-              <Text aria-hidden>·</Text>
-              <HStack spacing={1.5}>
-                <Icon as={FiClock} />
-                <Text>{post.readingTime || 1} min read</Text>
-              </HStack>
-            </HStack>
-
-            <HStack
-              as={RouterLink}
-              to={postPath}
-              alignSelf="flex-start"
-              spacing={2}
-              px={5}
-              py={3}
-              borderRadius="full"
-              bg="action.primary"
-              color="text.onAction"
-              fontWeight="semibold"
-              transition="transform 220ms ease, background-color 220ms ease"
-              _hover={{ bg: 'action.hover', textDecoration: 'none', transform: 'translateY(-2px)' }}
-              _focusVisible={{ boxShadow: 'outline' }}
+            <Box
+              minH={{ base: '280px', lg: '100%' }}
+              borderLeft={{ base: 'none', lg: '1px solid' }}
+              borderColor="border.subtle"
             >
-              <Text fontSize="sm">Read signature story</Text>
-              <Icon
-                as={FiArrowRight}
-                transition="transform 220ms ease"
-                _groupHover={{ transform: 'translateX(4px)' }}
-              />
-            </HStack>
-          </Stack>
-        </SimpleGrid>
+              {coverImage ? (
+                <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
+              ) : (
+                <DefaultPostCover
+                  title={post.title}
+                  eyebrow=""
+                  h="full"
+                  minH={{ base: '280px', lg: '100%' }}
+                />
+              )}
+            </Box>
+          </SimpleGrid>
+        </Box>
       </Box>
     </MotionWrapper>
   )

@@ -33,7 +33,7 @@ describe('StoryCard', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
-          <StoryCard post={summary} />
+          <StoryCard post={summary} index={1} formatDate={() => 'Jul 20, 2026'} />
         </ChakraProvider>
       </MemoryRouter>,
     )
@@ -42,7 +42,14 @@ describe('StoryCard', () => {
     expect(markup).toContain('object-fit:contain')
     expect(markup).not.toContain('object-fit:cover')
     expect(markup).not.toContain('min-height:260px')
-    expect(markup).toContain('signal-story')
+    expect(markup).toContain('data-layout="inset-information-panel"')
+    expect(markup).toContain('<footer')
+    expect(markup.indexOf('data-layout="inset-information-panel"')).toBeGreaterThan(
+      markup.indexOf('src="https://cdn.example.com/complete-cover.png"'),
+    )
+    expect(markup.indexOf('<footer')).toBeGreaterThan(
+      markup.indexOf('data-layout="inset-information-panel"'),
+    )
     expect(markup).toContain('Keep the complete cover visible')
     expect(markup).toContain('Connor Tran')
     expect(markup).toContain('10 min read')

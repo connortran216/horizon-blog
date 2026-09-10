@@ -1,12 +1,13 @@
-import { Avatar, Box, Heading, HStack, Icon, Stack, Text } from '@chakra-ui/react'
-import { motion } from 'framer-motion'
-import { FiArrowRight, FiClock } from 'react-icons/fi'
+import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
-import { toPublicPostPath } from '../../../core'
-import PostMediaFrame from '../../media/components/PostMediaFrame'
-import SeriesPostContext from '../../series/components/SeriesPostContext'
+import { FiArrowRight, FiClock } from 'react-icons/fi'
+import { AnimatedCard, toPublicPostPath } from '../../../core'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { getResponsiveImageAttributes } from '../../media/media.presentation'
+import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
 import { formatArchiveDate } from '../blog.utils'
+import SeriesPostContext from '../../series/components/SeriesPostContext'
 
 interface EditorialCardProps {
   post: BlogArchiveSummary
@@ -14,96 +15,94 @@ interface EditorialCardProps {
 }
 
 const EditorialCard = ({ post, index }: EditorialCardProps) => {
-  const postPath = toPublicPostPath(post.id)
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const coverImage = coverMedia
+    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw')
+    : undefined
   const authorName = post.author.username || 'Anonymous'
+  const authorAvatar = post.author.avatar
 
   return (
-    <Box
-      as={motion.article}
-      data-group=""
-      className="signal-discovery-card signal-discovery-story"
-      h="full"
-      overflow="hidden"
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="3xl"
-      bg="bg.surface"
-      boxShadow="sm"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={`opacity 360ms ease ${Math.min(index, 5) * 55}ms, transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, border-color 220ms ease`}
-      _hover={{ transform: 'translateY(-6px)', borderColor: 'action.primary', boxShadow: 'lg' }}
-      _active={{ transform: 'scale(0.988)' }}
-    >
-      <Box
-        h={{ base: '220px', md: '250px' }}
+    <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
+      <AnimatedCard
+        maxW="100%"
         overflow="hidden"
-        borderBottom="1px solid"
-        borderColor="border.subtle"
+        intensity="light"
+        staggerDelay={0.08}
+        index={index}
+        animation="fadeInUp"
       >
-        <PostMediaFrame
-          rawSource={post.featuredImage}
-          title={post.title}
-          sizes="(max-width: 991px) 100vw, 50vw"
-          fit="contain"
-          className="signal-discovery-media"
-        />
-      </Box>
+        <Box position="relative" h="240px" overflow="hidden" borderRadius="xl">
+          {coverImage ? (
+            <>
+              <Image
+                {...coverImage}
+                alt={post.title}
+                w="full"
+                h="full"
+                objectFit="cover"
+                transition="transform 0.35s ease"
+              />
+              <Box position="absolute" inset={0} bg="blackAlpha.300" />
+            </>
+          ) : (
+            <DefaultPostCover
+              title={post.title}
+              eyebrow=""
+              h="full"
+              borderBottom="1px solid"
+              borderColor="border.subtle"
+            />
+          )}
+        </Box>
 
-      <Stack spacing={5} p={{ base: 5, md: 6 }} minH={{ md: '360px' }}>
-        <HStack spacing={3} color="text.tertiary" fontSize="xs" flexWrap="wrap">
-          <HStack spacing={2}>
-            <Avatar size="2xs" name={authorName} src={post.author.avatar} />
-            <Text color="text.secondary">{authorName}</Text>
+        <VStack align="stretch" spacing={5} p={6}>
+          <HStack spacing={3} color="text.tertiary" fontSize="sm" flexWrap="wrap">
+            <HStack spacing={2}>
+              <Avatar size="2xs" name={authorName} src={authorAvatar} />
+              <Text color="text.secondary">{authorName}</Text>
+            </HStack>
+            <Text>•</Text>
+            <Text>{formatArchiveDate(post.createdAt)}</Text>
+            <Text>•</Text>
+            <HStack spacing={1.5}>
+              <Icon as={FiClock} />
+              <Text>{post.readingTime || 1} min read</Text>
+            </HStack>
           </HStack>
-          <Text aria-hidden>·</Text>
-          <Text>{formatArchiveDate(post.createdAt)}</Text>
-          <Text aria-hidden>·</Text>
-          <HStack spacing={1.5}>
-            <Icon as={FiClock} />
-            <Text>{post.readingTime || 1} min read</Text>
-          </HStack>
-        </HStack>
 
-        <SeriesPostContext series={post.series} />
+          <SeriesPostContext series={post.series} />
 
-        <Stack spacing={3} flex={1}>
-          <Heading
-            as={RouterLink}
-            to={postPath}
-            size="lg"
-            color="text.primary"
-            lineHeight="1.18"
-            letterSpacing="-0.03em"
-            noOfLines={2}
-            _hover={{ color: 'link.default', textDecoration: 'none' }}
-            _focusVisible={{ boxShadow: 'outline', borderRadius: 'md' }}
+          <VStack align="stretch" spacing={3}>
+            <Heading
+              size="lg"
+              color="text.primary"
+              lineHeight="1.1"
+              letterSpacing="-0.03em"
+              noOfLines={2}
+            >
+              {post.title}
+            </Heading>
+            <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
+              {post.excerpt || 'Fresh thoughts are on the way.'}
+            </Text>
+          </VStack>
+
+          <Flex
+            pt={4}
+            borderTop="1px solid"
+            borderColor="border.subtle"
+            align="center"
+            justify="space-between"
           >
-            {post.title}
-          </Heading>
-          <Text color="text.secondary" lineHeight="tall" noOfLines={3}>
-            {post.excerpt || 'Fresh thoughts are on the way.'}
-          </Text>
-        </Stack>
-
-        <HStack
-          as={RouterLink}
-          to={postPath}
-          alignSelf="flex-start"
-          spacing={2}
-          color="action.primary"
-          fontWeight="semibold"
-          _hover={{ textDecoration: 'none', color: 'action.hover' }}
-          _focusVisible={{ boxShadow: 'outline', borderRadius: 'md' }}
-        >
-          <Text fontSize="sm">Read story</Text>
-          <Icon
-            as={FiArrowRight}
-            transition="transform 220ms ease"
-            _groupHover={{ transform: 'translateX(5px)' }}
-          />
-        </HStack>
-      </Stack>
+            <Box />
+            <HStack spacing={2} color="action.primary" fontWeight="semibold">
+              <Text fontSize="sm">Read story</Text>
+              <Icon as={FiArrowRight} />
+            </HStack>
+          </Flex>
+        </VStack>
+      </AnimatedCard>
     </Box>
   )
 }

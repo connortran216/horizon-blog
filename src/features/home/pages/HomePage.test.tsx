@@ -6,8 +6,8 @@ import { AuthProvider } from '../../../context/AuthContext'
 import theme from '../../../theme'
 import HomePage from './HomePage'
 
-describe('HomePage initial loading', () => {
-  it('shows branded loading before Series discovery', () => {
+describe('HomePage Series placement', () => {
+  it('places Series discovery after the unchanged hero', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>
         <AuthProvider>
@@ -18,8 +18,9 @@ describe('HomePage initial loading', () => {
       </ChakraProvider>,
     )
 
-    expect(markup).toContain('horizon-loading')
-    expect(markup).toContain('Đang mở những trang viết…')
-    expect(markup).not.toContain('All Series')
+    const hero = markup.indexOf('Human stories, blogs, and thoughtful writing for curious readers.')
+    const series = markup.indexOf('View all series')
+    expect(hero).toBeGreaterThanOrEqual(0)
+    expect(series).toBeGreaterThan(hero)
   })
 })

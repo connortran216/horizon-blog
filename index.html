@@ -36,28 +36,10 @@
       content="https://blog.connortran.io.vn/branding/horizon-app-icon-512.png"
     />
     <!--app-meta:end-->
-    <link rel="stylesheet" href="/horizon-loading.css" />
     <title>Horizon</title>
   </head>
   <body>
-    <div id="root">
-      <div id="horizon-boot" class="horizon-loading" role="status">
-        <div class="horizon-loading-brand" aria-hidden="true">horizon<span>.</span></div>
-        <p>Đang mở những trang viết…</p>
-      </div>
-    </div>
-    <script>
-      try {
-        if (localStorage.getItem('chakra-ui-color-mode') === 'dark') {
-          document
-            .getElementById('horizon-boot')
-            .style.setProperty('--chakra-colors-bg-page', '#0d1220')
-          document
-            .getElementById('horizon-boot')
-            .style.setProperty('--chakra-colors-text-primary', '#e9eefa')
-        }
-      } catch {}
-    </script>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
