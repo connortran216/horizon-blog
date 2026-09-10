@@ -14,6 +14,7 @@ Migrate the approved Signal prototype while preserving existing domain behavior.
 3. Search, filters, result changes, pagination, cards and navigation define hover, press, focus, touch and reduced-motion feedback.
 4. Existing API, auth/permission, route and media boundaries remain intact; no fabricated public author data is rendered.
 5. Relevant tests, lint, types, build and desktop/mobile light/dark interaction checks pass or gaps are explicitly recorded.
+6. Direct canonical author URLs resolve without router state or a pre-populated session cache.
 
 ## Non-goals
 Backend/API changes, new production dependencies, architecture replacement, automatic deployment and prototype fixture imports.

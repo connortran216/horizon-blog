@@ -26,6 +26,7 @@ motion. Remove fabricated public social counts rather than presenting mock data 
 - [x] S3 Implement the personal scan-first Author archive and remove fabricated public metrics. (AC1/AC3/AC4)
 - [x] S4 Run targeted regression tests, lint, TypeScript and the bundle build. (AC2-AC5)
 - [ ] S5 Compare desktop/mobile light/dark, mouse/keyboard/touch, normal/reduced motion, long content and failure states. (AC1-AC5)
+- [x] S6 Resolve direct author slugs from published summary data before loading the ID-only profile API; cover fresh-session canonical URLs with a regression test. (AC1/AC4/AC6)
 
 S5 partial evidence: desktop light and mobile light/dark failure states render without horizontal
 overflow. Production-shaped success/card states remain pending because the production API was not
