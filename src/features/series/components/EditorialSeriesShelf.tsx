@@ -4,6 +4,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { usePublicSeriesList } from '../usePublicSeriesList'
 import type { PublicSeriesSummary } from '../series.types'
 import SeriesCarousel from './SeriesCarousel'
+import SeriesBookCover from './SeriesBookCover'
 
 export default function EditorialSeriesShelf() {
   const [page, setPage] = useState(1)
@@ -56,15 +57,7 @@ export default function EditorialSeriesShelf() {
               key={series.id}
               className="signal-series-link"
             >
-              <div className="signal-book" aria-hidden="true">
-                <span className="signal-book-sheet" />
-                <span className="signal-book-sheet" />
-                <div className="signal-book-cover">
-                  <span>HORIZON / SERIES</span>
-                  <strong>{series.title}</strong>
-                  <span>READ · EXPLORE · CONNECT</span>
-                </div>
-              </div>
+              <SeriesBookCover title={series.title} tone={series.id} />
               <div className="signal-series-copy">
                 <h3>{series.title}</h3>
                 {series.description && <p>{series.description}</p>}

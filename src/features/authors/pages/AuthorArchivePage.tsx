@@ -20,6 +20,7 @@ import PaginationControls from '../../../components/PaginationControls'
 import AuthorArchiveStoryListItem from '../components/AuthorArchiveStoryListItem'
 import AuthorArchiveHero from '../components/AuthorArchiveHero'
 import { useAuthorArchive } from '../useAuthorArchive'
+import '../signal-author.css'
 
 const PAGE_SIZE = 6
 

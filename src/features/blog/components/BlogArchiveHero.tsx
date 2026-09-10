@@ -30,21 +30,9 @@ const BlogArchiveHero = ({
   resultLabel,
   page,
   totalPages,
-  hasActiveSearch,
 }: BlogArchiveHeroProps) => {
   return (
-    <Box
-      position="relative"
-      overflow="hidden"
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="3xl"
-      bg="bg.glass"
-      backdropFilter="blur(18px)"
-      px={{ base: 6, md: 10 }}
-      py={{ base: 8, md: 10 }}
-      boxShadow="md"
-    >
+    <Box position="relative" overflow="hidden" px={0} py={{ base: 4, md: 7 }}>
       <Box
         position="absolute"
         top="-12%"
@@ -53,13 +41,13 @@ const BlogArchiveHero = ({
         h={{ base: '220px', md: '360px' }}
         bg="action.glow"
         filter="blur(100px)"
-        opacity={0.9}
+        opacity={0.5}
         pointerEvents="none"
       />
 
       <Grid
-        templateColumns={{ base: '1fr', xl: 'minmax(0, 1.2fr) minmax(320px, 0.8fr)' }}
-        gap={{ base: 8, xl: 10 }}
+        templateColumns={{ base: '1fr', xl: 'minmax(0, 1.35fr) minmax(320px, 0.65fr)' }}
+        gap={{ base: 8, xl: 14 }}
         position="relative"
       >
         <GridItem>
@@ -79,9 +67,9 @@ const BlogArchiveHero = ({
             </Badge>
 
             <Heading
-              fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-              lineHeight={{ base: 1.04, md: 0.96 }}
-              letterSpacing="-0.065em"
+              fontSize={{ base: '4xl', md: '5xl' }}
+              lineHeight={{ base: 1.08, md: 1 }}
+              letterSpacing="-0.055em"
               color="text.primary"
               maxW="5xl"
             >
@@ -106,9 +94,12 @@ const BlogArchiveHero = ({
             p={{ base: 5, md: 6 }}
             border="1px solid"
             borderColor="border.subtle"
-            borderRadius="2xl"
-            bg="bg.page"
-            boxShadow="sm"
+            borderRadius="3xl"
+            bg="bg.surface"
+            boxShadow="md"
+            transform={{ xl: 'rotate(1deg)' }}
+            transition="transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease"
+            _hover={{ transform: 'rotate(0deg) translateY(-3px)', boxShadow: 'lg' }}
           >
             <Stack spacing={2}>
               <Text
@@ -154,7 +145,7 @@ const BlogArchiveHero = ({
               )}
             </InputGroup>
 
-            <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={3}>
+            <SimpleGrid columns={{ base: 2 }} spacing={3}>
               <Box>
                 <Text
                   fontSize="xs"
@@ -179,19 +170,6 @@ const BlogArchiveHero = ({
                 </Text>
                 <Text mt={1.5} color="text.primary" fontWeight="semibold">
                   {page} of {Math.max(totalPages, 1)}
-                </Text>
-              </Box>
-              <Box>
-                <Text
-                  fontSize="xs"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  color="text.tertiary"
-                >
-                  View
-                </Text>
-                <Text mt={1.5} color="text.primary" fontWeight="semibold">
-                  {hasActiveSearch ? 'Search results' : 'Latest blogs'}
                 </Text>
               </Box>
             </SimpleGrid>

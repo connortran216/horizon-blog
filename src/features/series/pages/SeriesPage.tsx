@@ -5,6 +5,7 @@ import {
   Heading,
   HStack,
   Link,
+  SimpleGrid,
   Stack,
   Text,
   Wrap,
@@ -14,7 +15,9 @@ import { FiArrowLeft, FiClock } from 'react-icons/fi'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { LoadingPanel } from '../../../core'
 import SeriesPartList from '../components/SeriesPartList'
+import SeriesBookCover from '../components/SeriesBookCover'
 import { usePublicSeries } from '../usePublicSeries'
+import '../signal-series.css'
 
 const formatDate = (value: string) =>
   new Date(value).toLocaleDateString('en-US', {
@@ -84,49 +87,66 @@ const SeriesPage = () => {
             </HStack>
           </Link>
 
-          <Stack spacing={6} maxW="4xl">
-            <Text
-              color="text.tertiary"
-              fontSize="sm"
-              fontWeight="bold"
-              letterSpacing="0.14em"
-              textTransform="uppercase"
-            >
-              Series
-            </Text>
-            <Heading
-              color="text.primary"
-              fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-              lineHeight="1"
-              letterSpacing="-0.055em"
-            >
-              {series.title}
-            </Heading>
-            {series.description ? (
+          <SimpleGrid
+            className="signal-series-hero"
+            data-group=""
+            columns={{ base: 1, md: 2 }}
+            spacing={{ base: 8, md: 12 }}
+            alignItems="center"
+            border="1px solid"
+            borderColor="border.subtle"
+            borderRadius="3xl"
+            bg="bg.glass"
+            p={{ base: 6, md: 10 }}
+            boxShadow="md"
+          >
+            <Box display="grid" placeItems="center" py={{ base: 3, md: 6 }}>
+              <SeriesBookCover title={series.title} tone={series.id} size="hero" />
+            </Box>
+            <Stack spacing={6}>
               <Text
-                color="text.secondary"
-                fontSize={{ base: 'md', md: 'xl' }}
-                lineHeight="tall"
-                maxW="3xl"
+                color="text.tertiary"
+                fontSize="sm"
+                fontWeight="bold"
+                letterSpacing="0.14em"
+                textTransform="uppercase"
               >
-                {series.description}
+                Series
               </Text>
-            ) : null}
-            <HStack color="text.tertiary" spacing={3} flexWrap="wrap">
-              <Text>By {series.author.name}</Text>
-              <Text aria-hidden>·</Text>
-              <Text>
-                {series.parts.length} {series.parts.length === 1 ? 'blog' : 'blogs'}
-              </Text>
-              <Text aria-hidden>·</Text>
-              <HStack spacing={1.5}>
-                <FiClock aria-hidden />
-                <Text>{totalReadingTime} min total</Text>
+              <Heading
+                color="text.primary"
+                fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
+                lineHeight="1"
+                letterSpacing="-0.055em"
+              >
+                {series.title}
+              </Heading>
+              {series.description ? (
+                <Text
+                  color="text.secondary"
+                  fontSize={{ base: 'md', md: 'xl' }}
+                  lineHeight="tall"
+                  maxW="3xl"
+                >
+                  {series.description}
+                </Text>
+              ) : null}
+              <HStack color="text.tertiary" spacing={3} flexWrap="wrap">
+                <Text>By {series.author.name}</Text>
+                <Text aria-hidden>·</Text>
+                <Text>
+                  {series.parts.length} {series.parts.length === 1 ? 'blog' : 'blogs'}
+                </Text>
+                <Text aria-hidden>·</Text>
+                <HStack spacing={1.5}>
+                  <FiClock aria-hidden />
+                  <Text>{totalReadingTime} min total</Text>
+                </HStack>
+                <Text aria-hidden>·</Text>
+                <Text>Updated {formatDate(series.updatedAt)}</Text>
               </HStack>
-              <Text aria-hidden>·</Text>
-              <Text>Updated {formatDate(series.updatedAt)}</Text>
-            </HStack>
-          </Stack>
+            </Stack>
+          </SimpleGrid>
 
           {topics.length > 0 ? (
             <Wrap spacing={2} aria-label="Series topics">

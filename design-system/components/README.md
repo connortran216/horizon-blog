@@ -56,6 +56,19 @@ Use feature ownership when the component understands the domain:
 
 ## Shared Visual Primitives
 
+### Interaction and state contract
+
+Shared primitives standardize behavior, not the visual identity of every domain component.
+
+- `InteractiveSurface`: consistent rest, hover, focus, press, touch, and reduced-motion feedback.
+- `PostMediaFrame`: loading, ready fade-in, no-media title cover, error, and retry behavior.
+- `HorizontalRail`: scroll snap, drag, keyboard controls, touch, pagination, and retained content
+  during incremental loading.
+- `LoadingState`: branded blocking load for a route or panel.
+
+Feature components compose these behaviors while keeping their own anatomy. A `SeriesCard` should
+still look like a book/thread, and a writing card should remain image-first editorial content.
+
 ### AnimatedCard
 
 Implementation:
@@ -181,6 +194,7 @@ Purpose:
 Rules:
 - same content model as blog cards
 - may vary in layout, not in metadata meaning
+- shares the media-state and tactile-interaction contract with Blog discovery cards
 
 ### HeroArchivePreview
 
@@ -211,6 +225,10 @@ Rules:
 - Public Series parts use ordered numbering, excerpt, and reading time without completion state.
 - Public copy uses `Series` and `Part X of Y`; do not use course or collection language.
 - Blog reader context remains compact and failure-isolated.
+- Home establishes the reusable book-cover identity; `/series` may scale that identity without
+  copying the Home carousel layout.
+- Ordered-part connectors respond to hover, keyboard focus, and press; reduced motion keeps the
+  emphasis without translation.
 
 ### BlogReaderFrame
 

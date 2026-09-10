@@ -6,15 +6,25 @@ Design approved: prototype 2026-09-06. This implementation plan is agent-reviewe
 ## Concrete source ownership
 - `src/features/series/pages/SeriesIndexPage.tsx`
 - `src/features/series/pages/SeriesPage.tsx`
+- `src/features/series/components/SeriesCard.tsx`
+- `src/features/series/components/SeriesPartList.tsx`
+- reusable Series book presentation shared with Home
 
 ## Technical approach
-Reuse Chakra semantic tokens, existing feature components/hooks and service adapters. Public ordered published parts use existing service; empty/error behavior retained; connector has hover and keyboard emphasis.
+Reuse Chakra semantic tokens, existing hooks and service adapters. Scale the Home book-cover identity
+into the public Series index, and make ordered connectors respond to hover, focus and press without
+continuous timeline animation. Preserve server order and failure isolation.
 
 ## Ordered execution
-- [ ] S1 Inspect the listed source and matching design-system page guide; compare approved prototype states. (AC1/AC2)
-- [ ] S2 Implement this ticket in its bundle worktree, keeping service calls and permissions; shared tokens belong only to B1. (AC1/AC2)
-- [ ] S3 Run targeted regression tests for changed behavior, `rtk yarn lint`, `rtk yarn tsc --noEmit`; run `rtk yarn build` at the bundle handoff. (AC2/AC3)
-- [ ] S4 Compare mobile/desktop light/dark and reduced-motion UI; record exact commands, outcomes, changed files and residual gaps. (AC1/AC3)
+- [x] S1 Inspect current source, Series guide, approved prototype and Beads behavioral contract. (AC1-AC4)
+- [x] S2 Extract reusable book presentation and redesign the public index without changing list services. (AC1-AC4)
+- [x] S3 Redesign Series detail and ordered connectors with complete interaction and route states. (AC1-AC4)
+- [x] S4 Run targeted regression tests, lint, TypeScript and the bundle build. (AC2-AC5)
+- [ ] S5 Compare desktop/mobile light/dark, mouse/keyboard/touch, normal/reduced motion, long content and failure states. (AC1-AC5)
+
+S5 partial evidence: mobile light/dark loading and error states render without horizontal overflow.
+Production-shaped Series covers, long titles and ordered-part interactions remain pending because the
+production API was not reachable from the visual-QA browser session.
 
 ## Risks and boundaries
 Old explicit color/font overrides may outlive theme migration; remove only overrides in owned surfaces. Do not port prototype localStorage auth or demo fixtures. Scheduling is a draft timestamp; preserve owner-only capabilities and SEO/media resolution. Revalidate plans after upstream integration.
