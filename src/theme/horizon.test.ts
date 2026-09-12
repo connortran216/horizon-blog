@@ -85,6 +85,56 @@ describe('legacy theme compatibility', () => {
   })
 })
 
+/*
+ * Release M1 mounted this theme on every route while the pages still speak the
+ * legacy vocabulary. An unresolved semantic token is not an error in Chakra - it
+ * emits the name verbatim as a CSS value, so a missing alias is a silently
+ * broken colour on a shipped page rather than a failure anyone would notice.
+ * These names therefore have to keep resolving until M8 removes the bridge.
+ */
+describe('legacy compatibility bridge', () => {
+  it('resolves every legacy name the unmigrated pages still use', () => {
+    for (const token of LEGACY_COMPATIBILITY_TOKENS) {
+      const entry = horizonTheme.semanticTokens.colors[token] as
+        | { default: string; _dark: string }
+        | undefined
+
+      expect(entry, `${token} would emit as a raw string on a shipped page`).toBeDefined()
+      expect(entry?.default, `${token} has no light value`).toMatch(/^(#|rgb)/)
+      expect(entry?._dark, `${token} has no dark value`).toMatch(/^(#|rgb)/)
+    }
+  })
+
+  it('keeps the raw palette the editor, reader and About read directly', () => {
+    for (const path of LEGACY_PALETTE_PATHS) {
+      const value = path.reduce<Record<string, unknown>>(
+        (node, key) => node[key] as Record<string, unknown>,
+        horizonTheme.colors.obsidian,
+      )
+
+      expect(value, `obsidian.${path.join('.')} would emit as a raw string`).toMatch(/^#/)
+    }
+  })
+
+  it('aliases rather than inventing: every bridged value exists in the token source', () => {
+    const known = new Set(Object.values(semanticColors).flatMap((pair) => [pair.light, pair.dark]))
+
+    for (const token of LEGACY_COMPATIBILITY_TOKENS) {
+      const entry = horizonTheme.semanticTokens.colors[token] as { default: string; _dark: string }
+
+      // A v2 role of the same name is not a bridge entry; skip those.
+      if (token in semanticColors) continue
+
+      expect(known, `${token} light introduces a colour the system does not define`).toContain(
+        entry.default,
+      )
+      expect(known, `${token} dark introduces a colour the system does not define`).toContain(
+        entry._dark,
+      )
+    }
+  })
+})
+
 describe('v2 Chakra adapter', () => {
   it('pairs every semantic role for both colour modes', () => {
     for (const token of Object.keys(semanticColors) as (keyof typeof semanticColors)[]) {

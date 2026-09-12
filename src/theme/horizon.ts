@@ -53,6 +53,110 @@ const semanticColorTokens = Object.fromEntries(
 )
 
 /**
+ * Temporary bridge for pages that have not migrated yet.
+ *
+ * Removal gate: `horizon-blog-y2e.9.1` (release M8). Every entry here is a name
+ * the legacy theme defined and v2 does not. Without the bridge, swapping the
+ * provider would leave Chakra emitting `color: text.tertiary` verbatim — an
+ * invalid declaration — on several hundred call sites at once, so the theme swap
+ * could not be reviewed on its own.
+ *
+ * Each alias points at the v2 role that carries the same meaning, following the
+ * mapping the design handoff already recorded (secondary/tertiary/tertiary-text
+ * become surface/subtle/muted). They are aliases, not new values: nothing here
+ * introduces a colour the token source does not already define.
+ *
+ * When a page migrates it stops using these names. When the last one stops, this
+ * block and the legacy theme go together.
+ */
+const legacyAliases = {
+  // Surfaces
+  'bg.secondary': semanticColors['bg.surface'],
+  'bg.tertiary': semanticColors['bg.subtle'],
+  'bg.glass': semanticColors['bg.elevated'],
+
+  // Text
+  'text.tertiary': semanticColors['text.muted'],
+
+  // Borders
+  'border.default': semanticColors['border.subtle'],
+
+  /*
+   * The legacy accent was a purple used as a second action colour. DESIGN.md
+   * puts "purple as the default action" under Avoid, so the bridge resolves it
+   * to the action role rather than carrying the purple forward.
+   */
+  'accent.primary': semanticColors['action.primary'],
+  'accent.hover': semanticColors['action.hover'],
+  'accent.glow': semanticColors['action.subtle'],
+
+  // Actions. v2 expresses press as travel, not a third colour step, so the
+  // legacy active state resolves to hover.
+  'action.active': semanticColors['action.hover'],
+  'action.glow': semanticColors['action.subtle'],
+
+  // Loading
+  'loading.stroke': semanticColors['loading.indicator'],
+  'loading.glow': semanticColors['action.subtle'],
+
+  // Links. v2 underlines on hover rather than changing colour.
+  'link.hover': semanticColors['link.default'],
+} as const
+
+const legacyAliasTokens = Object.fromEntries(
+  Object.entries(legacyAliases).map(([token, pair]) => [
+    token,
+    { default: pair.light, _dark: pair.dark },
+  ]),
+)
+
+/**
+ * The raw palette six unmigrated files still read directly, rather than through
+ * a semantic role. Same removal gate as the aliases above.
+ */
+const legacyPalette = {
+  light: {
+    bg: palette.white,
+    bgSecondary: palette.mist[50],
+    bgTertiary: palette.mist[100],
+    bgElevated: palette.white,
+    border: palette.mist[200],
+    borderSubtle: palette.mist[200],
+  },
+  dark: {
+    bg: palette.night[900],
+    bgSecondary: palette.night[800],
+    bgTertiary: palette.night[700],
+    bgElevated: palette.night[600],
+    border: palette.night[500],
+    borderSubtle: palette.night[500],
+  },
+  text: {
+    primary: palette.night[50],
+    secondary: palette.night[200],
+    tertiary: palette.night[300],
+    lightPrimary: palette.mist[900],
+    lightSecondary: palette.mist[700],
+    lightTertiary: palette.mist[600],
+  },
+  accent: {
+    primary: palette.cobalt[600],
+    secondary: palette.cobalt[400],
+    hover: palette.cobalt[800],
+    active: palette.cobalt[800],
+  },
+  action: {
+    primary: palette.cobalt[600],
+    hover: palette.cobalt[800],
+    active: palette.cobalt[800],
+  },
+  link: palette.cobalt[700],
+  linkHover: palette.cobalt[700],
+  codeBlock: palette.night[900],
+  selection: palette.night[500],
+} as const
+
+/**
  * The type ramp switches at `sm` (681px), matching the prototype: its
  * `max-width: 680px` query is what drops headings to the mobile sizes. Switching
  * at the desktop breakpoint instead would leave tablets on mobile type.
@@ -111,10 +215,12 @@ export const horizonTheme = extendTheme({
 
   breakpoints,
 
-  colors: { horizon: palette },
+  // `obsidian` is the legacy palette name; see `legacyPalette` for why it is
+  // still here and when it goes.
+  colors: { horizon: palette, obsidian: legacyPalette },
 
   semanticTokens: {
-    colors: semanticColorTokens,
+    colors: { ...semanticColorTokens, ...legacyAliasTokens },
     shadows: {
       card: { default: elevation.card.light, _dark: elevation.card.dark },
     },
