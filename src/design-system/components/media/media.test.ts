@@ -7,12 +7,15 @@ import {
   assertAspectRatio,
   buildSrcSet,
   containerCorners,
+  defaultMediaFit,
   fallbackSource,
   frameOwnsCorners,
   isDecorative,
   mediaFadeStyle,
   mediaFrameStyle,
+  mediaImageFit,
   type MediaAltInput,
+  type MediaFit,
 } from './media.logic'
 import {
   initialMediaState,
@@ -161,6 +164,51 @@ describe('the reserved box across the five media states', () => {
 
       expect(mediaFrameStyle(input)).toEqual(base)
     }
+  })
+
+  /*
+   * `fit` is the second thing a caller may now ask for, and the first question
+   * about it is whether it is a way to vary the box. It is not: the frame has
+   * no `fit` argument, exactly as it has no `status` one, so the box is the
+   * same box in all five states at either fit. With `contain` the shortfall in
+   * one axis is painted by the frame's own ground colour rather than by a
+   * shorter frame.
+   */
+  it('reserves the same box at either fit, in all five states', () => {
+    const fits: readonly MediaFit[] = ['cover', 'contain']
+    const base = mediaFrameStyle({ aspectRatio: '16 / 9' })
+
+    for (const fit of fits) {
+      for (const state of everyReachableState()) {
+        const input = { aspectRatio: '16 / 9', fit, status: state.status } as const
+
+        expect(mediaFrameStyle(input)).toEqual(base)
+      }
+    }
+  })
+})
+
+/**
+ * Spec `002`/`008`: Home's recent-blog cards show the complete cover rather
+ * than cropping it. Before this existed the only way to ask was an `sx` written
+ * from the page onto the `img` inside the card, which is the rule 4 breach the
+ * named prop replaces.
+ */
+describe('how the picture meets the box', () => {
+  it('crops to fill unless a caller says otherwise', () => {
+    expect(defaultMediaFit).toBe('cover')
+    expect(mediaImageFit().objectFit).toBe('cover')
+    expect(mediaImageFit(undefined).objectFit).toBe('cover')
+  })
+
+  it('keeps the whole image when asked for', () => {
+    expect(mediaImageFit('contain').objectFit).toBe('contain')
+  })
+
+  it('decides the fit and nothing else', () => {
+    // One declaration, so `fit` cannot become a second way to size, clip or
+    // position the media surface.
+    expect(Object.keys(mediaImageFit('contain'))).toEqual(['objectFit'])
   })
 })
 

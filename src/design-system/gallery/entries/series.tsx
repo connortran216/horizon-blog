@@ -58,6 +58,8 @@ function SeriesRailEntry({ state }: { readonly state: string }) {
     <SeriesRail
       items={state === 'empty' ? [] : gallery.seriesShelf}
       label="Sample Series shelf"
+      /* The shelf, not the card, knows whether its source has artwork at all. */
+      cardOptions={state === 'no artwork on the shelf' ? { showCover: false } : undefined}
       hasMore={state === 'loading more' || state === 'load failed'}
       isLoadingMore={state === 'loading more'}
       loadMoreError={state === 'load failed' ? 'The next sample page could not be loaded.' : null}

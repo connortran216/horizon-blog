@@ -1,10 +1,13 @@
 /**
  * How a link decides what it is.
  *
- * Two questions, both of which are wrong often enough to be worth isolating:
+ * Three questions, all of which are wrong often enough to be worth isolating:
  * whether a destination is inside the app (a router navigation) or outside it (a
- * document request), and whether a link that leaves the site says so.
+ * document request), whether a link that leaves the site says so, and how much
+ * visual weight it carries.
  */
+
+import { buttonVariant, type ButtonTone, type ButtonVariant } from './control.logic'
 
 export type LinkKind = 'router' | 'anchor'
 
@@ -99,5 +102,74 @@ export function linkDecoration(underline: LinkUnderline): LinkDecoration {
     textDecoration: underline === 'always' ? 'underline' : 'none',
     textUnderlineOffset: '0.25em',
     _hover: { textDecoration: 'underline' },
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Weight                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * How much a link weighs.
+ *
+ * `text` is the inline link the reader meets inside a sentence. The other two
+ * are the navigational call to action - "Explore the blog" - which is a link by
+ * every semantic that matters (it has a destination, it can be copied, opened
+ * in a new tab, middle-clicked) and a button by every semantic that does not.
+ *
+ * The weight is on the link rather than on `Button` on purpose. `Button` is
+ * always a native `button` and does not expose `as`, which is what stops an
+ * action quietly becoming a link and a link quietly becoming a fake button;
+ * `ShareAction` is the standing evidence for the cost of going the other way,
+ * where Chakra's polymorphism could not see through this system's narrowed
+ * props and the trigger had to be widened to `ElementType` to compile. Nothing
+ * here needs widening: a weighted link is still a link, so it keeps the link's
+ * own props and its own type.
+ */
+export type LinkWeight = 'text' | 'primary' | 'secondary'
+
+export interface LinkPresentation {
+  /** `text` draws itself; `button` borrows the Button variant named by `tone`. */
+  readonly kind: 'text' | 'button'
+  readonly tone: ButtonTone | undefined
+  readonly variant: ButtonVariant | undefined
+  /**
+   * `undefined` at button weight, and that is the point rather than an
+   * omission: `CONVENTIONS.md` rule 4 allows one visual owner per surface, and
+   * at button weight that owner is the Button variant - fill, border, radius,
+   * hover, press and focus all come from it. A link decoration reaching in over
+   * the top would be the second owner. The affordance survives: a filled or
+   * outlined control is unambiguous without a line under its label, which is
+   * the same reason `underline="hover"` exists for a nav item.
+   */
+  readonly decoration: LinkDecoration | undefined
+}
+
+/**
+ * What a weight means, in one place, so the link and its tests agree.
+ *
+ * The two weighted values are spelled the same as the `Button` tones they map
+ * to, and the mapping goes through `buttonVariant`, so a link with button
+ * weight and a button with the same tone cannot drift apart: retoning the
+ * system is still the single edit `control.logic.ts` promises.
+ */
+export function linkPresentation(
+  weight: LinkWeight,
+  underline: LinkUnderline = 'always',
+): LinkPresentation {
+  if (weight === 'text') {
+    return {
+      kind: 'text',
+      tone: undefined,
+      variant: undefined,
+      decoration: linkDecoration(underline),
+    }
+  }
+
+  return {
+    kind: 'button',
+    tone: weight,
+    variant: buttonVariant(weight),
+    decoration: undefined,
   }
 }

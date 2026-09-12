@@ -1,19 +1,18 @@
 /**
  * Horizon Design System v2 - Chakra adapter.
  *
- * This is a second, separate theme. The legacy theme in `./index.ts` keeps its
- * own values and stays mounted on every production route, so nothing here can
- * change how a shipped page looks. v2 components and the component gallery mount
- * this theme instead.
+ * **This is the theme the app mounts.** Release M1 swapped it in at `App.tsx`,
+ * so every route renders under it.
  *
- * The two systems share twelve token names with different values - `bg.page`,
- * `text.primary`, `action.primary` and friends - which is exactly why they are
- * kept in separate themes rather than merged behind a prefix. v2 keeps the clean
- * names; page migration is then a provider swap in `main.tsx` followed by
- * deleting the legacy theme, not a rename of every call site.
+ * It was built as a second, separate theme rather than a merge, because the two
+ * systems share twelve token names with different values - `bg.page`,
+ * `text.primary`, `action.primary` and friends. Keeping them apart let v2 hold
+ * the clean names while the legacy theme kept its own, so nothing shipped
+ * changed appearance until the swap was reviewed on its own.
  *
- * Do not import this from a production page. The migration gate
- * (`horizon-blog-dsv2.7.3`) is what opens that door.
+ * The legacy theme in `./index.ts` is no longer mounted. It survives only
+ * because the compatibility bridge below reads its vocabulary on behalf of pages
+ * that have not migrated yet; both go in release M8 (`horizon-blog-y2e.9.1`).
  */
 
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
@@ -35,6 +34,7 @@ import {
   sectionSpace,
   semanticColors,
   space,
+  transform,
   transitionFor,
   typeScale,
 } from './tokens'
@@ -210,6 +210,13 @@ const busyKeepsRestingFill = (style: Record<string, unknown>) => ({
   '&[aria-busy="true"], &[data-loading]': { ...style, opacity: 1 },
 })
 
+/**
+ * Press travel: 1px of push rather than a third colour step, because the
+ * approved palette has no darker action value and inventing one would put an
+ * unverified pigment in front of every primary action.
+ */
+const pressTravel = 'translateY(1px)'
+
 export const horizonTheme = extendTheme({
   config,
 
@@ -310,16 +317,40 @@ export const horizonTheme = extendTheme({
         transitionDuration: componentTokens.control.transition,
         transitionTimingFunction: 'standard',
         _focusVisible: focusVisible,
+        /*
+         * Depth on hover and travel on press, for every tone at once.
+         *
+         * They belong here and not on the component. A `_hover` style prop
+         * replaces the variant's `_hover` rather than merging into it, so a
+         * component that wrote the lift that way silently took the variant's
+         * hover colour with it - which is exactly what happened, and why every
+         * button in the system hovered with a lift and no colour change.
+         *
+         * Transform only, capped by the motion token, so a row of buttons does
+         * not reflow when the pointer crosses one.
+         */
+        _hover: {
+          transform: `translateY(${transform.hoverLift})`,
+          /*
+           * A pointer that is pressing is also hovering, and `:hover:active` is
+           * one selector heavier than `:hover`, so the press travel wins here
+           * without depending on which of the two rules Chakra emits last.
+           */
+          _active: { transform: pressTravel },
+        },
+        _active: { transform: pressTravel },
       },
       /*
        * Each variant is a function so it replaces Chakra's colorScheme-derived
        * default outright. Merging into it instead leaves shards behind - the
        * default `_active` resolves against a colorScheme this system does not
-       * use and yields `undefined.700`.
+       * use and yields `undefined.700`. For the same reason every variant keeps
+       * stating `_hover` and `_active`: an omitted key is a key Chakra's own
+       * default still fills in.
        *
-       * Press feedback is 1px of travel rather than a third colour step: the
-       * approved palette has no darker action value, and inventing one would put
-       * an unverified pigment in front of every primary action.
+       * What each one states there is the colour. The movement - the hover lift
+       * and the press travel - is in `baseStyle`, so a tone cannot acquire one
+       * without the other.
        */
       variants: {
         solid: () => ({
@@ -329,7 +360,7 @@ export const horizonTheme = extendTheme({
             bg: componentTokens.control.solidHoverBg,
             _disabled: { bg: componentTokens.control.solidDisabledBg },
           },
-          _active: { bg: componentTokens.control.solidHoverBg, transform: 'translateY(1px)' },
+          _active: { bg: componentTokens.control.solidHoverBg },
           _disabled: { bg: componentTokens.control.solidDisabledBg, opacity: 1 },
           ...busyKeepsRestingFill({
             bg: componentTokens.control.solidBg,
@@ -343,7 +374,7 @@ export const horizonTheme = extendTheme({
             bg: componentTokens.control.quietHoverBg,
             color: componentTokens.control.quietHoverFg,
           },
-          _active: { bg: componentTokens.control.quietHoverBg, transform: 'translateY(1px)' },
+          _active: { bg: componentTokens.control.quietHoverBg },
           _disabled: { color: componentTokens.control.disabledFg, opacity: 1 },
           ...busyKeepsRestingFill({ color: componentTokens.control.quietFg }),
         }),
@@ -353,7 +384,7 @@ export const horizonTheme = extendTheme({
           borderColor: componentTokens.control.solidBg,
           color: componentTokens.control.solidBg,
           _hover: { bg: componentTokens.control.quietHoverBg },
-          _active: { bg: componentTokens.control.quietHoverBg, transform: 'translateY(1px)' },
+          _active: { bg: componentTokens.control.quietHoverBg },
           _disabled: {
             borderColor: 'border.disabled',
             color: componentTokens.control.disabledFg,
@@ -382,7 +413,7 @@ export const horizonTheme = extendTheme({
           borderColor: componentTokens.control.dangerFg,
           color: componentTokens.control.dangerFg,
           _hover: { bg: componentTokens.control.dangerSurface },
-          _active: { bg: componentTokens.control.dangerSurface, transform: 'translateY(1px)' },
+          _active: { bg: componentTokens.control.dangerSurface },
           _disabled: {
             borderColor: 'border.disabled',
             color: componentTokens.control.disabledFg,

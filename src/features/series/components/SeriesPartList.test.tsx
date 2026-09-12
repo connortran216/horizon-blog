@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import SeriesPartList from './SeriesPartList'
 
 describe('SeriesPartList', () => {
@@ -40,9 +40,19 @@ describe('SeriesPartList', () => {
     expect(markup).toContain('Indexes first')
     expect(markup).toContain('Query plans')
     expect(markup.indexOf('Indexes first')).toBeLessThan(markup.indexOf('Query plans'))
-    expect(markup).toContain('Start here')
-    expect(markup).toContain('Part 02')
+    /*
+     * The position wording used to be "Start here" for the opener and "Part 02"
+     * for the rest. `DESIGN.md` fixes one phrasing for Series position across
+     * the whole system - the same one a post's metadata line already used - so
+     * the list now says "Part 1 of 2". The ordinal marker still carries the
+     * padded "01" that keeps the left edge of the list straight.
+     */
+    expect(markup).toContain('Part 1 of 2')
+    expect(markup).toContain('Part 2 of 2')
+    expect(markup).toContain('01')
+    expect(markup).toContain('02')
     expect(markup).toContain('6 min read')
     expect(markup).not.toContain('Opened')
+    expect(markup).not.toContain('Progress')
   })
 })

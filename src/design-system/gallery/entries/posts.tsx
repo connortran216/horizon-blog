@@ -78,6 +78,11 @@ function PostCardEntry({ state }: { readonly state: string }) {
     return <PostCard post={samplePostWithManyTags} />
   }
 
+  /* `coverFit="contain"`: artwork whose composition must not be cut. */
+  if (state === 'complete cover') {
+    return <PostCard post={gallery.post} coverFit="contain" />
+  }
+
   return <PostCard post={gallery.post} />
 }
 

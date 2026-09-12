@@ -2,7 +2,6 @@ import { forwardRef, type MouseEvent, type ReactElement } from 'react'
 import { Button as ChakraButton, Spinner, VisuallyHidden } from '@chakra-ui/react'
 import type { ButtonProps as ChakraButtonProps } from '@chakra-ui/react'
 
-import { transform } from '../../../theme/tokens'
 import {
   buttonVariant,
   controlSizing,
@@ -89,7 +88,9 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       aria-disabled={state['aria-disabled']}
       aria-busy={state['aria-busy']}
       onClick={handleClick}
-      _hover={state.isActivatable ? { transform: `translateY(${transform.hoverLift})` } : {}}
+      /* Same rule as `Button`, and for the same reason: hover belongs to a
+         control that can be pressed, and its appearance belongs to the theme. */
+      {...(state.isActivatable ? {} : { _hover: {} })}
       {...rest}
     >
       {isLoading ? (

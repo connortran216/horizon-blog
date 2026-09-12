@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 
 vi.mock('../usePublicSeries', () => ({
   usePublicSeries: () => ({
@@ -47,7 +47,9 @@ describe('SeriesPage', () => {
 
     expect(markup).toContain('Database Engineering')
     expect(markup).toContain('6 min total')
-    expect(markup).toContain('Start here')
+    // "Start here" became the system's one phrasing for Series position; see
+    // SeriesPartList.test.tsx.
+    expect(markup).toContain('Part 1 of 1')
     expect(markup).toContain('In this series')
     expect(markup).not.toContain('Opened')
     expect(markup).not.toContain('Progress')

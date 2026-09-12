@@ -59,6 +59,20 @@ function ResponsiveImageEntry({ state }: { readonly state: string }) {
     )
   }
 
+  if (state === 'shown complete') {
+    return (
+      <ResponsiveImage
+        aspectRatio={RATIO}
+        fit="contain"
+        src={gallery.image}
+        alt={SAMPLE_IMAGE_ALT}
+        task="the sample cover image"
+        absentCaption="Sample post"
+        loading="eager"
+      />
+    )
+  }
+
   if (state === 'decorative') {
     return (
       <ResponsiveImage

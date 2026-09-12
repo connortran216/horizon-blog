@@ -108,6 +108,21 @@ function IconButtonEntry({ state }: { readonly state: string }) {
 }
 
 function ActionLinkEntry({ state }: { readonly state: string }) {
+  if (state === 'primary weight' || state === 'secondary weight') {
+    const weight = state === 'primary weight' ? 'primary' : 'secondary'
+
+    return (
+      <Row>
+        <ActionLink to="/blog" weight={weight} iconEnd={<Glyph shape="arrow" />}>
+          Explore the sample blog
+        </ActionLink>
+        <ActionLink href="https://example.com/sample-destination" weight={weight}>
+          Explore another site
+        </ActionLink>
+      </Row>
+    )
+  }
+
   if (state === 'external') {
     return (
       <ActionLink href="https://example.com/sample-destination" isExternal>

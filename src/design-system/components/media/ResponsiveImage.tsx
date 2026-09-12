@@ -14,6 +14,9 @@
  * - The element is keyed on the source *and* the attempt count, so a retry
  *   against the same URL remounts the element and the browser issues a fresh
  *   request instead of resting on the failed one.
+ * - `fit` is about the picture, not the box. It decides whether the image is
+ *   cropped to fill the frame or shown whole against the frame's ground; the
+ *   frame is the same frame either way, because `MediaFrame` is never told.
  */
 
 import { useEffect, useRef } from 'react'
@@ -29,9 +32,11 @@ import {
   buildSrcSet,
   fallbackSource,
   mediaFadeStyle,
+  mediaImageFit,
   type ImageSource,
   type MediaAltInput,
   type MediaCorners,
+  type MediaFit,
 } from './media.logic'
 import { imageMounted, imageVisible, mediaOverlay } from './mediaState.logic'
 import { createDecodeTask, type MediaSourceResolver } from './mediaResolution.logic'
@@ -45,6 +50,12 @@ interface ResponsiveImageOwnProps {
    * clips this image - the full-bleed case. See `MediaFrame`.
    */
   radius?: MediaCorners
+  /**
+   * How the picture meets the frame: `cover` crops to fill, `contain` keeps the
+   * whole image visible against the frame's ground. It changes which pixels are
+   * painted and nothing about the box - see `mediaImageFit`.
+   */
+  fit?: MediaFit
   src?: string | null
   /** Width-descriptor candidates. The widest doubles as the `src` fallback. */
   sources?: readonly ImageSource[]
@@ -75,6 +86,7 @@ export type ResponsiveImageProps = ResponsiveImageOwnProps & MediaAltInput
 export function ResponsiveImage({
   aspectRatio,
   radius = 'card',
+  fit,
   src,
   sources,
   sizes,
@@ -98,6 +110,7 @@ export function ResponsiveImage({
   const alt = altAttributes(altInput as MediaAltInput)
   const overlay = mediaOverlay(state)
   const fade = mediaFadeStyle(policy, imageVisible(state))
+  const imageFit = mediaImageFit(fit)
   const failedAction = `load ${task}`
 
   // A cached image is already decoded before React attaches a `load` handler,
@@ -138,7 +151,7 @@ export function ResponsiveImage({
           inset={0}
           width="100%"
           height="100%"
-          objectFit="cover"
+          objectFit={imageFit.objectFit}
           opacity={fade.opacity}
           transition={fade.transition}
           onLoad={onLoaded}

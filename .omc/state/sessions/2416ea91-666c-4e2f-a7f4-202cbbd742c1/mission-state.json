@@ -1,0 +1,157 @@
+{
+  "updatedAt": "2026-09-12T06:12:24.345Z",
+  "missions": [
+    {
+      "id": "session:2416ea91-666c-4e2f-a7f4-202cbbd742c1:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-09-10T15:10:05.974Z",
+      "updatedAt": "2026-09-12T06:12:24.345Z",
+      "status": "done",
+      "workerCount": 9,
+      "taskCounts": {
+        "total": 9,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 9,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "general-purpose:adebf66",
+          "role": "general-purpose",
+          "ownership": "adebf66f90149a6ff",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-12T05:56:51.283Z"
+        },
+        {
+          "name": "general-purpose:a433202",
+          "role": "general-purpose",
+          "ownership": "a43320294ee0b7867",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-10T15:33:24.931Z"
+        },
+        {
+          "name": "general-purpose:affa536",
+          "role": "general-purpose",
+          "ownership": "affa536a77dc0a29c",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "Marked as stale during unmatched stop reconciliation - exceed...",
+          "completedSummary": "Marked as stale during unmatched stop reconciliation - exceed...",
+          "updatedAt": "2026-09-10T16:27:03.273Z"
+        },
+        {
+          "name": "general-purpose:a427096",
+          "role": "general-purpose",
+          "ownership": "a4270966520fe30a3",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "Marked as stale during unmatched stop reconciliation - exceed...",
+          "completedSummary": "Marked as stale during unmatched stop reconciliation - exceed...",
+          "updatedAt": "2026-09-10T16:20:20.303Z"
+        },
+        {
+          "name": "general-purpose:aaf4dea",
+          "role": "general-purpose",
+          "ownership": "aaf4deaea72cd0d54",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-10T17:00:08.507Z"
+        },
+        {
+          "name": "general-purpose:aa6a092",
+          "role": "general-purpose",
+          "ownership": "aa6a092904a6d34d0",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-12T05:08:02.417Z"
+        },
+        {
+          "name": "general-purpose:a445f02",
+          "role": "general-purpose",
+          "ownership": "a445f02d7ce2c117b",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-12T05:31:28.817Z"
+        },
+        {
+          "name": "general-purpose:a26c736",
+          "role": "general-purpose",
+          "ownership": "a26c736ba5e40c4e7",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-12T05:58:52.603Z"
+        },
+        {
+          "name": "general-purpose:a436853",
+          "role": "general-purpose",
+          "ownership": "a436853eb10883c98",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-09-12T06:12:24.345Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:a436853eb10883c98:2026-09-12T05:55:50.639Z",
+          "at": "2026-09-12T05:55:50.639Z",
+          "kind": "update",
+          "agent": "general-purpose:a436853",
+          "detail": "started general-purpose:a436853",
+          "sourceKey": "session-start:a436853eb10883c98"
+        },
+        {
+          "id": "session-stop:a12c6538ffe478f4e:2026-09-12T05:56:51.283Z",
+          "at": "2026-09-12T05:56:51.283Z",
+          "kind": "completion",
+          "agent": "general-purpose:adebf66",
+          "detail": "completed",
+          "sourceKey": "session-stop:a12c6538ffe478f4e"
+        },
+        {
+          "id": "session-start:a26c736ba5e40c4e7:2026-09-12T05:58:42.262Z",
+          "at": "2026-09-12T05:58:42.262Z",
+          "kind": "update",
+          "agent": "general-purpose:a26c736",
+          "detail": "started general-purpose:a26c736",
+          "sourceKey": "session-start:a26c736ba5e40c4e7"
+        },
+        {
+          "id": "session-stop:a26c736ba5e40c4e7:2026-09-12T05:58:52.603Z",
+          "at": "2026-09-12T05:58:52.603Z",
+          "kind": "completion",
+          "agent": "general-purpose:a26c736",
+          "detail": "completed",
+          "sourceKey": "session-stop:a26c736ba5e40c4e7"
+        },
+        {
+          "id": "session-stop:a436853eb10883c98:2026-09-12T06:12:24.345Z",
+          "at": "2026-09-12T06:12:24.345Z",
+          "kind": "completion",
+          "agent": "general-purpose:a436853",
+          "detail": "completed",
+          "sourceKey": "session-stop:a436853eb10883c98"
+        }
+      ]
+    }
+  ]
+}

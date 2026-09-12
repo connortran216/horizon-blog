@@ -2,7 +2,6 @@ import { forwardRef, type MouseEvent, type ReactElement } from 'react'
 import { Button as ChakraButton, Spinner, VisuallyHidden } from '@chakra-ui/react'
 import type { ButtonProps as ChakraButtonProps } from '@chakra-ui/react'
 
-import { transform } from '../../../theme/tokens'
 import {
   buttonVariant,
   controlSizing,
@@ -83,11 +82,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={state['aria-busy']}
       onClick={handleClick}
       /*
-       * Hover lift is transform-only and capped by the motion token, so a row of
-       * buttons does not reflow when the pointer crosses one. Press returns to
-       * rest; the theme's own `_active` supplies the 1px push.
+       * A control that cannot be activated has no hover state at all - no
+       * colour change and no lift - and an empty `_hover` is how that is said,
+       * because a `_hover` style prop replaces the recipe's rather than merging
+       * with it. That replacement is also why nothing about the appearance is
+       * written here: the depth, the colour and the press travel are the
+       * theme's, on the variant this tone selects.
        */
-      _hover={state.isActivatable ? { transform: `translateY(${transform.hoverLift})` } : {}}
+      {...(state.isActivatable ? {} : { _hover: {} })}
       {...rest}
     >
       {iconStart}

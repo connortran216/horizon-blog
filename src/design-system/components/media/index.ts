@@ -30,11 +30,13 @@ export {
   assertAspectRatio,
   buildSrcSet,
   containerCorners,
+  defaultMediaFit,
   fallbackSource,
   frameOwnsCorners,
   isDecorative,
   mediaFadeStyle,
   mediaFrameStyle,
+  mediaImageFit,
 } from './media.logic'
 export type {
   AltAttributes,
@@ -42,8 +44,10 @@ export type {
   MediaAltInput,
   MediaCorners,
   MediaFadeStyle,
+  MediaFit,
   MediaFrameStyle,
   MediaFrameStyleInput,
+  MediaImageFit,
 } from './media.logic'
 
 export {

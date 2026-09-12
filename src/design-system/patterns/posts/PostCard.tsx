@@ -29,7 +29,7 @@ import { componentTokens, space } from '../../../theme/tokens'
 import { ActionLink } from '../../components/actions'
 import { Stack } from '../../components/layout'
 import type { HeadingElement } from '../../components/layout'
-import { ResponsiveImage } from '../../components/media'
+import { ResponsiveImage, type MediaFit } from '../../components/media'
 import { Chip } from '../../components/status'
 import { Surface, type SurfaceProps } from '../../components/surface'
 import { Eyebrow, Heading, Text } from '../../components/typography'
@@ -54,6 +54,18 @@ export interface PostCardProps extends Omit<SurfaceProps, 'children' | 'depth' |
   titleAs?: HeadingElement
   /** `sizes` for the cover. The grid knows its columns; this component does not. */
   coverSizes?: string
+  /**
+   * Whether the cover is cropped to fill its frame (`cover`, the default) or
+   * kept whole inside it (`contain`).
+   *
+   * It is a caller's decision because only the caller knows the artwork: a
+   * photographic cover is better edge to edge, and a cover whose composition
+   * runs to its own edges is better complete. It is a named prop rather than an
+   * `sx` reaching for the `img` inside this card because the picture belongs to
+   * `ResponsiveImage` - see `CONVENTIONS.md` rule 4. The reserved 16/9 box is
+   * identical either way.
+   */
+  coverFit?: MediaFit
 }
 
 export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard(
@@ -63,6 +75,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
     sectionLabels = [],
     titleAs = 'h3',
     coverSizes = '(min-width: 801px) 33vw, 100vw',
+    coverFit,
     ...rest
   },
   ref,
@@ -94,6 +107,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
       <ResponsiveImage
         aspectRatio={presentation.coverAspectRatio}
         radius={presentation.coverRadius}
+        fit={coverFit}
         src={post.cover?.src}
         sources={post.cover?.sources}
         sizes={post.cover?.sizes ?? coverSizes}

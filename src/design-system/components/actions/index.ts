@@ -26,11 +26,13 @@ export type {
   ControlStateOutput,
 } from './control.logic'
 
-export { isExternalHref, linkDecoration, resolveLinkTarget } from './link.logic'
+export { isExternalHref, linkDecoration, linkPresentation, resolveLinkTarget } from './link.logic'
 export type {
   LinkDecoration,
   LinkKind,
+  LinkPresentation,
   LinkTargetInput,
   LinkTargetOutput,
   LinkUnderline,
+  LinkWeight,
 } from './link.logic'

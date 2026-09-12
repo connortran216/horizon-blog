@@ -42,7 +42,7 @@ import {
   type FrameScheduler,
 } from '../../motion'
 import { RailOverlayControls } from './RailOverlayControls'
-import { SeriesCard } from './SeriesCard'
+import { SeriesCard, type SeriesCardOptions } from './SeriesCard'
 import {
   dragBegin,
   dragCancel,
@@ -75,6 +75,23 @@ export interface SeriesRailProps extends Omit<BoxProps, 'children' | 'onScroll'>
   label: string
   /** How many cards sit fully in view at each width. The rest is the peek. */
   visibleItems?: RailVisibleItems
+  /**
+   * What the cards on this shelf say - the card's own editorial options,
+   * forwarded unchanged.
+   *
+   * It is one object rather than a prop per option because a rail that
+   * enumerated every card prop would have to grow a prop each time the card
+   * did, and it is `SeriesCardOptions` - a `Pick` from the card's own props -
+   * rather than a free-form object or a render prop because the rail must not
+   * be able to rename a card option, invent one, or be handed something that is
+   * not a `SeriesCard` at all. The item box, the snap and the peek are the
+   * rail's and are not reachable from here.
+   *
+   * The case this exists for: the public Series API carries no cover artwork,
+   * so a shelf reading from it passes `{ showCover: false }` and the cards stop
+   * drawing an absent-media plate they can never fill.
+   */
+  cardOptions?: SeriesCardOptions
   /** More pages exist behind a cursor. */
   hasMore?: boolean
   isLoadingMore?: boolean
@@ -108,6 +125,7 @@ export function SeriesRail({
   items,
   label,
   visibleItems = { base: 1, sm: 2, md: 3 },
+  cardOptions,
   hasMore = false,
   isLoadingMore = false,
   loadMoreError = null,
@@ -324,7 +342,7 @@ export function SeriesRail({
             flexShrink={0}
             sx={{ scrollSnapAlign: 'start' }}
           >
-            <SeriesCard series={series} />
+            <SeriesCard series={series} {...cardOptions} />
           </Box>
         ))}
 

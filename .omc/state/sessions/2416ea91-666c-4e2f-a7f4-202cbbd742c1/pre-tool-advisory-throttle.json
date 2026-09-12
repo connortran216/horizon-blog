@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "entries": {
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1789193876766,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1789193825789,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "445ed27a3872b681d98190bae61ccb84954e1bc4e140df5370be958dee776b3a": {
+      "last_emitted_at_ms": 1789193624974,
+      "message": "Verify changes work after editing. Test functionality before marking complete."
+    },
+    "82de7f3034a5560de66172067f82b253db35fc14ba773a18e1a2cd036f275d4b": {
+      "last_emitted_at_ms": 1789192548650,
+      "message": "Spawning agent: general-purpose (opus) | Task: Fix Button hover and Contact duplication"
+    },
+    "5afe2a5d9394f7a5091c4e141e64770610173f035fd829a024ec796e233ab19c": {
+      "last_emitted_at_ms": 1789191069984,
+      "message": "Spawning agent: general-purpose (opus) | Task: Close design system gaps from M3"
+    }
+  },
+  "updated_at": "2026-09-12T06:17:56.766Z"
+}

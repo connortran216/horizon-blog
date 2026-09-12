@@ -56,11 +56,18 @@ export interface ActionButtonProps extends Omit<ChakraButtonProps, 'variant'> {
 
 ## Testing
 
-**This repo does not render components in tests.** There is no jsdom and no Testing Library, and
-adding them is an owner decision, not a component decision. Look at any existing `.test.tsx` — they
-all test pure functions and reducers.
+There is no jsdom and no Testing Library here, and adding either is an owner decision, not a
+component decision. But that does **not** mean components go unrendered: around two dozen existing
+tests render to static markup with `renderToStaticMarkup` from `react-dom/server`, which needs no
+DOM. `ProtectedRoute`, `HomePage`, `SeriesCard`, `BlogPage` and `CommentThread` all do it. Use it.
 
-So: put the decision in a pure function and test that function.
+(An earlier version of this file claimed the repo never renders in tests. It was wrong, and it cost
+work: agents avoided a capability the repo already had, and one wrote a render test to verify its
+own component and then deleted it, believing it was forbidden.)
+
+Two tools, two jobs:
+
+**Pure functions for decisions.** Put the decision in a `*.logic.ts` module and test it there.
 
 ```ts
 // Field.logic.ts
@@ -72,12 +79,30 @@ it('links the error message to the input', () => {
 })
 ```
 
-What that covers well: aria wiring, state precedence, variant selection, size mapping, reduced-motion
-branching, retry and error transitions.
+That covers aria wiring, state precedence, variant selection, size mapping, reduced-motion branching,
+and retry and error transitions well — and it keeps those decisions testable without a renderer.
 
-What it does not cover, and which therefore belongs to the B6 gallery and the manual accessibility
-matrix: real focus movement, real screen-reader output, real paint. Do not fake those with a
-render-free test and call the requirement met.
+**Static markup for composition.** When the question is "does this component actually emit that
+element, that attribute, that text", render it:
+
+```tsx
+const markup = renderToStaticMarkup(
+  <ChakraProvider theme={horizonTheme}>
+    <MemoryRouter>
+      <PostCard post={samplePost} />
+    </MemoryRouter>
+  </ChakraProvider>,
+)
+
+expect(markup).toContain('aria-current="page"')
+```
+
+Reach for it when a pure function cannot answer the question: the rendered element type, aria
+attributes that only exist once composed, whether a slot renders at all, the document outline.
+
+What neither covers, and which therefore belongs to the gallery and the manual accessibility matrix:
+real focus movement, real screen-reader output, real paint, real layout. Static markup proves what
+was emitted, not what it looks like or how it behaves. Do not fake those and call the requirement met.
 
 ## Accessibility floor
 

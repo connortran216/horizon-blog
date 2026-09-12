@@ -27,6 +27,15 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const [page, setPageState] = useState(parsePage(searchParams.get('page')))
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  /*
+   * A failed request is not an empty archive. Without these the page drew its
+   * "nothing matched that search" state over a network failure, told the reader
+   * to try a broader phrase, and gave them no way to retry.
+   */
+  const [error, setError] = useState<string | null>(null)
+  const [tagsError, setTagsError] = useState<string | null>(null)
+  const [requestVersion, setRequestVersion] = useState(0)
+  const [tagsRequestVersion, setTagsRequestVersion] = useState(0)
 
   const query = useMemo(() => searchParams.get('q') ?? '', [searchParams])
   const activeTags = useMemo(() => parseTags(searchParams.get('tags')), [searchParams])
@@ -65,6 +74,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     const loadPosts = async () => {
       try {
         setLoading(true)
+        setError(null)
         const response = await getBlogService().getPublishedArchivePosts({
           q: query || undefined,
           tags: activeTags,
@@ -83,6 +93,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
         setPosts([])
         setTotal(0)
         setTotalPages(1)
+        setError('The blog archive could not load right now.')
       } finally {
         if (!cancelled) {
           setLoading(false)
@@ -95,7 +106,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       cancelled = true
     }
-  }, [activeTags, page, pageSize, query])
+  }, [activeTags, page, pageSize, query, requestVersion])
 
   useEffect(() => {
     let cancelled = false
@@ -103,6 +114,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     const loadPopularTags = async () => {
       try {
         setTagsLoading(true)
+        setTagsError(null)
         const data = await getBlogService().getPopularTags()
         if (!cancelled) {
           setPopularTags(data)
@@ -111,6 +123,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
         if (!cancelled) {
           console.error('Failed to load popular tags:', error)
           setPopularTags([])
+          setTagsError('The topic list could not load right now.')
         }
       } finally {
         if (!cancelled) {
@@ -124,7 +137,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [tagsRequestVersion])
 
   const setPage = (nextPage: number) => {
     const normalizedPage = Math.max(1, nextPage)
@@ -184,6 +197,9 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     setSearchParams(next)
   }
 
+  const retry = () => setRequestVersion((value) => value + 1)
+  const retryTags = () => setTagsRequestVersion((value) => value + 1)
+
   return {
     searchInput,
     setSearchInput,
@@ -192,6 +208,8 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     popularTags,
     loading,
     tagsLoading,
+    error,
+    tagsError,
     page,
     totalPages,
     total,
@@ -202,5 +220,7 @@ export const useBlogArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     clearQuery,
     removeTag,
     clearAllFilters,
+    retry,
+    retryTags,
   }
 }

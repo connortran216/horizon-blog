@@ -11,7 +11,7 @@ export { SeriesCover } from './SeriesCover'
 export type { SeriesCoverProps } from './SeriesCover'
 
 export { SeriesCard } from './SeriesCard'
-export type { SeriesCardProps } from './SeriesCard'
+export type { SeriesCardOptions, SeriesCardProps } from './SeriesCard'
 
 export { SeriesRail } from './SeriesRail'
 export type { SeriesRailProps } from './SeriesRail'

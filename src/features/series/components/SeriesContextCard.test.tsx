@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import SeriesContextCard from './SeriesContextCard'
 
 describe('SeriesContextCard', () => {
@@ -39,9 +39,18 @@ describe('SeriesContextCard', () => {
       </ChakraProvider>,
     )
 
-    expect(markup).toContain('SERIES · PART 2 OF 3')
+    /*
+     * The position used to be typed in capitals. It is now the system's one
+     * phrasing, and the capitals come from the eyebrow's own text transform
+     * rather than from the content - so a screen reader hears "Part 2 of 3"
+     * instead of spelling out an acronym.
+     */
+    expect(markup).toContain('Part 2 of 3')
     expect(markup).toContain('href="/series/database-engineering"')
     expect(markup).toContain('Indexes first')
     expect(markup).toContain('Replication')
+    // Each direction names its destination, so "Next" is never a bare word.
+    expect(markup).toContain('aria-label="Previous part: Indexes first"')
+    expect(markup).toContain('aria-label="Next part: Replication"')
   })
 })

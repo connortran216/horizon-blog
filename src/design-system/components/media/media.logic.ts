@@ -120,6 +120,46 @@ export function assertAspectRatio(value: string): string {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Fit                                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * How the picture meets the box it was given.
+ *
+ * `cover` fills the frame and crops whatever does not fit, which is right for a
+ * photographic cover where the subject is central. `contain` keeps the whole
+ * image visible and lets the frame's ground colour show in the spare axis,
+ * which is right when the artwork is the message - a diagram, a title card, a
+ * cover whose composition runs to its own edges.
+ */
+export type MediaFit = 'cover' | 'contain'
+
+/**
+ * Cropping is the default because a photographic cover in a grid reads better
+ * edge to edge, and because it is what every caller written before this prop
+ * existed already gets.
+ */
+export const defaultMediaFit: MediaFit = 'cover'
+
+export interface MediaImageFit {
+  readonly objectFit: MediaFit
+}
+
+/**
+ * The fit belongs to the picture, never to the box.
+ *
+ * `mediaFrameStyle` takes no fit for exactly the reason it takes no status: the
+ * reserved space is the one thing a caller may not vary, so the argument that
+ * would let them is absent rather than ignored. Changing the fit changes which
+ * pixels of the image are painted inside an unchanged frame - with `contain`
+ * the shortfall is filled by the frame's own placeholder ground, so the box is
+ * still the same box and the page still does not move.
+ */
+export function mediaImageFit(fit: MediaFit = defaultMediaFit): MediaImageFit {
+  return { objectFit: fit }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Alt text                                                                   */
 /* -------------------------------------------------------------------------- */
 

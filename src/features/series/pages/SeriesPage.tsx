@@ -1,171 +1,133 @@
+/**
+ * One public Series: its identity, its facts, and its blogs in order.
+ *
+ * Composition only. The book identity and the ordered parts belong to the
+ * Series patterns, the three async states belong to the feedback primitives,
+ * and the page decides what sits where.
+ */
+
+import { Box } from '@chakra-ui/react'
+import { FiArrowLeft } from 'react-icons/fi'
+import { useParams } from 'react-router-dom'
+
 import {
-  Box,
-  Button,
-  Container,
+  ActionLink,
+  Chip,
+  ContentContainer,
+  ErrorState,
+  Eyebrow,
   Heading,
-  HStack,
-  Link,
+  Metadata,
+  PageLoading,
+  RetryAction,
+  Section,
   Stack,
   Text,
-  Wrap,
-  WrapItem,
-} from '@chakra-ui/react'
-import { FiArrowLeft, FiClock } from 'react-icons/fi'
-import { Link as RouterLink, useParams } from 'react-router-dom'
-import { LoadingPanel } from '../../../core'
+  seriesFacts,
+  seriesTotalMinutes,
+} from '../../../design-system'
+import { space } from '../../../theme/tokens'
 import SeriesPartList from '../components/SeriesPartList'
+import { seriesTopics, toSeriesDetailSummary, toSeriesParts } from '../series.presentation'
 import { usePublicSeries } from '../usePublicSeries'
-
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
 
 const SeriesPage = () => {
   const { slug } = useParams()
   const { series, loading, error, retry } = usePublicSeries(slug)
 
   if (loading) {
-    return <LoadingPanel label="Loading Series" description="Preparing the ordered blogs." />
+    return (
+      <ContentContainer>
+        <Section>
+          <PageLoading task="this Series" />
+        </Section>
+      </ContentContainer>
+    )
   }
 
   if (!series) {
     return (
-      <Container maxW="container.md" py={{ base: 10, md: 16 }}>
-        <Stack spacing={5} align="start">
-          <Heading color="text.primary">Series unavailable</Heading>
-          <Text color="text.secondary">{error}</Text>
-          <HStack flexWrap="wrap">
-            <Button onClick={retry}>Try again</Button>
-            <Button as={RouterLink} to="/series" variant="ghost" leftIcon={<FiArrowLeft />}>
-              All series
-            </Button>
-            <Button as={RouterLink} to="/blog" variant="ghost">
-              Browse blogs
-            </Button>
-          </HStack>
-        </Stack>
-      </Container>
+      <ContentContainer width="prose">
+        <Section>
+          <ErrorState failedAction="load this Series" detail={error ?? undefined} align="start">
+            <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
+              <RetryAction failedAction="load this Series" onRetry={retry} />
+              <ActionLink
+                to="/series"
+                underline="hover"
+                iconStart={<FiArrowLeft aria-hidden="true" />}
+              >
+                All series
+              </ActionLink>
+              <ActionLink to="/blog" underline="hover">
+                Browse blogs
+              </ActionLink>
+            </Stack>
+          </ErrorState>
+        </Section>
+      </ContentContainer>
     )
   }
 
-  const totalReadingTime = series.parts.reduce((total, part) => total + part.readingTime, 0)
-  const topics = Array.from(new Set(series.parts.flatMap((part) => part.tags))).slice(0, 8)
+  const summary = toSeriesDetailSummary(series)
+  const parts = toSeriesParts(series.parts)
+  const facts = seriesFacts(summary, seriesTotalMinutes(parts))
+  const topics = seriesTopics(series.parts)
 
   return (
-    <Box position="relative" pb={12}>
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '72%' }}
-        h="280px"
-        bg="accent.glow"
-        filter="blur(120px)"
-        opacity={0.62}
-        pointerEvents="none"
-      />
-      <Container maxW="container.lg" py={{ base: 8, md: 14 }} position="relative">
-        <Stack spacing={{ base: 8, md: 12 }}>
-          <Link
-            as={RouterLink}
-            to="/series"
-            alignSelf="flex-start"
-            color="text.secondary"
-            fontWeight="semibold"
-            _hover={{ color: 'text.primary', textDecoration: 'none' }}
-          >
-            <HStack spacing={2}>
-              <FiArrowLeft aria-hidden />
-              <Text>All series</Text>
-            </HStack>
-          </Link>
+    <ContentContainer>
+      <Section>
+        <Stack gap={12}>
+          <Box>
+            <ActionLink
+              to="/series"
+              underline="hover"
+              iconStart={<FiArrowLeft aria-hidden="true" />}
+              color="text.secondary"
+            >
+              All series
+            </ActionLink>
+          </Box>
 
-          <Stack spacing={6} maxW="4xl">
-            <Text
-              color="text.tertiary"
-              fontSize="sm"
-              fontWeight="bold"
-              letterSpacing="0.14em"
-              textTransform="uppercase"
-            >
-              Series
-            </Text>
-            <Heading
-              color="text.primary"
-              fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-              lineHeight="1"
-              letterSpacing="-0.055em"
-            >
+          <Stack as="header" gap={6}>
+            <Eyebrow as="p">Series</Eyebrow>
+            <Heading as="h1" recipe="pageTitle">
               {series.title}
             </Heading>
-            {series.description ? (
-              <Text
-                color="text.secondary"
-                fontSize={{ base: 'md', md: 'xl' }}
-                lineHeight="tall"
-                maxW="3xl"
-              >
-                {series.description}
-              </Text>
+            {series.description ? <Text recipe="prose">{series.description}</Text> : null}
+            <Metadata as="p">
+              {facts.map((fact, index) => (
+                <Box key={fact.kind} display="flex" alignItems="center" gap={space[2]}>
+                  {index > 0 ? (
+                    <Box as="span" aria-hidden="true" color="text.muted">
+                      ·
+                    </Box>
+                  ) : null}
+                  <Box as="span">{fact.label}</Box>
+                </Box>
+              ))}
+            </Metadata>
+            {topics.length > 0 ? (
+              <Box display="flex" flexWrap="wrap" gap={space[2]} aria-label="Series topics">
+                {topics.map((topic) => (
+                  <Chip key={topic}>{topic}</Chip>
+                ))}
+              </Box>
             ) : null}
-            <HStack color="text.tertiary" spacing={3} flexWrap="wrap">
-              <Text>By {series.author.name}</Text>
-              <Text aria-hidden>·</Text>
-              <Text>
-                {series.parts.length} {series.parts.length === 1 ? 'blog' : 'blogs'}
-              </Text>
-              <Text aria-hidden>·</Text>
-              <HStack spacing={1.5}>
-                <FiClock aria-hidden />
-                <Text>{totalReadingTime} min total</Text>
-              </HStack>
-              <Text aria-hidden>·</Text>
-              <Text>Updated {formatDate(series.updatedAt)}</Text>
-            </HStack>
           </Stack>
 
-          {topics.length > 0 ? (
-            <Wrap spacing={2} aria-label="Series topics">
-              {topics.map((topic) => (
-                <WrapItem key={topic}>
-                  <Box
-                    bg="bg.tertiary"
-                    color="text.secondary"
-                    borderRadius="full"
-                    px={3}
-                    py={1.5}
-                    fontSize="sm"
-                  >
-                    {topic}
-                  </Box>
-                </WrapItem>
-              ))}
-            </Wrap>
-          ) : null}
-
-          <Stack spacing={5}>
-            <Stack spacing={2}>
-              <Text
-                color="text.tertiary"
-                fontSize="sm"
-                textTransform="uppercase"
-                letterSpacing="0.14em"
-              >
-                In this series
-              </Text>
-              <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
+          <Stack as="section" gap={4} aria-labelledby="series-parts-heading">
+            <Stack gap={2}>
+              <Eyebrow as="p">In this series</Eyebrow>
+              <Heading id="series-parts-heading" as="h2" recipe="sectionTitle">
                 Read the blogs in order
               </Heading>
             </Stack>
             <SeriesPartList parts={series.parts} />
           </Stack>
         </Stack>
-      </Container>
-    </Box>
+      </Section>
+    </ContentContainer>
   )
 }
 

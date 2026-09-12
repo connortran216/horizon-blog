@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { isExternalHref, linkDecoration, resolveLinkTarget } from './link.logic'
+import { buttonVariant } from './control.logic'
+import {
+  isExternalHref,
+  linkDecoration,
+  linkPresentation,
+  resolveLinkTarget,
+  type LinkWeight,
+} from './link.logic'
 
 describe('isExternalHref', () => {
   it('treats an absolute URL as external', () => {
@@ -100,5 +107,59 @@ describe('linkDecoration', () => {
 
   it('offsets the underline so descenders stay legible', () => {
     expect(linkDecoration('always').textUnderlineOffset).toBe('0.25em')
+  })
+})
+
+/**
+ * A primary navigational call to action - Home's "Explore the blog" - needs
+ * button weight without becoming a button. `linkPresentation` is where that
+ * weight is decided, and where the promise that it borrows rather than
+ * reinvents the Button appearance is kept.
+ */
+describe('linkPresentation', () => {
+  it('is an inline text link unless a weight says otherwise', () => {
+    const presentation = linkPresentation('text')
+
+    expect(presentation.kind).toBe('text')
+    expect(presentation.variant).toBeUndefined()
+    expect(presentation.tone).toBeUndefined()
+    expect(presentation.decoration).toEqual(linkDecoration('always'))
+  })
+
+  it('carries the underline choice through at text weight', () => {
+    expect(linkPresentation('text', 'hover').decoration).toEqual(linkDecoration('hover'))
+  })
+
+  it('borrows the Button variant of the tone it is named after', () => {
+    expect(linkPresentation('primary').variant).toBe(buttonVariant('primary'))
+    expect(linkPresentation('secondary').variant).toBe(buttonVariant('secondary'))
+  })
+
+  /*
+   * CONVENTIONS.md rule 4: one visual owner per surface. At button weight the
+   * variant owns fill, border, hover, press and focus, so the link contributes
+   * no decoration at all - not "a decoration that happens to be blank".
+   */
+  it('hands every visual to the variant at button weight', () => {
+    for (const weight of ['primary', 'secondary'] as const) {
+      expect(linkPresentation(weight).decoration).toBeUndefined()
+      expect(linkPresentation(weight).kind).toBe('button')
+    }
+  })
+
+  it('ignores the underline choice at button weight rather than half-applying it', () => {
+    expect(linkPresentation('primary', 'always')).toEqual(linkPresentation('primary', 'hover'))
+  })
+
+  it('names exactly one appearance for every weight', () => {
+    const weights: readonly LinkWeight[] = ['text', 'primary', 'secondary']
+
+    for (const weight of weights) {
+      const presentation = linkPresentation(weight)
+
+      // A weight is a text link or a button-weight one, never both and never
+      // neither: the variant and the decoration are exclusive.
+      expect(presentation.variant === undefined).toBe(presentation.decoration !== undefined)
+    }
   })
 })

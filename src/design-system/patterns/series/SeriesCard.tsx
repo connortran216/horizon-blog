@@ -27,12 +27,27 @@ import { seriesFacts, seriesIdentityLabel, type SeriesSummary } from './series.l
 
 export interface SeriesCardProps extends Omit<SurfaceProps, 'children' | 'depth' | 'as'> {
   series: SeriesSummary
-  /** Drop the plate where a dense list needs the height back. */
+  /**
+   * Drop the plate where a dense list needs the height back, or where the
+   * source has no artwork to show and the plate would only be a placeholder.
+   */
   showCover?: boolean
   titleAs?: HeadingElement
   /** Lines the description is clamped to. */
   descriptionLines?: number
 }
+
+/**
+ * The editorial choices a container may make on this card's behalf.
+ *
+ * Derived from `SeriesCardProps` rather than restated, so a card option is
+ * declared once and a container that forwards it cannot rename it or fall
+ * behind it. `series` is deliberately not here - the container supplies that
+ * per item - and neither is anything from `SurfaceProps`: a shelf may decide
+ * what a card says, never how big its box is, because the box is what the
+ * shelf's own snap and peek arithmetic is measured against.
+ */
+export type SeriesCardOptions = Pick<SeriesCardProps, 'showCover' | 'titleAs' | 'descriptionLines'>
 
 export const SeriesCard = forwardRef<HTMLElement, SeriesCardProps>(function SeriesCard(
   { series, showCover = true, titleAs = 'h3', descriptionLines = 3, ...rest },

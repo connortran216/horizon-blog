@@ -134,7 +134,13 @@ export const galleryRegistry = [
   {
     name: 'ActionLink',
     area: 'actions',
-    states: [{ name: 'in-app route', kind: 'ready' }, { name: 'external' }, { name: 'with icons' }],
+    states: [
+      { name: 'in-app route', kind: 'ready' },
+      { name: 'external' },
+      { name: 'with icons' },
+      { name: 'primary weight' },
+      { name: 'secondary weight' },
+    ],
   },
 
   /* ------------------------------------------------------------ navigation */
@@ -400,6 +406,8 @@ export const galleryRegistry = [
       { name: 'from the media control', kind: 'ready' },
       { name: 'always broken', kind: 'error' },
       { name: 'decorative' },
+      /* `fit="contain"`: the whole image, in the same box. */
+      { name: 'shown complete' },
     ],
   },
   {
@@ -459,7 +467,12 @@ export const galleryRegistry = [
   {
     name: 'PostCard',
     area: 'posts',
-    states: [{ name: 'ready', kind: 'ready' }, { name: 'no artwork' }, { name: 'many topics' }],
+    states: [
+      { name: 'ready', kind: 'ready' },
+      { name: 'no artwork' },
+      { name: 'many topics' },
+      { name: 'complete cover' },
+    ],
   },
   {
     name: 'PostRow',
@@ -501,6 +514,8 @@ export const galleryRegistry = [
     area: 'series',
     states: [
       { name: 'ready', kind: 'ready' },
+      /* `cardOptions={{ showCover: false }}` - the source carries no artwork. */
+      { name: 'no artwork on the shelf' },
       { name: 'loading more', kind: 'loading' },
       { name: 'load failed', kind: 'error' },
       { name: 'empty', kind: 'empty' },
