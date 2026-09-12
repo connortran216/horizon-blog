@@ -1,49 +1,67 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Grid,
-  GridItem,
-  Heading,
-  HStack,
-  Link,
-  SimpleGrid,
-  Stack,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
+/**
+ * Contact - migrated onto Horizon Design System v2 (release M2).
+ *
+ * The page composes the design system's `ContactCard` and `ContactPrompt`
+ * rather than owning cards of its own. Link semantics for a `mailto:`, a `tel:`
+ * and a postal address are easy to get subtly wrong, and `contactHref` answers
+ * that question once instead of at every call site.
+ *
+ * Each channel card carries its own action - "Call", "Email directly" - beside
+ * the value it links. The page names the verb; the pattern decides whether the
+ * channel can carry one at all, which is why the address has none.
+ *
+ * The real contact details - the address, the number and the email - are
+ * unchanged.
+ */
+
+import { Icon } from '@chakra-ui/react'
 import { FaEnvelope, FaMapMarkerAlt, FaPhone } from 'react-icons/fa'
 import { FiArrowRight, FiClock, FiMessageSquare, FiPenTool } from 'react-icons/fi'
-import ContactInfoCard from '../components/ContactInfoCard'
-import ContactPromptCard from '../components/ContactPromptCard'
+
+import { space } from '../../../theme/tokens'
+import {
+  ActionLink,
+  ContactCard,
+  ContactPrompt,
+  ContentContainer,
+  Eyebrow,
+  Grid,
+  Heading,
+  Section,
+  Stack,
+  Text,
+} from '../../../design-system'
 import { ContactInfoItem, ContactPromptItem } from '../contact.types'
+
+const EMAIL = 'canhtran210699@gmail.com'
+const PHONE = '+84 96 345 2909'
 
 const contactInfo: ContactInfoItem[] = [
   {
+    channel: 'location',
     icon: FaMapMarkerAlt,
     title: 'Location',
     content: '10 Lam Van Ben, Tan Hung ward, HCM City, Vietnam',
     description: 'Useful when a conversation needs timezone or local context.',
-    variant: 'secondary',
+    emphasis: 'secondary',
   },
   {
+    channel: 'phone',
     icon: FaPhone,
     title: 'Phone',
-    content: '+84 96 345 2909',
-    href: 'tel:+84963452909',
+    content: PHONE,
     description: 'Best for time-sensitive conversations after a short heads-up.',
     actionLabel: 'Call',
-    variant: 'secondary',
+    emphasis: 'secondary',
   },
   {
+    channel: 'email',
     icon: FaEnvelope,
     title: 'Email',
-    content: 'canhtran210699@gmail.com',
-    href: 'mailto:canhtran210699@gmail.com',
+    content: EMAIL,
     description: 'Best for blog feedback, frontend discussion, and thoughtful async context.',
     actionLabel: 'Email directly',
-    variant: 'primary',
+    emphasis: 'primary',
   },
 ]
 
@@ -68,118 +86,96 @@ const prompts: ContactPromptItem[] = [
 ]
 
 const ContactPage = () => {
-  const primaryContact = contactInfo.find((info) => info.variant === 'primary')
-  const secondaryContacts = contactInfo.filter((info) => info.variant !== 'primary')
+  const primaryContact = contactInfo.find((info) => info.emphasis === 'primary')
+  const secondaryContacts = contactInfo.filter((info) => info.emphasis !== 'primary')
 
   return (
-    <Box position="relative" pb={12}>
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '78%' }}
-        h="320px"
-        bg="action.glow"
-        filter="blur(130px)"
-        opacity={0.72}
-        pointerEvents="none"
-      />
+    <ContentContainer as="main">
+      <Section density="comfortable">
+        <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
+          <Stack gap={6}>
+            <Eyebrow as="p">Contact Horizon</Eyebrow>
 
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <VStack spacing={{ base: 8, md: 12 }} align="stretch">
-          <Grid templateColumns={{ base: '1fr', lg: '1.05fr 0.95fr' }} gap={{ base: 8, lg: 10 }}>
-            <GridItem>
-              <Stack spacing={6} pt={{ lg: 6 }}>
-                <Badge
-                  alignSelf="flex-start"
-                  px={3}
-                  py={1}
-                  borderRadius="full"
-                  bg="bg.tertiary"
-                  color="text.secondary"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  fontSize="10px"
-                >
-                  Contact Horizon
-                </Badge>
+            <Heading recipe="display" as="h1">
+              Reach out directly, with no form in the middle.
+            </Heading>
 
-                <Heading
-                  fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-                  lineHeight={{ base: 1.08, md: 1 }}
-                  color="text.primary"
-                >
-                  Reach out directly, with no form in the middle.
-                </Heading>
+            <Text recipe="prose">
+              Email is the best place for thoughtful notes about writing, frontend architecture, or
+              the direction of Horizon. A little context makes the reply more useful.
+            </Text>
 
-                <Text
-                  maxW="2xl"
-                  fontSize={{ base: 'md', md: 'lg' }}
-                  color="text.secondary"
-                  lineHeight="tall"
-                >
-                  Email is the best place for thoughtful notes about writing, frontend architecture,
-                  or the direction of Horizon. A little context makes the reply more useful.
-                </Text>
-
-                <HStack spacing={4} flexWrap="wrap">
-                  <Button
-                    as={Link}
-                    href="mailto:canhtran210699@gmail.com"
-                    rightIcon={<FiArrowRight />}
-                    _hover={{ textDecoration: 'none' }}
-                  >
-                    Email directly
-                  </Button>
-                  <Button
-                    as={Link}
-                    href="tel:+84963452909"
-                    variant="outline"
-                    _hover={{ textDecoration: 'none' }}
-                  >
-                    Call instead
-                  </Button>
-                </HStack>
-              </Stack>
-            </GridItem>
-
-            <GridItem>
-              <Stack spacing={4}>
-                {primaryContact && <ContactInfoCard info={primaryContact} />}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 1 }} spacing={4}>
-                  {secondaryContacts.map((info) => (
-                    <ContactInfoCard key={info.title} info={info} />
-                  ))}
-                </SimpleGrid>
-              </Stack>
-            </GridItem>
-          </Grid>
-
-          <Box>
-            <Stack spacing={4} mb={5}>
-              <Text
-                fontSize="sm"
-                textTransform="uppercase"
-                letterSpacing="0.14em"
-                color="text.tertiary"
+            <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
+              <ActionLink
+                href={`mailto:${EMAIL}`}
+                underline="hover"
+                iconEnd={<FiArrowRight aria-hidden="true" />}
+                color="action.primary"
+                fontWeight="semibold"
               >
-                Good conversations start with clarity
-              </Text>
-              <Heading size="lg" color="text.primary">
-                A few helpful reasons to reach out.
-              </Heading>
+                Email directly
+              </ActionLink>
+              <ActionLink
+                href={`tel:${PHONE.replace(/[^\d+]/g, '')}`}
+                underline="hover"
+                color="action.primary"
+                fontWeight="semibold"
+              >
+                Call instead
+              </ActionLink>
             </Stack>
+          </Stack>
 
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
-              {prompts.map((prompt) => (
-                <ContactPromptCard key={prompt.title} prompt={prompt} />
-              ))}
-            </SimpleGrid>
-          </Box>
-        </VStack>
-      </Container>
-    </Box>
+          <Stack gap={4}>
+            {primaryContact ? (
+              <ContactCard
+                channel={primaryContact.channel}
+                title={primaryContact.title}
+                value={primaryContact.content}
+                detail={primaryContact.description}
+                actionLabel={primaryContact.actionLabel}
+                emphasis="primary"
+                icon={<Icon as={primaryContact.icon} boxSize={space[6]} />}
+              />
+            ) : null}
+
+            {secondaryContacts.map((info) => (
+              <ContactCard
+                key={info.title}
+                channel={info.channel}
+                title={info.title}
+                value={info.content}
+                detail={info.description}
+                actionLabel={info.actionLabel}
+                icon={<Icon as={info.icon} boxSize={space[6]} />}
+              />
+            ))}
+          </Stack>
+        </Grid>
+      </Section>
+
+      <Section density="compact">
+        <Stack gap={6}>
+          <Stack gap={2}>
+            <Eyebrow as="p">Good conversations start with clarity</Eyebrow>
+            <Heading recipe="sectionTitle" as="h2">
+              A few helpful reasons to reach out.
+            </Heading>
+          </Stack>
+
+          <Grid columns={3} gap={6}>
+            {prompts.map((prompt) => (
+              <ContactPrompt
+                key={prompt.title}
+                title={prompt.title}
+                description={prompt.description}
+                icon={<Icon as={prompt.icon} boxSize={space[4]} />}
+              />
+            ))}
+          </Grid>
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

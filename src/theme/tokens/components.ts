@@ -14,7 +14,7 @@
  * are out of scope until the migration gate passes.
  */
 
-import { layout, radii, space, typeScale } from './primitives'
+import { blur, layout, radii, space, typeScale } from './primitives'
 import type { SemanticColorToken } from './semantic'
 
 const color = <T extends SemanticColorToken>(token: T): T => token
@@ -90,6 +90,17 @@ export const componentTokens = {
     border: color('border.subtle'),
     accent: color('accent.lime'),
     accentFg: color('text.onAccent'),
+    /*
+     * The ambient scene a feature surface may carry. Grouped here rather than
+     * on a page alias because the surface family owns it: Home's Signature
+     * artwork and About's hero are the two surfaces `DESIGN.md` sanctions it
+     * for, and neither is a page-specific token.
+     */
+    ambientGlow: color('ambient.glow'),
+    ambientAccentGlow: color('ambient.accentGlow'),
+    ambientSweep: color('ambient.sweep'),
+    ambientBlur: blur.ambient,
+    ambientBloom: blur.bloom,
   },
 
   /** Long-form reading. Prose stays calm; only progress and TOC move. */

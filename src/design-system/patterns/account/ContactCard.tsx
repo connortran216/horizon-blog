@@ -11,6 +11,12 @@
  * `rel="noopener noreferrer"`, and a location must not be a link at all.
  * `contactHref` decides which of those a channel is and `ActionLink` renders it,
  * so no call site has to remember.
+ *
+ * The action slot is the same question asked once more. A card may offer a
+ * second, deliberate control to its own destination - "Call", "Email directly" -
+ * and `contactCardAction` decides whether it can: name a verb for a channel that
+ * has no href, such as a postal address, and the card renders text and no
+ * control rather than a button that goes nowhere.
  */
 
 import type { ReactElement, ReactNode } from 'react'
@@ -21,7 +27,7 @@ import { ActionLink } from '../../components/actions'
 import { Stack } from '../../components/layout'
 import { Surface } from '../../components/surface'
 import { Heading, Text } from '../../components/typography'
-import { contactHref, type ContactChannel } from './identity.logic'
+import { contactCardAction, contactHref, type ContactChannel } from './identity.logic'
 
 export interface ContactCardProps {
   /** How to reach the author. `location` renders as text, never as a link. */
@@ -32,6 +38,12 @@ export interface ContactCardProps {
   value: string
   /** One sentence of context - response times, what to write about. */
   detail?: string
+  /**
+   * The verb on the card's own action: "Call", "Email directly". Omit it for a
+   * card that is information rather than an invitation - and note that naming
+   * one is a request, not a guarantee: a channel with no destination stays text.
+   */
+  actionLabel?: string
   /** Emphasis. `primary` is the preferred channel; there should be one. */
   emphasis?: 'primary' | 'secondary'
   /** The channel's mark. Decorative; the title carries the meaning. */
@@ -43,10 +55,12 @@ export function ContactCard({
   title,
   value,
   detail,
+  actionLabel,
   emphasis = 'secondary',
   icon,
 }: ContactCardProps) {
   const { href } = contactHref(channel, value)
+  const action = contactCardAction({ channel, value, label: actionLabel })
   const isPrimary = emphasis === 'primary'
 
   return (
@@ -84,6 +98,25 @@ export function ContactCard({
         )}
 
         {detail === undefined ? null : <Text recipe="metadata">{detail}</Text>}
+
+        {action === null ? null : (
+          /*
+           * A link, not a `Button`: this navigates to a `mailto:` or a `tel:`,
+           * and the system's `Button` is always a native button that cannot
+           * carry a destination. `weight` is what gives it the weight of one -
+           * the same recipe the Button tone of that name wears - so retoning the
+           * system's buttons retones this too, and the card owns no control
+           * styling of its own.
+           */
+          <ActionLink
+            href={action.href}
+            weight={isPrimary ? 'primary' : 'secondary'}
+            alignSelf="flex-start"
+            marginBlockStart="auto"
+          >
+            {action.label}
+          </ActionLink>
+        )}
       </Stack>
     </Surface>
   )

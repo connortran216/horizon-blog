@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { blur } from './primitives'
 import { componentTokens } from './components'
 import {
   approvedColorTokens,
@@ -67,6 +68,7 @@ const APPROVED_BASELINE: Record<string, { light: string; dark: string }> = {
 const ALLOWED_PREFIXES = [
   'accent',
   'action',
+  'ambient',
   'bg',
   'border',
   'focus',
@@ -137,6 +139,70 @@ describe('semantic colour roles', () => {
 
       expect(pageWord, `${token} is named after a page`).toBeUndefined()
     }
+  })
+})
+
+/**
+ * The ambient group is the one place the system paints atmosphere. `DESIGN.md`
+ * sanctions it for Home/About artwork and rules out "random glow" in the same
+ * breath, so the difference has to be enforceable: an ambient role is an
+ * approved action or accent colour at alpha and nothing else.
+ */
+describe('ambient atmosphere', () => {
+  const ambientTokens = derivedColorTokens.filter((token) => token.startsWith('ambient.'))
+
+  const alphaTint = /^rgb\((\d{1,3}) (\d{1,3}) (\d{1,3}) \/ \d{1,3}%\)$/
+
+  const pigmentOf = (value: string): string | null => {
+    const match = alphaTint.exec(value)
+
+    if (!match) {
+      return null
+    }
+
+    return `#${match
+      .slice(1, 4)
+      .map((channel) => Number(channel).toString(16).padStart(2, '0'))
+      .join('')}`.toUpperCase()
+  }
+
+  it('covers the two glow pools and the sweep, and stops there', () => {
+    expect(ambientTokens).toEqual(['ambient.glow', 'ambient.accentGlow', 'ambient.sweep'])
+  })
+
+  it('is derived rather than a new baseline decision', () => {
+    for (const token of ambientTokens) {
+      expect(colorOrigin(token)).toBe('derived')
+    }
+  })
+
+  it('tints an approved action or accent colour and introduces no pigment', () => {
+    for (const mode of modes) {
+      const sources = [semanticColor('action.primary', mode), semanticColor('accent.lime', mode)]
+
+      for (const token of ambientTokens) {
+        const value = semanticColor(token, mode)
+
+        expect(value, `${token} ${mode} is not an alpha tint`).toMatch(alphaTint)
+        expect(sources, `${token} ${mode} introduces a pigment`).toContain(pigmentOf(value))
+      }
+    }
+  })
+})
+
+describe('blur scale', () => {
+  it('keeps two steps, each named for what it is', () => {
+    expect(Object.keys(blur)).toEqual(['bloom', 'ambient'])
+  })
+
+  it('gives every step a pixel radius', () => {
+    for (const [step, value] of Object.entries(blur)) {
+      expect(value, `blur.${step}`).toMatch(/^\d+px$/)
+    }
+  })
+
+  it('keeps the bloom tighter than the ambient wash', () => {
+    expect(Number.parseFloat(blur.bloom)).toBeLessThan(Number.parseFloat(blur.ambient))
   })
 })
 

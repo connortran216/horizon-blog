@@ -134,8 +134,8 @@ Use technical editorial imagery with stable aspect ratios and explicit loading/f
 
 Token layers:
 
-1. Primitive palette, type, space, radius, elevation, duration, easing, and breakpoints.
-2. Semantic canvas, surface, text, action, focus, border, status, loading, media, overlay, and selection roles.
+1. Primitive palette, type, space, radius, blur, elevation, duration, easing, and breakpoints.
+2. Semantic canvas, surface, text, action, ambient, focus, border, status, loading, media, overlay, and selection roles.
 3. Component aliases for header, control, field, card, feature, reader, Series, feedback, and workspace.
 4. Chakra adapter plus temporary legacy aliases.
 
@@ -212,6 +212,19 @@ Loading policy: PageLoading for blocked routes, PanelLoading for blocked regions
   naming the v2 component that replaces it. Migration debt should be visible while someone is
   editing the code, not only in the inventory table. Warning once keeps the console readable.
   Owner: B6.
+- **About's ambient artwork.** The About hero carries an ambient scene: two glow pools that follow
+  the pointer at different rates and a slow pass of light across them. It is sanctioned by the
+  Motion section above — "Ambient movement is limited to suitable Home/About artwork, pauses on
+  interaction, and stops under reduced motion" — and it meets all three conditions. The Avoid
+  list's "random glow" is a different thing: glow scattered with no purpose and no owner. This
+  scene has one purpose (it is what the editorial track's selection drives) and one owner (the
+  `ambient.*` roles). Do not reopen this as a contradiction between the two sections.
+- **Ambient token group.** `ambient.glow`, `ambient.accentGlow` and `ambient.sweep` are derived
+  roles: each is an approved `action.primary` or `accent.lime` value at alpha, so atmosphere can
+  never introduce a pigment the baseline did not sign off. They are paired with a new primitive
+  `blur` scale — `bloom` for a small travelling highlight, `ambient` for the wide wash — and
+  surfaced to components as `feature.ambient*` aliases. A component writes neither an `rgba()` nor
+  a pixel blur of its own. Owner: B6.
 - **PostCard cover.** The cover is full-bleed, reaching the card edge, matching the approved
   prototype's `.article-card`. Single ownership is preserved in the API rather than by override:
   the cover frame declines its corners (`radius="container"`), the card `Surface` draws the card

@@ -12,6 +12,7 @@
  */
 
 export {
+  blur,
   breakpoints,
   elevation,
   focusRing,
@@ -26,6 +27,7 @@ export {
   typeScale,
 } from './primitives'
 export type {
+  BlurToken,
   BreakpointToken,
   Palette,
   RadiusToken,
@@ -55,6 +57,7 @@ export { componentTokens } from './components'
 export type { ComponentFamily } from './components'
 
 import {
+  blur,
   breakpoints,
   elevation,
   focusRing,
@@ -80,6 +83,7 @@ export const tokens = {
     space,
     sectionSpace,
     radii,
+    blur,
     fontFamilies,
     fontWeights,
     typeScale,

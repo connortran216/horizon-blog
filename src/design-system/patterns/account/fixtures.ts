@@ -52,6 +52,7 @@ export const sampleContactCards: readonly ContactCardProps[] = [
     title: 'Email',
     value: 'sample.author@example.com',
     detail: 'Sample response time: within two working days.',
+    actionLabel: 'Email directly',
     emphasis: 'primary',
   },
   {
@@ -59,12 +60,19 @@ export const sampleContactCards: readonly ContactCardProps[] = [
     title: 'Sample profile elsewhere',
     value: 'https://example.com/sample-author',
     detail: 'Opens on another site, in a new tab.',
+    actionLabel: 'Open the profile',
   },
   {
     channel: 'location',
     title: 'Based in',
     value: 'Sample City, Example Country',
     detail: 'Sample timezone: UTC+7.',
+    /*
+     * A verb is named here on purpose. A postal address has no destination, so
+     * the card renders it as text with no control at all - the gallery is where
+     * that is looked at rather than taken on trust.
+     */
+    actionLabel: 'Open the map',
   },
 ]
 

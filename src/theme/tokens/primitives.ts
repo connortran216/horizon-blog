@@ -105,6 +105,22 @@ export const radii = {
   tag: '999px',
 } as const
 
+/**
+ * Blur radii for atmospheric artwork.
+ *
+ * A blur is neither a spacing value nor a radius, so it gets its own scale
+ * instead of borrowing one that means something else. Two steps is all the
+ * system needs: `bloom` is the soft edge on a small travelling highlight, and
+ * `ambient` is the wide wash that turns a flat colour into atmosphere behind a
+ * feature surface. `DESIGN.md`'s Motion section sanctions ambient artwork on
+ * Home and About; these are the radii it may use, so no component ever writes a
+ * pixel blur of its own.
+ */
+export const blur = {
+  bloom: '24px',
+  ambient: '120px',
+} as const
+
 export const fontFamilies = {
   heading:
     '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
@@ -223,5 +239,6 @@ export const focusRing = {
 export type Palette = typeof palette
 export type SpaceToken = keyof typeof space
 export type RadiusToken = keyof typeof radii
+export type BlurToken = keyof typeof blur
 export type TypeScaleToken = keyof typeof typeScale
 export type BreakpointToken = keyof typeof breakpoints

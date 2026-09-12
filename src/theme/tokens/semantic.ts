@@ -80,6 +80,22 @@ const derivedColors = {
   /** Quiet tint behind ghost and outline actions on hover. */
   'action.subtle': { light: 'rgb(49 88 212 / 10%)', dark: 'rgb(138 164 255 / 16%)' },
 
+  /*
+   * Atmosphere behind editorial feature artwork. `DESIGN.md`'s Motion section
+   * sanctions ambient movement on suitable Home and About artwork, and these
+   * three roles are the whole palette it is allowed to be made of: two glow
+   * pools and the light that passes across them. Every value is an approved
+   * action or accent colour at alpha, so atmosphere cannot become a pigment the
+   * baseline never signed off - which is the difference between this and the
+   * "random glow" the Avoid list rules out.
+   */
+  /** The primary glow pool. `action.primary` at alpha. */
+  'ambient.glow': { light: 'rgb(49 88 212 / 16%)', dark: 'rgb(138 164 255 / 20%)' },
+  /** The second, warmer pool. `accent.lime` at alpha. */
+  'ambient.accentGlow': { light: 'rgb(221 248 154 / 60%)', dark: 'rgb(197 236 131 / 20%)' },
+  /** The pass of light that crosses the scene. `action.primary`, fainter. */
+  'ambient.sweep': { light: 'rgb(49 88 212 / 8%)', dark: 'rgb(138 164 255 / 10%)' },
+
   /** Skeleton body and its sweep. */
   'loading.base': { light: 'rgb(23 33 58 / 8%)', dark: 'rgb(233 238 250 / 8%)' },
   'loading.highlight': { light: 'rgb(255 255 255 / 85%)', dark: 'rgb(233 238 250 / 12%)' },

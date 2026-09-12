@@ -1,63 +1,57 @@
-import { Box, Flex, Icon, Stack, Text } from '@chakra-ui/react'
+/**
+ * An About signal - migrated onto Horizon Design System v2 (release M2).
+ *
+ * `Metric` was the obvious candidate and does not fit: it formats a number, and
+ * every value here is a phrase - "5+ years", "Python + Django". So the card
+ * composes `Surface`, `Eyebrow` and the type recipes directly, and `Surface`
+ * owns the border and radius.
+ *
+ * `isInteractive` is deliberately off. The card is not a link and nothing
+ * happens when it is pressed; hover depth on something you cannot activate is a
+ * lie a touch reader never gets to catch.
+ */
+
+import { Box, Flex } from '@chakra-ui/react'
+
+import { componentTokens, radii, space } from '../../../theme/tokens'
+import { Eyebrow, Heading, Stack, Surface, Text } from '../../../design-system'
 import { AboutStatItem } from '../about.types'
 
 const AboutStatCard = ({ icon, label, value, description }: AboutStatItem) => (
-  <Box
-    h="100%"
-    border="1px solid"
-    borderColor="border.subtle"
-    borderRadius="2xl"
-    bg="bg.secondary"
-    px={5}
-    py={6}
-    transition="background-color 0.2s ease, border-color 0.2s ease"
-    _hover={{
-      bg: 'bg.elevated',
-      borderColor: 'border.default',
-    }}
-  >
-    <Stack spacing={5} h="100%">
-      <Flex align="flex-start" justify="space-between" gap={4}>
+  <Surface as="article" depth="flat" height="100%">
+    <Stack gap={6} height="100%">
+      <Flex align="flex-start" justify="space-between" gap={space[4]}>
         <Flex
-          w={11}
-          h={11}
           align="center"
           justify="center"
-          borderRadius="2xl"
-          bg="bg.tertiary"
-          color="action.primary"
+          boxSize={space[12]}
+          borderRadius={radii.control}
+          bg={componentTokens.control.quietHoverBg}
+          color={componentTokens.control.solidBg}
           flexShrink={0}
+          aria-hidden="true"
         >
-          <Icon as={icon} boxSize={4.5} />
+          <Box as={icon} boxSize={space[6]} />
         </Flex>
-        <Text
-          fontSize="xs"
-          fontWeight="semibold"
-          color="text.tertiary"
-          textTransform="uppercase"
-          letterSpacing="0.14em"
-          textAlign="right"
-        >
+
+        <Eyebrow as="p" textAlign="right">
           {label}
-        </Text>
+        </Eyebrow>
       </Flex>
-      <Stack spacing={2} flex="1">
-        <Text
-          fontSize={{ base: '2xl', md: '3xl' }}
-          fontWeight="bold"
-          color="text.primary"
-          letterSpacing="-0.04em"
-        >
+
+      <Stack gap={2} flex="1">
+        {/*
+         * The value is the card's title, so it is the heading, and the label
+         * above it is the kicker. An `h3` keeps the four signals as siblings
+         * under the section heading rather than inventing a level.
+         */}
+        <Heading recipe="cardTitle" as="h3">
           {value}
-        </Text>
-        {description ? (
-          <Text color="text.secondary" lineHeight="tall">
-            {description}
-          </Text>
-        ) : null}
+        </Heading>
+        {description ? <Text recipe="body">{description}</Text> : null}
       </Stack>
     </Stack>
-  </Box>
+  </Surface>
 )
 
 export default AboutStatCard

@@ -267,6 +267,55 @@ export function contactHref(channel: ContactChannel, value: string): ContactHref
   }
 }
 
+export interface ContactCardAction {
+  readonly href: string
+  /** Concrete verb, per the content voice: "Call", not "Phone". */
+  readonly label: string
+  /** True when pressing it leaves the site, so the link says so out loud. */
+  readonly leavesSite: boolean
+}
+
+export interface ContactCardActionInput {
+  readonly channel: ContactChannel
+  readonly value: string
+  /** Omitted when the channel is information the reader should not be pushed at. */
+  readonly label?: string
+}
+
+/**
+ * The second, deliberate control a contact card offers, or `null` for none.
+ *
+ * A card shows its value as a link because that is the information the reader
+ * came to read; the action is the control a reader scanning the page for
+ * something to press will actually find. Both go to the same place, and the
+ * second tab stop is the price of the second reading.
+ *
+ * Null has two causes and they are deliberately the same answer: the channel has
+ * no destination, or the page named no verb for it. Either way the card renders
+ * its value and stops, rather than inventing a verb for a place a reader cannot
+ * go. That is why the rule sits here beside `contactHref` rather than in the
+ * page: whether a channel can be acted on is the same question as whether it has
+ * an href, and a postal address must never be able to grow a control anywhere.
+ * What the page still owns is the verb.
+ */
+export function contactCardAction({
+  channel,
+  value,
+  label,
+}: ContactCardActionInput): ContactCardAction | null {
+  if (label === undefined || label.trim().length === 0) {
+    return null
+  }
+
+  const { href, leavesSite } = contactHref(channel, value)
+
+  if (href === undefined) {
+    return null
+  }
+
+  return { href, label, leavesSite }
+}
+
 /* -------------------------------------------------------------------------- */
 /* CV                                                                         */
 /* -------------------------------------------------------------------------- */

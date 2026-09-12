@@ -1,31 +1,46 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Flex,
-  Grid,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  Link,
-  SimpleGrid,
-  Stack,
-  Text,
-  VStack,
-  Wrap,
-  WrapItem,
-  useColorModeValue,
-} from '@chakra-ui/react'
-import { useReducedMotion } from 'framer-motion'
-import { Link as RouterLink } from 'react-router-dom'
+/**
+ * About - migrated onto Horizon Design System v2 (release M2).
+ *
+ * `ContentContainer` frames it, `Section` carries the rhythm between the four
+ * runs, `Surface` owns every card edge and `Reveal` / `Stagger` own entry. The
+ * founder portrait is a `ResponsiveImage`, so a remote object on a MinIO bucket
+ * finally has a loading, absent and failed state.
+ *
+ * `ProfileHeader` was the candidate for the founder card and does not fit: it
+ * renders exactly one biography paragraph beside a small avatar, and the real
+ * founder note is two paragraphs beside a portrait. Using it would have meant
+ * dropping half the biography, so the card composes the same primitives itself.
+ *
+ * The biography, the portrait, the tags and the three outbound links are the
+ * real ones, unchanged.
+ */
+
+import { Box, Flex } from '@chakra-ui/react'
 import { FaCode, FaGithub, FaLinkedin, FaRegCompass, FaUsers } from 'react-icons/fa'
 import { FiArrowRight, FiBookOpen, FiFeather, FiLayers, FiMessageSquare } from 'react-icons/fi'
-import { MotionWrapper } from '../../../core'
+
+import { componentTokens, radii, space } from '../../../theme/tokens'
+import {
+  ActionLink,
+  Chip,
+  ContentContainer,
+  Eyebrow,
+  Grid,
+  Heading,
+  ResponsiveImage,
+  Reveal,
+  Section,
+  Stack,
+  Stagger,
+  Surface,
+  Text,
+} from '../../../design-system'
 import AboutHero from '../components/AboutHero'
 import AboutStatCard from '../components/AboutStatCard'
 import { AboutFocusThread, AboutPrinciple, AboutStatItem } from '../about.types'
+
+const PORTRAIT_SRC =
+  'https://minio.connortran.io.vn/horizon-blog-public-bucket/connortran-avatar.jpg'
 
 const stats: AboutStatItem[] = [
   {
@@ -96,343 +111,195 @@ const focusThreads: AboutFocusThread[] = [
   },
 ]
 
-const AboutPage = () => {
-  const prefersReducedMotion = useReducedMotion()
-  const founderBadgeBg = useColorModeValue('rgba(255, 255, 255, 0.82)', 'rgba(37, 37, 37, 0.82)')
-  const founderBadgeColor = useColorModeValue(
-    'obsidian.text.lightSecondary',
-    'obsidian.text.primary',
-  )
-  const portraitOverlay = useColorModeValue(
-    'linear(to-t, rgba(248, 249, 250, 0.08), rgba(248, 249, 250, 0.01) 42%, transparent 72%)',
-    'linear(to-t, rgba(30, 30, 30, 0.16), rgba(30, 30, 30, 0.04) 42%, transparent 72%)',
-  )
-  const sectionRevealProps = prefersReducedMotion
-    ? {
-        initial: { opacity: 1, y: 0 },
-        animate: { opacity: 1, y: 0 },
-        duration: 0,
-      }
-    : {
-        initial: { opacity: 0, y: 24 },
-        animate: { opacity: 1, y: 0 },
-        duration: 0.6,
-      }
+const founderTags = ['Backend systems', 'Product infrastructure', 'Writing in public']
 
-  return (
-    <Box position="relative" overflow="hidden" pb={{ base: 10, md: 14 }}>
-      <Box
-        position="absolute"
-        top={{ base: 12, md: 16 }}
-        left={{ base: '-12%', md: '6%' }}
-        w={{ base: '220px', md: '360px' }}
-        h={{ base: '220px', md: '360px' }}
-        bg="action.glow"
-        filter="blur(130px)"
-        opacity={0.7}
-        pointerEvents="none"
-      />
-      <Box
-        position="absolute"
-        top={{ base: '42%', md: '38%' }}
-        right={{ base: '-14%', md: '2%' }}
-        w={{ base: '240px', md: '340px' }}
-        h={{ base: '240px', md: '340px' }}
-        bg="accent.glow"
-        filter="blur(150px)"
-        opacity={0.42}
-        pointerEvents="none"
-      />
+const AboutPage = () => (
+  <ContentContainer as="main">
+    <Section density="comfortable">
+      <AboutHero focusThreads={focusThreads} />
+    </Section>
 
-      <Container maxW="container.xl" py={{ base: 8, md: 10 }} position="relative">
-        <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-          <AboutHero focusThreads={focusThreads} />
+    <Section density="compact" aria-labelledby="about-signals">
+      <Stack gap={6}>
+        <Stack gap={2}>
+          {/*
+           * The legacy page had no heading here, only a kicker and a paragraph,
+           * which left four cards hanging under nothing in the document
+           * outline. The kicker's own word becomes the heading.
+           */}
+          <Heading recipe="sectionTitle" as="h2" id="about-signals">
+            Signals
+          </Heading>
+          <Text recipe="body" maxW="prose">
+            Enough context to understand the background behind the writing without turning the page
+            into a resume.
+          </Text>
+        </Stack>
 
-          <MotionWrapper {...sectionRevealProps}>
-            <Stack spacing={4}>
-              <Stack spacing={2}>
-                <Text
-                  fontSize="sm"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  color="text.tertiary"
-                >
-                  Signals
-                </Text>
-                <Text maxW="2xl" color="text.secondary" lineHeight="tall">
-                  Enough context to understand the background behind the writing without turning the
-                  page into a resume.
-                </Text>
-              </Stack>
-              <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing={5}>
-                {stats.map((stat) => (
-                  <AboutStatCard key={stat.label} {...stat} />
-                ))}
-              </SimpleGrid>
-            </Stack>
-          </MotionWrapper>
+        <Grid columns={4} gap={6}>
+          <Stagger>
+            {stats.map((stat) => (
+              <AboutStatCard key={stat.label} {...stat} />
+            ))}
+          </Stagger>
+        </Grid>
+      </Stack>
+    </Section>
 
-          <MotionWrapper {...sectionRevealProps}>
-            <Stack spacing={5}>
-              <Stack spacing={2}>
-                <Text
-                  fontSize="sm"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  color="text.tertiary"
-                >
-                  Approach
-                </Text>
-                <Heading size="lg" letterSpacing="-0.03em" color="text.primary">
-                  Why Horizon stays open
+    <Section density="compact" aria-labelledby="about-approach">
+      <Reveal>
+        <Stack gap={6}>
+          <Stack gap={2}>
+            <Eyebrow as="p">Approach</Eyebrow>
+            <Heading recipe="sectionTitle" as="h2" id="about-approach">
+              Why Horizon stays open
+            </Heading>
+          </Stack>
+
+          <Grid columns={2} gap={6} collapseAt="lg" alignItems="start">
+            <Surface depth="flat" p={{ base: space[6], sm: space[8] }}>
+              <Stack gap={6}>
+                <Heading recipe="cardTitle" as="h3">
+                  The more I learn, the more I realize how much I still do not know.
                 </Heading>
-              </Stack>
-
-              <Grid templateColumns={{ base: '1fr', xl: '1.05fr 0.95fr' }} gap={6}>
-                <Box
-                  border="1px solid"
-                  borderColor="border.subtle"
-                  borderRadius="3xl"
-                  bg="bg.secondary"
-                  px={{ base: 6, md: 8 }}
-                  py={{ base: 7, md: 8 }}
-                >
-                  <Stack spacing={6}>
-                    <Heading
-                      fontSize={{ base: '2xl', md: '3xl' }}
-                      lineHeight="1.12"
-                      letterSpacing="-0.04em"
-                      color="text.primary"
-                    >
-                      The more I learn, the more I realize how much I still do not know.
-                    </Heading>
-                    <Text color="text.secondary" lineHeight="tall">
-                      Horizon is a place to stay curious, follow ideas that keep pulling at me, and
-                      write down the things that have helped me a lot. Some of them come from
-                      backend systems, some from writing, and some from those small moments where a
-                      confusing piece of work suddenly becomes a little clearer.
-                    </Text>
-                    <Text color="text.secondary" lineHeight="tall">
-                      Knowledge feels endless. The more we learn, the more aware we become of how
-                      much is still missing, and Horizon should feel open enough to keep making room
-                      for that. I do not want this page to sound final. I want it to feel like an
-                      honest record of things I am still learning, revisiting, and understanding
-                      more slowly over time.
-                    </Text>
-                    <Wrap spacing={3}>
-                      {principles.map((principle) => (
-                        <WrapItem key={principle.title}>
-                          <Badge
-                            px={3}
-                            py={1}
-                            borderRadius="full"
-                            bg="action.subtle"
-                            color="action.primary"
-                          >
-                            {principle.title}
-                          </Badge>
-                        </WrapItem>
-                      ))}
-                    </Wrap>
-                  </Stack>
-                </Box>
-
-                <Stack spacing={5}>
+                <Text recipe="body">
+                  Horizon is a place to stay curious, follow ideas that keep pulling at me, and
+                  write down the things that have helped me a lot. Some of them come from backend
+                  systems, some from writing, and some from those small moments where a confusing
+                  piece of work suddenly becomes a little clearer.
+                </Text>
+                <Text recipe="body">
+                  Knowledge feels endless. The more we learn, the more aware we become of how much
+                  is still missing, and Horizon should feel open enough to keep making room for
+                  that. I do not want this page to sound final. I want it to feel like an honest
+                  record of things I am still learning, revisiting, and understanding more slowly
+                  over time.
+                </Text>
+                <Stack direction="row" collapseAt={undefined} gap={3} flexWrap="wrap">
                   {principles.map((principle) => (
-                    <Box
-                      key={principle.title}
-                      border="1px solid"
-                      borderColor="border.subtle"
-                      borderRadius="2xl"
-                      bg="bg.secondary"
-                      px={5}
-                      py={6}
-                    >
-                      <Stack spacing={4}>
-                        <Flex
-                          w={11}
-                          h={11}
-                          align="center"
-                          justify="center"
-                          borderRadius="2xl"
-                          bg="bg.tertiary"
-                          color="action.primary"
-                        >
-                          <Icon as={principle.icon} boxSize={4.5} />
-                        </Flex>
-                        <Heading size="md" color="text.primary" letterSpacing="-0.02em">
-                          {principle.title}
-                        </Heading>
-                        <Text color="text.secondary" lineHeight="tall">
-                          {principle.description}
-                        </Text>
-                      </Stack>
-                    </Box>
+                    <Chip key={principle.title}>{principle.title}</Chip>
                   ))}
                 </Stack>
-              </Grid>
-            </Stack>
-          </MotionWrapper>
+              </Stack>
+            </Surface>
 
-          <MotionWrapper {...sectionRevealProps}>
-            <Box
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius="3xl"
-              bg="bg.secondary"
-              overflow="hidden"
-            >
-              <Grid templateColumns={{ base: '1fr', lg: '0.72fr 1.28fr' }} gap={0}>
-                <Box
-                  position="relative"
-                  px={{ base: 6, md: 8 }}
-                  pt={{ base: 6, md: 8 }}
-                  pb={{ base: 0, lg: 7 }}
-                >
-                  <Box
-                    position="relative"
-                    minH={{ base: '320px', md: '420px', lg: '100%' }}
-                    borderRadius="2xl"
-                    overflow="hidden"
-                    bg="bg.tertiary"
-                  >
-                    <Image
-                      src="https://minio.connortran.io.vn/horizon-blog-public-bucket/connortran-avatar.jpg"
-                      alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
-                      position="absolute"
-                      inset={0}
-                      w="100%"
-                      h="100%"
-                      objectFit="cover"
-                      objectPosition="center top"
-                    />
-                    <Box
-                      position="absolute"
-                      inset={0}
-                      bgGradient={portraitOverlay}
-                      pointerEvents="none"
-                    />
-                    <Badge
-                      position="absolute"
-                      top={5}
-                      left={5}
-                      px={3}
-                      py={1}
-                      borderRadius="full"
-                      bg={founderBadgeBg}
-                      color={founderBadgeColor}
-                      border="1px solid"
-                      borderColor="border.subtle"
-                      backdropFilter="blur(8px)"
-                      textTransform="uppercase"
-                      letterSpacing="0.14em"
-                      fontSize="10px"
+            <Stack gap={6}>
+              {principles.map((principle) => (
+                <Surface key={principle.title} as="article" depth="flat">
+                  <Stack gap={4}>
+                    <Flex
+                      align="center"
+                      justify="center"
+                      boxSize={space[12]}
+                      borderRadius={radii.control}
+                      bg={componentTokens.control.quietHoverBg}
+                      color={componentTokens.control.solidBg}
+                      flexShrink={0}
+                      aria-hidden="true"
                     >
-                      Founder note
-                    </Badge>
-                  </Box>
-                </Box>
-
-                <Stack
-                  spacing={5}
-                  px={{ base: 6, md: 8, lg: 10 }}
-                  py={{ base: 7, md: 8 }}
-                  justify="center"
-                >
-                  <Stack spacing={3}>
-                    <Heading size="xl" color="text.primary" letterSpacing="-0.03em">
-                      Tran Tuan Canh
+                      <Box as={principle.icon} boxSize={space[4]} />
+                    </Flex>
+                    <Heading recipe="cardTitle" as="h3">
+                      {principle.title}
                     </Heading>
-                    <Text
-                      color="action.primary"
-                      fontWeight="semibold"
-                      letterSpacing="0.08em"
-                      textTransform="uppercase"
-                    >
-                      Founder and Engineer
-                    </Text>
+                    <Text recipe="body">{principle.description}</Text>
                   </Stack>
+                </Surface>
+              ))}
+            </Stack>
+          </Grid>
+        </Stack>
+      </Reveal>
+    </Section>
 
-                  <Text color="text.secondary" lineHeight="tall">
-                    I built Horizon as a place to think in public, write with more intent, and keep
-                    the product surface honest. If a page cannot support the writing or the person
-                    behind it, it is not done yet.
-                  </Text>
-                  <Text color="text.secondary" lineHeight="tall">
-                    Most of my day-to-day work lives in backend systems, APIs, event flows, and
-                    product infrastructure. The dedicated CV page pulls that professional side into
-                    the same editorial world as the writing.
-                  </Text>
+    <Section density="compact" aria-labelledby="about-founder">
+      <Reveal>
+        <Surface as="article" depth="feature" p={{ base: space[6], sm: space[8] }}>
+          <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
+            {/*
+             * A real media frame rather than a bare `img`: the portrait is a
+             * remote object on a MinIO bucket, and the legacy page had no
+             * loading, absent or failed state for it at all - a broken URL left
+             * a collapsed box and no alt anyone could act on.
+             */}
+            <ResponsiveImage
+              aspectRatio="4 / 5"
+              src={PORTRAIT_SRC}
+              alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
+              task="the founder portrait"
+              loading="lazy"
+            />
 
-                  <Wrap spacing={3}>
-                    <WrapItem>
-                      <Badge
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                        bg="bg.tertiary"
-                        color="text.secondary"
-                      >
-                        Backend systems
-                      </Badge>
-                    </WrapItem>
-                    <WrapItem>
-                      <Badge
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                        bg="bg.tertiary"
-                        color="text.secondary"
-                      >
-                        Product infrastructure
-                      </Badge>
-                    </WrapItem>
-                    <WrapItem>
-                      <Badge
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                        bg="bg.tertiary"
-                        color="text.secondary"
-                      >
-                        Writing in public
-                      </Badge>
-                    </WrapItem>
-                  </Wrap>
+            <Stack gap={6} justifyContent="center">
+              <Stack gap={3}>
+                <Eyebrow as="p">Founder note</Eyebrow>
+                <Heading recipe="sectionTitle" as="h2" id="about-founder">
+                  Tran Tuan Canh
+                </Heading>
+                <Text
+                  recipe="metadata"
+                  as="p"
+                  color="action.primary"
+                  fontWeight="semibold"
+                  letterSpacing="wider"
+                  textTransform="uppercase"
+                >
+                  Founder and Engineer
+                </Text>
+              </Stack>
 
-                  <HStack spacing={4} flexWrap="wrap">
-                    <Button as={RouterLink} to="/cv" rightIcon={<FiArrowRight />}>
-                      View CV
-                    </Button>
-                    <Button
-                      as={Link}
-                      href="https://github.com/connortran216"
-                      isExternal
-                      leftIcon={<FaGithub />}
-                      variant="ghost"
-                      color="text.primary"
-                    >
-                      GitHub
-                    </Button>
-                    <Button
-                      as={Link}
-                      href="https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/"
-                      isExternal
-                      leftIcon={<FaLinkedin />}
-                      variant="ghost"
-                      color="text.primary"
-                    >
-                      LinkedIn
-                    </Button>
-                  </HStack>
-                </Stack>
-              </Grid>
-            </Box>
-          </MotionWrapper>
-        </VStack>
-      </Container>
-    </Box>
-  )
-}
+              <Text recipe="body">
+                I built Horizon as a place to think in public, write with more intent, and keep the
+                product surface honest. If a page cannot support the writing or the person behind
+                it, it is not done yet.
+              </Text>
+              <Text recipe="body">
+                Most of my day-to-day work lives in backend systems, APIs, event flows, and product
+                infrastructure. The dedicated CV page pulls that professional side into the same
+                editorial world as the writing.
+              </Text>
+
+              <Stack direction="row" collapseAt={undefined} gap={3} flexWrap="wrap">
+                {founderTags.map((tag) => (
+                  <Chip key={tag}>{tag}</Chip>
+                ))}
+              </Stack>
+
+              <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
+                <ActionLink
+                  to="/cv"
+                  underline="hover"
+                  iconEnd={<FiArrowRight aria-hidden="true" />}
+                  color="action.primary"
+                  fontWeight="semibold"
+                >
+                  View CV
+                </ActionLink>
+                <ActionLink
+                  href="https://github.com/connortran216"
+                  underline="hover"
+                  iconStart={<FaGithub aria-hidden="true" />}
+                  color="action.primary"
+                  fontWeight="semibold"
+                >
+                  GitHub
+                </ActionLink>
+                <ActionLink
+                  href="https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/"
+                  underline="hover"
+                  iconStart={<FaLinkedin aria-hidden="true" />}
+                  color="action.primary"
+                  fontWeight="semibold"
+                >
+                  LinkedIn
+                </ActionLink>
+              </Stack>
+            </Stack>
+          </Grid>
+        </Surface>
+      </Reveal>
+    </Section>
+  </ContentContainer>
+)
 
 export default AboutPage

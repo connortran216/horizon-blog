@@ -5,6 +5,7 @@ import {
   avatarInitials,
   avatarRejection,
   bioPlaceholder,
+  contactCardAction,
   contactHref,
   cvPrintStyle,
   profileHeaderState,
@@ -190,6 +191,75 @@ describe('contact destinations', () => {
 
   it('returns nothing for a blank value rather than an empty mailto', () => {
     expect(contactHref('email', '   ').href).toBeUndefined()
+  })
+})
+
+describe('the action a contact card offers', () => {
+  it('builds a mailto for an email channel', () => {
+    expect(
+      contactCardAction({
+        channel: 'email',
+        value: 'sample.author@example.com',
+        label: 'Email directly',
+      }),
+    ).toEqual({
+      href: 'mailto:sample.author@example.com',
+      label: 'Email directly',
+      leavesSite: false,
+    })
+  })
+
+  it('builds a tel for a phone channel, with the spacing stripped out', () => {
+    expect(
+      contactCardAction({ channel: 'phone', value: '+84 90 123 45 67', label: 'Call' }),
+    ).toEqual({
+      href: 'tel:+84901234567',
+      label: 'Call',
+      leavesSite: false,
+    })
+  })
+
+  it('offers no action for a postal address, however it is labelled', () => {
+    expect(
+      contactCardAction({
+        channel: 'location',
+        value: 'Sample City, Example Country',
+        label: 'Open the map',
+      }),
+    ).toBeNull()
+  })
+
+  it('keeps an absolute profile link as it is, and marks that it leaves the site', () => {
+    expect(
+      contactCardAction({
+        channel: 'link',
+        value: 'https://example.com/sample-author',
+        label: 'Open the profile',
+      }),
+    ).toEqual({
+      href: 'https://example.com/sample-author',
+      label: 'Open the profile',
+      leavesSite: true,
+    })
+  })
+
+  it('does not treat an in-site path as leaving the site', () => {
+    expect(contactCardAction({ channel: 'link', value: '/cv', label: 'View CV' })?.leavesSite).toBe(
+      false,
+    )
+  })
+
+  it('offers no action for a blank value', () => {
+    expect(
+      contactCardAction({ channel: 'email', value: '   ', label: 'Email directly' }),
+    ).toBeNull()
+  })
+
+  it('offers no action when the page named no verb for it', () => {
+    expect(contactCardAction({ channel: 'phone', value: '+84 90 123 45 67' })).toBeNull()
+    expect(
+      contactCardAction({ channel: 'phone', value: '+84 90 123 45 67', label: ' ' }),
+    ).toBeNull()
   })
 })
 

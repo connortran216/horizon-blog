@@ -6,16 +6,17 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 ## Scope and counts
 
-- Total UI implementation and composition files: **138**
-- Non-page component and infrastructure files: **91**
-- Deferred page/app composition files: **47**
+- Total UI implementation and composition files: **134**
+- Non-page component and infrastructure files: **87**
+- Page/app composition files: **47** - of which **41** are still deferred and **6** were migrated in
+  release M2 (Contact, CV, About and their three route wrappers).
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
 
 ### By category
 
 | Category | Files |
 | --- | ---: |
-| account-identity-pattern | 16 |
+| account-identity-pattern | 12 |
 | app-composition | 3 |
 | app-shell | 5 |
 | behavior-infrastructure | 5 |
@@ -37,11 +38,16 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 | Disposition | Files |
 | --- | ---: |
-| adapt | 72 |
+| adapt | 66 |
 | compatibility | 3 |
-| deferred-page-migration | 47 |
+| deferred-page-migration | 41 |
+| migrated | 8 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
+
+`migrated` is a page-migration disposition: the file now composes `src/design-system` and no longer
+uses a compatibility-bridge token name. It stays in the ledger because it is still a legacy-tree
+file; it leaves when the file does.
 
 ## Ledger
 
@@ -82,9 +88,9 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | `src/components/ui/StatChip.tsx` | shared-ui | adapt | B2 / horizon-blog-dsv2.3 | MetricBadge | Paired themes; responsive; all applicable interactive states |
 | `src/context/AuthContext.tsx` | behavior-infrastructure | retain-behavior | B6 / horizon-blog-dsv2.7.2 | AuthContext | No visual rewrite; verify session state consumers and loading handoff |
 | `src/core/components/ErrorBoundary.tsx` | behavior-infrastructure | retain-behavior | B6 / horizon-blog-dsv2.7.2 | ErrorBoundary | No visual rewrite; verify compatibility and accessibility |
-| `src/features/about/components/AboutHero.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 AboutHero pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/about/components/AboutStatCard.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 AboutStatCard pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/about/pages/AboutPage.tsx` | page-composition | deferred-page-migration | page migration epic | AboutPage | Consume completed v2 patterns after B6 gate |
+| `src/features/about/components/AboutHero.tsx` | account-identity-pattern | migrated | M2 / horizon-blog-y2e | Surface (feature depth), Heading, Text, Eyebrow, Divider, Grid, Stack, ActionLink, useMotionPolicy | Paired themes at 375/768/1024/1440; ambient track stops under reduced motion; no compatibility-bridge token; track decisions in `aboutHero.logic.ts`, tested in `aboutHero.test.ts` |
+| `src/features/about/components/AboutStatCard.tsx` | account-identity-pattern | migrated | M2 / horizon-blog-y2e | Surface, Stack, Eyebrow, Heading, Text | Paired themes; long Vietnamese and English labels; no compatibility-bridge token. `Metric` rejected: every value is a phrase, not a number |
+| `src/features/about/pages/AboutPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Grid, Stack, Surface, Heading, Text, Eyebrow, Chip, ActionLink, ResponsiveImage, Reveal, Stagger | Paired themes at 375/768/1024/1440; portrait loading/absent/failed/retry through `ResponsiveImage`; reduced motion; no compatibility-bridge token |
 | `src/features/access-management/pages/AccessManagementPage.tsx` | page-composition | deferred-page-migration | page migration epic | AccessManagementPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/components/AuthMethodDivider.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 AuthMethodDivider pattern | Validation/identity/media; responsive themes; permission states |
 | `src/features/auth/components/AuthShell.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 AuthShell pattern | Validation/identity/media; responsive themes; permission states |
@@ -123,12 +129,8 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | `src/features/comments/components/CommentItem.tsx` | reader-conversation-pattern | adapt | B4 / horizon-blog-dsv2.5.3 | v2 CommentItem pattern | Success/error; auth state; focus/touch; reduced motion |
 | `src/features/comments/components/CommentSection.tsx` | reader-conversation-pattern | adapt | B4 / horizon-blog-dsv2.5.3 | v2 CommentSection pattern | Success/error; auth state; focus/touch; reduced motion |
 | `src/features/comments/components/CommentThread.tsx` | reader-conversation-pattern | adapt | B4 / horizon-blog-dsv2.5.3 | v2 CommentThread pattern | Success/error; auth state; focus/touch; reduced motion |
-| `src/features/contact/components/ContactInfoCard.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ContactInfoCard pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/contact/components/ContactPromptCard.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ContactPromptCard pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/contact/pages/ContactPage.tsx` | page-composition | deferred-page-migration | page migration epic | ContactPage | Consume completed v2 patterns after B6 gate |
-| `src/features/cv/components/CvExperienceCard.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 CvExperienceCard pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/cv/components/CvProjectEntry.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 CvProjectEntry pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/cv/pages/CvPage.tsx` | page-composition | deferred-page-migration | page migration epic | CvPage | Consume completed v2 patterns after B6 gate |
+| `src/features/contact/pages/ContactPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Grid, Stack, Heading, Text, Eyebrow, ActionLink, ContactCard, ContactPrompt | Paired themes at 375/768/1024/1440; `mailto:`/`tel:`/location link semantics owned by `contactHref`, and the per-card action by `ContactCard`'s `actionLabel` slot, so the page owns no card of its own; no compatibility-bridge token |
+| `src/features/cv/pages/CvPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Surface, Stack, Grid, Heading, Text, Eyebrow, Metadata, Button, ActionLink, CVEntry | Paired themes at 375/768/1024/1440; print from both themes; keeps the `cv-*` class hooks that `src/index.css` print rules key on, and pins the v2 colour roles that block does not cover |
 | `src/features/editor/components/ActiveScheduleNotice.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 ActiveScheduleNotice pattern | Autosave/upload/publish/schedule/recovery/permission states |
 | `src/features/editor/components/EditorMetaBar.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 EditorMetaBar pattern | Autosave/upload/publish/schedule/recovery/permission states |
 | `src/features/editor/components/EditorTagField.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 EditorTagField pattern | Autosave/upload/publish/schedule/recovery/permission states |
@@ -163,15 +165,15 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | `src/features/series/pages/SeriesIndexPage.tsx` | page-composition | deferred-page-migration | page migration epic | SeriesIndexPage | Consume completed v2 patterns after B6 gate |
 | `src/features/series/pages/SeriesPage.tsx` | page-composition | deferred-page-migration | page migration epic | SeriesPage | Consume completed v2 patterns after B6 gate |
 | `src/main.tsx` | app-composition | adapt | B1 / horizon-blog-dsv2.2.2 | App bootstrap and theme provider | Chakra v2 theme mount, colour-mode script, local font loading, reduced motion |
-| `src/pages/About.tsx` | page-composition | deferred-page-migration | page migration epic | About | Consume completed v2 patterns after B6 gate |
+| `src/pages/About.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | About | Route wrapper; re-exports the migrated `AboutPage` |
 | `src/pages/Analytics.tsx` | page-composition | deferred-page-migration | page migration epic | Analytics | Consume completed v2 patterns after B6 gate |
 | `src/pages/AuthorArchive.tsx` | page-composition | deferred-page-migration | page migration epic | AuthorArchive | Consume completed v2 patterns after B6 gate |
 | `src/pages/Blog.tsx` | page-composition | deferred-page-migration | page migration epic | Blog | Consume completed v2 patterns after B6 gate |
 | `src/pages/BlogAnalytics.tsx` | page-composition | deferred-page-migration | page migration epic | BlogAnalytics | Consume completed v2 patterns after B6 gate |
 | `src/pages/BlogDetail.tsx` | page-composition | deferred-page-migration | page migration epic | BlogDetail | Consume completed v2 patterns after B6 gate |
 | `src/pages/BlogEditor.tsx` | page-composition | deferred-page-migration | page migration epic | BlogEditor | Consume completed v2 patterns after B6 gate |
-| `src/pages/Contact.tsx` | page-composition | deferred-page-migration | page migration epic | Contact | Consume completed v2 patterns after B6 gate |
-| `src/pages/Cv.tsx` | page-composition | deferred-page-migration | page migration epic | Cv | Consume completed v2 patterns after B6 gate |
+| `src/pages/Contact.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | Contact | Route wrapper; re-exports the migrated `ContactPage` |
+| `src/pages/Cv.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | Cv | Route wrapper; re-exports the migrated `CvPage` |
 | `src/pages/ForgotPassword.tsx` | page-composition | deferred-page-migration | page migration epic | ForgotPassword | Consume completed v2 patterns after B6 gate |
 | `src/pages/Home.tsx` | page-composition | deferred-page-migration | page migration epic | Home | Consume completed v2 patterns after B6 gate |
 | `src/pages/Login.tsx` | page-composition | deferred-page-migration | page migration epic | Login | Consume completed v2 patterns after B6 gate |

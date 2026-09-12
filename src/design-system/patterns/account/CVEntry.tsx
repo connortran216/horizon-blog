@@ -121,7 +121,21 @@ export function CVEntry({
         {links === undefined || links.length === 0 ? null : (
           <Stack as="ul" gap={1}>
             {links.map((link) => (
-              <Text key={link.href} recipe="metadata" as="li">
+              <Text
+                key={link.href}
+                recipe="metadata"
+                as="li"
+                /*
+                 * A destination is one unbroken token with no spaces, so it has
+                 * nowhere to wrap and sizes its box to its own length. At 375px
+                 * that pushed a project URL to 672px inside a 343px card, and
+                 * the card clips - the reader lost half the address with no way
+                 * to scroll to it. `minWidth: 0` lets the box shrink below its
+                 * content, and `anywhere` gives the break a place to happen.
+                 */
+                minWidth={0}
+                overflowWrap="anywhere"
+              >
                 <Box as="span" color="text.primary" fontWeight="semibold">
                   {link.label}:
                 </Box>{' '}
@@ -130,7 +144,16 @@ export function CVEntry({
                  * carries something a reader could type. `ActionLink` still
                  * resolves the external target and rel for the screen version.
                  */}
-                <ActionLink href={link.href}>{readableLinkText(link.href)}</ActionLink>
+                {/*
+                 * `maxWidth` is the half that actually fixes it. `ActionLink` is
+                 * `inline-flex` so it can align an icon, and an inline-flex box
+                 * shrinks to fit its content - it will happily grow past its
+                 * container and let the container clip it. Capping it at the line
+                 * box gives the text somewhere to wrap to.
+                 */}
+                <ActionLink href={link.href} maxWidth="100%">
+                  {readableLinkText(link.href)}
+                </ActionLink>
               </Text>
             ))}
           </Stack>
