@@ -1,5 +1,8 @@
 # Page Override Model
 
+> Page migration is blocked until `horizon-blog-dsv2.7.3` passes. These files remain behavioral
+> references and must not introduce raw design values outside the completed v2 component system.
+
 `MASTER.md` defines the global system.
 
 Files in this folder define route-family decisions that intentionally refine the base system.

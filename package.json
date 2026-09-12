@@ -14,6 +14,8 @@
     "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "preview": "vite preview",
+    "tokens:export": "node scripts/design-system/export-tokens.mjs",
+    "coverage:design-system": "node scripts/design-system/check-coverage.mjs",
     "preview:meta": "node scripts/serve-with-meta.mjs"
   },
   "devDependencies": {
