@@ -6,10 +6,10 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 ## Scope and counts
 
-- Total UI implementation and composition files: **130**
-- Non-page component and infrastructure files: **82**
-- Page/app composition files: **48** - of which **14** are still deferred.
-- Migrated to the v2 system so far: **61** across releases M2-M5.
+- Total UI implementation and composition files: **127**
+- Non-page component and infrastructure files: **79**
+- Page/app composition files: **48** - of which **7** are still deferred.
+- Migrated to the v2 system so far: **83** across releases M2-M6.
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
 
 ### By category
@@ -22,8 +22,8 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | behavior-infrastructure | 5 |
 | compatibility-layout | 3 |
 | data-admin-pattern | 9 |
-| editor-integration | 5 |
-| editor-publishing-pattern | 5 |
+| editor-integration | 3 |
+| editor-publishing-pattern | 4 |
 | media-pattern | 1 |
 | motion-primitive | 9 |
 | navigation-primitive | 2 |
@@ -38,10 +38,10 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 | Disposition | Files |
 | --- | ---: |
-| adapt | 36 |
+| adapt | 18 |
 | compatibility | 3 |
-| deferred-page-migration | 14 |
-| migrated | 61 |
+| deferred-page-migration | 7 |
+| migrated | 83 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
@@ -72,11 +72,9 @@ file; it leaves when the file does.
 | `src/components/core/animations/MotionWrapper.tsx` | motion-primitive | replace-with-adapter | B3 / horizon-blog-dsv2.4.1 | Reveal and Stagger | Normal/reduced motion; pointer/keyboard/touch; cleanup |
 | `src/components/core/animations/ParticleSystem.tsx` | motion-primitive | replace-with-adapter | B3 / horizon-blog-dsv2.4.1 | AmbientArtwork or explicit deprecation | Normal/reduced motion; pointer/keyboard/touch; cleanup |
 | `src/components/core/animations/ShimmerLoader.tsx` | motion-primitive | replace-with-adapter | B3 / horizon-blog-dsv2.4.1 | Skeleton | Normal/reduced motion; pointer/keyboard/touch; cleanup |
-| `src/components/editor/CrepeEditor.tsx` | editor-integration | adapt | B5 / horizon-blog-dsv2.6.2 | v2 CrepeEditor pattern | Dense responsive workspace; async/error/permission states |
-| `src/components/editor/CrepePreview.tsx` | editor-integration | adapt | B5 / horizon-blog-dsv2.6.2 | v2 CrepePreview pattern | Dense responsive workspace; async/error/permission states |
-| `src/components/editor/MarkdownEditor.tsx` | editor-integration | adapt | B5 / horizon-blog-dsv2.6.2 | v2 MarkdownEditor pattern | Dense responsive workspace; async/error/permission states |
-| `src/components/editor/MermaidZoomModal.tsx` | editor-integration | adapt | B5 / horizon-blog-dsv2.6.2 | v2 MermaidZoomModal pattern | Dense responsive workspace; async/error/permission states |
-| `src/components/editor/MilkdownEditor.tsx` | editor-integration | adapt | B5 / horizon-blog-dsv2.6.2 | v2 MilkdownEditor pattern | Dense responsive workspace; async/error/permission states |
+| `src/components/editor/CrepeEditor.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 CrepeEditor pattern | Dense responsive workspace; async/error/permission states |
+| `src/components/editor/CrepePreview.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 CrepePreview pattern | Dense responsive workspace; async/error/permission states |
+| `src/components/editor/MermaidZoomModal.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 MermaidZoomModal pattern | Dense responsive workspace; async/error/permission states |
 | `src/components/layout/Footer.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | SiteFooter | Retain re-export until page migration removes old import |
 | `src/components/layout/Layout.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | Layout | Retain re-export until page migration removes old import |
 | `src/components/layout/Navbar.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | SiteHeader and NavItem | Retain re-export until page migration removes old import |
@@ -127,37 +125,36 @@ file; it leaves when the file does.
 | `src/features/comments/components/CommentThread.tsx` | reader-conversation-pattern | migrated | M4 / horizon-blog-y2e | Button, ErrorState, RetryAction, replyToggleLabel | Keeps the cursor-paged reply lifecycle the design system `CommentThread` cannot express (gap reported); nesting, depth cap and live replies under a removed parent unchanged |
 | `src/features/contact/pages/ContactPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Grid, Stack, Heading, Text, Eyebrow, ActionLink, ContactCard, ContactPrompt | Paired themes at 375/768/1024/1440; `mailto:`/`tel:`/location link semantics owned by `contactHref`, and the per-card action by `ContactCard`'s `actionLabel` slot, so the page owns no card of its own; no compatibility-bridge token |
 | `src/features/cv/pages/CvPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Surface, Stack, Grid, Heading, Text, Eyebrow, Metadata, Button, ActionLink, CVEntry | Paired themes at 375/768/1024/1440; print from both themes; keeps the `cv-*` class hooks that `src/index.css` print rules key on, and pins the v2 colour roles that block does not cover |
-| `src/features/editor/components/ActiveScheduleNotice.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 ActiveScheduleNotice pattern | Autosave/upload/publish/schedule/recovery/permission states |
-| `src/features/editor/components/EditorMetaBar.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 EditorMetaBar pattern | Autosave/upload/publish/schedule/recovery/permission states |
-| `src/features/editor/components/EditorTagField.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 EditorTagField pattern | Autosave/upload/publish/schedule/recovery/permission states |
-| `src/features/editor/components/EditorWorkspace.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 EditorWorkspace pattern | Autosave/upload/publish/schedule/recovery/permission states |
-| `src/features/editor/components/PublishBlogPreviewCard.tsx` | editor-publishing-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | v2 PublishBlogPreviewCard pattern | Autosave/upload/publish/schedule/recovery/permission states |
-| `src/features/editor/pages/BlogEditorPage.tsx` | page-composition | deferred-page-migration | page migration epic | BlogEditorPage | Consume completed v2 patterns after B6 gate |
-| `src/features/editor/pages/PublishBlogPage.tsx` | page-composition | deferred-page-migration | page migration epic | PublishBlogPage | Consume completed v2 patterns after B6 gate |
+| `src/features/editor/components/ActiveScheduleNotice.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 ActiveScheduleNotice pattern | Autosave/upload/publish/schedule/recovery/permission states |
+| `src/features/editor/components/EditorTagField.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 EditorTagField pattern | Autosave/upload/publish/schedule/recovery/permission states |
+| `src/features/editor/components/EditorWorkspace.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 EditorWorkspace pattern | Autosave/upload/publish/schedule/recovery/permission states |
+| `src/features/editor/components/PublishBlogPreviewCard.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 PublishBlogPreviewCard pattern | Autosave/upload/publish/schedule/recovery/permission states |
+| `src/features/editor/pages/BlogEditorPage.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | BlogEditorPage | Consume completed v2 patterns after B6 gate |
+| `src/features/editor/pages/PublishBlogPage.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | PublishBlogPage | Consume completed v2 patterns after B6 gate |
 | `src/features/home/components/HeroArchivePreview.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | SignatureStory | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/home/components/PromiseCard.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | v2 PromiseCard pattern | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/home/components/StoryCard.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | PostCard | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/home/pages/HomePage.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | HomePage | Consume completed v2 patterns after B6 gate |
 | `src/features/media/components/DefaultPostCover.tsx` | media-pattern | adapt | B3 / horizon-blog-dsv2.4.3 | MediaPlaceholder | Loading/ready/absent/error/retry; stable ratio; alt semantics |
 | `src/features/oauth/pages/McpAuthorizePage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | McpAuthorizePage | Consume completed v2 patterns after B6 gate |
-| `src/features/profile/components/AvatarPreviewModal.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 AvatarPreviewModal pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/EditProfileModal.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 EditProfileModal pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/ProfileBlogGrid.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ProfileBlogGrid pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/ProfileHeaderCard.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ProfileHeaderCard pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/ProfilePostsSection.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ProfilePostsSection pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/ProfileScheduledList.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ProfileScheduledList pattern | Validation/identity/media; responsive themes; permission states |
-| `src/features/profile/components/ProfileScheduledRow.tsx` | account-identity-pattern | adapt | B5 / horizon-blog-dsv2.6.1 | v2 ProfileScheduledRow pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/AvatarPreviewModal.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 AvatarPreviewModal pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/EditProfileModal.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 EditProfileModal pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/ProfileBlogGrid.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 ProfileBlogGrid pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/ProfileHeaderCard.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 ProfileHeaderCard pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/ProfilePostsSection.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 ProfilePostsSection pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/ProfileScheduledList.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 ProfileScheduledList pattern | Validation/identity/media; responsive themes; permission states |
+| `src/features/profile/components/ProfileScheduledRow.tsx` | account-identity-pattern | migrated | M6 / horizon-blog-y2e | v2 ProfileScheduledRow pattern | Validation/identity/media; responsive themes; permission states |
 | `src/features/profile/pages/ProfileBlogDetailPage.tsx` | page-composition | migrated | M4 / horizon-blog-y2e | BlogReaderFrame, Heading, StatusBadge, Text | Ownership check and redirect unchanged; a draft is marked in words and an icon, not a hue alone; the two Framer Motion entrances are gone. Covered by `ProfileBlogDetailPage.test.tsx` |
 | `src/features/reader-interactions/components/HeartButton.tsx` | reader-conversation-pattern | migrated | M4 / horizon-blog-y2e | Button, reactionButtonState | Disabled rather than hidden so the count stays readable; count hidden from the accessibility tree, spoken in the name; `red.500`/`red.600` removed |
 | `src/features/reader-interactions/components/ReaderInteractionBar.tsx` | reader-conversation-pattern | migrated | M4 / horizon-blog-y2e | IconButton, ActionLink, Text, reactionUnavailableNotice; ReactionBar layout reproduced | Sits in `ReaderFrame`'s feedback region, after the prose, never beside the byline; a reader who cannot react is told why; control tokens own the touch target and the disabled treatment |
 | `src/features/reader-interactions/components/ShareButton.tsx` | reader-conversation-pattern | migrated | M4 / horizon-blog-y2e | Button trigger, shareTargets, overlay and control role tokens | Not `ShareAction`: that component owns navigation and the clipboard itself, which would double-open every target against `useReaderInteractions.share` (gap reported). Success and failure feedback stay with the hook |
 | `src/features/series/components/SeriesCard.tsx` | series-pattern | migrated | M3 / horizon-blog-y2e | SeriesCard | Book identity; ordered parts; rail controls; async states |
 | `src/features/series/components/SeriesContextCard.tsx` | series-pattern | migrated | M3 / horizon-blog-y2e | SeriesContext | Book identity; ordered parts; rail controls; async states |
-| `src/features/series/components/SeriesManager.tsx` | series-pattern | adapt | B5 / horizon-blog-dsv2.6.2 | SeriesManagerForm, composing ManageSeriesItem rows | Book identity; ordered parts; async states. Identity fields, add-a-blog, explicit save and server-owned delete; idle, dirty, saving, saved, save-failed, deleting, delete-denied, empty, loading and permission-loss states resolved in `seriesManager.logic.ts` and tested in `seriesManager.test.ts`; paint and focus behaviour belong to the B6 gallery |
+| `src/features/series/components/SeriesManager.tsx` | series-pattern | migrated | M6 / horizon-blog-y2e | SeriesManagerForm, composing ManageSeriesItem rows | Book identity; ordered parts; async states. Identity fields, add-a-blog, explicit save and server-owned delete; idle, dirty, saving, saved, save-failed, deleting, delete-denied, empty, loading and permission-loss states resolved in `seriesManager.logic.ts` and tested in `seriesManager.test.ts`; paint and focus behaviour belong to the B6 gallery |
 | `src/features/series/components/SeriesPartList.tsx` | series-pattern | migrated | M3 / horizon-blog-y2e | SeriesPartList | Book identity; ordered parts; rail controls; async states |
 | `src/features/series/components/SeriesPostContext.tsx` | series-pattern | migrated | M3 / horizon-blog-y2e | v2 SeriesPostContext pattern | Book identity; ordered parts; rail controls; async states |
 | `src/features/series/components/SeriesShelf.tsx` | series-pattern | migrated | M3 / horizon-blog-y2e | SeriesRail | Book identity; ordered parts; rail controls; async states |
-| `src/features/series/pages/ManageSeriesPage.tsx` | page-composition | deferred-page-migration | page migration epic | ManageSeriesPage | Consume completed v2 patterns after B6 gate |
+| `src/features/series/pages/ManageSeriesPage.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | ManageSeriesPage | Consume completed v2 patterns after B6 gate |
 | `src/features/series/pages/SeriesIndexPage.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | SeriesIndexPage | Consume completed v2 patterns after B6 gate |
 | `src/features/series/pages/SeriesPage.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | SeriesPage | Consume completed v2 patterns after B6 gate |
 | `src/main.tsx` | app-composition | adapt | B1 / horizon-blog-dsv2.2.2 | App bootstrap and theme provider | Chakra v2 theme mount, colour-mode script, local font loading, reduced motion |
@@ -167,17 +164,17 @@ file; it leaves when the file does.
 | `src/pages/Blog.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | Blog | Consume completed v2 patterns after B6 gate |
 | `src/pages/BlogAnalytics.tsx` | page-composition | deferred-page-migration | page migration epic | BlogAnalytics | Consume completed v2 patterns after B6 gate |
 | `src/pages/BlogDetail.tsx` | page-composition | migrated | M4 / horizon-blog-y2e | BlogDetail | Route wrapper; re-exports the migrated `BlogDetailPage` |
-| `src/pages/BlogEditor.tsx` | page-composition | deferred-page-migration | page migration epic | BlogEditor | Consume completed v2 patterns after B6 gate |
+| `src/pages/BlogEditor.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | BlogEditor | Consume completed v2 patterns after B6 gate |
 | `src/pages/Contact.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | Contact | Route wrapper; re-exports the migrated `ContactPage` |
 | `src/pages/Cv.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | Cv | Route wrapper; re-exports the migrated `CvPage` |
 | `src/pages/ForgotPassword.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | ForgotPassword | Consume completed v2 patterns after B6 gate |
 | `src/pages/Home.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | Home | Consume completed v2 patterns after B6 gate |
 | `src/pages/Login.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | Login | Consume completed v2 patterns after B6 gate |
-| `src/pages/ManageSeries.tsx` | page-composition | deferred-page-migration | page migration epic | ManageSeries | Consume completed v2 patterns after B6 gate |
+| `src/pages/ManageSeries.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | ManageSeries | Consume completed v2 patterns after B6 gate |
 | `src/pages/OAuthAuthorize.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | OAuthAuthorize | Consume completed v2 patterns after B6 gate |
-| `src/pages/Profile.tsx` | page-composition | deferred-page-migration | page migration epic | Profile | Consume completed v2 patterns after B6 gate |
+| `src/pages/Profile.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | Profile | Consume completed v2 patterns after B6 gate |
 | `src/pages/ProfileBlogDetail.tsx` | page-composition | migrated | M4 / horizon-blog-y2e | ProfileBlogDetail | Route wrapper; re-exports the migrated `ProfileBlogDetailPage` |
-| `src/pages/PublishBlog.tsx` | page-composition | deferred-page-migration | page migration epic | PublishBlog | Consume completed v2 patterns after B6 gate |
+| `src/pages/PublishBlog.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | PublishBlog | Consume completed v2 patterns after B6 gate |
 | `src/pages/Register.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | Register | Consume completed v2 patterns after B6 gate |
 | `src/pages/ResetPassword.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | ResetPassword | Consume completed v2 patterns after B6 gate |
 | `src/pages/Series.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | Series | Consume completed v2 patterns after B6 gate |

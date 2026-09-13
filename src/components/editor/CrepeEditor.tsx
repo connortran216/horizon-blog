@@ -1,11 +1,16 @@
 /**
- * CrepeEditor Component
+ * CrepeEditor - the writing surface.
  *
- * A WYSIWYG markdown editor built on Crepe (@milkdown/crepe).
- * Features:
- * - Rich-text editing with live preview
- * - Custom syntax conversion (wiki links, hashtags)
- * - Theme integration with Obsidian design system
+ * A WYSIWYG markdown editor built on Crepe (@milkdown/crepe). Rich-text
+ * editing, wiki-link and hashtag conversion, mermaid previews and CodeMirror
+ * code blocks all belong to Crepe and are untouched by the v2 migration.
+ *
+ * What the migration changed is the frame: this component no longer draws a
+ * border, a radius, a shadow or a backdrop of its own. One visual owner per
+ * surface - inside the editor that owner is `WorkspaceShell`, and inside the
+ * reader it is `Prose`. Drawing a second card here put a bordered panel inside
+ * a bordered panel and gave the read-only article a 500px-tall glass box it had
+ * no use for.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,6 +19,7 @@ import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
 import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
 import { Box, useColorMode, useToast } from '@chakra-ui/react'
+import { space } from '../../theme/tokens'
 import { CREPE_CONFIG } from '../../config/crepe.config'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
@@ -37,6 +43,17 @@ import '@milkdown/crepe/theme/common/style.css'
 import './crepe-theme.css'
 
 const headingSelector = 'h1, h2, h3, h4, h5, h6'
+
+/**
+ * The blank writing area's minimum height, derived from the spacing scale.
+ *
+ * The token source has no editor-canvas height - the tallest thing on it is
+ * `space[24]` (96px), which is a gap between blocks rather than the size of a
+ * page of writing. Multiplying the largest step is how this stays traceable to
+ * the scale instead of becoming another bare pixel value; the missing token is
+ * reported rather than invented here.
+ */
+const editorCanvasMinHeight = `calc(${space[24]} * 5)`
 
 const decodeHash = (hash: string): string => {
   try {
@@ -243,9 +260,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       throw new Error('Unsupported media format. Allowed: JPEG, PNG, WebP, SVG')
     }
   }
-
-  const editorRadius = { base: '2xl', md: '3xl' } as const
-  const surfaceShadow = '0 4px 8px 0 rgba(0, 0, 0, 0.25)'
 
   const handleMermaidPreviewClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target
@@ -606,32 +620,28 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     <>
       <Box
         ref={editorRef}
-        bg="bg.glass"
-        borderWidth="1px"
-        borderColor="border.subtle"
-        borderRadius={editorRadius}
-        backdropFilter="blur(18px)"
-        boxShadow={surfaceShadow}
+        /*
+         * No border, radius, shadow or background: `WorkspaceShell` owns the
+         * panel in the editor and `Prose` owns the frame in the reader. The
+         * focus ring is the global `*:focus-visible` rule on the ProseMirror
+         * surface itself, which is the thing that actually receives focus.
+         */
         overflow="visible"
-        minH="500px"
+        // A writing surface needs a target big enough to click into before a
+        // word is typed. There is no editor-canvas height token, so this is
+        // derived from the spacing scale rather than written as a bare pixel
+        // value. Read-only use (the reader) sizes itself to its content.
+        minH={readOnly ? undefined : editorCanvasMinHeight}
         className="crepe-editor-wrapper"
         data-readonly={readOnly ? 'true' : 'false'}
         onClick={handleEditorClick}
         sx={{
-          // Ensure proper height and scrolling
           '& .milkdown': {
-            minHeight: '500px',
-            borderRadius: 'inherit',
+            minHeight: readOnly ? undefined : editorCanvasMinHeight,
             overflow: 'visible',
           },
           '& .milkdown .ProseMirror': {
-            borderRadius: 'inherit',
             overflow: 'visible',
-          },
-          // Focus state styling
-          '&:focus-within': {
-            borderColor: 'action.primary',
-            boxShadow: `${surfaceShadow}, 0 0 0 1px var(--chakra-colors-action-primary)`,
           },
         }}
       />

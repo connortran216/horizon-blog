@@ -1,7 +1,24 @@
-import { Box, Container, VStack, useDisclosure } from '@chakra-ui/react'
-import { MotionWrapper } from '../core'
-import { useAuth } from '../context/AuthContext'
+/**
+ * The author workspace.
+ *
+ * `useProfileData` and `useProfilePosts` still own everything: the two request
+ * lifecycles, the fifteen-second schedule clock, pagination, the avatar upload,
+ * and every navigation the row menus perform. This page only decides what the
+ * two of them look like next to each other.
+ *
+ * Two things from the legacy composition are gone. The 280px `blur(130px)` glow
+ * behind the header was a raw blur radius painted by the page rather than by a
+ * surface, and `DESIGN.md` reserves ambient artwork for Home and About. And
+ * `MotionWrapper` wrapped the whole route in a translation that replayed on
+ * every visit regardless of the reader's motion preference; the design system's
+ * surfaces carry their own motion, under one reduced-motion policy.
+ */
+
+import { useDisclosure } from '@chakra-ui/react'
 import { useParams } from 'react-router-dom'
+
+import { ContentContainer, Section, Stack } from '../design-system'
+import { useAuth } from '../context/AuthContext'
 import {
   AvatarPreviewModal,
   EditProfileModal,
@@ -31,14 +48,13 @@ const Profile = () => {
     profileForm,
     isSavingProfile,
     isUploadingAvatar,
-    avatarInputRef,
+    avatarUploadError,
     profileName,
     avatarSrc,
     setProfileFormField,
     openEditor,
     saveProfile,
-    selectAvatar,
-    onAvatarChange,
+    uploadAvatarFile,
   } = useProfileData({
     status,
     user,
@@ -79,66 +95,50 @@ const Profile = () => {
   }
 
   return (
-    <MotionWrapper>
-      <Box position="relative" pb={12} overflowX="hidden">
-        <Box
-          position="absolute"
-          top={0}
-          left="50%"
-          transform="translateX(-50%)"
-          w={{ base: '92%', md: '76%' }}
-          h="280px"
-          bg="action.glow"
-          filter="blur(130px)"
-          opacity={0.68}
-          pointerEvents="none"
-        />
+    <ContentContainer>
+      <Section>
+        <Stack gap={8}>
+          <ProfileHeaderCard
+            profile={profile}
+            profileName={profileName}
+            avatarSrc={avatarSrc}
+            profileLoading={profileLoading}
+            isUploadingAvatar={isUploadingAvatar}
+            avatarUploadError={avatarUploadError}
+            articleCount={publishedPagination.total}
+            draftCount={draftPagination.total}
+            onOpenProfileEditor={handleOpenProfileEditor}
+            onOpenAvatarPreview={onOpenAvatarPreview}
+            onSelectAvatarFile={(file) => {
+              void uploadAvatarFile(file)
+            }}
+          />
 
-        <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-          <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-            <ProfileHeaderCard
-              profile={profile}
-              profileName={profileName}
-              avatarSrc={avatarSrc}
-              profileLoading={profileLoading}
-              isUploadingAvatar={isUploadingAvatar}
-              articleCount={publishedPagination.total}
-              draftCount={draftPagination.total}
-              avatarInputRef={avatarInputRef}
-              onOpenProfileEditor={handleOpenProfileEditor}
-              onOpenAvatarPreview={onOpenAvatarPreview}
-              onSelectAvatar={selectAvatar}
-              onAvatarChange={(event) => {
-                void onAvatarChange(event)
-              }}
-            />
-
-            <ProfilePostsSection
-              postsLoading={postsLoading}
-              profileUsername={profileUsername}
-              publishedBlogs={publishedBlogs}
-              scheduledBlogs={scheduledBlogs}
-              draftBlogs={draftBlogs}
-              publishedPagination={publishedPagination}
-              scheduledPagination={scheduledPagination}
-              draftPagination={draftPagination}
-              scheduleClock={scheduleClock}
-              onPublishedPageChange={handlePublishedPageChange}
-              onScheduledPageChange={handleScheduledPageChange}
-              onDraftPageChange={handleDraftPageChange}
-              onEdit={handleEdit}
-              onReschedule={handleReschedule}
-              onPublishNow={handlePublishNow}
-              onCancelSchedule={(blog) => {
-                void handleCancelSchedule(blog)
-              }}
-              onDelete={(blogId) => {
-                void handleDelete(blogId)
-              }}
-            />
-          </VStack>
-        </Container>
-      </Box>
+          <ProfilePostsSection
+            postsLoading={postsLoading}
+            profileUsername={profileUsername}
+            publishedBlogs={publishedBlogs}
+            scheduledBlogs={scheduledBlogs}
+            draftBlogs={draftBlogs}
+            publishedPagination={publishedPagination}
+            scheduledPagination={scheduledPagination}
+            draftPagination={draftPagination}
+            scheduleClock={scheduleClock}
+            onPublishedPageChange={handlePublishedPageChange}
+            onScheduledPageChange={handleScheduledPageChange}
+            onDraftPageChange={handleDraftPageChange}
+            onEdit={handleEdit}
+            onReschedule={handleReschedule}
+            onPublishNow={handlePublishNow}
+            onCancelSchedule={(blog) => {
+              void handleCancelSchedule(blog)
+            }}
+            onDelete={(blogId) => {
+              void handleDelete(blogId)
+            }}
+          />
+        </Stack>
+      </Section>
 
       <EditProfileModal
         isOpen={isProfileEditorOpen}
@@ -155,7 +155,7 @@ const Profile = () => {
         avatarSrc={avatarSrc}
         onClose={onCloseAvatarPreview}
       />
-    </MotionWrapper>
+    </ContentContainer>
   )
 }
 

@@ -1,7 +1,7 @@
 {
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"sed -n '640,670p' src/design-system/gallery/registry.ts; echo \\\"=== kinds\\\"; rtk grep -n \\\"kind:\\\" src/design-system/gallery/types.ts\",\"description\":\"Read registry AuthAlert states and sta...",
-  "error": "Exit code 1\n    ],\n  },\n  {\n    name: 'AuthMethodSeparator',\n    area: 'account',\n    states: [{ name: 'ready', kind: 'ready' }],\n  },\n  {\n    name: 'AuthAlert',\n    area: 'account',\n    states: [\n      { name: 'error', kind: 'error' },\n      { name: 'success', kind: 'ready' },\n      { name: 'permission' },\n    ],\n  },\n  {\n    name: 'AuthCallbackFeedback',\n    area: 'account',\n    states: [\n      { name: 'pending', kind: 'loading' },\n      { name: 'succeeded', kind: 'ready' },\n      { name: 'fai...",
-  "timestamp": "2026-09-13T14:19:29.954Z",
+  "tool_name": "mcp__Claude_Browser__javascript_tool",
+  "tool_input_preview": "{\"action\":\"javascript_exec\",\"text\":\"location.href='http://localhost:4179/';\\nawait new Promise(r=>setTimeout(r,1500));\\n'reloaded'\"}",
+  "error": "javascript_tool failed: Inspected target navigated or closed The page navigated or was closed mid-evaluation (if the script itself navigated, it likely succeeded; otherwise re-run against the current page).",
+  "timestamp": "2026-09-13T15:12:36.686Z",
   "retry_count": 1
 }

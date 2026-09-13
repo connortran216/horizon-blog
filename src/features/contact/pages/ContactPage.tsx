@@ -90,7 +90,7 @@ const ContactPage = () => {
   const secondaryContacts = contactInfo.filter((info) => info.emphasis !== 'primary')
 
   return (
-    <ContentContainer as="main">
+    <ContentContainer>
       <Section density="comfortable">
         <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
           <Stack gap={6}>

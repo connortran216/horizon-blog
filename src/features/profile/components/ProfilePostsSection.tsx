@@ -1,18 +1,32 @@
+/**
+ * The author's three collections - published, scheduled, drafts - on one panel.
+ *
+ * Composed from `Surface`, `Stack`, the typography recipes, `EmptyState` and
+ * `PanelLoading`. The one thing it still reaches to Chakra for is `Tabs`: the
+ * design system has no tab primitive, and a hand-built one here would be a
+ * `div` with a click handler pretending to be a tablist. Chakra's is a real
+ * `role="tablist"` with arrow-key navigation, so it stays and it is dressed in
+ * tokens - `componentTokens.control` for the pill, `minTouchTarget` for the
+ * height that used to be a hand-written `44px`.
+ *
+ * The counts stay mutually exclusive: a scheduled post is counted as scheduled
+ * and nowhere else, which is what the backend means by the three views.
+ */
+
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
+
 import {
-  Badge,
-  Box,
+  EmptyState,
+  Eyebrow,
   Heading,
-  HStack,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
-import ProfileBlogGrid from './ProfileBlogGrid'
+  PanelLoading,
+  Stack,
+  StatusBadge,
+  Surface,
+} from '../../../design-system'
+import { componentTokens, radii, space } from '../../../theme/tokens'
 import { ProfileBlogPost, ProfilePaginationState } from '../profile.types'
+import ProfileBlogGrid from './ProfileBlogGrid'
 import ProfileScheduledList from './ProfileScheduledList'
 
 interface ProfilePostsSectionProps {
@@ -35,6 +49,26 @@ interface ProfilePostsSectionProps {
   onDelete: (blogId: string) => void
 }
 
+/*
+ * One pill. Every value is a token: the control radius, the control padding,
+ * the touch floor, the workspace ground and the two action roles for the
+ * selected state.
+ */
+const tabStyle = {
+  borderRadius: radii.tag,
+  paddingInline: componentTokens.control.paddingX,
+  minHeight: componentTokens.control.minTouchTarget,
+  bg: componentTokens.workspace.bg,
+  color: componentTokens.control.quietFg,
+  transitionProperty: 'common',
+  transitionDuration: componentTokens.control.transition,
+  transitionTimingFunction: 'standard',
+  _selected: {
+    bg: componentTokens.control.quietHoverBg,
+    color: componentTokens.control.solidBg,
+  },
+} as const
+
 const ProfilePostsSection = ({
   postsLoading,
   profileUsername,
@@ -54,124 +88,51 @@ const ProfilePostsSection = ({
   onCancelSchedule,
   onDelete,
 }: ProfilePostsSectionProps) => {
-  const tabColor = 'text.secondary'
-  const tabSelectedColor = 'action.primary'
-  const tabBorderColor = 'action.primary'
+  const totalBlogs = publishedPagination.total + scheduledPagination.total + draftPagination.total
 
   return (
-    <Box
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="3xl"
-      bg="bg.glass"
-      backdropFilter="blur(18px)"
-      px={{ base: 6, md: 8 }}
-      py={{ base: 7, md: 8 }}
-      boxShadow="md"
-    >
-      <VStack align="stretch" spacing={6}>
-        <HStack justify="space-between" align="flex-end" flexWrap="wrap" spacing={4}>
-          <Box>
-            <Text
-              fontSize="sm"
-              textTransform="uppercase"
-              letterSpacing="0.14em"
-              color="text.tertiary"
-            >
-              Blogs
-            </Text>
-            <Heading mt={2} size="lg" color="text.primary" letterSpacing="-0.03em">
+    <Surface as="section" depth="raised">
+      <Stack gap={6}>
+        <Stack
+          direction="row"
+          gap={4}
+          collapseAt="sm"
+          flexWrap="wrap"
+          alignItems={{ base: 'flex-start', sm: 'flex-end' }}
+          justifyContent="space-between"
+        >
+          <Stack gap={2}>
+            <Eyebrow as="p">Blogs</Eyebrow>
+            <Heading as="h2" recipe="sectionTitle">
               Your blogs and works in progress
             </Heading>
-          </Box>
-          <Badge
-            px={3}
-            py={1.5}
-            borderRadius="full"
-            bg="bg.tertiary"
-            color="text.secondary"
-            textTransform="uppercase"
-            letterSpacing="0.14em"
-            fontSize="10px"
-          >
-            {publishedPagination.total + scheduledPagination.total + draftPagination.total} total
-            blogs
-          </Badge>
-        </HStack>
+          </Stack>
+          <StatusBadge tone="neutral">{totalBlogs} total blogs</StatusBadge>
+        </Stack>
 
         {postsLoading ? (
-          <Text textAlign="center" color="text.secondary">
-            Loading blogs...
-          </Text>
+          <PanelLoading task="your blogs" />
         ) : (
           <Tabs variant="unstyled">
-            <TabList gap={3} flexWrap="wrap">
-              <Tab
-                borderRadius="full"
-                px={4}
-                py={2}
-                h="44px"
-                bg="bg.page"
-                color={tabColor}
-                _selected={{
-                  bg: 'action.subtle',
-                  color: tabSelectedColor,
-                  borderColor: tabBorderColor,
-                }}
-              >
-                Published ({publishedPagination.total})
-              </Tab>
-              <Tab
-                borderRadius="full"
-                px={4}
-                py={2}
-                h="44px"
-                bg="bg.page"
-                color={tabColor}
-                _selected={{
-                  bg: 'action.subtle',
-                  color: tabSelectedColor,
-                  borderColor: tabBorderColor,
-                }}
-              >
-                Scheduled ({scheduledPagination.total})
-              </Tab>
-              <Tab
-                borderRadius="full"
-                px={4}
-                py={2}
-                h="44px"
-                bg="bg.page"
-                color={tabColor}
-                _selected={{
-                  bg: 'action.subtle',
-                  color: tabSelectedColor,
-                  borderColor: tabBorderColor,
-                }}
-              >
-                Drafts ({draftPagination.total})
-              </Tab>
+            <TabList gap={space[3]} flexWrap="wrap">
+              <Tab {...tabStyle}>Published ({publishedPagination.total})</Tab>
+              <Tab {...tabStyle}>Scheduled ({scheduledPagination.total})</Tab>
+              <Tab {...tabStyle}>Drafts ({draftPagination.total})</Tab>
             </TabList>
             <TabPanels>
-              <TabPanel px={0} pt={6}>
+              <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
                 {publishedBlogs.length === 0 ? (
-                  <Box
-                    border="1px solid"
-                    borderColor="border.subtle"
-                    borderRadius="2xl"
-                    bg="bg.page"
-                    px={6}
-                    py={10}
-                    textAlign="center"
-                  >
-                    <Text color="text.secondary">No blogs yet.</Text>
-                  </Box>
+                  <EmptyState
+                    subject="published blogs"
+                    nextAction="Publish a draft, and it will appear here."
+                  />
                 ) : (
                   <ProfileBlogGrid
                     blogs={publishedBlogs}
                     totalCount={publishedPagination.total}
                     currentPage={publishedPagination.page}
                     pageSize={publishedPagination.limit}
+                    label="Published blogs pagination"
                     onPageChange={onPublishedPageChange}
                     onEdit={onEdit}
                     onDelete={onDelete}
@@ -179,19 +140,12 @@ const ProfilePostsSection = ({
                   />
                 )}
               </TabPanel>
-              <TabPanel px={0} pt={6}>
+              <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
                 {scheduledBlogs.length === 0 ? (
-                  <Box
-                    border="1px solid"
-                    borderColor="border.subtle"
-                    borderRadius="2xl"
-                    bg="bg.page"
-                    px={6}
-                    py={10}
-                    textAlign="center"
-                  >
-                    <Text color="text.secondary">No scheduled publications.</Text>
-                  </Box>
+                  <EmptyState
+                    subject="scheduled publications"
+                    nextAction="Schedule a draft from the editor, and it will wait here until its time."
+                  />
                 ) : (
                   <ProfileScheduledList
                     blogs={scheduledBlogs}
@@ -206,25 +160,19 @@ const ProfilePostsSection = ({
                   />
                 )}
               </TabPanel>
-              <TabPanel px={0} pt={6}>
+              <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
                 {draftBlogs.length === 0 ? (
-                  <Box
-                    border="1px solid"
-                    borderColor="border.subtle"
-                    borderRadius="2xl"
-                    bg="bg.page"
-                    px={6}
-                    py={10}
-                    textAlign="center"
-                  >
-                    <Text color="text.secondary">No draft articles.</Text>
-                  </Box>
+                  <EmptyState
+                    subject="drafts"
+                    nextAction="Start a blog in the editor, and it will be saved here."
+                  />
                 ) : (
                   <ProfileBlogGrid
                     blogs={draftBlogs}
                     totalCount={draftPagination.total}
                     currentPage={draftPagination.page}
                     pageSize={draftPagination.limit}
+                    label="Draft blogs pagination"
                     onPageChange={onDraftPageChange}
                     onEdit={onEdit}
                     onDelete={onDelete}
@@ -235,8 +183,8 @@ const ProfilePostsSection = ({
             </TabPanels>
           </Tabs>
         )}
-      </VStack>
-    </Box>
+      </Stack>
+    </Surface>
   )
 }
 

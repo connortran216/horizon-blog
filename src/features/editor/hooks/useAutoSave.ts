@@ -3,6 +3,18 @@
  *
  * Follows Single Responsibility Principle by managing auto-save timers,
  * local storage operations, and backend saving logic separate from UI components.
+ *
+ * Release M6 changed nothing about when a save happens or what it sends. The
+ * only thing it removed is `getSaveStatusText`, which turned this state into a
+ * sentence. Six of those sentences now come from the design system's
+ * `autosaveState`, which returns a label *and* an icon *and* a tone together so
+ * a save state cannot be shipped as a coloured word; `editor-status.utils.ts`
+ * is the join.
+ *
+ * One thing this hook still does that nothing reads: it writes a timestamped
+ * copy of the draft to `blog_draft_backup` on every keystroke, and no code path
+ * ever offers it back. That is a product gap, not a presentation one, and M6
+ * deliberately did not invent a recovery flow for it.
  */
 
 import { useEffect, useCallback, useRef, useState } from 'react'
@@ -309,14 +321,5 @@ export function useAutoSave(
     saveToBackend,
     publishPost,
     clearLocalStorage,
-
-    // Status helpers
-    getSaveStatusText: () => {
-      if (state.isSaving || state.saveStatus === 'saving') return 'Saving...'
-      if (state.permissionLost) return 'Access changed — saved locally'
-      if (state.saveStatus === 'error') return 'Save failed'
-      if (postIdRef.current) return 'Draft saved'
-      return 'Draft'
-    },
   }
 }

@@ -1,5 +1,13 @@
-import { VStack } from '@chakra-ui/react'
-import PaginationControls from '../../../components/PaginationControls'
+/**
+ * The scheduled tab's list and its pager.
+ *
+ * A real `ol`: these rows are a queue with an order the author reads as one, and
+ * the legacy `VStack` said nothing about that to a screen reader.
+ */
+
+import { Box } from '@chakra-ui/react'
+
+import { Pagination, Stack, Text } from '../../../design-system'
 import { ProfileBlogPost, ProfilePaginationState } from '../profile.types'
 import ProfileScheduledRow from './ProfileScheduledRow'
 
@@ -26,28 +34,35 @@ const ProfileScheduledList = ({
   onCancelSchedule,
   onDelete,
 }: ProfileScheduledListProps) => (
-  <VStack spacing={4} align="stretch">
-    {blogs.map((blog) => (
-      <ProfileScheduledRow
-        key={blog.id}
-        blog={blog}
-        now={now}
-        onEdit={onEdit}
-        onReschedule={onReschedule}
-        onPublishNow={onPublishNow}
-        onCancelSchedule={onCancelSchedule}
-        onDelete={onDelete}
-      />
-    ))}
-    <PaginationControls
-      currentPage={pagination.page}
-      totalPages={Math.ceil(pagination.total / pagination.limit)}
-      totalCount={pagination.total}
+  <Stack gap={4}>
+    <Text recipe="metadata">
+      Every publication below is still a draft. The server publishes it at the time shown.
+    </Text>
+
+    <Stack as="ol" gap={4}>
+      {blogs.map((blog) => (
+        <Box as="li" key={blog.id} listStyleType="none">
+          <ProfileScheduledRow
+            blog={blog}
+            now={now}
+            onEdit={onEdit}
+            onReschedule={onReschedule}
+            onPublishNow={onPublishNow}
+            onCancelSchedule={onCancelSchedule}
+            onDelete={onDelete}
+          />
+        </Box>
+      ))}
+    </Stack>
+
+    <Pagination
+      page={pagination.page}
       pageSize={pagination.limit}
+      totalItems={pagination.total}
       onPageChange={onPageChange}
-      textColor="text.tertiary"
+      label="Scheduled publications pagination"
     />
-  </VStack>
+  </Stack>
 )
 
 export default ProfileScheduledList

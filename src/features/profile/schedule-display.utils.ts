@@ -1,6 +1,19 @@
+import { SCHEDULE_GRACE_MS } from '../../design-system'
 import { ScheduleDisplayState } from './profile.types'
 
-export const SCHEDULE_GRACE_PERIOD_MS = 5 * 60 * 1000
+/**
+ * One source of truth, and it is the design system's.
+ *
+ * This value was written out twice - here and in
+ * `src/design-system/patterns/editor/schedule.logic.ts` - because the design
+ * system may not import from `features`, so it could not consume a constant
+ * defined here. The dependency only runs one way, which settles which copy
+ * survives: `features` imports the design system, and this is now an alias.
+ *
+ * Both halves of release M6 reached the same conclusion independently, from
+ * opposite sides of the duplicate.
+ */
+export const SCHEDULE_GRACE_PERIOD_MS = SCHEDULE_GRACE_MS
 
 const toDate = (value: string): Date | null => {
   const date = new Date(value)

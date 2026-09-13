@@ -88,7 +88,7 @@ const CvPage = () => {
 
   return (
     <Box className="cv-page" sx={{ '@media print': printOverrides }}>
-      <ContentContainer as="main" width="prose">
+      <ContentContainer width="prose">
         <Section density="comfortable">
           <Surface
             className="cv-document"

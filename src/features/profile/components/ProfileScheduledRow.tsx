@@ -1,22 +1,34 @@
+/**
+ * One scheduled publication, as the author sees it in their workspace.
+ *
+ * A scheduled publication is a draft with a timestamp on it, and nothing here
+ * may say otherwise. `schedule-display.utils.ts` holds the real rules - the
+ * five-minute grace window, and what "overdue" means - and this row only asks
+ * them which of the three states it is in and paints the answer.
+ *
+ * The badge is a `StatusBadge`, which carries the state in words as well as in
+ * a tone. The legacy row used a Chakra `Badge` with `colorScheme="blue"`,
+ * `"purple"` and `"orange"`: three hues off the Chakra palette, carrying part of
+ * the meaning in colour alone.
+ */
+
+import { Box, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
+import { ChevronDownIcon } from '@chakra-ui/icons'
+
 import {
-  Badge,
-  Box,
   Button,
   Heading,
-  HStack,
-  Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
+  ResponsiveImage,
   Stack,
+  StatusBadge,
+  Surface,
   Text,
-} from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
+} from '../../../design-system'
+import { componentTokens, space } from '../../../theme/tokens'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { coverSourcesFrom } from '../../blog/postSummary.presentation'
 import { ProfileBlogPost } from '../profile.types'
+import { scheduleStatusPresentation } from '../profile.presentation'
 import {
   formatLastUpdated,
   formatScheduleExact,
@@ -35,12 +47,6 @@ interface ProfileScheduledRowProps {
   onDelete: (blogId: string) => void
 }
 
-const STATUS_CONTENT = {
-  scheduled: { label: 'Scheduled', colorScheme: 'blue' },
-  publishing: { label: 'Publishing', colorScheme: 'purple' },
-  needs_attention: { label: 'Needs attention', colorScheme: 'orange' },
-} as const
-
 const ProfileScheduledRow = ({
   blog,
   now,
@@ -51,98 +57,104 @@ const ProfileScheduledRow = ({
   onDelete,
 }: ProfileScheduledRowProps) => {
   const scheduledAt = blog.scheduledPublishAt || ''
-  const state = getScheduleDisplayState(scheduledAt, now)
-  const status = STATUS_CONTENT[state]
+  const status = scheduleStatusPresentation(getScheduleDisplayState(scheduledAt, now))
   const coverMedia = useResolvedCoverMedia(blog.featuredImage)
-  const cover = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 180px')
-    : undefined
 
   return (
-    <Stack
-      direction={{ base: 'column', md: 'row' }}
-      spacing={0}
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="2xl"
-      overflow="hidden"
-      bg="bg.page"
-    >
-      <Box w={{ base: 'full', md: '180px' }} minH={{ base: '150px', md: '168px' }} flexShrink={0}>
-        {cover ? (
-          <Image {...cover} alt="" w="full" h="full" objectFit="cover" />
-        ) : (
-          <DefaultPostCover title={blog.title} eyebrow="Publication" h="full" />
-        )}
-      </Box>
+    <Surface as="article" depth="raised">
+      <Box
+        display="grid"
+        gridTemplateColumns={{ base: '1fr', md: '180px minmax(0, 1fr)' }}
+        gap={{ base: space[4], md: space[6] }}
+        alignItems="start"
+      >
+        <ResponsiveImage
+          aspectRatio="16 / 9"
+          src={coverMedia?.url}
+          sources={coverSourcesFrom(coverMedia)}
+          sizes="(max-width: 768px) 100vw, 180px"
+          /*
+           * Decorative. The heading beside it names the same post, and this row
+           * already asks a screen reader to hear a status, a date, a timezone
+           * and four controls.
+           */
+          decorative
+          task="the cover image"
+        />
 
-      <Stack flex={1} p={{ base: 5, md: 6 }} spacing={4} justify="space-between">
-        <Stack spacing={3}>
-          <HStack justify="space-between" align="flex-start" spacing={4} flexWrap="wrap">
-            <Badge
-              colorScheme={status.colorScheme}
-              borderRadius="full"
-              px={3}
-              py={1}
-              textTransform="uppercase"
-              letterSpacing="0.1em"
-              fontSize="10px"
+        <Stack gap={4}>
+          <Stack gap={3}>
+            <Stack
+              direction="row"
+              gap={3}
+              collapseAt={undefined}
+              flexWrap="wrap"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              {status.label}
-            </Badge>
-            <Text color="text.tertiary" fontSize="sm">
-              {formatLastUpdated(blog.updatedAt)}
-            </Text>
-          </HStack>
+              {/*
+                `isLive` because this one changes while the page is open: the
+                workspace ticks a clock every fifteen seconds, so a row can move
+                from Scheduled to Publishing under a reader who is not looking.
+              */}
+              <StatusBadge tone={status.tone} isLive>
+                {status.label}
+              </StatusBadge>
+              <Text recipe="metadata">{formatLastUpdated(blog.updatedAt)}</Text>
+            </Stack>
 
-          <Heading size="md" color="text.primary" lineHeight="1.2">
-            {blog.title}
-          </Heading>
+            <Heading as="h3" recipe="cardTitle">
+              {blog.title}
+            </Heading>
 
-          <Box>
-            <Text color="text.primary" fontWeight="semibold">
-              {formatScheduleExact(scheduledAt)}
-            </Text>
-            <Text color="text.secondary" fontSize="sm" mt={1}>
-              {formatScheduleTimezone(scheduledAt)} · {formatScheduleRelative(scheduledAt, now)}
-            </Text>
-          </Box>
-        </Stack>
+            <Box>
+              <Text recipe="body" fontWeight="semibold">
+                {formatScheduleExact(scheduledAt)}
+              </Text>
+              <Text recipe="metadata" marginBlockStart={space[1]}>
+                {formatScheduleTimezone(scheduledAt)} · {formatScheduleRelative(scheduledAt, now)}
+              </Text>
+              <Text recipe="metadata" marginBlockStart={space[1]}>
+                Still a draft. It becomes readable only once the server publishes it.
+              </Text>
+            </Box>
+          </Stack>
 
-        <HStack spacing={3} justify={{ base: 'stretch', sm: 'flex-end' }} flexWrap="wrap">
-          <Button
-            size="sm"
-            h={{ base: '44px', md: '32px' }}
-            flex={{ base: 1, sm: 'initial' }}
-            variant="outline"
-            onClick={() => onEdit(blog.id)}
+          <Stack
+            direction="row"
+            gap={3}
+            collapseAt="sm"
+            flexWrap="wrap"
+            justifyContent={{ base: 'stretch', sm: 'flex-end' }}
           >
-            Edit
-          </Button>
-          <Menu placement="bottom-end" isLazy>
-            <MenuButton
-              as={Button}
-              size="sm"
-              h={{ base: '44px', md: '32px' }}
-              flex={{ base: 1, sm: 'initial' }}
-              colorScheme="blue"
-              rightIcon={<ChevronDownIcon />}
-              aria-label={`Manage schedule for ${blog.title}`}
-            >
-              Manage
-            </MenuButton>
-            <MenuList zIndex="tooltip">
-              <MenuItem onClick={() => onReschedule(blog.id)}>Reschedule</MenuItem>
-              <MenuItem onClick={() => onPublishNow(blog.id)}>Publish now</MenuItem>
-              <MenuItem onClick={() => onCancelSchedule(blog)}>Cancel schedule</MenuItem>
-              <MenuItem color="red.500" onClick={() => onDelete(blog.id)}>
-                Delete blog
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        </HStack>
-      </Stack>
-    </Stack>
+            <Button tone="secondary" onClick={() => onEdit(blog.id)}>
+              Edit
+            </Button>
+            <Menu placement="bottom-end" isLazy>
+              <MenuButton
+                as={Button}
+                tone="primary"
+                iconEnd={<ChevronDownIcon aria-hidden="true" />}
+                aria-label={`Manage the schedule for ${blog.title}`}
+              >
+                Manage
+              </MenuButton>
+              <MenuList zIndex="tooltip">
+                <MenuItem onClick={() => onReschedule(blog.id)}>Reschedule</MenuItem>
+                <MenuItem onClick={() => onPublishNow(blog.id)}>Publish now</MenuItem>
+                <MenuItem onClick={() => onCancelSchedule(blog)}>Cancel schedule</MenuItem>
+                <MenuItem
+                  color={componentTokens.control.dangerFg}
+                  onClick={() => onDelete(blog.id)}
+                >
+                  Delete blog
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </Stack>
+        </Stack>
+      </Box>
+    </Surface>
   )
 }
 

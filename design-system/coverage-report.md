@@ -17,17 +17,17 @@ Regenerate it rather than editing it.
 
 ## Counts
 
-- Legacy UI files on disk: **130**
-- Ledger rows: **130**
+- Legacy UI files on disk: **127**
+- Ledger rows: **127**
 - Exported v2 components: **69**
 - Exported components demonstrated in the gallery: **69**
 
 | Disposition | Rows |
 | --- | ---: |
-| adapt | 36 |
+| adapt | 18 |
 | compatibility | 3 |
-| deferred-page-migration | 14 |
-| migrated | 61 |
+| deferred-page-migration | 7 |
+| migrated | 83 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 

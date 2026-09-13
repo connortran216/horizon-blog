@@ -1,39 +1,70 @@
+/**
+ * The blog editor - migrated onto Horizon Design System v2 (release M6).
+ *
+ * Composed from `ContentContainer`, `Section`, `WorkspaceShell` (through
+ * `EditorWorkspace`), `MetadataBar`, `TagField`, `AutosaveState` and
+ * `ScheduleNotice`. Removed on the way: the `AnimatedCard` glass panel, three
+ * absolutely positioned `action.glow` blur washes, the uppercase `Badge` pair,
+ * the hand-built `FormControl`/`FormLabel`/`FormHelperText` title field and the
+ * permission `Alert`.
+ *
+ * Presentation only. Autosave timing, the local backup, draft loading and its
+ * authorisation check, the media lifecycle inside Crepe, the publish handoff
+ * through `window.editorState` and every route this page can take are byte for
+ * byte what they were.
+ *
+ * Two composition notes worth knowing before changing anything here:
+ *
+ * - There is no publish button on this page and there never was. The navbar
+ *   reads `window.editorState.handlePublish`, so adding an action to the
+ *   workspace shell would put two publish buttons on one screen.
+ * - The permission-loss `Alert` is gone because it said the same thing twice.
+ *   `autosaveState` treats a lost permission as the strongest state there is,
+ *   announces it assertively, and its detail sentence already tells the author
+ *   their draft is kept in this browser.
+ */
+
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Badge,
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  Box,
-  Container,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  HStack,
-  Input,
-  VStack,
-  Stack,
-  Text,
-  useToast,
-} from '@chakra-ui/react'
+import { useToast } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
-import { AnimatedCard, LoadingPanel } from '../../../core'
+import {
+  AutosaveState,
+  ContentContainer,
+  Eyebrow,
+  Heading,
+  MetadataBar,
+  PanelLoading,
+  Section,
+  Stack,
+  scheduleState,
+  Text,
+  type WorkspaceMode,
+} from '../../../design-system'
 import { useAuth } from '../../../context/AuthContext'
 import { ApiError } from '../../../core/services/api.service'
 import { useAutoSave } from '../hooks/useAutoSave'
 import { useBlogPost } from '../hooks/useBlogPost'
+import { useConnectionStatus } from '../hooks/useConnectionStatus'
 import { useEditorContent } from '../hooks/useEditorContent'
+import { autosaveIndicator, workspaceFooter } from '../editor-status.utils'
 import EditorTagField from '../components/EditorTagField'
 import EditorWorkspace from '../components/EditorWorkspace'
 import ActiveScheduleNotice from '../components/ActiveScheduleNotice'
 import '../editor.window'
 
 const BlogEditorPage = () => {
-  const { refreshUserProfile } = useAuth()
+  const { refreshUserProfile, user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
-  const [tabIndex, setTabIndex] = useState(0)
+  const [mode, setMode] = useState<WorkspaceMode>('write')
+  /*
+   * The preview's Crepe instance resolves the draft's media when it mounts, so
+   * it is not created until the author asks for it - which is what the legacy
+   * `isLazy lazyBehavior="keepMounted"` did. Once created it stays, because
+   * unmounting it would repeat that work on every switch back.
+   */
+  const [isPreviewMounted, setIsPreviewMounted] = useState(false)
+  const isOffline = useConnectionStatus()
 
   const { post, isLoading, postId } = useBlogPost()
   const editorContent = useEditorContent({
@@ -96,226 +127,103 @@ const BlogEditorPage = () => {
     }
   }, [editorContent.contentMarkdown, editorContent.title, handlePublish])
 
+  const changeMode = (next: WorkspaceMode) => {
+    if (next !== 'write') {
+      setIsPreviewMounted(true)
+    }
+
+    setMode(next)
+  }
+
   if (isLoading) {
     return (
-      <Box position="relative">
-        <Box
-          position="absolute"
-          top="2rem"
-          right="4%"
-          w={{ base: '220px', md: '380px' }}
-          h={{ base: '220px', md: '380px' }}
-          bg="action.glow"
-          filter="blur(120px)"
-          opacity={0.8}
-          pointerEvents="none"
-        />
-
-        <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
-          <LoadingPanel
-            label="Loading editor"
-            description="Restoring the draft and preparing the workspace."
-          />
-        </Container>
-      </Box>
+      <ContentContainer>
+        <Section>
+          <PanelLoading task="the draft and its workspace" />
+        </Section>
+      </ContentContainer>
     )
   }
 
   const hasExistingDraft = Boolean(postId || autoSave.currentPostId)
-  const draftLabel = hasExistingDraft ? 'Editing draft' : 'New draft'
+  const scheduledAt = post?.scheduled_publish_at
 
   return (
-    <Box position="relative">
-      <Box
-        position="absolute"
-        top="3rem"
-        right="4%"
-        w={{ base: '220px', md: '420px' }}
-        h={{ base: '220px', md: '420px' }}
-        bg="action.glow"
-        filter="blur(120px)"
-        opacity={0.75}
-        pointerEvents="none"
-      />
+    <ContentContainer>
+      <Section density="compact">
+        <Stack gap={8}>
+          <Stack gap={3}>
+            <Eyebrow as="p">Writing studio</Eyebrow>
+            <Heading recipe="pageTitle" as="h1">
+              {hasExistingDraft
+                ? 'Refine the draft before it goes live.'
+                : 'Write a blog with clarity.'}
+            </Heading>
+            <Text recipe="body">
+              Drafts save automatically while you work. Use tags to keep related writing connected,
+              then switch to preview or split to check the final reading rhythm before you publish.
+            </Text>
+          </Stack>
 
-      <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
-        <AnimatedCard
-          whileHover={{}}
-          overflow="visible"
-          intensity="light"
-          border="1px solid"
-          borderColor="border.subtle"
-          bg="bg.glass"
-          backdropFilter="blur(18px)"
-          boxShadow="0 20px 44px rgba(0, 0, 0, 0.22)"
-        >
-          <Box position="relative">
-            <Box
-              position="absolute"
-              top="-16%"
-              right="-4%"
-              w={{ base: '220px', md: '360px' }}
-              h={{ base: '220px', md: '360px' }}
-              bg="action.glow"
-              filter="blur(110px)"
-              opacity={0.9}
-              pointerEvents="none"
-            />
-
-            <Box position="relative" zIndex={1}>
-              <Box px={{ base: 6, md: 8 }} pt={{ base: 6, md: 8 }} pb={{ base: 7, md: 8 }}>
-                <Stack spacing={4} maxW="3xl">
-                  <HStack spacing={3} flexWrap="wrap">
-                    <Badge
-                      alignSelf="flex-start"
-                      px={3}
-                      py={1.5}
-                      borderRadius="full"
-                      bg="bg.tertiary"
-                      color="text.secondary"
-                      textTransform="uppercase"
-                      letterSpacing="0.16em"
-                      fontSize="10px"
-                    >
-                      Writing studio
-                    </Badge>
-
-                    <Badge
-                      px={3}
-                      py={1.5}
-                      borderRadius="full"
-                      bg="action.subtle"
-                      color="action.primary"
-                      textTransform="uppercase"
-                      letterSpacing="0.16em"
-                      fontSize="10px"
-                    >
-                      {draftLabel}
-                    </Badge>
-                  </HStack>
-
-                  <Heading
-                    fontSize={{ base: '3xl', md: '5xl' }}
-                    lineHeight={{ base: 1.08, md: 0.98 }}
-                    letterSpacing="-0.05em"
-                    color="text.primary"
-                  >
-                    {hasExistingDraft
-                      ? 'Refine the draft before it goes live.'
-                      : 'Write a blog with clarity.'}
-                  </Heading>
-
-                  <Text
-                    maxW="2xl"
-                    color="text.secondary"
-                    fontSize={{ base: 'md', md: 'lg' }}
-                    lineHeight="tall"
-                  >
-                    Drafts save automatically while you work. Use tags to keep related writing
-                    connected, then switch to preview to check the final reading rhythm before you
-                    publish.
-                  </Text>
-                </Stack>
-              </Box>
-
-              <Box borderTop="1px solid" borderColor="border.subtle" />
-
-              <VStack
-                spacing={{ base: 6, md: 8 }}
-                align="stretch"
-                px={{ base: 6, md: 8 }}
-                py={{ base: 6, md: 8 }}
-              >
-                {post?.scheduled_publish_at ? (
-                  <ActiveScheduleNotice
-                    scheduledAt={post.scheduled_publish_at}
-                    onManage={() =>
-                      navigate(`/blog-editor/publish?id=${post.id}&mode=schedule`, {
-                        state: { authorizedEdit: true },
-                      })
-                    }
-                  />
-                ) : null}
-                {autoSave.permissionLost ? (
-                  <Alert status="warning" borderRadius="xl" alignItems="flex-start">
-                    <AlertIcon mt={1} />
-                    <AlertDescription>
-                      Your writing permission changed. Automatic server saves have stopped, but this
-                      draft remains saved in this browser so you can copy or recover it.
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-                <FormControl>
-                  <FormLabel
-                    htmlFor="blog-title"
-                    mb={1.5}
-                    fontSize="sm"
-                    fontWeight="semibold"
-                    color="text.primary"
-                  >
-                    Title
-                  </FormLabel>
-                  <FormHelperText mt={0} mb={3} color="text.tertiary">
-                    Lead with a clear promise or idea readers will understand at a glance.
-                  </FormHelperText>
-
-                  <Box
-                    border="1px solid"
-                    borderColor="border.default"
-                    borderRadius="2xl"
-                    bg="bg.page"
-                    px={{ base: 4, md: 5 }}
-                    py={{ base: 4, md: 5 }}
-                    transition="border-color 0.2s ease, box-shadow 0.2s ease"
-                    _focusWithin={{
-                      borderColor: 'action.primary',
-                      boxShadow: '0 0 0 1px var(--chakra-colors-action-primary)',
-                    }}
-                  >
-                    <Input
-                      id="blog-title"
-                      name="blogTitle"
-                      variant="unstyled"
-                      placeholder="Give your blog a clear, specific title"
-                      fontSize={{ base: '2xl', md: '4xl' }}
-                      fontWeight="bold"
-                      letterSpacing="-0.04em"
-                      lineHeight={{ base: 1.12, md: 1.02 }}
-                      color="text.primary"
-                      value={editorContent.title}
-                      onChange={(event) => editorContent.setTitle(event.target.value)}
-                      isDisabled={isLoading}
-                      _placeholder={{ color: 'text.tertiary' }}
-                    />
-                  </Box>
-                </FormControl>
-
-                <EditorTagField
-                  tagInput={editorContent.tagInput}
-                  tags={editorContent.tags}
-                  isDisabled={isLoading}
-                  onTagInputChange={editorContent.setTagInput}
-                  onTagKeyDown={editorContent.handleAddTagByEnter}
-                  onRemoveTag={editorContent.removeTag}
+          <EditorWorkspace
+            mode={mode}
+            onModeChange={changeMode}
+            isPreviewMounted={isPreviewMounted}
+            editorKey={postId || autoSave.currentPostId || 'new-post'}
+            initialContent={editorContent.contentMarkdown}
+            previewContent={editorContent.contentMarkdown}
+            postId={autoSave.currentPostId}
+            ensurePostId={ensurePostId}
+            onEditorChange={editorContent.handleEditorChange}
+            banner={
+              scheduledAt ? (
+                <ActiveScheduleNotice
+                  scheduledAt={scheduledAt}
+                  onManage={() =>
+                    navigate(`/blog-editor/publish?id=${post?.id}&mode=schedule`, {
+                      state: { authorizedEdit: true },
+                    })
+                  }
                 />
-
-                <EditorWorkspace
-                  tabIndex={tabIndex}
-                  onTabChange={setTabIndex}
-                  editorKey={postId || autoSave.currentPostId || 'new-post'}
-                  initialContent={editorContent.contentMarkdown}
-                  previewContent={editorContent.contentMarkdown}
-                  postId={autoSave.currentPostId}
-                  ensurePostId={ensurePostId}
-                  onEditorChange={editorContent.handleEditorChange}
-                  validationMessage={autoSave.validationMessage}
-                />
-              </VStack>
-            </Box>
-          </Box>
-        </AnimatedCard>
-      </Container>
-    </Box>
+              ) : undefined
+            }
+            status={
+              <AutosaveState
+                {...autosaveIndicator({
+                  isSaving: autoSave.isSaving,
+                  saveStatus: autoSave.saveStatus,
+                  permissionLost: autoSave.permissionLost,
+                  isOffline,
+                  validationMessage: autoSave.validationMessage,
+                  lastSaved: autoSave.lastSaved,
+                  hasSavedDraft: hasExistingDraft,
+                })}
+              />
+            }
+            metadata={
+              <MetadataBar
+                title={editorContent.title}
+                onTitleChange={editorContent.setTitle}
+                /*
+                 * The real state of the record, not just "has a timestamp". A
+                 * schedule whose moment passed without the worker running says
+                 * "Draft · needs attention" rather than still promising it is
+                 * on its way.
+                 */
+                publication={scheduledAt ? scheduleState({ scheduledAt }) : 'draft'}
+                author={
+                  user ? { name: user.username || 'Anonymous', avatarUrl: user.avatar } : undefined
+                }
+                tagField={
+                  <EditorTagField tags={editorContent.tags} onChange={editorContent.setTags} />
+                }
+              />
+            }
+            footer={workspaceFooter(editorContent.contentMarkdown)}
+          />
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

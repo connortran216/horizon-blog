@@ -4,8 +4,7 @@
  * Covers the `editor-publishing-pattern` inventory rows - `EditorWorkspace`,
  * `EditorMetaBar`, `EditorTagField`, `PublishBlogPreviewCard` and
  * `ActiveScheduleNotice` - and the chrome half of the `editor-integration` rows
- * (`CrepeEditor`, `CrepePreview`, `MarkdownEditor`, `MilkdownEditor`,
- * `MermaidZoomModal`).
+ * (`CrepeEditor`, `CrepePreview`, `MermaidZoomModal`).
  *
  * The editor libraries themselves are not replaced and are not wrapped.
  * `WorkspaceShell` takes the writing surface and the rendered preview as

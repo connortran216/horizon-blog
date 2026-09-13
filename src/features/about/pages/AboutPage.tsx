@@ -114,7 +114,7 @@ const focusThreads: AboutFocusThread[] = [
 const founderTags = ['Backend systems', 'Product infrastructure', 'Writing in public']
 
 const AboutPage = () => (
-  <ContentContainer as="main">
+  <ContentContainer>
     <Section density="comfortable">
       <AboutHero focusThreads={focusThreads} />
     </Section>

@@ -1,8 +1,16 @@
 /**
- * Crepe Theme Overrides
+ * Crepe theme overrides.
  *
- * Custom CSS to match Crepe editor with the Chakra design system.
- * Uses semantic Chakra tokens for consistent light/dark behavior.
+ * Crepe and Milkdown draw the writing surface; this file only tells them which
+ * colours, radii and shadows to draw it in. Every value below resolves to a
+ * Horizon Design System v2 role through the theme's own CSS custom properties,
+ * so there is no colour, radius or shadow literal here for the two themes to
+ * disagree about.
+ *
+ * These used to point at the legacy alias roles - `bg.glass`, `bg.tertiary`,
+ * `border.default`, `text.tertiary`, `action.active`, `link.hover` - which
+ * `src/theme/horizon.ts` still bridges for pages that have not migrated. The
+ * editor no longer needs that bridge.
  */
 
 /* =========================================
@@ -12,36 +20,42 @@
 .crepe-editor-wrapper {
   --crepe-accent-primary: var(--chakra-colors-action-primary);
   --crepe-accent-hover: var(--chakra-colors-action-hover);
-  --crepe-accent-active: var(--chakra-colors-action-active);
-  --crepe-media-radius: 1.5rem;
+  /* v2 expresses press as travel, not a third colour step. */
+  --crepe-accent-active: var(--chakra-colors-action-hover);
+  --crepe-media-radius: var(--chakra-radii-card);
 
   --crepe-link: var(--chakra-colors-link-default);
-  --crepe-link-hover: var(--chakra-colors-link-hover);
+  /* v2 underlines a link on hover rather than recolouring it. */
+  --crepe-link-hover: var(--chakra-colors-link-default);
 
-  --crepe-code-bg: var(--chakra-colors-bg-tertiary);
+  --crepe-code-bg: var(--chakra-colors-bg-code);
   --crepe-code-fg: var(--chakra-colors-text-primary);
 
-  --crepe-bg-primary: var(--chakra-colors-bg-glass);
-  --crepe-bg-secondary: var(--chakra-colors-bg-tertiary);
-  --crepe-border: var(--chakra-colors-border-default);
+  --crepe-bg-primary: var(--chakra-colors-bg-elevated);
+  --crepe-bg-secondary: var(--chakra-colors-bg-subtle);
+  --crepe-border: var(--chakra-colors-border-subtle);
   --crepe-border-subtle: var(--chakra-colors-border-subtle);
   --crepe-text-primary: var(--chakra-colors-text-primary);
   --crepe-text-secondary: var(--chakra-colors-text-secondary);
-  --crepe-text-tertiary: var(--chakra-colors-text-tertiary);
+  --crepe-text-tertiary: var(--chakra-colors-text-muted);
   --crepe-popup-bg: var(--chakra-colors-bg-elevated);
-  --crepe-popup-border: var(--chakra-colors-border-default);
+  --crepe-popup-border: var(--chakra-colors-border-subtle);
   --crepe-popup-hover: var(--chakra-colors-action-subtle);
   --crepe-popup-selected: var(--chakra-colors-action-primary);
-  --crepe-popup-selected-text: #fff;
-  --crepe-popup-input-bg: var(--chakra-colors-bg-tertiary);
-  --crepe-popup-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+  --crepe-popup-selected-text: var(--chakra-colors-text-onAction);
+  --crepe-popup-input-bg: var(--chakra-colors-bg-subtle);
+  /*
+   * One shadow token, already paired light/dark by the theme, which is why the
+   * three per-colour-mode overrides this file used to carry are gone.
+   */
+  --crepe-popup-shadow: var(--chakra-shadows-card);
 
   /* Map Chakra theme variables to Milkdown/Crepe */
-  --milkdown-color-background: var(--chakra-colors-bg-glass);
-  --milkdown-color-surface: var(--chakra-colors-bg-tertiary);
+  --milkdown-color-background: var(--chakra-colors-bg-elevated);
+  --milkdown-color-surface: var(--chakra-colors-bg-subtle);
   --milkdown-color-text: var(--chakra-colors-text-primary);
   --milkdown-color-secondary: var(--chakra-colors-text-secondary);
-  --milkdown-color-border: var(--chakra-colors-border-default);
+  --milkdown-color-border: var(--chakra-colors-border-subtle);
 
   /* Crepe's expected CSS variables for menus */
   --crepe-color-surface: var(--crepe-bg-secondary);
@@ -56,17 +70,9 @@
   --crepe-color-outline: var(--crepe-text-tertiary);
   --crepe-color-on-background: var(--crepe-text-primary);
   --crepe-color-secondary: var(--crepe-accent-active);
-  --crepe-color-on-secondary: white;
+  --crepe-color-on-secondary: var(--chakra-colors-text-onAction);
   --crepe-color-inverse: var(--crepe-bg-primary);
   --crepe-color-on-inverse: var(--crepe-text-primary);
-}
-
-.chakra-ui-dark .crepe-editor-wrapper {
-  --crepe-popup-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-}
-
-.chakra-ui-light .crepe-editor-wrapper {
-  --crepe-popup-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
 }
 
 .chakra-ui-dark .crepe-editor-wrapper .milkdown {
@@ -267,7 +273,7 @@
 
 .crepe-editor-wrapper .milkdown-code-block .search-box:has(input:focus) {
   outline: 1px solid var(--crepe-popup-selected);
-  box-shadow: 0 0 0 3px var(--chakra-colors-action-glow);
+  box-shadow: 0 0 0 3px var(--chakra-colors-action-subtle);
 }
 
 .crepe-editor-wrapper .milkdown-code-block .search-input,
@@ -375,7 +381,8 @@
   > ul
   > li[aria-selected='true']
   .cm-completionDetail {
-  color: rgba(255, 255, 255, 0.82);
+  /* Sits on --crepe-popup-selected, so it uses that pair's foreground. */
+  color: var(--crepe-popup-selected-text);
 }
 
 .crepe-editor-wrapper .milkdown-code-block .cm-tooltip.cm-completionInfo {
@@ -568,8 +575,8 @@
   min-height: 24rem;
   overflow: auto;
   border: 1px solid var(--chakra-colors-border-subtle);
-  border-radius: 1.25rem;
-  background: var(--chakra-colors-bg-glass);
+  border-radius: var(--chakra-radii-card);
+  background: var(--chakra-colors-bg-elevated);
 }
 
 .mermaid-zoom-modal__canvas {
@@ -698,7 +705,7 @@
 
 .crepe-editor-wrapper ::selection {
   background-color: var(--crepe-accent-primary);
-  color: white;
+  color: var(--chakra-colors-text-onAction);
 }
 
 /* =========================================
@@ -760,7 +767,7 @@
 .crepe-editor-wrapper .milkdown-block-handle {
   z-index: 1100 !important; /* Above navbar */
   background-color: var(--crepe-accent-primary) !important;
-  color: white;
+  color: var(--chakra-colors-text-onAction);
   border-radius: 0.25rem;
   transition:
     opacity 0.2s ease,
