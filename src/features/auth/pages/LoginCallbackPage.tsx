@@ -1,10 +1,25 @@
-import { useEffect, useRef, useState } from 'react'
-import { Box, Stack, Text } from '@chakra-ui/react'
+/**
+ * The Google callback landing - migrated onto Horizon Design System v2
+ * (release M5).
+ *
+ * Presentation only. `resolveLoginCallbackOutcome` is byte-for-byte the
+ * function it was, the fragment is still parsed by `parseOAuthCallbackFragment`
+ * rather than by anything here, and the failure branch still leaves with the
+ * provider's sanitised error code in location state so `/login` can turn it into
+ * a sentence. Nothing on this screen reads or renders a token.
+ *
+ * What the reader sees is `AuthCallbackFeedback` in its `pending` state: the
+ * page never renders any other one, because success and failure both navigate
+ * away. Reporting "signed in" from here would be a claim this component is in no
+ * position to make.
+ */
+
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LoadingSignal } from '../../../components/core/animations/LoadingState'
+
+import { AuthCallbackFeedback, AuthPanel } from '../../../design-system'
 import { useAuth } from '../../../context/AuthContext'
 import { AuthStatus } from '../../../core/types/auth.types'
-import AuthShell from '../components/AuthShell'
 import { parseOAuthCallbackFragment } from '../utils/googleSso'
 
 export type LoginCallbackOutcome =
@@ -34,8 +49,6 @@ const LoginCallbackPage = () => {
   const navigate = useNavigate()
   const { status, user } = useAuth()
   const handledRef = useRef(false)
-  const [statusText] = useState('Finishing your Google sign in...')
-  const [statusDescription] = useState('We are verifying your account and restoring your session.')
 
   useEffect(() => {
     if (handledRef.current) {
@@ -63,31 +76,13 @@ const LoginCallbackPage = () => {
   }, [navigate, status, user])
 
   return (
-    <AuthShell
+    <AuthPanel
       title="Completing your sign in"
       description="We are finishing your Google sign in and restoring your account."
+      isSubmitting
     >
-      <Stack spacing="5" align="center" py={{ base: '6', md: '8' }} textAlign="center">
-        <Box
-          px="5"
-          py="4"
-          borderRadius="full"
-          border="1px solid"
-          borderColor="border.subtle"
-          bg="action.subtle"
-        >
-          <LoadingSignal size="md" />
-        </Box>
-        <Box maxW="sm">
-          <Text color="text.primary" fontSize={{ base: 'lg', md: 'xl' }} fontWeight="semibold">
-            {statusText}
-          </Text>
-          <Text color="text.secondary" fontSize="sm" mt="2" lineHeight="tall">
-            {statusDescription}
-          </Text>
-        </Box>
-      </Stack>
-    </AuthShell>
+      <AuthCallbackFeedback status="pending" provider="Google" />
+    </AuthPanel>
   )
 }
 

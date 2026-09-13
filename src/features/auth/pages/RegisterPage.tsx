@@ -1,20 +1,37 @@
+/**
+ * Register - migrated onto Horizon Design System v2 (release M5).
+ *
+ * Presentation only. The same four values go to `useAuth().register` under the
+ * same keys, the pending-verification branch still redirects to `/verify-email`
+ * carrying the address and the return path, and the password rule is still
+ * `getPasswordPolicyError` rather than anything restated here.
+ *
+ * Composed from `AuthPanel`, `AuthMethod` / `AuthMethodSeparator`, `Field` +
+ * `Input`, `AuthAlert` and `Button`. Every validation message keeps its wording
+ * and is now wired to its own control through `Field`, so an invalid field is
+ * announced and marked `aria-invalid` instead of only turning red.
+ */
+
 import { useState } from 'react'
+import { useToast } from '@chakra-ui/react'
+import { FcGoogle } from 'react-icons/fc'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 import {
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
+  ActionLink,
+  AuthAlert,
+  AuthMethod,
+  AuthMethodSeparator,
+  AuthPanel,
+  Button,
+  Field,
   Input,
   Stack,
   Text,
-  useToast,
-} from '@chakra-ui/react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
+} from '../../../design-system'
 import { useAuth } from '../../../context/AuthContext'
 import { getPasswordPolicyError } from '../../../core/utils/passwordPolicy'
-import AuthMethodDivider from '../components/AuthMethodDivider'
-import AuthShell, { AuthInlineLink } from '../components/AuthShell'
-import GoogleAuthButton from '../components/GoogleAuthButton'
+import { buildGoogleSsoStartUrl } from '../utils/googleSso'
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -24,12 +41,15 @@ const RegisterPage = () => {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isRedirectingToProvider, setIsRedirectingToProvider] = useState(false)
   const toast = useToast()
   const navigate = useNavigate()
   const location = useLocation()
   const { register, isLoading } = useAuth()
   const locationState = location.state as { from?: string } | null
   const redirectTo = locationState?.from || '/'
+  const siblingState = locationState?.from ? { from: locationState.from } : undefined
   const providerDescription =
     redirectTo !== '/'
       ? 'Continue in one step and go back to the page you opened.'
@@ -84,6 +104,14 @@ const RegisterPage = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    // Enter in any field submits the form without touching the button, so the
+    // in-flight guard has to live here as well as on the control.
+    if (isLoading) {
+      return
+    }
+
+    setSubmitError(null)
+
     if (!validateForm()) {
       return
     }
@@ -127,58 +155,60 @@ const RegisterPage = () => {
       })
       navigate(redirectTo, { replace: true })
     } catch {
-      toast({
-        title: 'Registration failed',
-        description: 'Please try again later.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      })
+      setSubmitError('Please try again later.')
     }
   }
 
+  /**
+   * The message the field-level errors are summarised by. `AuthPanel` uses its
+   * presence to move the panel into its invalid state; the per-field messages
+   * are what a reader actually corrects against, so nothing is restated here.
+   */
+  const firstFieldError = Object.values(errors).find((message) => message.length > 0)
+
   return (
-    <AuthShell
+    <AuthPanel
       title="Create an account"
       description={
         <>
           Already have an account?{' '}
-          <AuthInlineLink
-            to="/login"
-            state={locationState?.from ? { from: locationState.from } : undefined}
-          >
+          <ActionLink to="/login" state={siblingState}>
             Login here
-          </AuthInlineLink>
+          </ActionLink>
         </>
+      }
+      isSubmitting={isLoading}
+      validationError={firstFieldError}
+      feedback={
+        submitError === null ? undefined : (
+          <AuthAlert tone="error" title="Registration failed" detail={submitError} />
+        )
       }
     >
       <form onSubmit={handleSubmit}>
-        <Stack spacing="6">
-          <Stack spacing="3">
-            <GoogleAuthButton redirectTo={redirectTo} isDisabled={isLoading} />
-            <Text color="text.tertiary" fontSize="sm" textAlign="center">
+        <Stack gap={6}>
+          <Stack gap={3}>
+            <AuthMethod
+              provider="Google"
+              startUrl={buildGoogleSsoStartUrl(redirectTo)}
+              onStart={() => setIsRedirectingToProvider(true)}
+              icon={<FcGoogle aria-hidden="true" />}
+              isDisabled={isLoading}
+              isRedirecting={isRedirectingToProvider}
+            />
+            <Text recipe="metadata" textAlign="center">
               {providerDescription}
             </Text>
           </Stack>
 
-          <AuthMethodDivider label="Or continue with email" />
+          <AuthMethodSeparator label="Or continue with email" />
 
-          <FormControl isInvalid={!!errors.name} isRequired>
-            <FormLabel htmlFor="name">Name</FormLabel>
-            <Input
-              id="name"
-              name="name"
-              autoComplete="name"
-              value={formData.name}
-              onChange={handleChange}
-            />
-            <FormErrorMessage>{errors.name}</FormErrorMessage>
-          </FormControl>
+          <Field label="Name" id="name" isRequired error={errors.name || undefined}>
+            <Input name="name" autoComplete="name" value={formData.name} onChange={handleChange} />
+          </Field>
 
-          <FormControl isInvalid={!!errors.email} isRequired>
-            <FormLabel htmlFor="email">Email</FormLabel>
+          <Field label="Email" id="email" isRequired error={errors.email || undefined}>
             <Input
-              id="email"
               name="email"
               type="email"
               autoComplete="email"
@@ -186,47 +216,45 @@ const RegisterPage = () => {
               value={formData.email}
               onChange={handleChange}
             />
-            <FormErrorMessage>{errors.email}</FormErrorMessage>
-          </FormControl>
+          </Field>
 
-          <FormControl isInvalid={!!errors.password} isRequired>
-            <FormLabel htmlFor="password">Password</FormLabel>
+          <Field label="Password" id="password" isRequired error={errors.password || undefined}>
             <Input
-              id="password"
               name="password"
               type="password"
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
             />
-            <FormErrorMessage>{errors.password}</FormErrorMessage>
-          </FormControl>
+          </Field>
 
-          <FormControl isInvalid={!!errors.confirmPassword} isRequired>
-            <FormLabel htmlFor="confirmPassword">Confirm password</FormLabel>
+          <Field
+            label="Confirm password"
+            id="confirmPassword"
+            isRequired
+            error={errors.confirmPassword || undefined}
+          >
             <Input
-              id="confirmPassword"
               name="confirmPassword"
               type="password"
               autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
             />
-            <FormErrorMessage>{errors.confirmPassword}</FormErrorMessage>
-          </FormControl>
+          </Field>
 
-          <AnimatedPrimaryButton
+          <Button
             type="submit"
-            size="lg"
-            fontSize="md"
+            tone="primary"
+            width="100%"
             isLoading={isLoading}
-            w="full"
+            loadingLabel="Creating your account"
           >
             Create account
-          </AnimatedPrimaryButton>
+          </Button>
         </Stack>
       </form>
-    </AuthShell>
+    </AuthPanel>
   )
 }
 

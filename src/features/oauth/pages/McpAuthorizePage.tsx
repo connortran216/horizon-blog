@@ -1,19 +1,32 @@
+/**
+ * The MCP authorization bridge - migrated onto Horizon Design System v2
+ * (release M5).
+ *
+ * Presentation only. `completeMcpAuthorization(requestId)` is called once, with
+ * the same guard against a second call, and the only thing that comes back is a
+ * `redirect_uri`. That is also the only thing this screen knows, which is why it
+ * shows no client name, no scope list and no permission checkboxes: a consent
+ * screen assembled out of values the server never sent would be an invention,
+ * and on this page an invention is a phishing surface. If the authorization
+ * model ever grows a real consent step, the server has to describe it first.
+ *
+ * Composed from `AuthPanel`, `PanelLoading`, `AuthAlert` and `Button`.
+ */
+
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
+  ActionLink,
+  AuthAlert,
+  AuthPanel,
   Button,
+  PanelLoading,
   Stack,
   Text,
-} from '@chakra-ui/react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { LoadingSignal } from '../../../components/core/animations/LoadingState'
+} from '../../../design-system'
 import { useAuth } from '../../../context/AuthContext'
 import { AuthStatus } from '../../../core/types/auth.types'
-import AuthShell from '../../auth/components/AuthShell'
 import { McpAuthorizationCompletion, completeMcpAuthorization } from '../oauth.api'
 
 type BridgeState = 'checking' | 'login_required' | 'connecting' | 'authorized' | 'failed'
@@ -23,18 +36,20 @@ interface McpAuthorizationSuccessProps {
 }
 
 export const McpAuthorizationSuccess = ({ onReturnToClient }: McpAuthorizationSuccessProps) => (
-  <Stack spacing="4" align="stretch" w="full" maxW="lg" textAlign="left">
-    <Alert status="success" borderRadius="xl" alignItems="flex-start">
-      <AlertIcon mt="1" />
-      <Box>
-        <AlertTitle>Authentication successful</AlertTitle>
-        <AlertDescription>
-          Your Horizon Blog MCP login is complete. Return to the MCP client to finish connecting.
-        </AlertDescription>
-      </Box>
-    </Alert>
+  <Stack gap={4} width="100%">
+    <AuthAlert
+      tone="success"
+      title="Authentication successful"
+      detail="Your Horizon Blog MCP login is complete. Return to the MCP client to finish connecting."
+    />
 
-    <Button onClick={onReturnToClient}>Return to MCP client</Button>
+    {/*
+     * The code lives in the redirect URI and is handed back by navigating, not
+     * by putting a token on screen for someone to copy.
+     */}
+    <Button tone="primary" onClick={onReturnToClient}>
+      Return to MCP client
+    </Button>
   </Stack>
 )
 
@@ -105,59 +120,37 @@ const McpAuthorizePage = () => {
   }
 
   return (
-    <AuthShell
+    <AuthPanel
       title="Connect Horizon MCP"
       description="We are preparing a secure authorization code for your MCP client."
+      isSubmitting={isBusy}
     >
-      <Stack spacing="5" align="center" py={{ base: '6', md: '8' }} textAlign="center">
-        {isBusy ? (
-          <Box
-            px="5"
-            py="4"
-            borderRadius="full"
-            border="1px solid"
-            borderColor="border.subtle"
-            bg="action.subtle"
-          >
-            <LoadingSignal size="md" />
-          </Box>
-        ) : null}
-
-        {bridgeState === 'authorized' && completion ? (
-          <McpAuthorizationSuccess onReturnToClient={returnToClient} />
-        ) : bridgeState === 'failed' ? (
-          <Alert status="error" borderRadius="xl" alignItems="flex-start" textAlign="left">
-            <AlertIcon mt="1" />
-            <Box>
-              <AlertTitle>Authorization failed</AlertTitle>
-              <AlertDescription>
-                {errorMessage || 'Please restart the MCP connection and try again.'}
-              </AlertDescription>
-            </Box>
-          </Alert>
-        ) : (
-          <Box maxW="sm">
-            <Text color="text.primary" fontSize={{ base: 'lg', md: 'xl' }} fontWeight="semibold">
-              {bridgeState === 'login_required' ? 'Login required' : 'Connecting your account...'}
-            </Text>
-            <Text color="text.secondary" fontSize="sm" mt="2" lineHeight="tall">
-              {bridgeState === 'login_required'
-                ? 'You will come back here automatically after signing in.'
-                : 'Keep this tab open while Horizon verifies your session.'}
-            </Text>
-          </Box>
-        )}
-
-        {bridgeState === 'failed' ? (
-          <Button
-            variant="outline"
-            onClick={() => navigate('/login', { state: { from: returnPath } })}
-          >
+      {bridgeState === 'authorized' && completion ? (
+        <McpAuthorizationSuccess onReturnToClient={returnToClient} />
+      ) : bridgeState === 'failed' ? (
+        <Stack gap={4}>
+          <AuthAlert
+            tone="error"
+            title="Authorization failed"
+            detail={errorMessage || 'Please restart the MCP connection and try again.'}
+          />
+          <ActionLink to="/login" state={{ from: returnPath }} weight="secondary">
             Sign in again
-          </Button>
-        ) : null}
-      </Stack>
-    </AuthShell>
+          </ActionLink>
+        </Stack>
+      ) : (
+        <Stack gap={4} alignItems="center">
+          <PanelLoading
+            task={bridgeState === 'login_required' ? 'the sign-in screen' : 'your MCP connection'}
+          />
+          <Text recipe="body" textAlign="center">
+            {bridgeState === 'login_required'
+              ? 'You will come back here automatically after signing in.'
+              : 'Keep this tab open while Horizon verifies your session.'}
+          </Text>
+        </Stack>
+      )}
+    </AuthPanel>
   )
 }
 

@@ -1,21 +1,33 @@
+/**
+ * Reset password - migrated onto Horizon Design System v2 (release M5).
+ *
+ * Presentation only. The token is still lifted out of the query string and
+ * removed from the URL on arrival, `authService.resetPassword` receives the same
+ * three values, and success still lands on `/login` with `resetPasswordSuccess`
+ * so the sign-in screen can confirm it. The expired-link branch still keys on
+ * the service's exact 400 message; that string is the contract with the backend
+ * and is reproduced character for character.
+ *
+ * Composed from `AuthPanel`, `Field` + `Input`, `AuthAlert`, `Button` and a
+ * router link for the two ways out of an unusable link.
+ */
+
 import { FormEvent, useEffect, useState } from 'react'
+
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
+  ActionLink,
+  AuthAlert,
+  AuthPanel,
+  Button,
+  Field,
   Input,
   Stack,
   Text,
-} from '@chakra-ui/react'
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
-import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
+} from '../../../design-system'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { authService } from '../../../core/services/auth.service'
 import { AuthError } from '../../../core/types/auth.types'
 import { getPasswordPolicyError } from '../../../core/utils/passwordPolicy'
-import AuthShell, { AuthInlineLink } from '../components/AuthShell'
 
 const ResetPasswordPage = () => {
   const [token, setToken] = useState<string | null>(null)
@@ -30,6 +42,7 @@ const ResetPasswordPage = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const locationState = location.state as { from?: string } | null
+  const siblingState = locationState?.from ? { from: locationState.from } : undefined
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
@@ -65,6 +78,11 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+
+    // Enter in either password field submits without going through the button.
+    if (isSubmitting) {
+      return
+    }
 
     if (!token || !validateForm()) {
       return
@@ -105,53 +123,54 @@ const ResetPasswordPage = () => {
   }
 
   const showInvalidLinkState = tokenChecked && (!token || isExpiredLink)
+  const firstFieldError = Object.values(errors).find((message) => message.length > 0)
 
   return (
-    <AuthShell title="Reset your password" description="Create a new password for your account.">
+    <AuthPanel
+      title="Reset your password"
+      description="Create a new password for your account."
+      isSubmitting={isSubmitting}
+      validationError={showInvalidLinkState ? undefined : firstFieldError}
+    >
       {showInvalidLinkState ? (
-        <Stack spacing="6">
-          <Alert status="error" borderRadius="lg" alignItems="flex-start">
-            <AlertIcon mt="1" />
-            <AlertDescription>
-              This reset link is invalid or has expired. Please request a new one.
-            </AlertDescription>
-          </Alert>
+        <Stack gap={6}>
+          <AuthAlert
+            tone="error"
+            title="This reset link cannot be used"
+            detail="This reset link is invalid or has expired. Please request a new one."
+          />
 
-          <Stack spacing="3">
-            <AnimatedPrimaryButton
-              as={RouterLink}
-              to="/forgot-password"
-              size="lg"
-              fontSize="md"
-              w="full"
-            >
+          <Stack gap={3}>
+            <ActionLink to="/forgot-password" weight="primary" width="100%">
               Request a new link
-            </AnimatedPrimaryButton>
-            <Text>
-              <AuthInlineLink
-                to="/login"
-                state={locationState?.from ? { from: locationState.from } : undefined}
-              >
+            </ActionLink>
+            <Text recipe="metadata" textAlign="center">
+              <ActionLink to="/login" state={siblingState}>
                 Back to login
-              </AuthInlineLink>
+              </ActionLink>
             </Text>
           </Stack>
         </Stack>
       ) : (
         <form onSubmit={handleSubmit}>
-          <Stack spacing="6">
-            {formError ? (
-              <Alert status="error" borderRadius="lg">
-                <AlertIcon />
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            ) : null}
+          <Stack gap={6}>
+            {/*
+             * The title names our side of the failure only. The reason, when the
+             * backend was willing to give one, is `formError` and is unchanged.
+             */}
+            {formError === '' ? null : (
+              <AuthAlert tone="error" title="We could not reset your password" detail={formError} />
+            )}
 
-            <FormControl isInvalid={!!errors.newPassword} isRequired>
-              <FormLabel htmlFor="newPassword">New password</FormLabel>
+            <Field
+              label="New password"
+              id="newPassword"
+              isRequired
+              error={errors.newPassword || undefined}
+            >
               <Input
-                id="newPassword"
                 type="password"
+                autoComplete="new-password"
                 value={newPassword}
                 onChange={(event) => {
                   setNewPassword(event.target.value)
@@ -167,14 +186,17 @@ const ResetPasswordPage = () => {
                   }
                 }}
               />
-              <FormErrorMessage>{errors.newPassword}</FormErrorMessage>
-            </FormControl>
+            </Field>
 
-            <FormControl isInvalid={!!errors.confirmPassword} isRequired>
-              <FormLabel htmlFor="confirmPassword">Confirm password</FormLabel>
+            <Field
+              label="Confirm password"
+              id="confirmPassword"
+              isRequired
+              error={errors.confirmPassword || undefined}
+            >
               <Input
-                id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) => {
                   setConfirmPassword(event.target.value)
@@ -189,21 +211,25 @@ const ResetPasswordPage = () => {
                   }
                 }}
               />
-              <FormErrorMessage>{errors.confirmPassword}</FormErrorMessage>
-            </FormControl>
+            </Field>
 
-            <AnimatedPrimaryButton type="submit" size="lg" fontSize="md" isLoading={isSubmitting}>
+            <Button
+              type="submit"
+              tone="primary"
+              width="100%"
+              isLoading={isSubmitting}
+              loadingLabel="Saving your new password"
+            >
               Reset password
-            </AnimatedPrimaryButton>
+            </Button>
 
-            <Text color="text.secondary" textAlign="center">
-              Need a fresh link?{' '}
-              <AuthInlineLink to="/forgot-password">Request a new one</AuthInlineLink>
+            <Text recipe="metadata" textAlign="center">
+              Need a fresh link? <ActionLink to="/forgot-password">Request a new one</ActionLink>
             </Text>
           </Stack>
         </form>
       )}
-    </AuthShell>
+    </AuthPanel>
   )
 }
 

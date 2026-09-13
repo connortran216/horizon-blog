@@ -36,3 +36,7 @@
 {"t":0,"agent":"a26c736","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a26c736","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":10341}
 {"t":0,"agent":"a436853","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":993706}
+{"t":0,"agent":"abf1690","agent_type":"unknown","event":"agent_stop","success":true,"duration_ms":0}
+{"t":0,"agent":"a819726","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a90fd1b","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":268983}
+{"t":0,"agent":"a819726","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":1152039}
