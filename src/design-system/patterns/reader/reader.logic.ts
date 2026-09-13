@@ -55,6 +55,20 @@ export function readingProgress({
   return Math.min(100, Math.max(0, Math.round(percent)))
 }
 
+/**
+ * Whether a freshly measured percentage is worth publishing.
+ *
+ * The bar redraws every frame it is asked to; a subscriber does not want that.
+ * Reading progress is whole percentages, so a reader scrolling through one
+ * percent produces one event rather than one per frame - which is the
+ * difference between a milestone report and a flood. `null` is "nothing
+ * published yet", so the first measurement always goes out, including the zero
+ * a reader starts an article at.
+ */
+export function shouldReportProgress(published: number | null, measured: number): boolean {
+  return published !== measured
+}
+
 export interface ProgressAria {
   readonly role: 'progressbar'
   readonly 'aria-valuemin': 0

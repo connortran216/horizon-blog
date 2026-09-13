@@ -49,6 +49,7 @@ export {
   readingProgressScale,
   readingProgressTransition,
   resolveHeadingDeepLink,
+  shouldReportProgress,
   tocDisclosureLabel,
   tocIndent,
   tocItems,
@@ -65,6 +66,7 @@ export type {
 } from './reader.logic'
 
 export {
+  SCROLL_REGION_FLAG,
   codeLanguageLabel,
   copyAnnouncement,
   copyIsBusy,
@@ -77,6 +79,11 @@ export {
   idleCopyState,
   localScrollStyle,
   proseRenderState,
+  releaseScrollRegion,
+  scrollRegionAttributes,
+  scrollRegionLabel,
+  scrollRegionSelector,
+  syncScrollRegion,
   widensDocument,
 } from './code.logic'
 export type {
@@ -88,6 +95,9 @@ export type {
   LocalScrollStyle,
   ProseRenderInput,
   ProseRenderState,
+  ScrollContainerLike,
+  ScrollRegionAttribute,
+  ScrollRegionSync,
 } from './code.logic'
 
 export {

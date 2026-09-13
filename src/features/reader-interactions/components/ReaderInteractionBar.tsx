@@ -1,6 +1,30 @@
-import { Button, HStack, Icon, Text, VStack } from '@chakra-ui/react'
+/**
+ * What the reader thought, under the article.
+ *
+ * Under it, and nowhere else - `readerSlotFor` in the design system's
+ * `reader.logic.ts` resolves reactions and sharing to the `feedback` region,
+ * and `ReaderFrame` has no slot between the opening metadata and the prose that
+ * this row could be passed into. A reader who has not read the article has no
+ * reaction to give.
+ *
+ * The row is the shape `ReactionBar` draws - a bordered feedback section, the
+ * reaction, the jump to the discussion, sharing - built here rather than from
+ * that pattern because the share control has to keep the feature's single
+ * `onShare` contract. See `ShareButton` for why.
+ *
+ * The two forthcoming actions stay, disabled and named: they are the product's
+ * statement about what is coming. What changed is that they no longer carry
+ * hand-written `44px`/`52px` boxes and an invented `0.62` disabled opacity, and
+ * that a reader who cannot react is now told why rather than being handed a
+ * dead control with no explanation.
+ */
+
+import { Box } from '@chakra-ui/react'
 import { IconType } from 'react-icons'
 import { FiMessageCircle, FiMoreHorizontal, FiRepeat } from 'react-icons/fi'
+
+import { ActionLink, IconButton, Text, reactionUnavailableNotice } from '../../../design-system'
+import { componentTokens, space } from '../../../theme/tokens'
 import { ReaderInteractionState, ReaderShareMethod } from '../reader-interactions.types'
 import HeartButton from './HeartButton'
 import ShareButton from './ShareButton'
@@ -9,6 +33,8 @@ interface ReaderInteractionBarProps {
   state: ReaderInteractionState | null
   isHeartLoading?: boolean
   isShareLoading?: boolean
+  /** Whether a reader who cannot react is told to sign in or told it is off. */
+  isAuthenticated?: boolean
   onToggleHeart: () => void
   onShare: (method: ReaderShareMethod) => void
 }
@@ -18,84 +44,63 @@ interface UnavailableIconActionProps {
   icon: IconType
 }
 
-const UnavailableIconAction = ({ label, icon }: UnavailableIconActionProps) => (
-  <Button
-    variant="ghost"
-    minW={{ base: '44px', md: '52px' }}
-    h={{ base: '52px', md: '56px' }}
-    px={2}
-    py={2}
-    borderRadius="full"
-    color="text.tertiary"
-    cursor="not-allowed"
-    isDisabled
-    aria-label={label}
-    title={label}
-    _disabled={{
-      opacity: 0.62,
-      cursor: 'not-allowed',
-    }}
-  >
-    <Icon as={icon} boxSize={{ base: 6, md: 7 }} aria-hidden="true" />
-  </Button>
-)
-
-const CommentAction = () => (
-  <Button
-    as="a"
-    href="#comments"
-    variant="ghost"
-    minW={{ base: '44px', md: '52px' }}
-    h={{ base: '52px', md: '56px' }}
-    px={2}
-    py={2}
-    borderRadius="full"
-    color="text.secondary"
-    aria-label="Go to comments"
-    title="Comments"
-    _hover={{ bg: 'action.subtle', color: 'text.primary' }}
-  >
-    <Icon as={FiMessageCircle} boxSize={{ base: 6, md: 7 }} aria-hidden="true" />
-  </Button>
+const UnavailableIconAction = ({ label, icon: Icon }: UnavailableIconActionProps) => (
+  <IconButton label={label} icon={<Icon />} isDisabled />
 )
 
 const ReaderInteractionBar = ({
   state,
   isHeartLoading = false,
   isShareLoading = false,
+  isAuthenticated = false,
   onToggleHeart,
   onShare,
-}: ReaderInteractionBarProps) => (
-  <VStack spacing={2} align="center" role="group" aria-label="Reader interactions">
-    <HStack spacing={{ base: 6, md: 12 }} align="center" justify="center" w="full" flexWrap="wrap">
-      {state ? (
+}: ReaderInteractionBarProps) => {
+  const canHeart = state?.canHeart ?? false
+
+  return (
+    <Box
+      as="section"
+      aria-label="Reader interactions"
+      display="flex"
+      flexDirection="column"
+      gap={space[2]}
+      paddingBlock={space[6]}
+      borderTopWidth="1px"
+      borderTopStyle="solid"
+      borderTopColor={componentTokens.card.border}
+    >
+      <Box display="flex" flexWrap="wrap" alignItems="center" gap={space[4]}>
         <HeartButton
-          heartCount={state.heartCount}
-          viewerHasHearted={state.viewerHasHearted}
-          canHeart={state.canHeart}
+          heartCount={state?.heartCount ?? 0}
+          viewerHasHearted={state?.viewerHasHearted ?? false}
+          canHeart={canHeart}
           isLoading={isHeartLoading}
           onToggle={onToggleHeart}
         />
-      ) : (
-        <HeartButton
-          heartCount={0}
-          viewerHasHearted={false}
-          canHeart={false}
-          isLoading={isHeartLoading}
-          onToggle={onToggleHeart}
-        />
-      )}
-      <CommentAction />
-      <UnavailableIconAction label="Repost is not available yet" icon={FiRepeat} />
-      <ShareButton isLoading={isShareLoading} onShare={onShare} />
-      <UnavailableIconAction label="More actions are not available yet" icon={FiMoreHorizontal} />
-    </HStack>
-    {!state ? (
-      <Text color="text.tertiary" fontSize="sm">
-        Reactions unavailable
-      </Text>
-    ) : null}
-  </VStack>
-)
+
+        <ActionLink
+          href="#comments"
+          underline="hover"
+          iconStart={<FiMessageCircle aria-hidden="true" />}
+          aria-label="Go to comments"
+          color="text.secondary"
+        >
+          Comments
+        </ActionLink>
+
+        <UnavailableIconAction label="Repost is not available yet" icon={FiRepeat} />
+        <ShareButton isLoading={isShareLoading} onShare={onShare} />
+        <UnavailableIconAction label="More actions are not available yet" icon={FiMoreHorizontal} />
+      </Box>
+
+      {!canHeart ? (
+        <Text as="p" recipe="metadata">
+          {reactionUnavailableNotice(isAuthenticated)}
+        </Text>
+      ) : null}
+    </Box>
+  )
+}
 
 export default ReaderInteractionBar

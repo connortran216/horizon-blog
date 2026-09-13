@@ -6,6 +6,7 @@ import {
   linkDecoration,
   linkPresentation,
   resolveLinkTarget,
+  routerLinkState,
   type LinkWeight,
 } from './link.logic'
 
@@ -89,6 +90,31 @@ describe('resolveLinkTarget', () => {
   it('flags a new-tab link so the component can say so out loud', () => {
     expect(resolveLinkTarget({ href: 'https://example.com' }).opensInNewTab).toBe(true)
     expect(resolveLinkTarget({ href: '/blog' }).opensInNewTab).toBe(false)
+  })
+})
+
+/**
+ * Location state is behaviour: the account screens carry the page a reader was
+ * interrupted on, and the author archive resolves which author it is showing
+ * from it. Dropping it silently is how an interrupted reader ends up back at the
+ * home page instead of their article, so the rule is worth a test of its own.
+ */
+describe('routerLinkState', () => {
+  it('carries state on a routed destination', () => {
+    expect(routerLinkState('router', { from: '/blog/76' })).toEqual({ from: '/blog/76' })
+  })
+
+  it('carries nothing when the caller offered nothing', () => {
+    expect(routerLinkState('router')).toBeUndefined()
+  })
+
+  /*
+   * An href leaves the router, so there is nowhere for the state to be read
+   * back. The prop type refuses the pairing; this is the same rule for a caller
+   * that is not type checked, which would otherwise put the value on the anchor.
+   */
+  it('drops state handed to a document request', () => {
+    expect(routerLinkState('anchor', { from: '/blog/76' })).toBeUndefined()
   })
 })
 

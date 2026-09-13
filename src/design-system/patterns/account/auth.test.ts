@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { componentTokens } from '../../../theme/tokens'
+import { feedbackToneTokens } from '../../components/feedback'
 import {
+  authAlertPresentation,
+  authAlertTones,
   authCallbackCopy,
   authFailureCopy,
   authFailureReasons,
@@ -174,5 +178,72 @@ describe('failure copy', () => {
 
   it('does not blame the provider for an account collision', () => {
     expect(authFailureCopy('accountConflict', 'Google')).not.toContain('Google')
+  })
+})
+
+/**
+ * The banner's tone.
+ *
+ * `info` was added because the forgot-password confirmation had nothing honest
+ * to wear. That screen answers every address with the same sentence - a link is
+ * on its way *if* an account exists - so that the page cannot be used to find
+ * out which addresses are registered. Rendered as a success it drew a tick on a
+ * green surface, which says the address was found: the fastest thing on the
+ * surface to read contradicted the sentence written to withhold it.
+ */
+describe('the auth alert tone', () => {
+  it('draws the neutral surface from the token source for an informational banner', () => {
+    expect(authAlertPresentation('info').tokens).toEqual({
+      bg: componentTokens.feedback.neutralBg,
+      fg: componentTokens.feedback.neutralFg,
+    })
+  })
+
+  it('wears neither the success nor the failure surface', () => {
+    const info = authAlertPresentation('info').tokens
+
+    expect(info).not.toEqual(feedbackToneTokens('success'))
+    expect(info).not.toEqual(feedbackToneTokens('error'))
+  })
+
+  it('claims nothing: no tick, and no assertion that anything succeeded', () => {
+    const info = authAlertPresentation('info')
+
+    expect(info.icon).toBe('neutral')
+    expect(info.affirms).toBe(false)
+  })
+
+  it('is a status rather than an interruption', () => {
+    expect(authAlertPresentation('info').role).toBe('status')
+    expect(authAlertPresentation('info')['aria-live']).toBe('polite')
+  })
+
+  it('leaves success the only tone that affirms, and the only one with a tick', () => {
+    for (const tone of authAlertTones) {
+      const presentation = authAlertPresentation(tone)
+
+      expect(presentation.affirms).toBe(tone === 'success')
+      expect(presentation.icon === 'confirmation').toBe(tone === 'success')
+    }
+  })
+
+  it('still interrupts a reader who has to act, and only them', () => {
+    for (const tone of authAlertTones) {
+      const presentation = authAlertPresentation(tone)
+      const interrupts = tone === 'error' || tone === 'permission'
+
+      expect(presentation.role).toBe(interrupts ? 'alert' : 'status')
+      expect(presentation['aria-live']).toBe(interrupts ? 'assertive' : 'polite')
+    }
+  })
+
+  it('gives every tone exactly one mark, and never leaves one unstyled', () => {
+    for (const tone of authAlertTones) {
+      const presentation = authAlertPresentation(tone)
+
+      expect(['failure', 'confirmation', 'neutral']).toContain(presentation.icon)
+      expect(presentation.tokens.bg).toBeTruthy()
+      expect(presentation.tokens.fg).toBeTruthy()
+    }
   })
 })

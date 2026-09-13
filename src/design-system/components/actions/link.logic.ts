@@ -80,6 +80,39 @@ export function resolveLinkTarget({ to, href, isExternal }: LinkTargetInput): Li
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Router state                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What a router link carries alongside its destination.
+ *
+ * Opaque on purpose. React Router stores the value and hands it back through
+ * `useLocation().state`, and the shapes in this app have nothing in common - the
+ * account screens pass the post-authentication destination, the reader passes
+ * the author id the archive resolves itself from. Naming a union of them here
+ * would make the design system the place every feature's navigation contract is
+ * registered, which is the opposite of what a primitive is for.
+ */
+export type RouterLinkState = unknown
+
+/**
+ * State rides on the router branch and nowhere else.
+ *
+ * There is no such thing as location state on a document request: an `href`
+ * leaves the router entirely, so a value handed to one would be dropped
+ * silently at exactly the moment a reader is sent somewhere else. The prop type
+ * already refuses the pairing at compile time; this is the same rule at
+ * runtime, so a caller that is not type checked loses the state instead of
+ * leaking `state="[object Object]"` onto an anchor.
+ */
+export function routerLinkState(
+  kind: LinkKind,
+  state?: RouterLinkState,
+): RouterLinkState | undefined {
+  return kind === 'router' ? state : undefined
+}
+
 export type LinkUnderline = 'always' | 'hover'
 
 export interface LinkDecoration {

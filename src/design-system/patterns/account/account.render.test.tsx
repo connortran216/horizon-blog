@@ -16,11 +16,16 @@ import { describe, expect, it } from 'vitest'
 
 import horizonTheme from '../../../theme/horizon'
 import { ContactCard } from './ContactCard'
+import { AuthAlert } from './VerificationFeedback'
 
 /** The solid Button fill, as the theme resolves it. */
 const BUTTON_FILL = 'background:var(--chakra-colors-action-primary)'
 /** The outline Button's border colour. */
 const BUTTON_OUTLINE = 'border-color:var(--chakra-colors-action-primary)'
+/** The success surface, as the theme resolves it. */
+const SUCCESS_SURFACE = 'background:var(--chakra-colors-status-successSurface)'
+/** The neutral surface an informational banner wears instead. */
+const NEUTRAL_SURFACE = 'background:var(--chakra-colors-bg-subtle)'
 
 function render(element: JSX.Element): string {
   return renderToStaticMarkup(
@@ -100,5 +105,55 @@ describe('a contact card with an action', () => {
     expect([...markup.matchAll(/href="mailto:sample\.author@example\.com"/g)]).toHaveLength(1)
     expect(markup).not.toContain(BUTTON_FILL)
     expect(markup).not.toContain(BUTTON_OUTLINE)
+  })
+})
+
+/**
+ * The informational banner.
+ *
+ * `auth.test.ts` proves the tone decision. The claim here is the one a pure
+ * function cannot make: that the banner actually emits the neutral surface and
+ * a polite status region, and that the success surface never reaches a page
+ * whose sentence is deliberately non-committal. The icon itself is an inline
+ * `svg` with no text, which is exactly why the surface and the role are what
+ * this asserts - and why "does it look like a tick" stays a gallery question.
+ */
+describe('an informational auth banner', () => {
+  const markup = render(
+    <AuthAlert
+      tone="info"
+      title="Check your inbox"
+      detail="If the email exists, we sent password reset instructions."
+    />,
+  )
+
+  it('wears the neutral surface rather than the success one', () => {
+    expect(markup).toContain(NEUTRAL_SURFACE)
+    expect(markup).not.toContain(SUCCESS_SURFACE)
+  })
+
+  it('announces politely as a status, never as an interruption', () => {
+    expect(markup).toContain('role="status"')
+    expect(markup).toContain('aria-live="polite"')
+    expect(markup).not.toContain('role="alert"')
+    expect(markup).not.toContain('aria-live="assertive"')
+  })
+
+  it('keeps the conditional sentence the endpoint answers with', () => {
+    expect(markup).toContain('If the email exists')
+  })
+
+  it('is the same banner as a success in every respect but the claim', () => {
+    const success = render(<AuthAlert tone="success" title="Password updated" />)
+
+    expect(success).toContain(SUCCESS_SURFACE)
+    expect(success).toContain('role="status"')
+  })
+
+  it('still interrupts a reader who has to retype a password', () => {
+    const failure = render(<AuthAlert tone="error" title="Login failed" />)
+
+    expect(failure).toContain('role="alert"')
+    expect(failure).toContain('aria-live="assertive"')
   })
 })

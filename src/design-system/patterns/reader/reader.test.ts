@@ -13,6 +13,7 @@ import {
   readingProgressScale,
   readingProgressTransition,
   resolveHeadingDeepLink,
+  shouldReportProgress,
   tocDisclosureLabel,
   tocIndent,
   tocItems,
@@ -89,6 +90,35 @@ describe('reading progress presentation', () => {
   it('keeps changing value under reduced motion but stops easing', () => {
     expect(readingProgressTransition(fullMotionPolicy)).toContain('transform')
     expect(readingProgressTransition(reducedMotionPolicy)).toBeUndefined()
+  })
+})
+
+/**
+ * Publishing the percentage.
+ *
+ * The bar used to keep its number to itself, so a page that reports reading
+ * milestones to the session service ran a second scroll listener over the same
+ * element - two subscriptions, two measurements, and two numbers that could
+ * disagree about how far somebody had read. The bar publishes now, and this is
+ * the rule that keeps the publication a report rather than a flood.
+ */
+describe('shouldReportProgress', () => {
+  it('publishes the first measurement, including the zero an article starts at', () => {
+    expect(shouldReportProgress(null, 0)).toBe(true)
+  })
+
+  it('says nothing while the reader scrolls within the same percent', () => {
+    expect(shouldReportProgress(37, 37)).toBe(false)
+  })
+
+  it('publishes every change, up or down', () => {
+    expect(shouldReportProgress(37, 38)).toBe(true)
+    expect(shouldReportProgress(37, 36)).toBe(true)
+  })
+
+  it('publishes the last percent exactly once', () => {
+    expect(shouldReportProgress(99, 100)).toBe(true)
+    expect(shouldReportProgress(100, 100)).toBe(false)
   })
 })
 

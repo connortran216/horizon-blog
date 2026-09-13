@@ -37,6 +37,8 @@ export { CVEntry } from './CVEntry'
 export type { CVEntryLink, CVEntryProps } from './CVEntry'
 
 export {
+  authAlertPresentation,
+  authAlertTones,
   authCallbackCopy,
   authFailureCopy,
   authFailureReasons,
@@ -46,6 +48,8 @@ export {
   verificationCopy,
 } from './auth.logic'
 export type {
+  AuthAlertPresentation,
+  AuthAlertTone,
   AuthCallbackCopy,
   AuthCallbackStatus,
   AuthFailureReason,

@@ -18,7 +18,13 @@
  *   design system never becomes a second, drifting copy of that mapping.
  */
 
-import { liveRegionFor, type LiveRegionAttributes } from '../../components/feedback'
+import { componentTokens } from '../../../theme/tokens'
+import {
+  feedbackToneTokens,
+  liveRegionFor,
+  type FeedbackToneTokens,
+  type LiveRegionAttributes,
+} from '../../components/feedback'
 
 /* -------------------------------------------------------------------------- */
 /* The credential panel                                                       */
@@ -273,6 +279,74 @@ export function verificationCopy(status: VerificationStatus): VerificationCopy {
  */
 export function resendConfirmation(): string {
   return 'If that address has an account, a new verification link is on its way.'
+}
+
+/* -------------------------------------------------------------------------- */
+/* The banner above a credential form                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What an `AuthAlert` can say.
+ *
+ * `info` exists because of a real defect. The forgot-password screen answers
+ * every address with the same sentence - a link is on its way *if* the address
+ * has an account - precisely so the page cannot be used to find out which
+ * addresses are registered. Rendered with `success` it drew a tick and a green
+ * surface, which reads as "we found it and sent it": the visual said what the
+ * wording was written to withhold. A neutral tone is not decoration here, it is
+ * the other half of the same security property.
+ */
+export type AuthAlertTone = 'error' | 'success' | 'permission' | 'info'
+
+export const authAlertTones: readonly AuthAlertTone[] = ['error', 'success', 'permission', 'info']
+
+export interface AuthAlertPresentation {
+  readonly tokens: FeedbackToneTokens
+  readonly role: 'alert' | 'status'
+  readonly 'aria-live': 'assertive' | 'polite'
+  /**
+   * Which mark the banner draws. Three shapes for four tones, and the tick is
+   * reachable from `success` alone - an icon is the fastest thing on the
+   * surface to read, so it must not claim more than the sentence does.
+   */
+  readonly icon: 'failure' | 'confirmation' | 'neutral'
+  /** Whether this banner asserts that something succeeded. */
+  readonly affirms: boolean
+}
+
+/**
+ * The banner's tone, in one place, so the colour, the mark, the live region and
+ * the claim cannot be set independently of each other.
+ *
+ * A failure interrupts and the other three do not: a reader about to retype a
+ * password needs to be told now, and a reader being handed a neutral fact does
+ * not. Nothing here can return `assertive` for `info`.
+ */
+export function authAlertPresentation(tone: AuthAlertTone): AuthAlertPresentation {
+  if (tone === 'info') {
+    return {
+      // Neutral from the token source, the same pair `empty` and `loading`
+      // wear. Absence of a claim is not a colour this module gets to invent.
+      tokens: {
+        bg: componentTokens.feedback.neutralBg,
+        fg: componentTokens.feedback.neutralFg,
+      },
+      role: 'status',
+      'aria-live': 'polite',
+      icon: 'neutral',
+      affirms: false,
+    }
+  }
+
+  const interrupts = tone !== 'success'
+
+  return {
+    tokens: feedbackToneTokens(tone),
+    role: interrupts ? 'alert' : 'status',
+    'aria-live': interrupts ? 'assertive' : 'polite',
+    icon: interrupts ? 'failure' : 'confirmation',
+    affirms: tone === 'success',
+  }
 }
 
 /* -------------------------------------------------------------------------- */

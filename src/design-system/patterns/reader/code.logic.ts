@@ -43,6 +43,155 @@ export function widensDocument(style: Partial<LocalScrollStyle>): boolean {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Reaching a scroll container with a keyboard                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A scroll container nobody can reach with a keyboard is not scrollable.
+ *
+ * `CodeBlock` gets this right because it builds its own `pre`: `tabIndex={0}`,
+ * `role="group"` and a name, so a reader with no pointer can focus the block and
+ * scroll it with the arrow keys. `Prose` cannot do it that way. What it contains
+ * is a third-party renderer's output, and the rule that keeps that output inside
+ * the measure is a descendant CSS selector - which can add overflow and cannot
+ * add attributes. So a wide table inside a Crepe or Milkdown surface scrolls for
+ * a mouse and is unreachable otherwise.
+ *
+ * These three functions are that repair, as decisions rather than DOM work: what
+ * counts as a container worth adopting, which attributes it gets, and when they
+ * come off again. `Prose` finds the elements and calls them; everything that can
+ * be wrong here is wrong in a plain object a test can build.
+ */
+
+/** The containers `Prose` gives local overflow to, and therefore owns. */
+export const scrollRegionSelector = 'pre, table'
+
+/**
+ * Marks a container this module adopted, and records exactly which attributes
+ * it added - so release puts the element back as it was found rather than
+ * stripping a `role` the renderer had put there itself.
+ */
+export const SCROLL_REGION_FLAG = 'data-prose-scroll-region'
+
+/** The minimum a focusable scroll container needs, spelled once. */
+export const scrollRegionAttributes = ['tabindex', 'role', 'aria-label'] as const
+
+export type ScrollRegionAttribute = (typeof scrollRegionAttributes)[number]
+
+/**
+ * The subset of `Element` this repair uses. Structural so a test can hand in a
+ * plain object, which is the only way to prove the rules without a DOM.
+ */
+export interface ScrollContainerLike {
+  readonly tagName: string
+  readonly scrollWidth: number
+  readonly clientWidth: number
+  hasAttribute(name: string): boolean
+  getAttribute(name: string): string | null
+  setAttribute(name: string, value: string): void
+  removeAttribute(name: string): void
+}
+
+/**
+ * What a screen reader says when focus lands on the container.
+ *
+ * A bare focusable region is announced as "group" and nothing else, which tells
+ * a reader that something is here but not what. The name is derived from the
+ * element rather than from the content because the content belongs to a
+ * renderer this component never reads.
+ */
+export function scrollRegionLabel(tagName: string): string {
+  switch (tagName.toLowerCase()) {
+    case 'pre':
+      return 'Code block'
+    case 'table':
+      return 'Table'
+    default:
+      return 'Scrollable content'
+  }
+}
+
+export type ScrollRegionSync = 'adopted' | 'released' | 'ignored'
+
+/**
+ * Bring one container in line with what the keyboard needs, and say what
+ * happened.
+ *
+ * Four rules, in order:
+ *
+ * - A container that fits needs nothing. Making every `pre` in an article a tab
+ *   stop would add a stop per block for no scrolling at all.
+ * - A container that already has a `role` or a `tabindex` belongs to whoever set
+ *   them - `CodeBlock`'s own `pre`, or a renderer that did this properly - and
+ *   is left alone. Two owners of one focus behaviour is the defect, not the fix.
+ * - An adopted container that has stopped overflowing gives its attributes back,
+ *   so a table that only scrolls on a narrow screen is not a permanent tab stop
+ *   on a wide one.
+ * - Calling this twice changes nothing the second time.
+ */
+export function syncScrollRegion(element: ScrollContainerLike): ScrollRegionSync {
+  const owned = element.hasAttribute(SCROLL_REGION_FLAG)
+  const overflows = element.scrollWidth > element.clientWidth
+
+  if (!owned) {
+    if (!overflows || element.hasAttribute('tabindex') || element.hasAttribute('role')) {
+      return 'ignored'
+    }
+
+    const added: ScrollRegionAttribute[] = []
+
+    element.setAttribute('tabindex', '0')
+    added.push('tabindex')
+    element.setAttribute('role', 'group')
+    added.push('role')
+
+    // A name the renderer supplied is a better name than a generic one, and
+    // overwriting it would lose information. Only an unnamed region is named.
+    if (!element.hasAttribute('aria-label') && !element.hasAttribute('aria-labelledby')) {
+      element.setAttribute('aria-label', scrollRegionLabel(element.tagName))
+      added.push('aria-label')
+    }
+
+    element.setAttribute(SCROLL_REGION_FLAG, added.join(' '))
+
+    return 'adopted'
+  }
+
+  if (overflows) {
+    return 'adopted'
+  }
+
+  releaseScrollRegion(element)
+
+  return 'released'
+}
+
+/**
+ * Undo an adoption: on unmount, and whenever a container stops overflowing.
+ *
+ * Only the attributes this module recorded come off. An element it never
+ * adopted is untouched, which is what makes calling it over a whole subtree at
+ * teardown safe.
+ */
+export function releaseScrollRegion(element: ScrollContainerLike): void {
+  const flag = element.getAttribute(SCROLL_REGION_FLAG)
+
+  if (flag === null) {
+    return
+  }
+
+  const added = new Set(flag.split(' ').filter((name) => name.length > 0))
+
+  for (const name of scrollRegionAttributes) {
+    if (added.has(name)) {
+      element.removeAttribute(name)
+    }
+  }
+
+  element.removeAttribute(SCROLL_REGION_FLAG)
+}
+
+/* -------------------------------------------------------------------------- */
 /* Copying code                                                               */
 /* -------------------------------------------------------------------------- */
 

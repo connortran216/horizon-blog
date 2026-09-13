@@ -3,7 +3,15 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
-import theme from '../../../theme'
+/**
+ * Rewritten for release M4 - same guarantee, new composition. The page still
+ * has to render the article when analytics, reactions and Series context are
+ * all unavailable; what changed is that the loading fallback, the reaction
+ * notice and the table of contents are the design system's, so the strings the
+ * assertions look for are its strings.
+ */
+
+import theme from '../../../theme/horizon'
 import { AuthProvider } from '../../../context/AuthContext'
 import BlogDetailPage from './BlogDetailPage'
 
@@ -73,8 +81,8 @@ describe('BlogDetailPage dependency independence', () => {
     expect(markup).toContain('Article remains readable')
     expect(markup).toContain('On this page')
     expect(markup).toContain('#setup')
-    expect(markup).toContain('Loading content...')
-    expect(markup).toContain('Reactions unavailable')
+    expect(markup).toContain('Loading the article')
+    expect(markup).toContain('Sign in to react to this blog.')
     expect(markup).toContain('Discussion')
     expect(markup).not.toContain('Series navigation')
   })

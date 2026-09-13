@@ -12,8 +12,10 @@ import { controlSizing } from './control.logic'
 import {
   linkPresentation,
   resolveLinkTarget,
+  routerLinkState,
   type LinkUnderline,
   type LinkWeight,
+  type RouterLinkState,
 } from './link.logic'
 
 interface ActionLinkBase extends Omit<
@@ -53,9 +55,25 @@ interface ActionLinkBase extends Omit<
 /**
  * Exactly one destination. A link with both a route and an href has two
  * destinations and no way to choose between them, so the type refuses it.
+ *
+ * `state` is part of the routed destination rather than a separate prop for the
+ * same reason: location state only exists inside the router, so pairing it with
+ * an `href` is a mistake the type can catch instead of a value that vanishes on
+ * the way to another origin.
  */
 export type ActionLinkProps = ActionLinkBase &
-  ({ to: string; href?: never } | { href: string; to?: never })
+  (
+    | {
+        to: string
+        href?: never
+        /**
+         * Handed straight to React Router and read back with
+         * `useLocation().state`. `undefined` means "carry nothing".
+         */
+        state?: RouterLinkState
+      }
+    | { href: string; to?: never; state?: never }
+  )
 
 /**
  * A link. Always a real `a` with a real destination - the router variant
@@ -69,6 +87,11 @@ export type ActionLinkProps = ActionLinkBase &
  * the single most common accessibility defect in a component library, and this
  * component has no prop that would let you build one.
  *
+ * The routed branch carries React Router location state, which is behaviour
+ * rather than decoration: the account screens pass the destination a reader was
+ * interrupted on, and the author archive resolves which author it is showing
+ * from it. The document branch cannot - see `routerLinkState`.
+ *
  * Focus is the global `*:focus-visible` rule in both branches. Neither writes
  * `_focus`, so the ring a reader tabs onto is the system's own - the theme's
  * Button `_focusVisible` where the weight borrows it, and the global rule
@@ -78,6 +101,7 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
   {
     to,
     href,
+    state,
     isExternal,
     underline = 'always',
     weight = 'text',
@@ -163,7 +187,12 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
 
   if (target.kind === 'router' && target.to !== undefined) {
     return (
-      <ChakraLink as={RouterLink} to={target.to} {...shared}>
+      <ChakraLink
+        as={RouterLink}
+        to={target.to}
+        state={routerLinkState(target.kind, state)}
+        {...shared}
+      >
         {content}
       </ChakraLink>
     )

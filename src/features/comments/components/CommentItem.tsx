@@ -1,6 +1,33 @@
+/**
+ * One comment in the thread.
+ *
+ * An `article` with its own accessible name, the author identity the rest of
+ * the site uses, and a body that wraps rather than widening the page - a pasted
+ * URL with no spaces in it is the one piece of reader-written text that will
+ * otherwise push a 375px screen sideways.
+ *
+ * Every decision about what this renders comes from the design system's
+ * `conversation.logic`: the name a deleted account is given, the tombstone a
+ * removed comment keeps, the timestamp and its `datetime` attribute, and the
+ * indent, which stops growing at the depth the API models so the deepest reply
+ * is still readable on a phone.
+ */
+
 import { ReactNode, useState } from 'react'
-import { Avatar, Box, HStack, Text, VStack } from '@chakra-ui/react'
+import { Box } from '@chakra-ui/react'
+
+import {
+  AuthorIdentity,
+  Stack,
+  Text,
+  commentAuthorName,
+  commentBody,
+  commentTimestamp,
+  threadIndent,
+} from '../../../design-system'
+import { componentTokens, space } from '../../../theme/tokens'
 import { Comment } from '../comments.types'
+import { toReaderComment } from '../comment.presentation'
 import CommentActions from './CommentActions'
 import CommentComposer from './CommentComposer'
 
@@ -22,42 +49,52 @@ const CommentItem = ({
   onRemove,
 }: CommentItemProps) => {
   const [mode, setMode] = useState<'idle' | 'reply' | 'edit'>('idle')
-  const authorName = comment.author?.name ?? 'Deleted reader'
+  const reader = toReaderComment(comment)
+  const authorName = commentAuthorName(reader.author)
+  const body = commentBody(reader)
+  const timestamp = commentTimestamp(reader)
 
   return (
     <Box
       as="article"
       aria-label={`Comment by ${authorName}`}
-      borderLeftWidth={comment.depth > 0 ? '2px' : 0}
-      borderColor="border.subtle"
-      pl={comment.depth > 0 ? { base: 3, md: 5 } : 0}
-      py={4}
+      paddingInlineStart={threadIndent(comment.depth)}
+      borderInlineStartWidth={comment.depth > 0 ? '2px' : 0}
+      borderInlineStartStyle="solid"
+      borderInlineStartColor={componentTokens.card.border}
+      paddingBlock={space[4]}
+      minW={0}
     >
-      <VStack align="stretch" spacing={3}>
-        <HStack spacing={3} align="start">
-          <Avatar size="sm" name={authorName} src={comment.author?.avatarUrl} />
-          <Box minW={0}>
-            <Text fontWeight="semibold" color="text.primary">
-              {authorName}
-            </Text>
-            <Text fontSize="sm" color="text.tertiary">
-              {new Date(comment.createdAt).toLocaleString()}
-              {comment.editedAt ? ' · edited' : ''}
-            </Text>
-          </Box>
-        </HStack>
+      <Stack gap={3}>
+        <Box display="flex" flexWrap="wrap" alignItems="center" gap={space[3]} minW={0}>
+          <AuthorIdentity
+            author={{ name: authorName, avatarUrl: reader.author?.avatarUrl }}
+            size="sm"
+          />
+          {timestamp.label ? (
+            <Box
+              as="time"
+              dateTime={timestamp.machine ?? undefined}
+              textStyle="meta"
+              color={componentTokens.reader.secondaryFg}
+            >
+              {timestamp.label}
+            </Box>
+          ) : null}
+        </Box>
 
-        {comment.isRemoved ? (
-          <Text color="text.tertiary" fontStyle="italic">
-            Comment removed
-          </Text>
-        ) : (
-          <Text color="text.primary" whiteSpace="pre-wrap" overflowWrap="anywhere">
-            {comment.content}
-          </Text>
-        )}
+        <Text
+          as="p"
+          recipe="body"
+          color={body.kind === 'removed' ? 'text.muted' : 'text.primary'}
+          fontStyle={body.kind === 'removed' ? 'italic' : undefined}
+          whiteSpace="pre-wrap"
+          overflowWrap="anywhere"
+        >
+          {body.text}
+        </Text>
 
-        {!comment.isRemoved ? (
+        {body.kind === 'text' ? (
           <CommentActions
             comment={comment}
             isLoading={isLoading}
@@ -95,7 +132,7 @@ const CommentItem = ({
         ) : null}
 
         {children}
-      </VStack>
+      </Stack>
     </Box>
   )
 }

@@ -86,6 +86,16 @@ function AuthAlertEntry({ state }: { readonly state: string }) {
     )
   }
 
+  if (state === 'info') {
+    return (
+      <AuthAlert
+        tone="info"
+        title="Check the sample inbox"
+        detail="If that sample address has an account, a link is on its way."
+      />
+    )
+  }
+
   if (state === 'permission') {
     return (
       <AuthAlert

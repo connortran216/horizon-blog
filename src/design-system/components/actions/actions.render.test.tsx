@@ -208,3 +208,55 @@ describe('the text weight is unchanged', () => {
     expect(markup).toContain('text-decoration:none')
   })
 })
+
+/**
+ * React Router location state.
+ *
+ * Two releases hit this gap and each built a local copy of `ActionLink` to get
+ * round it - the account screens to carry the post-authentication destination,
+ * the reader to carry the author id the archive resolves itself from. What a
+ * rendered string can prove is that the state does not change the link: the
+ * router consumes it, so the anchor is still an anchor with a real href and no
+ * stray attribute. `routerLinkState` in `link.test.ts` proves where it may ride.
+ */
+describe('a routed link carrying location state', () => {
+  it('is still a plain anchor to the route, with no state attribute of its own', () => {
+    const markup = render(
+      <ActionLink to="/login" state={{ from: '/blog/76' }}>
+        Sign in
+      </ActionLink>,
+    )
+
+    expect(markup).toContain('href="/login"')
+    expect(markup).not.toContain('state=')
+    expect(markup).not.toContain('/blog/76')
+  })
+
+  it('keeps carrying it at button weight', () => {
+    const markup = render(
+      <ActionLink to="/login" state={{ from: '/blog/76' }} weight="primary">
+        Sign in
+      </ActionLink>,
+    )
+
+    expect(markup).toContain('href="/login"')
+    expect(markup).toContain(BUTTON_FILL)
+  })
+
+  /*
+   * A compile-time assertion, and the only kind available for a rule that is
+   * enforced by the type. `yarn tsc --noEmit` type checks this file, so if
+   * `state` ever becomes assignable beside an `href` the unused directive fails
+   * the build - which is exactly the regression this closes.
+   */
+  it('is a type error beside an href, because an external URL cannot carry it', () => {
+    const rejected = (
+      // @ts-expect-error - location state has no meaning outside the router
+      <ActionLink href="https://example.com" state={{ from: '/blog/76' }}>
+        An external destination
+      </ActionLink>
+    )
+
+    expect(render(rejected)).toContain('href="https://example.com"')
+  })
+})

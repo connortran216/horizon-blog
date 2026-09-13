@@ -1,37 +1,96 @@
-import { MouseEventHandler, ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react'
-import { ArrowBackIcon } from '@chakra-ui/icons'
+/**
+ * The reading page's frame.
+ *
+ * Composition over the design system's `ReaderFrame`: a table-of-contents rail
+ * beside the reading column on a wide screen, a disclosure above the article on
+ * a narrow one, and the regions in the order `DESIGN.md` fixes them - identity,
+ * metadata, prose, Series context, feedback, discussion, related. The slot order
+ * is the frame's, not this file's, which is what stops reader feedback drifting
+ * up beside the byline.
+ *
+ * No renderer changed. Crepe still renders the article; `Prose` is the frame
+ * around it and owns the measure, the link and code contrast, the rule that
+ * nothing inside may widen the document, and what is shown when the renderer
+ * fails or the article has no body.
+ *
+ * What left with the migration: `MotionWrapper`, `TitleAnimation`,
+ * `ContentAnimation`, `BackButtonAnimation`, `FocusRing`, `AnimatedPrimaryButton`
+ * and `LoadingState` from `src/components/core/animations`, the hand-rolled
+ * scroll listener, the Chakra `Progress` bar with its hard-coded CSS variable,
+ * and the 260px `blur(120px)` ambient plate - ambient movement and decorative
+ * depth belong to Home and About, not to a reading surface.
+ */
+
 import {
-  Avatar,
-  Badge,
-  Box,
-  Container,
-  Grid,
-  HStack,
-  Link,
-  Progress,
+  MouseEventHandler,
+  ReactNode,
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { Box } from '@chakra-ui/react'
+import { FiArrowLeft } from 'react-icons/fi'
+
+import {
+  ActionLink,
+  AuthorIdentity,
+  Button,
+  Chip,
+  Heading,
+  InlineLoading,
+  Metadata,
+  Prose,
+  ReaderFrame,
+  ReadingProgress,
+  Section,
   Stack,
-  Text,
-  VStack,
-  Wrap,
-  WrapItem,
-} from '@chakra-ui/react'
-import { motion } from 'framer-motion'
-import { Link as RouterLink } from 'react-router-dom'
-import {
-  AnimatedPrimaryButton,
-  BackButtonAnimation,
-  ContentAnimation,
-  FocusRing,
-  LoadingState,
-  MotionWrapper,
-  TitleAnimation,
-} from '../../../core'
+  formatPostDate,
+  localScrollStyle,
+  useMotionPolicy,
+  type ReaderHeading,
+} from '../../../design-system'
+import { componentTokens, space, transitionFor } from '../../../theme/tokens'
+import { ErrorBoundary } from '../../../core/components/ErrorBoundary'
 import { BlogArchivePost } from '../blog.types'
 import { getPostAuthorAvatar, getPostAuthorName } from '../blog.utils'
 import type { ResolveMediaSourceResult } from '../../media/media.api'
 import { applyResponsiveMediaAttributes } from '../../media/media.presentation'
+import { useReaderHeadings } from '../useReaderHeadings'
 
 const LazyCrepeEditor = lazy(() => import('../../../components/editor/CrepeEditor'))
+
+const RENDER_FAILURE = 'The article body could not be rendered.'
+
+/**
+ * One frozen empty list, not a fresh `[]` per render. `useReaderHeadings`
+ * depends on the array's identity, and a new one every render would tear its
+ * scroll subscription down and build it again on every state change.
+ */
+const NO_HEADINGS: readonly ReaderHeading[] = []
+
+/**
+ * Wide content inside the Crepe surface scrolls inside itself.
+ *
+ * `Prose` already says this, by descendant selector, for every `pre` and
+ * `table` below it. It is not enough here and the reason is pure cascade
+ * arithmetic: `crepe-theme.css` carries `.crepe-editor-wrapper table`, which
+ * has exactly the specificity of the `.css-hash table` Emotion compiles `Prose`
+ * into, so which one wins is decided by which stylesheet was injected last -
+ * and the editor's CSS arrives with a lazily imported chunk, after Emotion's.
+ * A single wide table then widens the whole document at 375px.
+ *
+ * So the same rule is restated one level more specific, from the design
+ * system's own `localScrollStyle` rather than from a second opinion about
+ * overflow. Reported as a design-system gap: `Prose` cannot outrank a
+ * stylesheet it does not know about.
+ */
+const CREPE_LOCAL_SCROLL = {
+  '& .crepe-editor-wrapper pre, & .crepe-editor-wrapper table, & .milkdown pre, & .milkdown table':
+    { ...localScrollStyle(), display: 'block' },
+} as const
 
 interface BlogReaderFrameProps {
   post: BlogArchivePost | null
@@ -40,20 +99,25 @@ interface BlogReaderFrameProps {
   resolvedMedia?: ResolveMediaSourceResult
   onBack: () => void
   backLabel: string
-  emptyLabel: string
+  /** Why there is no article. A transport failure rather than a missing one. */
+  loadError?: string | null
+  /** The article does not exist, or is not published. */
+  isMissing?: boolean
   authorArchivePath?: string | null
   authorArchiveState?: { authorId: number } | undefined
   showReadingProgress?: boolean
+  /** The headings the table of contents lists. Empty hides it entirely. */
+  headings?: readonly ReaderHeading[]
   titleSection?: ReactNode
+  /** A note about this reading view, beside the opening metadata. */
   helperSection?: ReactNode
+  /** Where this blog sits in its Series. After the prose, per `DESIGN.md`. */
+  seriesSection?: ReactNode
   interactionSection?: ReactNode
   discussionSection?: ReactNode
   relatedSection?: ReactNode
-  tableOfContentsRail?: ReactNode
-  tableOfContentsInline?: ReactNode
   onReadingProgressChange?: (progressPercent: number) => void
   onContentClick?: MouseEventHandler<HTMLElement>
-  bottomPadding?: boolean
 }
 
 const BlogReaderFrame = ({
@@ -63,24 +127,30 @@ const BlogReaderFrame = ({
   resolvedMedia = {},
   onBack,
   backLabel,
-  emptyLabel,
+  loadError = null,
+  isMissing = false,
   authorArchivePath,
   authorArchiveState,
   showReadingProgress = false,
+  headings = NO_HEADINGS,
   titleSection,
   helperSection,
+  seriesSection,
   interactionSection,
   discussionSection,
   relatedSection,
-  tableOfContentsRail,
-  tableOfContentsInline,
   onReadingProgressChange,
   onContentClick,
-  bottomPadding = true,
 }: BlogReaderFrameProps) => {
-  const [readingProgress, setReadingProgress] = useState(0)
+  const policy = useMotionPolicy()
   const contentRef = useRef<HTMLDivElement>(null)
   const articleMediaRef = useRef<HTMLDivElement>(null)
+  const [renderError, setRenderError] = useState<string | null>(null)
+  const activeHeading = useReaderHeadings({
+    headings,
+    contentRef,
+    smoothDeepLink: !policy.reduced,
+  })
 
   useEffect(() => {
     const root = articleMediaRef.current
@@ -95,301 +165,190 @@ const BlogReaderFrame = ({
     return () => observer.disconnect()
   }, [resolvedContent, resolvedMedia])
 
+  /*
+   * In-page navigation - a table-of-contents entry, a heading link inside the
+   * article - eases under full motion and jumps under reduced motion. It was
+   * previously set unconditionally, which is exactly the kind of document-wide
+   * movement the reduced-motion policy exists to stop.
+   */
   useEffect(() => {
-    if (!showReadingProgress) {
-      return
-    }
-
-    const updateReadingProgress = () => {
-      if (!contentRef.current) return
-
-      const element = contentRef.current
-      const scrollTop = window.pageYOffset
-      const elementTop = element.offsetTop
-      const elementHeight = element.offsetHeight
-      const windowHeight = window.innerHeight
-      const totalHeight = elementTop + elementHeight - windowHeight
-      if (totalHeight <= 0) return
-
-      const currentProgress = Math.min(
-        100,
-        Math.max(0, ((scrollTop - elementTop) / totalHeight) * 100),
-      )
-
-      setReadingProgress(currentProgress)
-      onReadingProgressChange?.(currentProgress)
-    }
-
-    window.addEventListener('scroll', updateReadingProgress, { passive: true })
-    updateReadingProgress()
-    return () => window.removeEventListener('scroll', updateReadingProgress)
-  }, [onReadingProgressChange, showReadingProgress])
-
-  useEffect(() => {
-    if (!showReadingProgress) {
+    if (typeof document === 'undefined' || policy.reduced) {
       return
     }
 
     document.documentElement.style.scrollBehavior = 'smooth'
+
     return () => {
-      document.documentElement.style.scrollBehavior = 'auto'
+      document.documentElement.style.scrollBehavior = ''
     }
-  }, [showReadingProgress])
+  }, [policy.reduced])
 
-  if (loading) {
-    return (
-      <Container maxW="container.lg" py={{ base: 8, md: 12 }}>
-        <LoadingState
-          variant="page"
-          minH="40vh"
-          label="Loading blog"
-          description="Preparing the reading view."
-        />
-      </Container>
-    )
-  }
+  useEffect(() => {
+    setRenderError(null)
+  }, [resolvedContent])
 
-  if (!post) {
+  const handleRenderFailure = useCallback(() => setRenderError(RENDER_FAILURE), [])
+  const retryRender = useCallback(() => setRenderError(null), [])
+
+  if (loading || loadError || isMissing || !post) {
     return (
-      <Container maxW="container.lg" py={10}>
-        <Text color="text.secondary">{emptyLabel}</Text>
-      </Container>
+      <Section as="div">
+        <ReaderFrame isLoading={loading} error={loadError} isMissing={!loading && !loadError} />
+      </Section>
     )
   }
 
   const authorName = getPostAuthorName(post)
   const authorAvatar = getPostAuthorAvatar(post)
   const tags = post.tags?.filter((tag) => tag.name.trim()) || []
-  const authorIdentity = authorArchivePath ? (
-    <Link
-      as={RouterLink}
-      to={authorArchivePath}
-      state={authorArchiveState}
-      display="inline-flex"
-      alignItems="center"
-      gap={3}
-      color="inherit"
-      _hover={{ color: 'text.primary', textDecoration: 'none' }}
-    >
-      <Avatar size="sm" name={authorName} src={authorAvatar} />
-      <Text fontWeight="semibold" color="text.primary">
-        {authorName}
-      </Text>
-    </Link>
-  ) : (
-    <HStack spacing={3}>
-      <Avatar size="sm" name={authorName} src={authorAvatar} />
-      <Text fontWeight="semibold" color="text.primary">
-        {authorName}
-      </Text>
-    </HStack>
-  )
+  const created = formatPostDate(post.created_at)
+  const updated = post.created_at === post.updated_at ? null : formatPostDate(post.updated_at)
 
   return (
-    <MotionWrapper>
-      <Box position="relative" pb={bottomPadding ? 12 : 0}>
-        <Box
-          position="absolute"
-          top={0}
-          left="50%"
-          transform="translateX(-50%)"
-          w={{ base: '92%', md: '74%' }}
-          h="260px"
-          bg="action.glow"
-          filter="blur(120px)"
-          opacity={0.64}
-          pointerEvents="none"
+    <>
+      {/*
+       * One measurement, one listener. The bar publishes its own percentage, so
+       * the milestone events the reader session records are the number the
+       * reader can see rather than a second opinion about it.
+       */}
+      {showReadingProgress ? (
+        <ReadingProgress
+          contentRef={contentRef}
+          resetKey={post.id}
+          onChange={onReadingProgressChange}
         />
+      ) : null}
 
-        {showReadingProgress ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Progress
-              value={readingProgress}
-              size="xs"
-              bg="bg.secondary"
-              sx={{
-                '& > div': {
-                  backgroundColor: 'var(--chakra-colors-action-primary)',
-                },
-              }}
-              position="fixed"
-              top={0}
-              left={0}
-              right={0}
-              zIndex={1000}
-              borderRadius="none"
-            />
-          </motion.div>
-        ) : null}
+      <Section as="div">
+        <ReaderFrame
+          headings={headings}
+          activeHeadingId={activeHeading}
+          contentRef={contentRef}
+          identity={
+            <Stack gap={4}>
+              <Button
+                tone="quiet"
+                onClick={onBack}
+                alignSelf="flex-start"
+                iconStart={<FiArrowLeft aria-hidden="true" />}
+              >
+                {backLabel}
+              </Button>
 
-        <Container
-          maxW={tableOfContentsRail && relatedSection ? '1536px' : 'container.xl'}
-          py={{ base: 8, md: 12 }}
-          position="relative"
-          ref={contentRef}
+              {titleSection || (
+                <Heading as="h1" recipe="pageTitle">
+                  {post.title}
+                </Heading>
+              )}
+            </Stack>
+          }
+          metadata={
+            <Stack gap={4}>
+              <Metadata as="div">
+                {/*
+                 * The portrait and the name are identity, the archive link is
+                 * navigation. They used to be two links to the same place in
+                 * one row - the name and a separate "View archive" - which is
+                 * two stops in a screen reader's link list for one destination.
+                 */}
+                <AuthorIdentity author={{ name: authorName, avatarUrl: authorAvatar }} size="md" />
+
+                {created ? (
+                  <>
+                    <Box as="span" aria-hidden="true">
+                      ·
+                    </Box>
+                    <Box as="time" dateTime={created.machine}>
+                      {created.label}
+                    </Box>
+                  </>
+                ) : null}
+
+                {updated ? (
+                  <>
+                    <Box as="span" aria-hidden="true">
+                      ·
+                    </Box>
+                    <Box as="time" dateTime={updated.machine}>
+                      Updated {updated.label}
+                    </Box>
+                  </>
+                ) : null}
+
+                {authorArchivePath ? (
+                  <>
+                    <Box as="span" aria-hidden="true">
+                      ·
+                    </Box>
+                    {/*
+                     * The archive resolves which author it is showing from this
+                     * state whenever the slug is not numeric (`useAuthorArchive`),
+                     * so it is behaviour rather than decoration. It rides on
+                     * `ActionLink`'s routed branch; the reader's own link colour
+                     * is the one value this surface still names.
+                     */}
+                    <ActionLink
+                      to={authorArchivePath}
+                      state={authorArchiveState}
+                      color={componentTokens.reader.link}
+                      transition={transitionFor('color', 'fast')}
+                    >
+                      View archive
+                    </ActionLink>
+                  </>
+                ) : null}
+              </Metadata>
+
+              {tags.length > 0 ? (
+                <Box
+                  as="ul"
+                  aria-label="Blog tags"
+                  display="flex"
+                  flexWrap="wrap"
+                  gap={space[2]}
+                  listStyleType="none"
+                  margin={0}
+                  padding={0}
+                >
+                  {tags.map((tag) => (
+                    <Box as="li" key={tag.id}>
+                      <Chip>#{tag.name}</Chip>
+                    </Box>
+                  ))}
+                </Box>
+              ) : null}
+
+              {helperSection}
+            </Stack>
+          }
+          seriesContext={seriesSection}
+          feedback={interactionSection}
+          discussion={discussionSection}
+          related={relatedSection}
         >
-          <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-            <BackButtonAnimation>
-              <FocusRing>
-                <AnimatedPrimaryButton
-                  leftIcon={<ArrowBackIcon />}
-                  variant="ghost"
-                  onClick={onBack}
-                  alignSelf="flex-start"
-                >
-                  {backLabel}
-                </AnimatedPrimaryButton>
-              </FocusRing>
-            </BackButtonAnimation>
-
-            <Grid
-              templateColumns={{
-                base: '1fr',
-                xl:
-                  tableOfContentsRail && relatedSection
-                    ? '220px minmax(0, 1fr) 280px'
-                    : tableOfContentsRail
-                      ? '220px minmax(0, 1fr)'
-                      : relatedSection
-                        ? 'minmax(0, 1fr) 280px'
-                        : '1fr',
-              }}
-              gap={{ base: 8, xl: 8 }}
-              alignItems="start"
-              w="full"
-            >
-              {tableOfContentsRail ? (
-                <Box
-                  as="aside"
-                  display={{ base: 'none', xl: 'block' }}
-                  position="sticky"
-                  top={20}
-                  w="full"
-                >
-                  {tableOfContentsRail}
-                </Box>
-              ) : null}
-
-              <VStack spacing={{ base: 8, md: 10 }} align="stretch" minW={0}>
-                <Box maxW="4xl" mx="auto" w="full">
-                  <Stack spacing={{ base: 5, md: 6 }}>
-                    {titleSection || <TitleAnimation title={post.title} />}
-
-                    <HStack spacing={4} flexWrap="wrap" align="center" color="text.secondary">
-                      {authorIdentity}
-                      <Text color="text.tertiary">•</Text>
-                      <Text color="text.secondary">
-                        {new Date(post.created_at).toLocaleDateString()}
-                      </Text>
-                      {post.created_at !== post.updated_at ? (
-                        <>
-                          <Text color="text.tertiary">•</Text>
-                          <Text color="text.secondary">
-                            Updated {new Date(post.updated_at).toLocaleDateString()}
-                          </Text>
-                        </>
-                      ) : null}
-                      {authorArchivePath ? (
-                        <>
-                          <Text color="text.tertiary">•</Text>
-                          <Link
-                            as={RouterLink}
-                            to={authorArchivePath}
-                            state={authorArchiveState}
-                            color="action.primary"
-                            fontWeight="semibold"
-                            _hover={{ color: 'action.hover', textDecoration: 'none' }}
-                          >
-                            View archive
-                          </Link>
-                        </>
-                      ) : null}
-                    </HStack>
-
-                    {tags.length > 0 ? (
-                      <VStack align="stretch" spacing={2} aria-label="Blog tags">
-                        <Text fontSize="sm" fontWeight="semibold" color="text.tertiary">
-                          Tags
-                        </Text>
-                        <Wrap spacing={2}>
-                          {tags.map((tag) => (
-                            <WrapItem key={tag.id}>
-                              <Badge
-                                px={3}
-                                py={1}
-                                borderRadius="full"
-                                bg="bg.tertiary"
-                                color="text.secondary"
-                                textTransform="none"
-                                fontWeight="medium"
-                              >
-                                #{tag.name}
-                              </Badge>
-                            </WrapItem>
-                          ))}
-                        </Wrap>
-                      </VStack>
-                    ) : null}
-
-                    {helperSection}
-
-                    {tableOfContentsInline ? (
-                      <Box display={{ base: 'block', xl: 'none' }}>{tableOfContentsInline}</Box>
-                    ) : null}
-                  </Stack>
-                </Box>
-
-                <Box ref={articleMediaRef} maxW="5xl" mx="auto" w="full" onClick={onContentClick}>
-                  <ContentAnimation hasPaddingBottom={bottomPadding}>
-                    {resolvedContent ? (
-                      <Suspense fallback={<Text color="text.secondary">Loading content...</Text>}>
-                        <Box px={{ base: 3, md: 4 }} pb={{ base: 4, md: 6 }}>
-                          <LazyCrepeEditor
-                            initialContent={resolvedContent}
-                            readOnly
-                            inputId="blog-content-reader"
-                            inputName="blogContentReader"
-                          />
-                        </Box>
-                      </Suspense>
-                    ) : (
-                      <Text color="text.secondary">No content available</Text>
-                    )}
-                  </ContentAnimation>
-                </Box>
-
-                {interactionSection ? (
-                  <Box maxW="4xl" mx="auto" w="full" pt={{ base: 1, md: 2 }}>
-                    {interactionSection}
-                  </Box>
-                ) : null}
-
-                {discussionSection ? (
-                  <Box maxW="4xl" mx="auto" w="full" pt={{ base: 4, md: 6 }}>
-                    {discussionSection}
-                  </Box>
-                ) : null}
-              </VStack>
-
-              {relatedSection ? (
-                <Box
-                  as="aside"
-                  position={{ base: 'static', xl: 'sticky' }}
-                  top={{ xl: 20 }}
-                  w="full"
-                >
-                  {relatedSection}
-                </Box>
-              ) : null}
-            </Grid>
-          </VStack>
-        </Container>
-      </Box>
-    </MotionWrapper>
+          <Prose
+            renderError={renderError}
+            onRetryRender={retryRender}
+            emptyMessage="This blog has no content yet."
+          >
+            {resolvedContent ? (
+              <Box ref={articleMediaRef} minW={0} onClick={onContentClick} sx={CREPE_LOCAL_SCROLL}>
+                <ErrorBoundary onError={handleRenderFailure} fallback={<Box aria-hidden="true" />}>
+                  <Suspense fallback={<InlineLoading task="the article" />}>
+                    <LazyCrepeEditor
+                      initialContent={resolvedContent}
+                      readOnly
+                      inputId="blog-content-reader"
+                      inputName="blogContentReader"
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              </Box>
+            ) : null}
+          </Prose>
+        </ReaderFrame>
+      </Section>
+    </>
   )
 }
 

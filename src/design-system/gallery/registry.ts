@@ -651,6 +651,7 @@ export const galleryRegistry = [
       { name: 'error', kind: 'error' },
       { name: 'success', kind: 'ready' },
       { name: 'permission' },
+      { name: 'info' },
     ],
   },
   {

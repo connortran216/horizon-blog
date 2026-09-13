@@ -1,3 +1,16 @@
+/**
+ * Reply, edit and remove on one comment.
+ *
+ * Which controls exist is the API's decision and stays the API's decision -
+ * `canReply`, `canEdit`, `canRemove` - with one addition the design system
+ * supplies: `canReplyTo` also drops the reply control at the depth limit, so a
+ * reader is never offered a reply the server would refuse to store.
+ *
+ * Removal keeps its confirmation. The dialog is still Chakra's `AlertDialog`:
+ * the design system has no dialog primitive, so what this file owns is the
+ * surface and the control tones, not a hand-rolled modal. Reported as a gap.
+ */
+
 import { useRef } from 'react'
 import {
   AlertDialog,
@@ -6,11 +19,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
-  Button,
-  HStack,
   useDisclosure,
 } from '@chakra-ui/react'
+
+import { Button, Stack, canReplyTo } from '../../../design-system'
+import { componentTokens, space } from '../../../theme/tokens'
 import { Comment } from '../comments.types'
+import { toReaderComment } from '../comment.presentation'
 
 interface CommentActionsProps {
   comment: Comment
@@ -23,6 +38,7 @@ interface CommentActionsProps {
 const CommentActions = ({ comment, isLoading, onReply, onEdit, onRemove }: CommentActionsProps) => {
   const dialog = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
+  const reader = toReaderComment(comment)
 
   const handleRemove = async () => {
     try {
@@ -35,29 +51,23 @@ const CommentActions = ({ comment, isLoading, onReply, onEdit, onRemove }: Comme
 
   return (
     <>
-      <HStack spacing={1} mt={2}>
-        {comment.canReply ? (
-          <Button size="sm" variant="ghost" color="text.secondary" onClick={onReply}>
+      <Stack direction="row" collapseAt={undefined} gap={1} wrap="wrap">
+        {canReplyTo(reader) ? (
+          <Button tone="quiet" size="sm" onClick={onReply}>
             Reply
           </Button>
         ) : null}
         {comment.canEdit ? (
-          <Button size="sm" variant="ghost" color="text.secondary" onClick={onEdit}>
+          <Button tone="quiet" size="sm" onClick={onEdit}>
             Edit
           </Button>
         ) : null}
         {comment.canRemove ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            colorScheme="red"
-            onClick={dialog.onOpen}
-            isDisabled={isLoading}
-          >
+          <Button tone="danger" size="sm" onClick={dialog.onOpen} isDisabled={isLoading}>
             Remove
           </Button>
         ) : null}
-      </HStack>
+      </Stack>
 
       <AlertDialog
         isOpen={dialog.isOpen}
@@ -66,16 +76,26 @@ const CommentActions = ({ comment, isLoading, onReply, onEdit, onRemove }: Comme
         isCentered
       >
         <AlertDialogOverlay>
-          <AlertDialogContent bg="bg.elevated">
+          <AlertDialogContent
+            bg={componentTokens.overlay.bg}
+            borderColor={componentTokens.overlay.border}
+            borderRadius={componentTokens.overlay.radius}
+            color="text.primary"
+          >
             <AlertDialogHeader>Remove this comment?</AlertDialogHeader>
             <AlertDialogBody>
               Its text will no longer be visible. Replies remain in context when needed.
             </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={dialog.onClose}>
+            <AlertDialogFooter gap={space[2]}>
+              <Button ref={cancelRef} tone="secondary" onClick={dialog.onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="red" ml={3} onClick={handleRemove} isLoading={isLoading}>
+              <Button
+                tone="danger"
+                onClick={handleRemove}
+                isLoading={isLoading}
+                loadingLabel="Removing the comment"
+              >
                 Remove
               </Button>
             </AlertDialogFooter>

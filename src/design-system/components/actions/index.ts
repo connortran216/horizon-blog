@@ -26,7 +26,13 @@ export type {
   ControlStateOutput,
 } from './control.logic'
 
-export { isExternalHref, linkDecoration, linkPresentation, resolveLinkTarget } from './link.logic'
+export {
+  isExternalHref,
+  linkDecoration,
+  linkPresentation,
+  resolveLinkTarget,
+  routerLinkState,
+} from './link.logic'
 export type {
   LinkDecoration,
   LinkKind,
@@ -35,4 +41,5 @@ export type {
   LinkTargetOutput,
   LinkUnderline,
   LinkWeight,
+  RouterLinkState,
 } from './link.logic'

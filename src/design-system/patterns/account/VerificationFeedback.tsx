@@ -13,7 +13,7 @@
 
 import type { ReactNode } from 'react'
 import { Box, Flex } from '@chakra-ui/react'
-import { FiAlertCircle, FiCheckCircle, FiMail } from 'react-icons/fi'
+import { FiAlertCircle, FiCheckCircle, FiInfo, FiMail } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
 
 import { componentTokens, radii, space } from '../../../theme/tokens'
@@ -26,8 +26,11 @@ import {
   type LiveRegionAttributes,
 } from '../../components/feedback'
 import {
+  authAlertPresentation,
   authCallbackCopy,
   verificationCopy,
+  type AuthAlertPresentation,
+  type AuthAlertTone,
   type AuthCallbackStatus,
   type VerificationStatus,
 } from './auth.logic'
@@ -151,29 +154,37 @@ export function AuthCallbackFeedback({ status, provider, children }: AuthCallbac
 }
 
 export interface AuthAlertProps {
-  tone: Extract<FeedbackTone, 'error' | 'success' | 'permission'>
+  tone: AuthAlertTone
   /** The headline. Names the outcome: "Password updated". */
   title: string
   detail?: string
 }
 
+/** Three marks for four tones. The tick belongs to `success` alone. */
+const alertIcons: Record<AuthAlertPresentation['icon'], IconType> = {
+  failure: FiAlertCircle,
+  confirmation: FiCheckCircle,
+  neutral: FiInfo,
+}
+
 /**
  * The compact banner above a credential form - a reset confirmation, a rejected
- * provider handoff.
+ * provider handoff, a deliberately non-committal acknowledgement.
  *
- * It is `role="alert"` for the two failure tones and `role="status"` for the
- * success one: a reader who is about to retype a password needs to be
- * interrupted, and a reader who just succeeded does not.
+ * Every visual it carries comes from `authAlertPresentation`, so the colour, the
+ * mark and the live region are one decision rather than three that can be set
+ * against each other - a neutral surface with a tick on it would still read as a
+ * confirmation.
  */
 export function AuthAlert({ tone, title, detail }: AuthAlertProps) {
-  const { bg, fg } = feedbackToneTokens(tone)
-  const Icon = icons[tone]
-  const interrupts = tone !== 'success'
+  const presentation = authAlertPresentation(tone)
+  const { bg, fg } = presentation.tokens
+  const Icon = alertIcons[presentation.icon]
 
   return (
     <Flex
-      role={interrupts ? 'alert' : 'status'}
-      aria-live={interrupts ? 'assertive' : 'polite'}
+      role={presentation.role}
+      aria-live={presentation['aria-live']}
       gap={space[3]}
       align="flex-start"
       bg={bg}
