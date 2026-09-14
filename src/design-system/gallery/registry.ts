@@ -102,6 +102,11 @@ export const galleryRegistry = [
     states: [{ name: 'ready', kind: 'ready' }],
   },
   {
+    name: 'SectionLabel',
+    area: 'typography',
+    states: [{ name: 'ready', kind: 'ready' }],
+  },
+  {
     name: 'Metadata',
     area: 'typography',
     states: [{ name: 'ready', kind: 'ready' }],

@@ -34,6 +34,7 @@ import {
   Eyebrow,
   Grid,
   Heading,
+  SectionLabel,
   Stack,
   Surface,
   Text,
@@ -296,7 +297,13 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
         <Divider />
 
         <Stack gap={4}>
-          <Eyebrow as="p">Editorial track</Eyebrow>
+          {/*
+            The only name this group of three has. As a kicker it left the three
+            cards as h3s directly under the page's h1, with nothing between -
+            measured as the h1 -> h3 skip on /about. Same words, same size, now
+            in the outline.
+          */}
+          <SectionLabel>Editorial track</SectionLabel>
 
           <Grid as="ul" columns={3} gap={6} collapseAt="lg">
             {focusThreads.map((thread, index) => {

@@ -8,6 +8,7 @@ import {
   ContentContainer,
   Divider,
   Eyebrow,
+  SectionLabel,
   Grid,
   Heading,
   Metadata,
@@ -178,6 +179,18 @@ function EyebrowEntry() {
   return <Eyebrow>{gallery.copy('Sample eyebrow', longCopy.label)}</Eyebrow>
 }
 
+/*
+ * Shown next to `Eyebrow` on purpose: the two are visually identical and mean
+ * opposite things. An eyebrow categorises the heading below it and stays out of
+ * the outline; a section label is the only name its group has and must be in
+ * the outline. The gallery is where that distinction is easiest to miss.
+ */
+function SectionLabelEntry() {
+  const gallery = useGallery()
+
+  return <SectionLabel>{gallery.copy('Sample section label', longCopy.label)}</SectionLabel>
+}
+
 function MetadataEntry() {
   return (
     <Metadata>
@@ -200,5 +213,6 @@ export const layoutEntries = {
   Text: TextEntry,
   Heading: HeadingEntry,
   Eyebrow: EyebrowEntry,
+  SectionLabel: SectionLabelEntry,
   Metadata: MetadataEntry,
 } satisfies Record<string, EntryRenderer>

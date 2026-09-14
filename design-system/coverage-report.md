@@ -31,7 +31,7 @@ Regenerate it rather than editing it.
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
-Gallery entries: 112.
+Gallery entries: 113.
 
 ## Findings
 

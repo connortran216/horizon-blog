@@ -7,6 +7,9 @@ export type { HeadingProps } from './Heading'
 export { Eyebrow } from './Eyebrow'
 export type { EyebrowProps } from './Eyebrow'
 
+export { SectionLabel } from './SectionLabel'
+export type { SectionLabelProps } from './SectionLabel'
+
 export { Metadata } from './Metadata'
 export type { MetadataProps } from './Metadata'
 

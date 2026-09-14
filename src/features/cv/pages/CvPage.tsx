@@ -17,11 +17,11 @@ import {
   Button,
   CVEntry,
   ContentContainer,
-  Eyebrow,
   Grid,
   Heading,
   Metadata,
   Section,
+  SectionLabel,
   Stack,
   Surface,
   Text,
@@ -206,18 +206,14 @@ const CvPage = () => {
               </Stack>
 
               <Stack as="section" className="cv-section" gap={4}>
-                <Eyebrow as="p" className="cv-section-label">
-                  Summary
-                </Eyebrow>
+                <SectionLabel className="cv-section-label">Summary</SectionLabel>
                 <Text className="cv-body-text cv-section-body" recipe="body" whiteSpace="pre-line">
                   {cvProfile.summary}
                 </Text>
               </Stack>
 
               <Stack as="section" className="cv-section" gap={4}>
-                <Eyebrow as="p" className="cv-section-label">
-                  Core Stack
-                </Eyebrow>
+                <SectionLabel className="cv-section-label">Core Stack</SectionLabel>
                 <Grid className="cv-competency-grid cv-section-body" columns={2} gap={4}>
                   {cvProfile.competencies.map((group) => (
                     <Stack key={group.title} className="cv-competency-item" gap={1}>
@@ -239,9 +235,7 @@ const CvPage = () => {
               </Stack>
 
               <Stack as="section" className="cv-section" gap={6}>
-                <Eyebrow as="p" className="cv-section-label">
-                  Experience
-                </Eyebrow>
+                <SectionLabel className="cv-section-label">Experience</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.experience.map((experience) => (
                     <Box
@@ -262,9 +256,7 @@ const CvPage = () => {
               </Stack>
 
               <Stack as="section" className="cv-section" gap={6}>
-                <Eyebrow as="p" className="cv-section-label">
-                  Personal Projects
-                </Eyebrow>
+                <SectionLabel className="cv-section-label">Personal Projects</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.projects.map((project) => (
                     <Box
@@ -285,9 +277,7 @@ const CvPage = () => {
               </Stack>
 
               <Stack as="section" className="cv-section" gap={6}>
-                <Eyebrow as="p" className="cv-section-label">
-                  Education
-                </Eyebrow>
+                <SectionLabel className="cv-section-label">Education</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.education.map((item) => (
                     <Box key={`${item.school}-${item.degree}`} className="cv-entry cv-avoid-break">

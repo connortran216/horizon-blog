@@ -28,6 +28,7 @@ import {
   Grid,
   Heading,
   Section,
+  SectionLabel,
   Stack,
   Stagger,
   Text,
@@ -135,6 +136,14 @@ const ContactPage = () => {
             order rather than together.
           */}
           <Stack gap={4}>
+            {/*
+              The channels had no name of any kind, so the three cards sat as
+              h3s directly under the page's h1 - the h1 -> h3 skip measured on
+              this page. A label was missing rather than mis-marked, so this one
+              is new text rather than a promoted kicker.
+            */}
+            <SectionLabel>Ways to reach me</SectionLabel>
+
             <Stagger>
               {primaryContact ? (
                 <ContactCard
