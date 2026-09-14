@@ -33,8 +33,16 @@ export const easing = {
 export const transform = {
   /** Hover depth. Transform only - it must not change the document layout. */
   hoverLift: '-2px',
-  /** Entry translation distance. */
-  revealDistance: '8px',
+  /**
+   * Entry translation distance.
+   *
+   * It was 8px, which on a card 200px tall is close to invisible - the entry
+   * was reported as "no animation at all" on pages where it was working
+   * correctly. 14px is far enough to read as arrival and short enough that a
+   * grid of cards does not look like it is falling into place; the fade still
+   * does most of the work, and reduced motion still takes the travel to zero.
+   */
+  revealDistance: '14px',
 } as const
 
 /** Media query the whole system honours. */

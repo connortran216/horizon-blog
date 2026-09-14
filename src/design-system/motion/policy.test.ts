@@ -40,7 +40,7 @@ describe('token parsing', () => {
   })
 
   it('reads the transform tokens, including the negative hover lift', () => {
-    expect(parseLengthPx(transform.revealDistance)).toBe(8)
+    expect(parseLengthPx(transform.revealDistance)).toBe(14)
     expect(parseLengthPx(transform.hoverLift)).toBe(-2)
     expect(() => parseLengthPx('2rem')).toThrow(TypeError)
   })
@@ -96,7 +96,7 @@ describe('derived motion values', () => {
 
   it('drops the entry travel but keeps the fade', () => {
     expect(revealVariants(fullMotionPolicy)).toEqual({
-      hidden: { opacity: 0, y: 8 },
+      hidden: { opacity: 0, y: 14 },
       visible: { opacity: 1, y: 0 },
     })
     expect(revealVariants(reducedMotionPolicy)).toEqual({

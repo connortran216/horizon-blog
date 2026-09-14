@@ -40,10 +40,12 @@
   "dependencies": {
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
+    "@codemirror/language": "^6.12.1",
     "@codemirror/state": "^6.5.4",
     "@codemirror/view": "^6.39.12",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@lezer/highlight": "^1.2.3",
     "@milkdown/core": "^7.17.1",
     "@milkdown/crepe": "^7.17.3",
     "@milkdown/ctx": "^7.17.1",

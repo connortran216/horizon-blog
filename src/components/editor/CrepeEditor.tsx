@@ -21,6 +21,8 @@ import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
 import { Box, useColorMode, useToast } from '@chakra-ui/react'
 import { space } from '../../theme/tokens'
 import { CREPE_CONFIG } from '../../config/crepe.config'
+import { crepeFeatures, crepeSurface, readingCodeMirrorExtensions } from './crepe.features'
+import { horizonSyntaxExtensions } from './crepe.syntax'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
 import { createMermaidFeatureConfigs } from './mermaid'
@@ -397,16 +399,56 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       // Convert custom syntax (wiki links, hashtags) to standard markdown
       const convertedContent = parseWikiLinks(parseHashtags(resolvedInitialContent))
 
-      // Create Crepe instance with Phase 1 features
-      const features = {
-        [CrepeFeature.Toolbar]: CREPE_CONFIG.features.toolbar,
-        [CrepeFeature.CodeMirror]: CREPE_CONFIG.features.codeBlocks,
-        [CrepeFeature.BlockEdit]: true,
-        [CrepeFeature.LinkTooltip]: true,
-        [CrepeFeature.Cursor]: false,
-        [CrepeFeature.ListItem]: true,
-        [CrepeFeature.Table]: CREPE_CONFIG.features.tables,
-        ...(CREPE_CONFIG.features.imageBlock ? { [CrepeFeature.ImageBlock]: true } : {}),
+      // A reading surface and a writing surface are two different builds, not
+      // one build with a flag flipped afterwards. See `crepe.features.ts`.
+      const features = crepeFeatures(crepeSurface(readOnly))
+
+      const mermaidConfigs: Partial<ReturnType<typeof createMermaidFeatureConfigs>> = CREPE_CONFIG
+        .features.mermaid
+        ? createMermaidFeatureConfigs({
+            defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
+            previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
+            readOnly,
+            theme: mermaidTheme,
+          })
+        : {}
+
+      /*
+       * One CodeMirror config, merged rather than spread twice: the mermaid
+       * preview owns the same feature key, so two separate spreads would leave
+       * whichever came last silently deleting the other's fields.
+       *
+       * ProseMirror's editable flag stops at the code block's boundary - each
+       * fenced block is its own CodeMirror editor - so a reading surface has to
+       * hand it the facets that own `contenteditable` itself.
+       */
+      const codeMirrorConfig = {
+        ...(mermaidConfigs[CrepeFeature.CodeMirror] || {}),
+        /*
+         * NOT YET EFFECTIVE - see `horizon-blog-s6q`.
+         *
+         * The highlight style is handed over and CodeMirror does inject its
+         * stylesheet: eight rules naming `--chakra-colors-code-syntax-*` are in
+         * the document. No span ever receives their classes, so every listing
+         * still renders in One Dark and still fails the contrast floor in
+         * light. Three routes were measured:
+         *
+         *   extensions, no precedence  One Dark wins the tag
+         *   theme, as an array         lodash `defaultsDeep` merges it with One
+         *                              Dark's array element by element - our
+         *                              entry at index 0, One Dark's highlight
+         *                              style surviving at index 1
+         *   theme, as a Prec object    stylesheet injected, highlighter never
+         *                              reaches the facet; falls through to
+         *                              `basicSetup`'s default palette
+         *
+         * This is the first of those plus `Prec.highest`, which is the closest
+         * to correct: it is the only route where the highlighter demonstrably
+         * reaches CodeMirror, and it costs nothing while the precedence
+         * question is settled. The tokens it names are real and verified; what
+         * is unresolved is only how to make Crepe prefer them.
+         */
+        extensions: [horizonSyntaxExtensions(), ...(readOnly ? readingCodeMirrorExtensions() : [])],
       }
 
       const crepe = new Crepe({
@@ -418,14 +460,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
           [CrepeFeature.Placeholder]: {
             text: placeholder || CREPE_CONFIG.behavior.placeholder,
           },
-          ...(CREPE_CONFIG.features.mermaid
-            ? createMermaidFeatureConfigs({
-                defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
-                previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
-                readOnly,
-                theme: mermaidTheme,
-              })
-            : {}),
+          ...mermaidConfigs,
+          [CrepeFeature.CodeMirror]: codeMirrorConfig,
           ...(CREPE_CONFIG.features.imageBlock
             ? {
                 [CrepeFeature.ImageBlock]: {
@@ -466,6 +502,14 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             : {}),
         },
       })
+
+      // Before `create()`, not after. Crepe's `editable` option reads this flag
+      // live, so setting it here means the first render is already non-editable
+      // and every node view is constructed for reading. Setting it afterwards
+      // leaves a document full of node views that were built to be edited.
+      if (readOnly) {
+        crepe.setReadonly(true)
+      }
 
       // Set up change listener using Crepe's on method before creating
       if (onChange) {
@@ -545,11 +589,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             }
           }, 0)
 
-          // Set readonly mode if specified
-          if (readOnly) {
-            crepe.setReadonly(true)
-          }
-
           const applyFormAttrs = () => {
             const editorInput = editorRef.current?.querySelector('[role="textbox"]')
             if (editorInput) {
@@ -595,7 +634,11 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         crepeRef.current = null
       }
     }
-  }, [applyHeadingAnchors, mermaidTheme])
+    // `readOnly` is a dependency, not a runtime toggle: the two surfaces are
+    // built from different feature sets and their node views read the editable
+    // flag once, in their constructors, so switching surfaces means building a
+    // new editor rather than flipping a flag on the old one.
+  }, [applyHeadingAnchors, mermaidTheme, readOnly])
 
   // Update content when initialContent changes (e.g., edit existing post after async load)
   useEffect(() => {
@@ -608,13 +651,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       console.error('Failed to sync external editor content:', error)
     })
   }, [initialContent, syncExternalContent])
-
-  // Update readonly state when prop changes
-  useEffect(() => {
-    if (isEditorReadyRef.current && crepeRef.current) {
-      crepeRef.current.setReadonly(readOnly)
-    }
-  }, [readOnly])
 
   return (
     <>

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import { blur } from './primitives'
 import { componentTokens } from './components'
+// One implementation of the contrast arithmetic, shared with the component tests
+// that measure what a control actually emitted. It used to be transcribed here.
+import { contrastRatio } from './contrast'
 import {
   approvedColorTokens,
   colorOrigin,
@@ -12,25 +15,6 @@ import {
 } from './semantic'
 import { duration, easing, transform, transitionFor } from './motion'
 import { tokens } from './index'
-
-const luminance = (hex: string) => {
-  const channels = hex
-    .match(/[0-9a-f]{2}/gi)!
-    .map((value) => Number.parseInt(value, 16) / 255)
-    .map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4))
-
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
-}
-
-const contrastRatio = (foreground: string, background: string) => {
-  const foregroundLuminance = luminance(foreground)
-  const backgroundLuminance = luminance(background)
-
-  return (
-    (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
-    (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
-  )
-}
 
 /**
  * An independent transcription of the signed-off Signal v0.2 table. It exists so
@@ -71,6 +55,10 @@ const ALLOWED_PREFIXES = [
   'ambient',
   'bg',
   'border',
+  // Syntax roles for code listings. A family names what a colour is for, and
+  // "code" is a kind of content wherever it appears - an article, a draft, the
+  // gallery - not a page, which is what this rule exists to keep out.
+  'code',
   'focus',
   'link',
   'loading',
@@ -302,7 +290,7 @@ describe('motion contract', () => {
     expect(duration.enter).toBe('320ms')
     expect(easing.standard).toBe('cubic-bezier(0.22, 1, 0.36, 1)')
     expect(transform.hoverLift).toBe('-2px')
-    expect(transform.revealDistance).toBe('8px')
+    expect(transform.revealDistance).toBe('14px')
   })
 
   it('builds transitions from the shared curve', () => {

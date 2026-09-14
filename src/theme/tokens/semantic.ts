@@ -96,6 +96,37 @@ const derivedColors = {
   /** The pass of light that crosses the scene. `action.primary`, fainter. */
   'ambient.sweep': { light: 'rgb(49 88 212 / 8%)', dark: 'rgb(138 164 255 / 10%)' },
 
+  /*
+   * Syntax colours for code listings, on `bg.code`.
+   *
+   * CodeMirror ships One Dark, which is a fixed dark palette and does not know
+   * the theme exists. Measured on an article at 1440 in light, against
+   * `bg.code`: all nine of its colours failed the 4.5:1 floor, the worst at
+   * 1.53:1. These eight roles replace it.
+   *
+   * No new pigment. Every value is an approved palette step already in use for
+   * something else, which is what `derived` means here - the hues the system
+   * owns turn out to map onto the distinctions a listing actually needs, and
+   * the two steps that could not clear the floor on `bg.code` (`mist.500`,
+   * `night.400`) are simply not used. The floor across all sixteen values is
+   * 4.77:1 (`code.syntax.comment` in light) and the ceiling 13.96:1.
+   *
+   * `keyword` and `function` are deliberately the same hue a step apart rather
+   * than two unrelated colours: both are structure, and a listing that assigns
+   * a separate pigment to every token class becomes the "random colour" the
+   * Avoid list rules out. The distinctions worth drawing are literal from
+   * identifier, quiet from loud, and valid from broken.
+   */
+  'code.syntax.keyword': { light: palette.cobalt[800], dark: palette.cobalt[300] },
+  'code.syntax.function': { light: palette.cobalt[600], dark: palette.cobalt[400] },
+  'code.syntax.type': { light: palette.lime[800], dark: palette.lime[300] },
+  'code.syntax.string': { light: palette.success[600], dark: palette.success[300] },
+  'code.syntax.number': { light: palette.warning[600], dark: palette.warning[300] },
+  'code.syntax.operator': { light: palette.mist[700], dark: palette.night[200] },
+  /** The quietest role in a listing, and still above the text floor. */
+  'code.syntax.comment': { light: palette.mist[600], dark: palette.night[300] },
+  'code.syntax.invalid': { light: palette.danger[600], dark: palette.danger[300] },
+
   /** Skeleton body and its sweep. */
   'loading.base': { light: 'rgb(23 33 58 / 8%)', dark: 'rgb(233 238 250 / 8%)' },
   'loading.highlight': { light: 'rgb(255 255 255 / 85%)', dark: 'rgb(233 238 250 / 12%)' },
