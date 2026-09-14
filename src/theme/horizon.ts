@@ -288,6 +288,37 @@ export const horizonTheme = extendTheme({
       '::selection': {
         bg: 'bg.selection',
       },
+      /*
+       * A string with nowhere to break must not be allowed to set a box's width.
+       *
+       * Chakra's reset leaves everything at `overflow-wrap: break-word`, which
+       * moves a long word to the next line but does not count as a break when
+       * the browser computes min-content width. A flex or grid child is floored
+       * at min-content by `min-width: auto`, so one unbreakable token - a URL, a
+       * hash, an identifier, Vietnamese written without spaces - makes its box
+       * as wide as the token and the layout gives way above it. Measured at
+       * 375px with a 56-character token: the sign-in heading rendered 1042px
+       * wide and took the whole page sideways to 709px; the CV name rendered
+       * 1224px inside a 293px column and `article.cv-document`, which hides its
+       * overflow, cut the text off with nothing to say it had.
+       *
+       * `anywhere` is the one value that also shrinks min-content, so the floor
+       * drops and the box fits. That is the entire fix: adding `min-width: 0`
+       * alongside it changes nothing, and adding it *instead* changes nothing at
+       * all - both measured. The twenty components carrying a hand-placed
+       * `minWidth: 0` were each treating a symptom.
+       *
+       * Block code is the deliberate exception. A code listing is read by line
+       * and breaking a token mid-word corrupts it, so `pre` keeps `normal` and
+       * scrolls instead. Inline `code` inside a sentence wraps like the prose
+       * around it; a long identifier there would otherwise burst the article.
+       */
+      '*': {
+        overflowWrap: 'anywhere',
+      },
+      'pre, pre *': {
+        overflowWrap: 'normal',
+      },
       '*:focus-visible': focusVisible,
       /*
        * Reduced motion collapses duration instead of removing the rule, so a

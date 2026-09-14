@@ -186,6 +186,24 @@ describe('v2 Chakra adapter', () => {
     expect(reset).not.toHaveProperty('transitionProperty')
   })
 
+  it('lets an unbreakable string break, so it cannot set a box width', () => {
+    const global = horizonTheme.styles.global as Record<string, Record<string, unknown>>
+
+    // `anywhere` and not `break-word`: only `anywhere` also shrinks min-content,
+    // which is what stops a flex child's `min-width: auto` floor from widening
+    // to the length of a URL. Measured: the sign-in heading went 1042px -> 343px
+    // and the page 709px -> 375px at a 375px viewport.
+    expect(global['*'].overflowWrap).toBe('anywhere')
+  })
+
+  it('leaves block code unbroken, because a split token is a corrupted one', () => {
+    const global = horizonTheme.styles.global as Record<string, Record<string, unknown>>
+
+    // Inline `code` is deliberately absent here: inside a sentence it wraps with
+    // the prose, or a long identifier bursts the article at 375.
+    expect(global['pre, pre *'].overflowWrap).toBe('normal')
+  })
+
   it('gives keyboard focus a visible ring in both themes', () => {
     const global = horizonTheme.styles.global as Record<string, Record<string, unknown>>
     const focus = global['*:focus-visible']
