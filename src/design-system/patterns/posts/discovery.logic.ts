@@ -302,3 +302,87 @@ function pageEntries(current: number, totalPages: number, buttons: number): Pagi
 export function pageButtonLabel(page: number, isCurrent: boolean): string {
   return isCurrent ? `Page ${page}, current page` : `Go to page ${page}`
 }
+
+/* -------------------------------------------------------------------------- */
+/* Moving the reader to the new page                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Pressing "Next" replaces the whole list under a viewport that does not move,
+ * so a reader who was halfway down page one lands halfway down page two with
+ * nothing saying anything changed. Putting the top of the list back on screen
+ * is half the fix; the other half is focus, because a keyboard reader who was
+ * on the "Next" button is still on it, at the bottom of content they have not
+ * seen.
+ *
+ * Both halves are one decision and they live here rather than at four call
+ * sites - blog, author archive, Series index and the three profile tabs - none
+ * of which implemented either half.
+ */
+
+/**
+ * The part of an element this move touches, typed structurally so a test can
+ * hand in a plain object and assert the order and the arguments without a DOM.
+ */
+export interface PagedRegionElement {
+  hasAttribute(name: string): boolean
+  setAttribute(name: string, value: string): void
+  scrollIntoView(options: { block: 'start'; behavior: 'auto' | 'smooth' }): void
+  focus(options: { preventScroll: boolean }): void
+  readonly style: { scrollMarginBlockStart: string }
+}
+
+export interface PagedRegionMove {
+  /** `auto` under reduced motion: the distance is the same, the travel is not. */
+  readonly behavior: 'auto' | 'smooth'
+  /** Clearance above the region, so the floating header does not cover it. */
+  readonly scrollMargin: string
+}
+
+/**
+ * Whether a press actually changed the page.
+ *
+ * The numbered buttons call `onPageChange` for the current page too, and moving
+ * the viewport for a press that changed nothing is a jump with no cause.
+ */
+export function pagingMovesReader(fromPage: number, toPage: number): boolean {
+  return Number.isFinite(fromPage) && Number.isFinite(toPage) && fromPage !== toPage
+}
+
+/**
+ * Smooth scrolling is movement, so it stops under reduced motion - the same
+ * rule `railScrollBehavior` applies to the Series rail, and the reason neither
+ * reads the media query itself.
+ */
+export function pagingScrollBehavior(policy: { reduced: boolean }): 'auto' | 'smooth' {
+  return policy.reduced ? 'auto' : 'smooth'
+}
+
+/**
+ * Put the top of the paged region on screen and give it focus.
+ *
+ * `tabindex="-1"` is written rather than required of the caller, and only when
+ * the element does not already carry one, so a region that is genuinely
+ * focusable keeps its own value and a plain container becomes a focus
+ * destination without the page having to remember. `preventScroll` stops the
+ * browser's own focus scroll from racing the smooth one and landing the region
+ * at the top of the window underneath the header.
+ */
+export function movePagedRegionIntoView(
+  element: PagedRegionElement | null | undefined,
+  { behavior, scrollMargin }: PagedRegionMove,
+): boolean {
+  if (!element) {
+    return false
+  }
+
+  if (!element.hasAttribute('tabindex')) {
+    element.setAttribute('tabindex', '-1')
+  }
+
+  element.style.scrollMarginBlockStart = scrollMargin
+  element.scrollIntoView({ block: 'start', behavior })
+  element.focus({ preventScroll: true })
+
+  return true
+}

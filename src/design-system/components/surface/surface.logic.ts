@@ -112,13 +112,25 @@ export interface SurfaceInteractionStyle {
  * allow, and the border colour change is what carries the state for anyone who
  * cannot perceive a 2px translation. None of it replaces a persistent
  * affordance - a hover state is feedback, never the only signal.
+ *
+ * The border steps from `border.subtle` to `border.control` - the same step at
+ * every depth, which is why this takes no depth argument. Hover means "this
+ * surface has come forward", and coming forward is one gesture; it is not a
+ * different event on a feature surface than on a card. A depth-specific hover
+ * colour is also how the accent got in: a feature surface used to hover with
+ * `accent.lime`, which put a brand colour around the largest card on the blog
+ * archive every time the pointer crossed it. `DESIGN.md` keeps lime for
+ * restrained, persistent emphasis - the selected topic chip in
+ * `status.logic.ts` - and puts loud accent use under Avoid. `border.control` is
+ * the system's control-boundary role and its contrast is verified in both
+ * themes, so the feedback is still unmistakable without changing brand colour.
  */
-export function surfaceInteraction(depth: SurfaceDepth): SurfaceInteractionStyle {
+export function surfaceInteraction(): SurfaceInteractionStyle {
   return {
     transition: `${transitionFor('transform')}, ${transitionFor('border-color')}, ${transitionFor('box-shadow')}`,
     _hover: {
       transform: `translateY(${transform.hoverLift})`,
-      borderColor: depth === 'feature' ? componentTokens.feature.accent : role('border.control'),
+      borderColor: role('border.control'),
       boxShadow: 'card',
     },
     _active: { transform: 'translateY(0)' },

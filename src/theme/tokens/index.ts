@@ -50,6 +50,8 @@ export type {
   ThemePair,
 } from './semantic'
 
+export { contrastRatio, relativeLuminance, textContrastFloor } from './contrast'
+
 export { duration, easing, motion, reducedMotionQuery, transform, transitionFor } from './motion'
 export type { DurationToken, EasingToken, TransformToken } from './motion'
 

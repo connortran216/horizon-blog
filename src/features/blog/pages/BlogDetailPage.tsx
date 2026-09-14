@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
-import { getPostAuthorArchivePath, getPostAuthorArchiveState } from '../blog.utils'
+import { getPostAuthorArchivePath } from '../blog.utils'
 import { useResolvedMarkdownMedia } from '../../media/useResolvedMarkdown'
 import ReaderInteractionBar from '../../reader-interactions/components/ReaderInteractionBar'
 import { useReaderInteractions } from '../../reader-interactions/useReaderInteractions'
@@ -49,7 +49,6 @@ const BlogDetailPage = () => {
     [allHeadings],
   )
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
-  const authorArchiveState = post ? getPostAuthorArchiveState(post) : undefined
   const shareUrl = typeof window === 'undefined' ? undefined : window.location.href
   const readerSession = useReaderSession({
     postId: post?.id,
@@ -107,7 +106,6 @@ const BlogDetailPage = () => {
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
       authorArchivePath={authorArchivePath}
-      authorArchiveState={authorArchiveState}
       showReadingProgress={true}
       headings={headings}
       onReadingProgressChange={readerSession.handleReadingProgressChange}

@@ -68,7 +68,19 @@ const presentations = {
   signature: {
     family: 'feature',
     borderRadius: componentTokens.feature.radius,
-    titleRecipe: 'display',
+    /*
+     * An article heading, not a brand statement. The approved table draws the
+     * line itself: `type.pageTitle` is "Page and article headings" and
+     * `type.display` is the site's own voice - the Home hero and nothing else.
+     *
+     * The Signature had `display`, and a real 81-character title at 64px/72px in
+     * the 472px Home column wrapped to eight lines and stood 576px tall, pushing
+     * the page below it out of reach. It also put the site headline and one
+     * article title at the same 64px/700, so nothing said which of the two the
+     * page was about. Both are the same mistake: the largest ramp is the
+     * publication's, not an article's, however featured the article is.
+     */
+    titleRecipe: 'pageTitle',
     coverAspectRatio: '16 / 10',
     coverRadius: 'feature',
     ownsSurface: false,
@@ -138,10 +150,12 @@ export function coverBleeds(pattern: PostPattern): boolean {
  * by a viewport; three cannot be defeated by accident.
  *
  * `signature` and `featured` are the deliberate exception and this returns
- * `false` for them: they are the same editorial object at two altitudes - Home
- * and the archive - and they are separated by the title ramp and the cover
- * proportion rather than by the surface. The pair the acceptance criterion is
- * about is signature against card, and that pair differs on all three.
+ * `false` for them: they are the same editorial object on two pages - Home and
+ * the archive - and they are one article heading at one size, because that is
+ * what they both are. What separates them is the surface and the cover: the
+ * Signature is an unboxed plate at 16/10, the archive's Featured is a box at
+ * 4/3. The pair the acceptance criterion is about is signature against card,
+ * and that pair differs on all three channels.
  */
 export function patternsAreDistinct(a: PostPattern, b: PostPattern): boolean {
   if (a === b) {

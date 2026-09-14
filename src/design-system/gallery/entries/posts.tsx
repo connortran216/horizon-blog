@@ -2,7 +2,7 @@
  * Horizon Design System v2 - post discovery entries.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import {
@@ -127,13 +127,18 @@ function FilterBarEntry({ state }: { readonly state: string }) {
 
 function PaginationEntry({ state }: { readonly state: string }) {
   const [page, setPage] = useState(state === 'first page' ? 1 : 4)
+  // The gallery has no list above the pager, so the pager itself is the region
+  // it moves the reader to - enough to exercise the focus move on its own.
+  const regionRef = useRef<HTMLElement>(null)
 
   return (
     <Pagination
+      ref={regionRef}
       page={page}
       pageSize={10}
       totalItems={94}
       onPageChange={setPage}
+      regionRef={regionRef}
       compact={state === 'compact'}
     />
   )

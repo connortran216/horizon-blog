@@ -11,6 +11,9 @@
  * used to render the same "nothing matched that search" panel as an empty one.
  */
 
+import { useRef } from 'react'
+import { Box } from '@chakra-ui/react'
+
 import {
   Button,
   ContentContainer,
@@ -64,6 +67,13 @@ const BlogPage = () => {
     retryTags,
   } = useBlogArchive(PAGE_SIZE)
 
+  /*
+   * The block the pager pages, not the list inside it. This wrapper survives
+   * the swap between skeletons, error, empty and results, so it is still there
+   * to be scrolled to and focused when `Pagination` moves the reader.
+   */
+  const resultsRef = useRef<HTMLDivElement>(null)
+
   const featuredPost = posts[0]
   const remainingPosts = posts.slice(1)
   const filterState = { query, selectedTags: activeTags }
@@ -100,52 +110,58 @@ const BlogPage = () => {
 
           {page === 1 && !hasActiveFilters && !searchInput.trim() ? <SeriesShelf compact /> : null}
 
-          {loading ? (
-            <Grid columns={2} gap={8}>
-              {Array.from({ length: PAGE_SIZE }, (_unused, index) => (
-                <Skeleton
-                  key={`blog-skeleton-${index}`}
-                  shape={{ shape: 'media', aspectRatio: '16 / 9' }}
-                  label={index === 0 ? 'the blog archive' : undefined}
-                />
-              ))}
-            </Grid>
-          ) : error ? (
-            <ErrorState failedAction="load the blog archive" detail={error} align="start">
-              <RetryAction failedAction="load the blog archive" onRetry={retry} />
-            </ErrorState>
-          ) : posts.length === 0 ? (
-            <EmptyState subject="blogs" nextAction={noResultsNextAction(filterState)} align="start">
-              {hasActiveFilters ? (
-                <Button tone="secondary" onClick={clearAllFilters}>
-                  Clear all filters
-                </Button>
-              ) : null}
-            </EmptyState>
-          ) : (
-            <Stack as="section" gap={8} aria-labelledby="blog-results-heading">
-              <Stack gap={2}>
-                <Eyebrow as="p">{RESULTS_EYEBROW}</Eyebrow>
-                <Heading id="blog-results-heading" as="h2" recipe="sectionTitle">
-                  {resultsHeading}
-                </Heading>
+          <Box ref={resultsRef} minW={0}>
+            {loading ? (
+              <Grid columns={2} gap={8}>
+                {Array.from({ length: PAGE_SIZE }, (_unused, index) => (
+                  <Skeleton
+                    key={`blog-skeleton-${index}`}
+                    shape={{ shape: 'media', aspectRatio: '16 / 9' }}
+                    label={index === 0 ? 'the blog archive' : undefined}
+                  />
+                ))}
+              </Grid>
+            ) : error ? (
+              <ErrorState failedAction="load the blog archive" detail={error} align="start">
+                <RetryAction failedAction="load the blog archive" onRetry={retry} />
+              </ErrorState>
+            ) : posts.length === 0 ? (
+              <EmptyState
+                subject="blogs"
+                nextAction={noResultsNextAction(filterState)}
+                align="start"
+              >
+                {hasActiveFilters ? (
+                  <Button tone="secondary" onClick={clearAllFilters}>
+                    Clear all filters
+                  </Button>
+                ) : null}
+              </EmptyState>
+            ) : (
+              <Stack as="section" gap={8} aria-labelledby="blog-results-heading">
+                <Stack gap={2}>
+                  <Eyebrow as="p">{RESULTS_EYEBROW}</Eyebrow>
+                  <Heading id="blog-results-heading" as="h2" recipe="sectionTitle">
+                    {resultsHeading}
+                  </Heading>
+                </Stack>
+
+                {featuredPost ? (
+                  <FeaturedStory post={featuredPost} sectionLabels={sectionLabels} />
+                ) : null}
+
+                {remainingPosts.length > 0 ? (
+                  <Grid columns={2} gap={8}>
+                    <Stagger>
+                      {remainingPosts.map((post) => (
+                        <EditorialCard key={post.id} post={post} sectionLabels={sectionLabels} />
+                      ))}
+                    </Stagger>
+                  </Grid>
+                ) : null}
               </Stack>
-
-              {featuredPost ? (
-                <FeaturedStory post={featuredPost} sectionLabels={sectionLabels} />
-              ) : null}
-
-              {remainingPosts.length > 0 ? (
-                <Grid columns={2} gap={8}>
-                  <Stagger>
-                    {remainingPosts.map((post) => (
-                      <EditorialCard key={post.id} post={post} sectionLabels={sectionLabels} />
-                    ))}
-                  </Stagger>
-                </Grid>
-              ) : null}
-            </Stack>
-          )}
+            )}
+          </Box>
 
           {loading || error ? null : (
             <Pagination
@@ -153,6 +169,7 @@ const BlogPage = () => {
               pageSize={PAGE_SIZE}
               totalItems={total}
               onPageChange={setPage}
+              regionRef={resultsRef}
               label="Blog pagination"
             />
           )}

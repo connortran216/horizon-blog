@@ -26,6 +26,7 @@ const BlogAnalytics = lazy(() => import('./pages/BlogAnalytics'))
 const Series = lazy(() => import('./pages/Series'))
 const SeriesIndex = lazy(() => import('./pages/SeriesIndex'))
 const ManageSeries = lazy(() => import('./pages/ManageSeries'))
+const NotFound = lazy(() => import('./features/errors/pages/NotFoundPage'))
 const AccessManagement = lazy(
   () => import('./features/access-management/pages/AccessManagementPage'),
 )
@@ -122,6 +123,13 @@ const Routes = () => {
             </ProtectedRoute>
           }
         />
+        {/*
+          Last, and a real route rather than a redirect: an unknown address kept
+          matching nothing at all, which rendered an empty `main` between the
+          navbar and the footer. A redirect to the home page would hide the same
+          problem by pretending the reader asked for something else.
+        */}
+        <Route path="*" element={<NotFound />} />
       </RouterRoutes>
     </Suspense>
   )

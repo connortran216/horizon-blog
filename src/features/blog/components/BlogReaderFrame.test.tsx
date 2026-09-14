@@ -192,7 +192,6 @@ describe('BlogReaderFrame', () => {
         onBack={() => undefined}
         backLabel="Back to Blog"
         authorArchivePath="/authors/horizon-author"
-        authorArchiveState={{ authorId: 1 }}
       />,
     )
 
@@ -268,5 +267,47 @@ describe('BlogReaderFrame', () => {
     expect(missing).toContain('We could not find this blog.')
     expect(failed).toContain('We could not load this blog.')
     expect(failed).not.toContain('HTTP 503')
+  })
+
+  /**
+   * `uix.9`. A missing blog used to render one grey sentence: no heading, and
+   * nothing to click. A missing Series already offered a title and two links,
+   * and there is no reason the two dead ends should differ.
+   */
+  it('gives a missing blog a heading and a way out', () => {
+    const markup = render(
+      <BlogReaderFrame
+        post={null}
+        loading={false}
+        isMissing
+        resolvedContent=""
+        onBack={() => undefined}
+        backLabel="View archive"
+      />,
+    )
+
+    expect(markup).toContain('<h1')
+    expect(markup).toContain('This blog is not here')
+    expect(markup).toContain('href="/blog"')
+    expect(markup).toContain('href="/series"')
+    // Absence is not failure: a second request finds it just as missing.
+    expect(markup).not.toContain('Try to load this blog again')
+  })
+
+  it('gives a failed request the same substance, plus the retry it can use', () => {
+    const markup = render(
+      <BlogReaderFrame
+        post={null}
+        loading={false}
+        loadError="HTTP 503"
+        resolvedContent=""
+        onBack={() => undefined}
+        backLabel="View archive"
+      />,
+    )
+
+    expect(markup).toContain('<h1')
+    expect(markup).toContain('This blog did not load')
+    expect(markup).toContain('href="/blog"')
   })
 })

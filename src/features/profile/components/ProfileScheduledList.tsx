@@ -5,6 +5,7 @@
  * the legacy `VStack` said nothing about that to a screen reader.
  */
 
+import { useRef } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import { Pagination, Stack, Text } from '../../../design-system'
@@ -33,36 +34,42 @@ const ProfileScheduledList = ({
   onPublishNow,
   onCancelSchedule,
   onDelete,
-}: ProfileScheduledListProps) => (
-  <Stack gap={4}>
-    <Text recipe="metadata">
-      Every publication below is still a draft. The server publishes it at the time shown.
-    </Text>
+}: ProfileScheduledListProps) => {
+  // The block the pager pages: the note, the queue and the pager together.
+  const regionRef = useRef<HTMLElement>(null)
 
-    <Stack as="ol" gap={4}>
-      {blogs.map((blog) => (
-        <Box as="li" key={blog.id} listStyleType="none">
-          <ProfileScheduledRow
-            blog={blog}
-            now={now}
-            onEdit={onEdit}
-            onReschedule={onReschedule}
-            onPublishNow={onPublishNow}
-            onCancelSchedule={onCancelSchedule}
-            onDelete={onDelete}
-          />
-        </Box>
-      ))}
+  return (
+    <Stack ref={regionRef} gap={4}>
+      <Text recipe="metadata">
+        Every publication below is still a draft. The server publishes it at the time shown.
+      </Text>
+
+      <Stack as="ol" gap={4}>
+        {blogs.map((blog) => (
+          <Box as="li" key={blog.id} listStyleType="none">
+            <ProfileScheduledRow
+              blog={blog}
+              now={now}
+              onEdit={onEdit}
+              onReschedule={onReschedule}
+              onPublishNow={onPublishNow}
+              onCancelSchedule={onCancelSchedule}
+              onDelete={onDelete}
+            />
+          </Box>
+        ))}
+      </Stack>
+
+      <Pagination
+        page={pagination.page}
+        pageSize={pagination.limit}
+        totalItems={pagination.total}
+        onPageChange={onPageChange}
+        regionRef={regionRef}
+        label="Scheduled publications pagination"
+      />
     </Stack>
-
-    <Pagination
-      page={pagination.page}
-      pageSize={pagination.limit}
-      totalItems={pagination.total}
-      onPageChange={onPageChange}
-      label="Scheduled publications pagination"
-    />
-  </Stack>
-)
+  )
+}
 
 export default ProfileScheduledList

@@ -55,6 +55,7 @@ import {
   type DragState,
 } from './drag.logic'
 import {
+  defaultRailVisibleItems,
   railItemBasisResponsive,
   railKeyboardAction,
   railKeyboardTarget,
@@ -124,7 +125,7 @@ const frameScheduler: FrameScheduler = {
 export function SeriesRail({
   items,
   label,
-  visibleItems = { base: 1, sm: 2, md: 3 },
+  visibleItems = defaultRailVisibleItems,
   cardOptions,
   hasMore = false,
   isLoadingMore = false,

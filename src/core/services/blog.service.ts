@@ -25,6 +25,7 @@ import {
 import { IBlogRepository } from '../types/blog-repository.types'
 import { RepositoryResult } from '../types/blog-repository.types'
 import { ApiError } from './api.service'
+import { matchAuthorIdBySlug } from '../utils/author-slug.utils'
 import {
   calculateReadingTime,
   enrichBlogPostDisplayFields,
@@ -183,6 +184,47 @@ export class BlogService implements IBlogService {
   async getPopularTags(limit: number = 8): Promise<PublicPostTag[]> {
     const result = await this.repository.getPopularTags(limit)
     return this.unwrapResult(result, 'Failed to fetch popular tags')
+  }
+
+  /**
+   * The author id behind `/authors/<slug>`.
+   *
+   * There is no endpoint that takes a slug, so this walks the published post
+   * list until it finds an author whose name slugifies to the one asked for -
+   * the same resolution the SEO gateway already performs for crawlers, so a
+   * shared link means the same thing to the server and to the application.
+   *
+   * Bounded on purpose. The pages are the ones the archive already fetches and
+   * the repository already caches, and the walk stops at the end of the list or
+   * at `maxPages`, so a large archive costs a bounded number of requests instead
+   * of an unbounded one. A slug nobody published under raises `404`, which is
+   * what it is.
+   */
+  async resolveAuthorIdBySlug(
+    slug: string,
+    { pageSize = 50, maxPages = 20 }: { pageSize?: number; maxPages?: number } = {},
+  ): Promise<string> {
+    if (!slug) {
+      throw new ApiError('Author not found', 404)
+    }
+
+    for (let page = 1; page <= maxPages; page += 1) {
+      const summaries = await this.getPublishedArchivePosts({ page, limit: pageSize })
+      const match = matchAuthorIdBySlug(
+        slug,
+        summaries.posts.map((post) => ({ id: post.author?.id, name: post.author?.username })),
+      )
+
+      if (match) {
+        return match
+      }
+
+      if (page * pageSize >= summaries.total || summaries.posts.length === 0) {
+        break
+      }
+    }
+
+    throw new ApiError('Author not found', 404)
   }
 
   async getPublicAuthorProfile(authorId: string): Promise<PublicAuthor> {

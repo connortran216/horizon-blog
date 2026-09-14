@@ -39,8 +39,14 @@ export type { CommentThreadProps } from './CommentThread'
 
 export {
   ACTIVE_HEADING_THRESHOLD,
+  PROSE_HEADING_CLASS_REPEATS,
+  RENDERER_HEADING_CLASSES,
   activeHeadingId,
   isAfterProse,
+  proseHeadingLevels,
+  proseHeadingRamp,
+  proseHeadingSelector,
+  proseOutranksRenderer,
   readerRegionIndex,
   readerRegions,
   readerSlotFor,
@@ -58,6 +64,9 @@ export {
 export type {
   HeadingOffset,
   ProgressAria,
+  ProseHeadingLevel,
+  ProseHeadingStyle,
+  ProseHeadingTextStyle,
   ReaderElement,
   ReaderHeading,
   ReaderRegion,

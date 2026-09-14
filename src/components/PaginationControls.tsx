@@ -185,7 +185,7 @@ const PaginationControls = ({
                 size="sm"
                 variant="ghost"
                 onClick={handleJumpSubmit}
-                _hover={{ bg: 'action.primary', color: 'white' }}
+                _hover={{ bg: 'action.primary', color: 'text.onAction' }}
                 borderRadius="md"
                 h="full"
               />

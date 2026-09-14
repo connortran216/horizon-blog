@@ -55,7 +55,7 @@ export const Surface = forwardRef<HTMLElement, SurfaceProps>(function Surface(
       boxShadow={style.boxShadow}
       overflow={style.overflow}
       p={padded ? componentTokens.card.padding : undefined}
-      {...(isInteractive ? surfaceInteraction(depth) : {})}
+      {...(isInteractive ? surfaceInteraction() : {})}
       {...rest}
     />
   )

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { componentTokens, radii } from '../../../theme/tokens'
+import { componentTokens, radii, typeScale } from '../../../theme/tokens'
 import { containerCorners, frameOwnsCorners, mediaFrameStyle } from '../../components/media'
 import { surfaceClipsChildren, surfaceStyle } from '../../components/surface'
 import {
@@ -65,10 +65,39 @@ describe('the four post patterns', () => {
     expect(postPresentation('row').ownsSurface).toBe(false)
   })
 
-  it('keeps the two editorial siblings on one family, separated by the ramp', () => {
+  /*
+   * Rewritten for `uix.1`. It used to assert `titleSizePx('signature') >
+   * titleSizePx('featured')`, which held only because the Signature was on the
+   * `display` ramp - the brand statement ramp - and that is the defect. Both are
+   * article headings and both now sit on `pageTitle`, so the separation between
+   * them is the surface and the cover, and that is what this asserts instead.
+   */
+  it('keeps the two editorial siblings on one family and one article ramp', () => {
     expect(patternsAreDistinct('signature', 'featured')).toBe(false)
     expect(postPresentation('signature').family).toBe(postPresentation('featured').family)
-    expect(titleSizePx('signature')).toBeGreaterThan(titleSizePx('featured'))
+    expect(postPresentation('signature').titleRecipe).toBe(postPresentation('featured').titleRecipe)
+  })
+
+  it('separates the two siblings by the surface and the cover instead', () => {
+    expect(postPresentation('signature').ownsSurface).not.toBe(
+      postPresentation('featured').ownsSurface,
+    )
+    expect(postPresentation('signature').coverAspectRatio).not.toBe(
+      postPresentation('featured').coverAspectRatio,
+    )
+  })
+
+  it('leaves the display ramp to the site, not to an article', () => {
+    // `type.display` is the brand statement; `type.pageTitle` is documented as
+    // "Page and article headings". No post pattern is a brand statement, so the
+    // Home `h1` is the only thing on the page drawing at 64px.
+    for (const pattern of postPatterns) {
+      expect(postPresentation(pattern).titleRecipe, pattern).not.toBe('display')
+    }
+  })
+
+  it('puts the site headline a full step above the story it leads with', () => {
+    expect(titleSizePx('signature')).toBeLessThan(Number.parseFloat(typeScale.display.fontSize[1]))
   })
 
   it('is never distinct from itself', () => {

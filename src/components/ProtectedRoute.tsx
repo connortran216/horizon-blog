@@ -50,7 +50,7 @@ const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) =
               as={RouterLink}
               to="/"
               bg="action.primary"
-              color="white"
+              color="text.onAction"
               _hover={{ bg: 'action.hover' }}
             >
               Return home

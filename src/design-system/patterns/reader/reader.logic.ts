@@ -237,6 +237,118 @@ export function tocDisclosureLabel(count: number, label = 'On this page'): strin
 }
 
 /* -------------------------------------------------------------------------- */
+/* The article's own heading ramp                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `uix.8b`. Who wins the heading ramp inside a rendered article.
+ *
+ * `@milkdown/crepe`'s `theme/common/reset.css` ships
+ * `.milkdown .ProseMirror h1…h6 { font-weight: 400 }` and a fixed 42/36/32/28/24/18px
+ * ramp with its own line heights. That selector is two classes and an element -
+ * specificity (0,2,1). Emotion compiles `Prose`'s `sx` into one generated class,
+ * so `.css-hash h2` is (0,1,1) and loses: an article `h2` rendered at 36px/44px
+ * weight 400, larger than the page title above it, fixed at every width, and not
+ * the `sectionTitle` step the type ramp defines.
+ *
+ * Source order cannot settle it either, because the two stylesheets do not have
+ * a fixed order: the Crepe theme arrives with a lazily imported chunk, after
+ * Emotion's. So the weight is raised instead. Repeating `&` repeats the
+ * generated class, and three repeats is (0,3,1), which outranks the renderer
+ * whichever stylesheet is injected last. `Prose` is the declared owner of the
+ * reading column, so it takes the ramp back rather than the editor stylesheet
+ * conceding it - the same ownership `CREPE_LOCAL_SCROLL` already restates for
+ * overflow.
+ */
+export const RENDERER_HEADING_CLASSES = 2
+export const PROSE_HEADING_CLASS_REPEATS = 3
+
+export const proseHeadingLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
+
+export type ProseHeadingLevel = (typeof proseHeadingLevels)[number]
+
+/** The type-ramp steps an article heading is allowed to use. */
+export type ProseHeadingTextStyle = 'pageTitle' | 'sectionTitle' | 'cardTitle' | 'body'
+
+export interface ProseHeadingStyle {
+  readonly textStyle: ProseHeadingTextStyle
+  /** Headings stay semibold at every level; the renderer flattened them to 400. */
+  readonly fontWeight: 'semibold'
+  readonly marginBlockStart: string
+  readonly marginBlockEnd: string
+  /** A deep link must not land the heading under the floating header. */
+  readonly scrollMarginBlockStart: string
+}
+
+/** `&&& h2` - see `PROSE_HEADING_CLASS_REPEATS`. */
+export function proseHeadingSelector(level: ProseHeadingLevel): string {
+  return `${'&'.repeat(PROSE_HEADING_CLASS_REPEATS)} ${level}`
+}
+
+/** Whether the ramp above still outranks the renderer's stylesheet. */
+export function proseOutranksRenderer(): boolean {
+  return PROSE_HEADING_CLASS_REPEATS > RENDERER_HEADING_CLASSES
+}
+
+/**
+ * The ramp itself.
+ *
+ * Every step is a `textStyles` entry, which is where the responsive pair lives,
+ * so an article heading scales between 375 and 1440 the way every other heading
+ * in the system does. `h1` takes the page-title step rather than anything
+ * larger: an article body that opens with `#` must not outrank the page title
+ * it sits under, and the ramp has to stay monotonic from there down.
+ */
+export function proseHeadingRamp(): Record<ProseHeadingLevel, ProseHeadingStyle> {
+  const deepLinkClearance = space[16]
+
+  return {
+    h1: {
+      textStyle: 'pageTitle',
+      fontWeight: 'semibold',
+      marginBlockStart: space[12],
+      marginBlockEnd: space[4],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+    h2: {
+      textStyle: 'sectionTitle',
+      fontWeight: 'semibold',
+      marginBlockStart: space[12],
+      marginBlockEnd: space[4],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+    h3: {
+      textStyle: 'cardTitle',
+      fontWeight: 'semibold',
+      marginBlockStart: space[8],
+      marginBlockEnd: space[3],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+    h4: {
+      textStyle: 'body',
+      fontWeight: 'semibold',
+      marginBlockStart: space[6],
+      marginBlockEnd: space[2],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+    h5: {
+      textStyle: 'body',
+      fontWeight: 'semibold',
+      marginBlockStart: space[6],
+      marginBlockEnd: space[2],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+    h6: {
+      textStyle: 'body',
+      fontWeight: 'semibold',
+      marginBlockStart: space[4],
+      marginBlockEnd: space[2],
+      scrollMarginBlockStart: deepLinkClearance,
+    },
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Where the reader's parts go                                                */
 /* -------------------------------------------------------------------------- */
 

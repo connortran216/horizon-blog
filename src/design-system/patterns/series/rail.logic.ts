@@ -58,6 +58,36 @@ export interface RailVisibleItems {
   readonly lg?: number
 }
 
+/**
+ * How many cards sit fully in view at each width, unless a caller says
+ * otherwise. It is a named constant rather than a default argument buried in
+ * `SeriesRail` because a shelf has to know it: a rail handed this many items or
+ * fewer has nothing to scroll, so its arrows, its snap and its peek are all
+ * furniture. See `railWidestVisibleItems`.
+ */
+export const defaultRailVisibleItems: RailVisibleItems = { base: 1, sm: 2, md: 3 }
+
+/** The most cards the rail ever shows at once. */
+export function railWidestVisibleItems(
+  visible: RailVisibleItems = defaultRailVisibleItems,
+): number {
+  return Math.max(visible.base, visible.sm ?? 0, visible.md ?? 0, visible.lg ?? 0)
+}
+
+/**
+ * Whether a shelf of this many items is worth putting on a rail at all.
+ *
+ * The Series shelf used to ask the API for two, which on a desktop rail meant
+ * three slots holding two cards: both arrows dead, nothing to snap to and no
+ * next-item peek.
+ */
+export function railIsScrollable(
+  itemCount: number,
+  visible: RailVisibleItems = defaultRailVisibleItems,
+): boolean {
+  return itemCount > railWidestVisibleItems(visible)
+}
+
 /** The same basis at each breakpoint, in the shape Chakra takes directly. */
 export function railItemBasisResponsive(visible: RailVisibleItems): Record<string, string> {
   const entries: [string, number][] = [['base', visible.base]]

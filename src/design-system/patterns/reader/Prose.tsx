@@ -34,6 +34,19 @@ import {
   scrollRegionSelector,
   syncScrollRegion,
 } from './code.logic'
+import { proseHeadingRamp, proseHeadingSelector } from './reader.logic'
+
+/**
+ * The heading ramp, keyed by the weighted selector that outranks the renderer's
+ * own stylesheet. Built once at module load - it depends on nothing but tokens.
+ * See `proseHeadingRamp` for why the selector is weighted at all.
+ */
+const headingRamp = Object.fromEntries(
+  Object.entries(proseHeadingRamp()).map(([level, style]) => [
+    proseHeadingSelector(level as keyof ReturnType<typeof proseHeadingRamp>),
+    { ...style, color: componentTokens.reader.fg, letterSpacing: 'tight' },
+  ]),
+)
 
 const frameScheduler: FrameScheduler = {
   request: (callback) =>
@@ -204,21 +217,7 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
         overflowWrap: 'anywhere',
 
         'p, ul, ol, blockquote': { marginBlock: space[6], color: componentTokens.reader.fg },
-        'h2, h3, h4': { color: componentTokens.reader.fg, letterSpacing: 'tight' },
-        h2: {
-          textStyle: 'sectionTitle',
-          marginBlockStart: space[12],
-          marginBlockEnd: space[4],
-          // A deep link must not land the heading under the floating header.
-          scrollMarginBlockStart: space[16],
-        },
-        h3: {
-          textStyle: 'cardTitle',
-          marginBlockStart: space[8],
-          marginBlockEnd: space[3],
-          scrollMarginBlockStart: space[16],
-        },
-        h4: { textStyle: 'body', marginBlockStart: space[6], marginBlockEnd: space[2] },
+        ...headingRamp,
         'ul, ol': { paddingInlineStart: space[6] },
         li: { marginBlock: space[2] },
         a: {

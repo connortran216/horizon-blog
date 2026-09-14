@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { fullMotionPolicy, reducedMotionPolicy } from '../../motion'
 import {
   activeFilterChips,
   clearAllFilters,
@@ -8,11 +9,15 @@ import {
   filterBarStatus,
   filterResultSummary,
   hasActiveFilters,
+  movePagedRegionIntoView,
   noResultsNextAction,
   pageButtonLabel,
   paginationModel,
+  pagingMovesReader,
+  pagingScrollBehavior,
   removeFilterTag,
   toggleTag,
+  type PagedRegionElement,
 } from './discovery.logic'
 
 describe('filter state', () => {
@@ -178,5 +183,83 @@ describe('pageButtonLabel', () => {
   it('turns a bare number into a destination', () => {
     expect(pageButtonLabel(2, false)).toBe('Go to page 2')
     expect(pageButtonLabel(2, true)).toBe('Page 2, current page')
+  })
+})
+
+/**
+ * `uix.4`. Changing page on `/blog` used to leave the scroll position untouched,
+ * so a reader landed mid-list on a page they had not seen, and a keyboard reader
+ * was still on the "Next" button underneath it. These are the decisions that
+ * move them, kept out of the component so they can be proved without a DOM.
+ */
+describe('moving the reader to the new page', () => {
+  const spyElement = () => {
+    const calls: string[] = []
+    const attributes = new Map<string, string>()
+    const element: PagedRegionElement & {
+      readonly calls: string[]
+      readonly scrolls: unknown[]
+      readonly focuses: unknown[]
+    } = {
+      calls,
+      scrolls: [],
+      focuses: [],
+      style: { scrollMarginBlockStart: '' },
+      hasAttribute: (name) => attributes.has(name),
+      setAttribute: (name, value) => {
+        calls.push(`setAttribute:${name}=${value}`)
+        attributes.set(name, value)
+      },
+      scrollIntoView: (options) => {
+        calls.push('scrollIntoView')
+        element.scrolls.push(options)
+      },
+      focus: (options) => {
+        calls.push('focus')
+        element.focuses.push(options)
+      },
+    }
+
+    return element
+  }
+
+  it('only moves when the page actually changed', () => {
+    expect(pagingMovesReader(1, 2)).toBe(true)
+    expect(pagingMovesReader(3, 3)).toBe(false)
+    expect(pagingMovesReader(Number.NaN, 2)).toBe(false)
+  })
+
+  it('stops the travel under reduced motion without stopping the move', () => {
+    expect(pagingScrollBehavior(fullMotionPolicy)).toBe('smooth')
+    expect(pagingScrollBehavior(reducedMotionPolicy)).toBe('auto')
+  })
+
+  it('scrolls the region to the top and then gives it focus', () => {
+    const element = spyElement()
+
+    expect(movePagedRegionIntoView(element, { behavior: 'smooth', scrollMargin: '64px' })).toBe(
+      true,
+    )
+    expect(element.calls).toEqual(['setAttribute:tabindex=-1', 'scrollIntoView', 'focus'])
+    expect(element.scrolls[0]).toEqual({ block: 'start', behavior: 'smooth' })
+    // Otherwise the browser's own focus scroll races the smooth one and parks
+    // the region under the floating header.
+    expect(element.focuses[0]).toEqual({ preventScroll: true })
+    expect(element.style.scrollMarginBlockStart).toBe('64px')
+  })
+
+  it('leaves a region that is already focusable with the tabindex it has', () => {
+    const element = spyElement()
+    element.setAttribute('tabindex', '0')
+
+    movePagedRegionIntoView(element, { behavior: 'auto', scrollMargin: '64px' })
+
+    expect(element.calls.filter((call) => call.startsWith('setAttribute:tabindex'))).toEqual([
+      'setAttribute:tabindex=0',
+    ])
+  })
+
+  it('does nothing, and says so, when the region is not mounted', () => {
+    expect(movePagedRegionIntoView(null, { behavior: 'auto', scrollMargin: '64px' })).toBe(false)
   })
 })

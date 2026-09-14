@@ -13,6 +13,7 @@
  * after the title it belongs to.
  */
 
+import { useRef } from 'react'
 import { Box } from '@chakra-ui/react'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
 import { FiMoreVertical } from 'react-icons/fi'
@@ -84,31 +85,38 @@ const ProfileBlogGrid = ({
   onEdit,
   onDelete,
   profileUsername,
-}: ProfileBlogGridProps) => (
-  <Stack gap={6}>
-    <Grid as="ul" columns={2} gap={6} collapseAt="xl">
-      {blogs.map((blog) => (
-        <Box as="li" key={blog.id} listStyleType="none" display="flex">
-          <Box flex="1" minW={0}>
-            <ProfileBlogCard
-              blog={blog}
-              profileUsername={profileUsername}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          </Box>
-        </Box>
-      ))}
-    </Grid>
+}: ProfileBlogGridProps) => {
+  // The block the pager pages: the grid and the pager together, so changing
+  // page puts the top of the tab's cards back on screen and moves focus there.
+  const regionRef = useRef<HTMLElement>(null)
 
-    <Pagination
-      page={currentPage}
-      pageSize={pageSize}
-      totalItems={totalCount}
-      onPageChange={onPageChange}
-      label={label}
-    />
-  </Stack>
-)
+  return (
+    <Stack ref={regionRef} gap={6}>
+      <Grid as="ul" columns={2} gap={6} collapseAt="xl">
+        {blogs.map((blog) => (
+          <Box as="li" key={blog.id} listStyleType="none" display="flex">
+            <Box flex="1" minW={0}>
+              <ProfileBlogCard
+                blog={blog}
+                profileUsername={profileUsername}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </Box>
+          </Box>
+        ))}
+      </Grid>
+
+      <Pagination
+        page={currentPage}
+        pageSize={pageSize}
+        totalItems={totalCount}
+        onPageChange={onPageChange}
+        regionRef={regionRef}
+        label={label}
+      />
+    </Stack>
+  )
+}
 
 export default ProfileBlogGrid

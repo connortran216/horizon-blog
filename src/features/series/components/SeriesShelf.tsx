@@ -34,8 +34,23 @@ interface SeriesShelfProps {
   compact?: boolean
 }
 
-const SHELF_LIMIT = 2
-const SKELETON_COUNT = 2
+/**
+ * How many Series the shelf asks for, and how many placeholders stand in.
+ *
+ * The rail shows three cards plus a peek at `md` (`SeriesRail`'s default
+ * `visibleItems`), so anything at or below three arrives with the arrows dead
+ * and nothing to scroll to - the rail's paging, snap and peek all become
+ * furniture. It used to ask for two.
+ *
+ * Twelve is `usePublicSeriesList`'s own default page size and the largest the
+ * shelf needs: the public `/series` endpoint serves it in one request, and a
+ * reader who has scrolled past twelve Series on a shelf wants the Series index,
+ * which is what the "View all series" link beside the heading is for. The
+ * skeleton count matches the rail's widest visible row rather than the request,
+ * because loading reserves the shape of what is about to be on screen.
+ */
+export const SHELF_LIMIT = 12
+export const SKELETON_COUNT = 3
 
 const SeriesShelf = ({ compact = false }: SeriesShelfProps) => {
   const { items, loading, error, retry } = usePublicSeriesList({ limit: SHELF_LIMIT })
@@ -69,7 +84,7 @@ const SeriesShelf = ({ compact = false }: SeriesShelfProps) => {
         </Box>
 
         {loading ? (
-          <Grid columns={2} gap={6}>
+          <Grid columns={3} gap={6}>
             {Array.from({ length: SKELETON_COUNT }, (_unused, index) => (
               <Skeleton
                 key={`series-skeleton-${index}`}

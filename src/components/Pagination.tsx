@@ -90,7 +90,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               variant={isCurrentPage ? 'solid' : 'ghost'}
               colorScheme="gray"
               bg={isCurrentPage ? 'accent.primary' : undefined}
-              color={isCurrentPage ? 'white' : undefined}
+              color={isCurrentPage ? 'text.onAction' : undefined}
               onClick={() => handlePageChange(pageNum)}
               variants={buttonVariants}
               whileHover={!isCurrentPage ? 'hover' : {}}

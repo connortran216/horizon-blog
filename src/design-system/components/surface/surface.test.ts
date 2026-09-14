@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { componentTokens, radii, semanticColors, transform } from '../../../theme/tokens'
+import {
+  componentTokens,
+  palette,
+  radii,
+  semanticColor,
+  semanticColors,
+  transform,
+  type SemanticColorToken,
+} from '../../../theme/tokens'
 import {
   dividerStyle,
   surfaceClipsChildren,
@@ -98,12 +106,12 @@ describe('the clip that lets a surface own a child’s corners', () => {
  */
 describe('surfaceInteraction', () => {
   it('lifts with a transform, at the distance the motion tokens allow', () => {
-    expect(surfaceInteraction('raised')._hover.transform).toBe(`translateY(${transform.hoverLift})`)
+    expect(surfaceInteraction()._hover.transform).toBe(`translateY(${transform.hoverLift})`)
     expect(transform.hoverLift).toBe('-2px')
   })
 
   it('animates only properties that are outside layout', () => {
-    const transition = surfaceInteraction('flat').transition
+    const transition = surfaceInteraction().transition
     // Each entry is `<property> <duration> <easing>`; the easing carries commas.
     const properties = [...transition.matchAll(/([a-z-]+)\s+\d+ms/g)].map((match) => match[1])
 
@@ -114,15 +122,45 @@ describe('surfaceInteraction', () => {
   })
 
   it('returns the surface to rest on press rather than pushing it further', () => {
-    expect(surfaceInteraction('raised')._active.transform).toBe('translateY(0)')
+    expect(surfaceInteraction()._active.transform).toBe('translateY(0)')
   })
 
   it('pairs the lift with a border-colour change, so depth is not the only cue', () => {
     for (const depth of surfaceDepths) {
-      const hover = surfaceInteraction(depth)._hover
+      const hover = surfaceInteraction()._hover
 
       expect(hover.borderColor).not.toBe(surfaceStyle(depth).borderColor)
       expect(Object.keys(semanticColors)).toContain(hover.borderColor)
+    }
+  })
+
+  /**
+   * `uix.3`. A feature surface used to hover with `componentTokens.feature.accent`
+   * - `accent.lime` - which ringed the largest card on the blog archive in brand
+   * colour whenever the pointer crossed it. `DESIGN.md` reserves lime for
+   * restrained, persistent emphasis and puts loud accent use under Avoid, so
+   * hover has to read as depth.
+   *
+   * The check is on the resolved values, not on the role name, so a future
+   * token edit that quietly points a border role at a lime value fails here too.
+   */
+  it('never hovers with an accent colour, at any depth or in either theme', () => {
+    const hoverBorder = surfaceInteraction()._hover.borderColor as SemanticColorToken
+    const limeValues = new Set<string>(Object.values(palette.lime))
+
+    expect(hoverBorder).toBe('border.control')
+    expect(hoverBorder.startsWith('accent.')).toBe(false)
+    for (const mode of ['light', 'dark'] as const) {
+      expect(limeValues.has(semanticColor(hoverBorder, mode))).toBe(false)
+      expect(semanticColor(hoverBorder, mode)).not.toBe(semanticColor('accent.lime', mode))
+    }
+  })
+
+  it('gives every depth the same hover feedback, because depth is one gesture', () => {
+    for (const depth of surfaceDepths) {
+      // Rest differs by depth; the response to a pointer does not.
+      expect(surfaceStyle(depth).borderColor).toBe('border.subtle')
+      expect(surfaceInteraction()._hover.borderColor).toBe('border.control')
     }
   })
 })

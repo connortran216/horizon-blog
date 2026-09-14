@@ -104,7 +104,6 @@ interface BlogReaderFrameProps {
   /** The article does not exist, or is not published. */
   isMissing?: boolean
   authorArchivePath?: string | null
-  authorArchiveState?: { authorId: number } | undefined
   showReadingProgress?: boolean
   /** The headings the table of contents lists. Empty hides it entirely. */
   headings?: readonly ReaderHeading[]
@@ -130,7 +129,6 @@ const BlogReaderFrame = ({
   loadError = null,
   isMissing = false,
   authorArchivePath,
-  authorArchiveState,
   showReadingProgress = false,
   headings = NO_HEADINGS,
   titleSection,
@@ -193,7 +191,32 @@ const BlogReaderFrame = ({
   if (loading || loadError || isMissing || !post) {
     return (
       <Section as="div">
-        <ReaderFrame isLoading={loading} error={loadError} isMissing={!loading && !loadError} />
+        <ReaderFrame
+          isLoading={loading}
+          error={loadError}
+          isMissing={!loading && !loadError}
+          /*
+           * Where "onward" goes is this application's routing, so the page
+           * supplies it and `ReaderFrame` only places it. A missing blog used
+           * to render one grey sentence with no heading and nothing to click,
+           * while a missing Series - the same kind of dead end - already
+           * offered a title and two ways out.
+           */
+          recovery={
+            <>
+              <ActionLink
+                to="/blog"
+                underline="hover"
+                iconStart={<FiArrowLeft aria-hidden="true" />}
+              >
+                All blogs
+              </ActionLink>
+              <ActionLink to="/series" underline="hover">
+                Browse series
+              </ActionLink>
+            </>
+          }
+        />
       </Section>
     )
   }
@@ -281,15 +304,13 @@ const BlogReaderFrame = ({
                       ·
                     </Box>
                     {/*
-                     * The archive resolves which author it is showing from this
-                     * state whenever the slug is not numeric (`useAuthorArchive`),
-                     * so it is behaviour rather than decoration. It rides on
-                     * `ActionLink`'s routed branch; the reader's own link colour
-                     * is the one value this surface still names.
+                     * An ordinary link. The archive resolves which author it is
+                     * showing from the URL alone, so this carries no router state
+                     * - a link that only works when it is clicked from inside the
+                     * app is not a link a reader can share.
                      */}
                     <ActionLink
                       to={authorArchivePath}
-                      state={authorArchiveState}
                       color={componentTokens.reader.link}
                       transition={transitionFor('color', 'fast')}
                     >

@@ -8,6 +8,7 @@
  * decides what each one looks like.
  */
 
+import { useRef } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import {
@@ -44,6 +45,11 @@ const AuthorArchivePage = () => {
   } = useAuthorArchive(PAGE_SIZE)
 
   const isInitialLoading = profileLoading && !archive
+  /*
+   * The block the pager pages. It sits outside the post-list states, so it is
+   * still there to be scrolled to and focused while the next page loads.
+   */
+  const postsRegionRef = useRef<HTMLElement>(null)
 
   return (
     <ContentContainer>
@@ -104,7 +110,12 @@ const AuthorArchivePage = () => {
                 />
               </Stack>
 
-              <Stack as="section" gap={8} aria-label={`Blogs by ${archive.user.name}`}>
+              <Stack
+                ref={postsRegionRef}
+                as="section"
+                gap={8}
+                aria-label={`Blogs by ${archive.user.name}`}
+              >
                 {postsLoading ? (
                   <Stack gap={6}>
                     {Array.from({ length: SKELETON_ROWS }, (_unused, index) => (
@@ -159,6 +170,7 @@ const AuthorArchivePage = () => {
                       pageSize={archive.limit || PAGE_SIZE}
                       totalItems={archive.total}
                       onPageChange={setPage}
+                      regionRef={postsRegionRef}
                       label="Author archive pagination"
                     />
                   </>

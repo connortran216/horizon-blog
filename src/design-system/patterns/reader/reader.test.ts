@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
-import { space } from '../../../theme/tokens'
+import { space, typeScale } from '../../../theme/tokens'
 import { fullMotionPolicy, reducedMotionPolicy } from '../../motion'
 import {
+  PROSE_HEADING_CLASS_REPEATS,
+  RENDERER_HEADING_CLASSES,
   activeHeadingId,
   isAfterProse,
+  proseHeadingLevels,
+  proseHeadingRamp,
+  proseHeadingSelector,
+  proseOutranksRenderer,
   readerRegionIndex,
   readerRegions,
   readerSlotFor,
@@ -285,5 +291,77 @@ describe('where the reader’s parts go', () => {
       'discussion',
       'related',
     ])
+  })
+})
+
+/**
+ * `uix.8b`. `@milkdown/crepe`'s `theme/common/reset.css` ships
+ * `.milkdown .ProseMirror h1…h6 { font-weight: 400 }` and a fixed
+ * 42/36/32/28/24/18px ramp at specificity (0,2,1), which outranked the (0,1,1)
+ * Emotion compiles `Prose`'s `sx` into. Measured on a real article: an `h2` at
+ * 36px/44px/400, larger than the 32px page title above it and identical at 375
+ * and 1440.
+ */
+describe('the article heading ramp', () => {
+  const ramp = proseHeadingRamp()
+
+  it('covers every heading level a markdown body can contain', () => {
+    expect(Object.keys(ramp)).toEqual([...proseHeadingLevels])
+    expect(proseHeadingLevels).toHaveLength(6)
+  })
+
+  it('weights its selectors above the renderer stylesheet it has to outrank', () => {
+    expect(proseOutranksRenderer()).toBe(true)
+    expect(PROSE_HEADING_CLASS_REPEATS).toBeGreaterThan(RENDERER_HEADING_CLASSES)
+    expect(proseHeadingSelector('h2')).toBe('&&& h2')
+  })
+
+  it('takes every step from the type ramp, so headings scale with the viewport', () => {
+    for (const level of proseHeadingLevels) {
+      const step = typeScale[ramp[level].textStyle]
+
+      expect(step).toBeDefined()
+      // A pair means the value is responsive: [mobile, desktop].
+      expect(step.fontSize).toHaveLength(2)
+      expect(step.lineHeight).toHaveLength(2)
+    }
+  })
+
+  it('never lets an article heading outrank the page title above it', () => {
+    const pageTitlePx = Number.parseInt(typeScale.pageTitle.fontSize[1], 10)
+
+    for (const level of proseHeadingLevels) {
+      const size = Number.parseInt(typeScale[ramp[level].textStyle].fontSize[1], 10)
+
+      expect(size).toBeLessThanOrEqual(pageTitlePx)
+    }
+  })
+
+  it('descends monotonically from h1 to h6 at both ends of the range', () => {
+    for (const index of [0, 1] as const) {
+      const sizes = proseHeadingLevels.map((level) =>
+        Number.parseInt(typeScale[ramp[level].textStyle].fontSize[index], 10),
+      )
+
+      for (let step = 1; step < sizes.length; step += 1) {
+        expect(sizes[step]).toBeLessThanOrEqual(sizes[step - 1])
+      }
+    }
+  })
+
+  it('keeps every heading semibold, where the renderer flattened them to 400', () => {
+    for (const level of proseHeadingLevels) {
+      expect(ramp[level].fontWeight).toBe('semibold')
+    }
+  })
+
+  it('takes its rhythm and its deep-link clearance from the spacing scale', () => {
+    const scale = Object.values(space)
+
+    for (const level of proseHeadingLevels) {
+      expect(scale).toContain(ramp[level].marginBlockStart)
+      expect(scale).toContain(ramp[level].marginBlockEnd)
+      expect(ramp[level].scrollMarginBlockStart).toBe(space[16])
+    }
   })
 })
