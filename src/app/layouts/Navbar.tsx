@@ -1,25 +1,48 @@
+/**
+ * The site header, on the design system.
+ *
+ * Everything visual here comes from `componentTokens.header`, which the system
+ * has always defined and nothing ever used: the bar's fill, its border, its two
+ * heights, and the rest/active/hover colours that `NavItem` reads. The bar was
+ * previously a `Glassmorphism` wrapper around raw Chakra, so the one component
+ * every reader sees on every route was the one component still on the old
+ * system.
+ *
+ * Three behaviours changed, and each was a defect rather than a preference:
+ *
+ * - **The current page is now marked.** `NavItem` renders React Router's
+ *   `NavLink`, which writes `aria-current="page"` itself. The old
+ *   `NavLinkButton` was a plain `Button` inside a `Link` and marked nothing, so
+ *   the navigation never said where you were.
+ * - **Sign in is a link, not a button inside one.** It used to be
+ *   `<RouterLink><AnimatedPrimaryButton>`, which nests an interactive control
+ *   inside another - two tab stops for one destination, and invalid HTML.
+ *   `ActionLink` at primary weight is a real `a` wearing the Button recipe.
+ * - **The theme toggle is available to everyone.** It used to live inside
+ *   `UserMenu`, which only renders for a signed-in user, so a reader who was
+ *   not signed in could not switch to dark at all.
+ */
+
 import { useEffect, useState } from 'react'
-import {
-  Box,
-  Container,
-  Flex,
-  HStack,
-  IconButton,
-  Stack,
-  useColorMode,
-  useDisclosure,
-  useToast,
-} from '@chakra-ui/react'
-import { CloseIcon, HamburgerIcon } from '@chakra-ui/icons'
+import { Box, Flex, useDisclosure, useToast } from '@chakra-ui/react'
+import { FiMenu, FiX } from 'react-icons/fi'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
+
+import {
+  ActionLink,
+  Button,
+  ContentContainer,
+  IconButton,
+  NavItem,
+  Reveal,
+  Stack,
+  ThemeToggle,
+} from '../../design-system'
+import { componentTokens, layout, space } from '../../theme/tokens'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogService, toPublicPostPath } from '../../core'
-import { AnimatedPrimaryButton } from '../../components/core/animations/AnimatedButton'
-import { Glassmorphism } from '../../components/core/animations/Glassmorphism'
-import { MotionWrapper } from '../../components/core/animations/MotionWrapper'
 import BrandLogo from '../../components/ui/BrandLogo'
 import '../../features/editor/editor.window'
-import NavLinkButton from './NavLinkButton'
 import UserMenu from './UserMenu'
 import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
@@ -27,7 +50,6 @@ import { can } from '../../core/authorization/authorization'
 const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure()
   const { user, logout } = useAuth()
-  const { colorMode, toggleColorMode } = useColorMode()
   const navigate = useNavigate()
   const location = useLocation()
   const isEditorPage = location.pathname === '/blog-editor'
@@ -123,29 +145,41 @@ const Navbar = () => {
   }
 
   return (
-    <Glassmorphism
+    <Box
+      as="header"
       className="app-navbar"
-      px={4}
-      intensity="light"
       position="sticky"
       top={0}
-      zIndex={1000}
-      backdropFilter="blur(20px)"
+      /*
+       * Chakra's own `sticky` step. The bar used to write `zIndex={1000}`, which
+       * sits above the toast layer and below nothing in particular; the named
+       * step keeps it under `AppFrame`'s skip link, which has to stay reachable
+       * over the header it skips past.
+       */
+      zIndex="sticky"
+      bg={componentTokens.header.bg}
+      borderBottom="1px solid"
+      borderColor={componentTokens.header.border}
     >
-      <Container maxW="container.xl">
-        <Flex h={16} alignItems="center" justifyContent="space-between">
-          <MotionWrapper variant="fadeInLeft" delay={0.1}>
-            <IconButton
-              size="md"
-              icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-              aria-label="Open Menu"
-              display={{ md: 'none' }}
-              onClick={onToggle}
-            />
-          </MotionWrapper>
+      <ContentContainer>
+        <Flex
+          minH={{ base: layout.header.mobile, sm: layout.header.desktop }}
+          alignItems="center"
+          justifyContent="space-between"
+          gap={space[4]}
+        >
+          <Reveal trigger="mount">
+            <Flex alignItems="center" gap={{ base: space[4], sm: space[8] }} minW={0}>
+              <IconButton
+                label={isOpen ? 'Close menu' : 'Open menu'}
+                tone="quiet"
+                icon={isOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
+                display={{ sm: 'none' }}
+                onClick={onToggle}
+                aria-expanded={isOpen}
+                aria-controls="site-navigation-mobile"
+              />
 
-          <MotionWrapper variant="fadeInUp" delay={0.2}>
-            <HStack spacing={{ base: 4, md: 8 }} alignItems="center">
               <Box
                 as={RouterLink}
                 to="/"
@@ -154,60 +188,67 @@ const Navbar = () => {
                 alignItems="center"
                 lineHeight="0"
                 flexShrink={0}
+                // The wordmark is 38px tall on its own; the link around it is a
+                // target like any other and takes the system's 44px floor.
+                minH={componentTokens.control.minTouchTarget}
               >
-                <BrandLogo variant="icon" display={{ base: 'block', md: 'none' }} />
-                <BrandLogo variant="full" display={{ base: 'none', md: 'block' }} />
+                <BrandLogo variant="icon" display={{ base: 'block', sm: 'none' }} />
+                <BrandLogo variant="full" display={{ base: 'none', sm: 'block' }} />
               </Box>
-              <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
-                {SITE_LINKS.map((link, index) => (
-                  <MotionWrapper key={link.path} variant="fadeInUp" delay={0.3 + index * 0.1}>
-                    <NavLinkButton to={link.path}>{link.name}</NavLinkButton>
-                  </MotionWrapper>
-                ))}
-              </HStack>
-            </HStack>
-          </MotionWrapper>
 
-          <MotionWrapper variant="fadeInRight" delay={0.4}>
-            <Flex alignItems="center" gap={4}>
+              <Flex
+                as="nav"
+                aria-label="Site"
+                gap={space[1]}
+                display={{ base: 'none', sm: 'flex' }}
+              >
+                {SITE_LINKS.map((link) => (
+                  <NavItem key={link.path} to={link.path}>
+                    {link.name}
+                  </NavItem>
+                ))}
+              </Flex>
+            </Flex>
+          </Reveal>
+
+          <Reveal trigger="mount" delay={0.1}>
+            <Flex alignItems="center" gap={space[3]}>
+              <ThemeToggle />
+
               {user && canWrite && !isEditorPage ? (
-                <NavLinkButton to="/blog-editor">Write</NavLinkButton>
+                <NavItem to="/blog-editor">Write</NavItem>
               ) : null}
+
               {user && canWrite && isEditorPage ? (
-                <AnimatedPrimaryButton onClick={handlePublish} mr={2}>
+                <Button tone="primary" onClick={handlePublish}>
                   Publish
-                </AnimatedPrimaryButton>
+                </Button>
               ) : null}
+
               {user ? (
-                <UserMenu
-                  user={user}
-                  colorMode={colorMode}
-                  onToggleColorMode={toggleColorMode}
-                  onLogout={handleLogout}
-                  isLoggingOut={isLoggingOut}
-                />
+                <UserMenu user={user} onLogout={handleLogout} isLoggingOut={isLoggingOut} />
               ) : (
-                <RouterLink to="/login">
-                  <AnimatedPrimaryButton>Sign in</AnimatedPrimaryButton>
-                </RouterLink>
+                <ActionLink to="/login" weight="primary">
+                  Sign in
+                </ActionLink>
               )}
             </Flex>
-          </MotionWrapper>
+          </Reveal>
         </Flex>
 
         {isOpen ? (
-          <Box pb={4} display={{ md: 'none' }}>
-            <Stack as="nav" spacing={4}>
+          <Box id="site-navigation-mobile" pb={space[4]} display={{ sm: 'none' }}>
+            <Stack as="nav" aria-label="Site" gap={1}>
               {SITE_LINKS.map((link) => (
-                <NavLinkButton key={link.path} to={link.path}>
+                <NavItem key={link.path} to={link.path} onClick={onToggle} justifyContent="start">
                   {link.name}
-                </NavLinkButton>
+                </NavItem>
               ))}
             </Stack>
           </Box>
         ) : null}
-      </Container>
-    </Glassmorphism>
+      </ContentContainer>
+    </Box>
   )
 }
 

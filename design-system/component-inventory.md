@@ -7,9 +7,9 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 ## Scope and counts
 
 - Total UI implementation and composition files: **127**
-- Non-page component and infrastructure files: **79**
-- Page/app composition files: **48** - of which **7** are still deferred.
-- Migrated to the v2 system so far: **83** across releases M2-M6.
+- Non-page component and infrastructure files: **78**
+- Page/app composition files: **49** - of which **7** are still deferred.
+- Migrated to the v2 system so far: **88** across releases M2-M6 and the app shell.
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
 
 ### By category
@@ -18,7 +18,7 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | --- | ---: |
 | account-identity-pattern | 9 |
 | app-composition | 3 |
-| app-shell | 5 |
+| app-shell | 4 |
 | behavior-infrastructure | 5 |
 | compatibility-layout | 3 |
 | data-admin-pattern | 9 |
@@ -27,7 +27,7 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | media-pattern | 1 |
 | motion-primitive | 9 |
 | navigation-primitive | 2 |
-| page-composition | 45 |
+| page-composition | 46 |
 | post-pattern | 11 |
 | reader-conversation-pattern | 8 |
 | reader-integration | 2 |
@@ -38,10 +38,10 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 | Disposition | Files |
 | --- | ---: |
-| adapt | 18 |
+| adapt | 13 |
 | compatibility | 3 |
 | deferred-page-migration | 7 |
-| migrated | 83 |
+| migrated | 88 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
@@ -55,11 +55,10 @@ file; it leaves when the file does.
 | --- | --- | --- | --- | --- | --- |
 | `src/App.tsx` | app-composition | deferred-page-migration | page migration epic | App | Route composition; retain behavior during component Epic |
 | `src/Routes.tsx` | app-composition | deferred-page-migration | page migration epic | Routes | Route composition; retain behavior during component Epic |
-| `src/app/layouts/AppLayout.tsx` | app-shell | adapt | B2 / horizon-blog-dsv2.3.2 | AppLayout | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
-| `src/app/layouts/Footer.tsx` | app-shell | adapt | B2 / horizon-blog-dsv2.3.2 | SiteFooter | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
-| `src/app/layouts/NavLinkButton.tsx` | app-shell | adapt | B2 / horizon-blog-dsv2.3.2 | NavLinkButton | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
-| `src/app/layouts/Navbar.tsx` | app-shell | adapt | B2 / horizon-blog-dsv2.3.2 | SiteHeader and NavItem | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
-| `src/app/layouts/UserMenu.tsx` | app-shell | adapt | B2 / horizon-blog-dsv2.3.2 | UserMenu | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
+| `src/app/layouts/AppLayout.tsx` | app-shell | migrated | B2 / horizon-blog-dsv2.3.2 | AppLayout | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
+| `src/app/layouts/Footer.tsx` | app-shell | migrated | B2 / horizon-blog-dsv2.3.2 | SiteFooter | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
+| `src/app/layouts/Navbar.tsx` | app-shell | migrated | B2 / horizon-blog-dsv2.3.2 | SiteHeader and NavItem | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
+| `src/app/layouts/UserMenu.tsx` | app-shell | migrated | B2 / horizon-blog-dsv2.3.2 | UserMenu | Paired themes; desktop/mobile; hover/focus/touch; reduced motion |
 | `src/components/Pagination.tsx` | navigation-primitive | replace-with-adapter | B2 / horizon-blog-dsv2.3.2 | Pagination | Hover/focus/disabled/loading/touch/reduced motion |
 | `src/components/PaginationControls.tsx` | navigation-primitive | replace-with-adapter | B2 / horizon-blog-dsv2.3.2 | Pagination and PageJump | Hover/focus/disabled/loading/touch/reduced motion |
 | `src/components/ProtectedRoute.tsx` | behavior-infrastructure | retain-behavior | B6 / horizon-blog-dsv2.7.2 | ProtectedRoute | No visual rewrite; verify compatibility and accessibility |
@@ -131,6 +130,7 @@ file; it leaves when the file does.
 | `src/features/editor/components/PublishBlogPreviewCard.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 PublishBlogPreviewCard pattern | Autosave/upload/publish/schedule/recovery/permission states |
 | `src/features/editor/pages/BlogEditorPage.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | BlogEditorPage | Consume completed v2 patterns after B6 gate |
 | `src/features/editor/pages/PublishBlogPage.tsx` | page-composition | migrated | M6 / horizon-blog-y2e | PublishBlogPage | Consume completed v2 patterns after B6 gate |
+| `src/features/errors/pages/NotFoundPage.tsx` | page-composition | migrated | uix.9 / horizon-blog-y2e | ContentContainer, Section, Stack, Heading, MissingState, ActionLink | Added by `uix.9`: `Routes.tsx` had no `path="*"`, so an unknown address rendered an empty `main`. Neutral missing tone, a real `h1`, and three ways onward; paired themes at 375/768/1024/1440 |
 | `src/features/home/components/HeroArchivePreview.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | SignatureStory | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/home/components/PromiseCard.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | v2 PromiseCard pattern | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/home/components/StoryCard.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | PostCard | Long content; media states; hover/focus/touch; responsive themes |
