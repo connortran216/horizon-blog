@@ -156,8 +156,15 @@ const AboutPage = () => (
             </Heading>
           </Stack>
 
-          <Grid columns={2} gap={6} collapseAt="lg" alignItems="start">
-            <Surface depth="flat" p={{ base: space[6], sm: space[8] }}>
+          {/*
+            No `alignItems="start"` here, and the card fills its track: the two
+            columns hold one card against a stack of three, so starting them
+            left the long card 560px tall beside a 762px column and 202px of
+            nothing under it. Stretching is what makes the pair read as one
+            block rather than two lists that happen to be side by side.
+          */}
+          <Grid columns={2} gap={6} collapseAt="lg">
+            <Surface depth="flat" height="100%" p={{ base: space[6], sm: space[8] }}>
               <Stack gap={6}>
                 <Heading recipe="cardTitle" as="h3">
                   The more I learn, the more I realize how much I still do not know.
@@ -195,21 +202,31 @@ const AboutPage = () => (
                 {principles.map((principle) => (
                   <Surface key={principle.title} as="article" depth="flat">
                     <Stack gap={4}>
-                      <Flex
-                        align="center"
-                        justify="center"
-                        boxSize={space[12]}
-                        borderRadius={radii.control}
-                        bg={componentTokens.control.quietHoverBg}
-                        color={componentTokens.control.solidBg}
-                        flexShrink={0}
-                        aria-hidden="true"
-                      >
-                        <Box as={principle.icon} boxSize={space[4]} />
+                      {/*
+                        The icon belongs beside the title, not above it. Stacked,
+                        it cost a 48px row plus a gap before the card said what
+                        it was about - the heading is what a reader scans for,
+                        and the icon is a mark on it rather than a thing in its
+                        own right. `minWidth: 0` so a long title wraps inside the
+                        row instead of pushing the icon out of the card.
+                      */}
+                      <Flex align="center" gap={space[4]}>
+                        <Flex
+                          align="center"
+                          justify="center"
+                          boxSize={space[12]}
+                          borderRadius={radii.control}
+                          bg={componentTokens.control.quietHoverBg}
+                          color={componentTokens.control.solidBg}
+                          flexShrink={0}
+                          aria-hidden="true"
+                        >
+                          <Box as={principle.icon} boxSize={space[4]} />
+                        </Flex>
+                        <Heading recipe="cardTitle" as="h3" minW={0}>
+                          {principle.title}
+                        </Heading>
                       </Flex>
-                      <Heading recipe="cardTitle" as="h3">
-                        {principle.title}
-                      </Heading>
                       <Text recipe="body">{principle.description}</Text>
                     </Stack>
                   </Surface>
@@ -224,15 +241,29 @@ const AboutPage = () => (
     <Section density="compact" aria-labelledby="about-founder">
       <Reveal>
         <Surface as="article" depth="feature" p={{ base: space[6], sm: space[8] }}>
-          <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
+          {/*
+            The text column has to stretch for its own `justifyContent="center"`
+            to have a row to centre in. Started, it sat at its natural height
+            against a taller portrait and the leftover fell entirely below it -
+            33px above the writing and 82px under it, which is the bottom-heavy
+            card. Stretched, the same slack splits evenly.
+          */}
+          <Grid columns={2} gap={8} collapseAt="lg">
             {/*
              * A real media frame rather than a bare `img`: the portrait is a
              * remote object on a MinIO bucket, and the legacy page had no
              * loading, absent or failed state for it at all - a broken URL left
              * a collapsed box and no alt anyone could act on.
              */}
+            {/*
+              Square rather than 4/5. The portrait sets the card's height, and
+              at 4/5 it stood 609px against 438px of text beside it - 204px of
+              empty card under the writing. A square frame is 487px in the same
+              column, which puts the two within 49px of each other. The image
+              still fills its frame and crops rather than distorting.
+            */}
             <ResponsiveImage
-              aspectRatio="4 / 5"
+              aspectRatio="1 / 1"
               src={PORTRAIT_SRC}
               alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
               task="the founder portrait"
