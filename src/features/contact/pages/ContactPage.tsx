@@ -29,6 +29,7 @@ import {
   Heading,
   Section,
   Stack,
+  Stagger,
   Text,
 } from '../../../design-system'
 import { ContactInfoItem, ContactPromptItem } from '../contact.types'
@@ -126,30 +127,39 @@ const ContactPage = () => {
             </Stack>
           </Stack>
 
+          {/*
+            Contact was the one page in the system with no entry motion at all -
+            Home, /blog and /about all use Stagger or Reveal, and this one was
+            simply missed, so its cards were suddenly just there. The contact
+            channels are a ranked list, primary first, so they arrive in that
+            order rather than together.
+          */}
           <Stack gap={4}>
-            {primaryContact ? (
-              <ContactCard
-                channel={primaryContact.channel}
-                title={primaryContact.title}
-                value={primaryContact.content}
-                detail={primaryContact.description}
-                actionLabel={primaryContact.actionLabel}
-                emphasis="primary"
-                icon={<Icon as={primaryContact.icon} boxSize={space[6]} />}
-              />
-            ) : null}
+            <Stagger>
+              {primaryContact ? (
+                <ContactCard
+                  channel={primaryContact.channel}
+                  title={primaryContact.title}
+                  value={primaryContact.content}
+                  detail={primaryContact.description}
+                  actionLabel={primaryContact.actionLabel}
+                  emphasis="primary"
+                  icon={<Icon as={primaryContact.icon} boxSize={space[6]} />}
+                />
+              ) : null}
 
-            {secondaryContacts.map((info) => (
-              <ContactCard
-                key={info.title}
-                channel={info.channel}
-                title={info.title}
-                value={info.content}
-                detail={info.description}
-                actionLabel={info.actionLabel}
-                icon={<Icon as={info.icon} boxSize={space[6]} />}
-              />
-            ))}
+              {secondaryContacts.map((info) => (
+                <ContactCard
+                  key={info.title}
+                  channel={info.channel}
+                  title={info.title}
+                  value={info.content}
+                  detail={info.description}
+                  actionLabel={info.actionLabel}
+                  icon={<Icon as={info.icon} boxSize={space[6]} />}
+                />
+              ))}
+            </Stagger>
           </Stack>
         </Grid>
       </Section>
@@ -164,14 +174,16 @@ const ContactPage = () => {
           </Stack>
 
           <Grid columns={3} gap={6}>
-            {prompts.map((prompt) => (
-              <ContactPrompt
-                key={prompt.title}
-                title={prompt.title}
-                description={prompt.description}
-                icon={<Icon as={prompt.icon} boxSize={space[4]} />}
-              />
-            ))}
+            <Stagger>
+              {prompts.map((prompt) => (
+                <ContactPrompt
+                  key={prompt.title}
+                  title={prompt.title}
+                  description={prompt.description}
+                  icon={<Icon as={prompt.icon} boxSize={space[4]} />}
+                />
+              ))}
+            </Stagger>
           </Grid>
         </Stack>
       </Section>

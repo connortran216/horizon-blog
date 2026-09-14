@@ -183,29 +183,38 @@ const AboutPage = () => (
               </Stack>
             </Surface>
 
+            {/*
+              The principles arrive one after another, like the signal cards
+              above them. They used to ride the section's single `Reveal`, which
+              meant one page carried two different entry granularities with
+              nothing in the content to justify the difference: some cards
+              arrived in sequence, these three arrived as one block.
+            */}
             <Stack gap={6}>
-              {principles.map((principle) => (
-                <Surface key={principle.title} as="article" depth="flat">
-                  <Stack gap={4}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      boxSize={space[12]}
-                      borderRadius={radii.control}
-                      bg={componentTokens.control.quietHoverBg}
-                      color={componentTokens.control.solidBg}
-                      flexShrink={0}
-                      aria-hidden="true"
-                    >
-                      <Box as={principle.icon} boxSize={space[4]} />
-                    </Flex>
-                    <Heading recipe="cardTitle" as="h3">
-                      {principle.title}
-                    </Heading>
-                    <Text recipe="body">{principle.description}</Text>
-                  </Stack>
-                </Surface>
-              ))}
+              <Stagger>
+                {principles.map((principle) => (
+                  <Surface key={principle.title} as="article" depth="flat">
+                    <Stack gap={4}>
+                      <Flex
+                        align="center"
+                        justify="center"
+                        boxSize={space[12]}
+                        borderRadius={radii.control}
+                        bg={componentTokens.control.quietHoverBg}
+                        color={componentTokens.control.solidBg}
+                        flexShrink={0}
+                        aria-hidden="true"
+                      >
+                        <Box as={principle.icon} boxSize={space[4]} />
+                      </Flex>
+                      <Heading recipe="cardTitle" as="h3">
+                        {principle.title}
+                      </Heading>
+                      <Text recipe="body">{principle.description}</Text>
+                    </Stack>
+                  </Surface>
+                ))}
+              </Stagger>
             </Stack>
           </Grid>
         </Stack>
