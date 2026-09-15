@@ -20,7 +20,7 @@ import { Box, useColorModeValue } from '@chakra-ui/react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 
-import { Prose, localScrollStyle } from '../../design-system'
+import { Prose, codeTextStyle, localScrollStyle } from '../../design-system'
 import { componentTokens, radii, space } from '../../theme/tokens'
 import type { ReaderCodeTheme } from './shiki'
 
@@ -190,8 +190,12 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
             },
             /* The window-chrome dots are decoration on a reading surface. */
             '.preview-code-block__chrome': { display: 'none' },
+            // `codeTextStyle` keeps this at or below prose size rather than
+            // the ambient prose size it would otherwise inherit; nothing here
+            // set a font at all before.
             '.preview-code-block pre': {
               ...localScrollStyle(),
+              ...codeTextStyle,
               margin: 0,
               padding: space[4],
               background: 'transparent',

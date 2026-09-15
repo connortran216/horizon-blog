@@ -43,6 +43,30 @@ export function widensDocument(style: Partial<LocalScrollStyle>): boolean {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Code type                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Code's own place on the type ramp: at or below prose, never above it.
+ *
+ * `Prose` sets `textStyle="prose"` (18px mobile, 19px desktop) as the ambient
+ * size for the whole article, so a fenced block or an inline `code` that
+ * declares no size of its own inherits that one - code reading louder than
+ * the sentence around it, backwards from every reading surface a reader
+ * already knows. `body` (16px, unchanged across breakpoints) is this ramp's
+ * next step down, and the one already used for everything that is not the
+ * running prose itself.
+ *
+ * One constant rather than one literal per call site, so a fenced block, an
+ * inline `code` and a third renderer's bare `pre` cannot drift to three
+ * different sizes across three separate reviews.
+ */
+export const codeTextStyle = {
+  textStyle: 'body',
+  fontFamily: 'mono',
+} as const
+
+/* -------------------------------------------------------------------------- */
 /* Reaching a scroll container with a keyboard                                */
 /* -------------------------------------------------------------------------- */
 

@@ -22,7 +22,7 @@ import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { nord } from '@milkdown/theme-nord'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
 
-import { Prose, localScrollStyle } from '../../design-system'
+import { Prose, codeTextStyle, localScrollStyle } from '../../design-system'
 import { EDITOR_CONFIG } from '../../config/editor.config'
 
 // Import Prism themes
@@ -107,6 +107,10 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
            * system's own `localScrollStyle`.
            */
           '.milkdown pre, .milkdown table': { ...localScrollStyle(), display: 'block' },
+          // Sized through `codeTextStyle` so a fenced block reads at or below
+          // prose size rather than the ambient size it would otherwise
+          // inherit from the nord theme's own reset.
+          '.milkdown pre': { ...codeTextStyle },
         }}
       >
         <Milkdown />

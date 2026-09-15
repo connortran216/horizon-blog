@@ -77,6 +77,7 @@ export type {
 export {
   SCROLL_REGION_FLAG,
   codeLanguageLabel,
+  codeTextStyle,
   copyAnnouncement,
   copyIsBusy,
   copyLabel,

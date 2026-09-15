@@ -23,6 +23,7 @@ import { Text } from '../../components/typography'
 import { createDisposerBag, guardAsync } from '../../motion'
 import {
   codeLanguageLabel,
+  codeTextStyle,
   copyAnnouncement,
   copyIsBusy,
   copyLabel,
@@ -154,8 +155,7 @@ export function CodeBlock({
         aria-label={`${codeLanguageLabel(language)} code block`}
         margin={0}
         padding={space[4]}
-        fontFamily="mono"
-        textStyle="meta"
+        {...codeTextStyle}
         sx={localScrollStyle()}
       >
         {children}

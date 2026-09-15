@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   codeLanguageLabel,
+  codeTextStyle,
   copyAnnouncement,
   copyIsBusy,
   copyLabel,
@@ -21,6 +22,16 @@ import {
   type CopyState,
   type ScrollContainerLike,
 } from './code.logic'
+
+describe('codeTextStyle', () => {
+  it('reads at the type ramp step below prose, not at the ambient prose size', () => {
+    expect(codeTextStyle.textStyle).toBe('body')
+  })
+
+  it('carries the design system mono family rather than an unstyled monospace', () => {
+    expect(codeTextStyle.fontFamily).toBe('mono')
+  })
+})
 
 /** dsv2.5.3 acceptance 1: code and tables scroll locally. */
 describe('localScrollStyle', () => {

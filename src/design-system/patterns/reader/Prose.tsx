@@ -28,6 +28,7 @@ import { ProseMeasure, type ProseMeasureProps } from '../../components/layout'
 import { Text } from '../../components/typography'
 import { createDisposerBag, scheduleFrame, type Disposer, type FrameScheduler } from '../../motion'
 import {
+  codeTextStyle,
   localScrollStyle,
   proseRenderState,
   releaseScrollRegion,
@@ -236,18 +237,24 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
           borderEndEndRadius: radii.control,
         },
         // Inline code only. A `pre > code` is the block form and is styled by
-        // `CodeBlock`, which owns its own frame.
+        // `CodeBlock`, which owns its own frame. Sized through `codeTextStyle`
+        // so it reads at or below the sentence around it rather than at the
+        // ambient prose size it would otherwise inherit.
         ':not(pre) > code': {
           background: componentTokens.reader.codeBg,
           borderRadius: radii.control,
           paddingInline: space[1],
-          fontFamily: 'mono',
+          ...codeTextStyle,
         },
         '::selection': { background: componentTokens.reader.selectionBg },
 
         // Wide content scrolls inside itself. Applied by descendant selector so
         // markup this component never sees is still contained.
         'pre, table': { ...scroll, display: 'block' },
+        // A bare renderer `pre` reads at code's own size. `CodeBlock`'s own
+        // frame sets this itself and carries `role="group"`, so it is left
+        // alone rather than sized twice.
+        'pre:not([role="group"])': { ...codeTextStyle },
         table: { borderCollapse: 'collapse', width: '100%' },
         'th, td': {
           borderBottomWidth: '1px',
