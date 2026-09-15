@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '@chakra-ui/react'
 import { createReaderIdentityStorage, createReaderUuid } from './reader-identity.storage'
+import { resolveHeartToggle } from './reader-interaction.transition'
 import { ReaderInteractionsService, readerInteractionsService } from './reader-interactions.service'
 import { ReaderInteractionState, ReaderShareMethod } from './reader-interactions.types'
 import { buildReaderShareTargetUrl } from './reader-share.targets'
@@ -67,18 +68,17 @@ export const useReaderInteractions = ({
     }
   }, [enabled, identityStorage, postId, service])
 
+  /*
+   * No optimistic flip. The heart and its count stay exactly what they were
+   * until the API confirms the new state - `isHeartLoading` is what tells the
+   * reader a press registered while the request is in flight, not a count
+   * that has already changed and might have to be quietly reverted.
+   */
   const toggleHeart = useCallback(async () => {
     const visitorId = visitorIdRef.current
     if (!enabled || !postId || !visitorId || !state?.canHeart || isHeartLoading) return
 
     const previousState = state
-    const optimisticState: ReaderInteractionState = {
-      ...state,
-      viewerHasHearted: !state.viewerHasHearted,
-      heartCount: Math.max(0, state.heartCount + (state.viewerHasHearted ? -1 : 1)),
-    }
-
-    setState(optimisticState)
     setIsHeartLoading(true)
 
     try {
@@ -86,10 +86,10 @@ export const useReaderInteractions = ({
         ? await service.unheartPost(postId, visitorId)
         : await service.heartPost(postId, visitorId)
 
-      setState(nextState)
+      setState(resolveHeartToggle(previousState, { type: 'confirmed', state: nextState }))
     } catch (error) {
       console.error('Failed to update heart state:', error)
-      setState(previousState)
+      setState(resolveHeartToggle(previousState, { type: 'failed' }))
       toast({
         title: 'Reaction was not saved',
         description: 'Please try again in a moment.',
