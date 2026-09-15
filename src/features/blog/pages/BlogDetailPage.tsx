@@ -24,7 +24,7 @@ import { useReaderSession } from '../../reader-interactions/useReaderSession'
 import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
 import { extractMarkdownHeadings, getBlogService } from '../../../core'
-import { extractFirstImageFromMarkdown } from '../../../core/utils/blog-mapping.utils'
+import { extractArticleCoverImage } from '../articleCoverImage.logic'
 import { useAuth } from '../../../context/AuthContext'
 import CommentSection from '../../comments/components/CommentSection'
 import SeriesContextCard from '../../series/components/SeriesContextCard'
@@ -52,17 +52,27 @@ const BlogDetailPage = () => {
   )
   /*
    * `/posts/:id` carries no dedicated cover field - only `content_markdown` -
-   * so the article's cover is the first image the body itself embeds, read
-   * from the same already-resolved markdown `Prose` renders (media tokens are
-   * real URLs by the time `resolvedMedia.content` exists). A post with no
-   * image in its body has no cover here, same as today; this only adds one,
-   * it never invents a mismatched one from another source.
+   * so the article's cover is a promotion of its own opening image, when the
+   * body opens with one standing alone (see `articleCoverImage.logic.ts` for
+   * exactly what qualifies). Read from the same already-resolved markdown
+   * `Prose` renders, so a `media://` token is already a real URL by the time
+   * this runs.
+   *
+   * The promoted block is removed from `articleContent` below - otherwise the
+   * same picture would render twice, once lifted into the cover slot and
+   * once more at the top of the article `Prose` draws from `resolvedContent`.
+   * A post that does not open with a standalone image is untouched: no cover,
+   * and the body renders exactly as it always has.
    */
-  const coverImageSrc = useMemo(
-    () => extractFirstImageFromMarkdown(resolvedMedia.content),
+  const articleCover = useMemo(
+    () => extractArticleCoverImage(resolvedMedia.content),
     [resolvedMedia.content],
   )
-  const coverImage = post && coverImageSrc ? { src: coverImageSrc, alt: post.title } : null
+  const articleContent = articleCover ? articleCover.content : resolvedMedia.content
+  const coverImage =
+    post && articleCover
+      ? { src: articleCover.cover.src, alt: articleCover.cover.alt || post.title }
+      : null
   const coverTransitionName = post ? postCoverTransitionName(String(post.id)) : null
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
   const shareUrl = typeof window === 'undefined' ? undefined : window.location.href
@@ -117,7 +127,7 @@ const BlogDetailPage = () => {
       loading={loading}
       isMissing={isMissing}
       loadError={loadError}
-      resolvedContent={resolvedMedia.content}
+      resolvedContent={articleContent}
       resolvedMedia={resolvedMedia.sources}
       coverImage={coverImage}
       coverTransitionName={coverTransitionName}
