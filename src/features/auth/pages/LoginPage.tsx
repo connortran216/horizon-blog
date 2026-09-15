@@ -216,7 +216,7 @@ const LoginPage = () => {
           </Field>
 
           <Stack direction="row" collapseAt={undefined} justifyContent="flex-end">
-            <ActionLink to="/forgot-password" state={siblingState} underline="hover">
+            <ActionLink to="/forgot-password" state={siblingState} underline="hover" standalone>
               Forgot password?
             </ActionLink>
           </Stack>

@@ -2,7 +2,11 @@ import { getRuntimeConfig } from '../../config/runtime'
 import { ApiRequestOptions, RequestAuthMode } from '../types/auth.types'
 import { authInterceptor, AuthInterceptor } from './auth.interceptor'
 import { authSessionService } from './auth-session.service'
-import { createRequestDeadline, isDeadlineTimeout } from './request-deadline'
+import {
+  createRequestDeadline,
+  isDeadlineTimeout,
+  UPLOAD_REQUEST_TIMEOUT_MS,
+} from './request-deadline'
 
 export class ApiError extends Error {
   constructor(
@@ -110,7 +114,14 @@ export class ApiService {
   ): Promise<Response> {
     const isFormData = request.data instanceof FormData
     const deadline = createRequestDeadline({
-      timeoutMs: request.options?.timeoutMs,
+      /*
+       * A file body gets the upload budget rather than the JSON one. Every
+       * upload in the app - post media, avatars, editor images - reaches
+       * this method as a bare `apiService.post(path, formData)` with no
+       * options, so deciding it here keeps the budget in one place instead
+       * of asking each call site to remember it.
+       */
+      timeoutMs: request.options?.timeoutMs ?? (isFormData ? UPLOAD_REQUEST_TIMEOUT_MS : undefined),
       signal: request.options?.signal,
     })
 

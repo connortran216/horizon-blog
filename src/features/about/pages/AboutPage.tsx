@@ -342,6 +342,7 @@ const AboutPage = () => (
 
               <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
                 <ActionLink
+                  standalone
                   to="/cv"
                   underline="hover"
                   iconEnd={<FiArrowRight aria-hidden="true" />}
@@ -351,6 +352,7 @@ const AboutPage = () => (
                   View CV
                 </ActionLink>
                 <ActionLink
+                  standalone
                   href="https://github.com/connortran216"
                   underline="hover"
                   iconStart={<FaGithub aria-hidden="true" />}
@@ -360,6 +362,7 @@ const AboutPage = () => (
                   GitHub
                 </ActionLink>
                 <ActionLink
+                  standalone
                   href="https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/"
                   underline="hover"
                   iconStart={<FaLinkedin aria-hidden="true" />}

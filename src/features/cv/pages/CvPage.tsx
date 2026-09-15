@@ -154,6 +154,7 @@ const CvPage = () => {
                       if (item.to) {
                         return (
                           <ActionLink
+                            standalone
                             key={item.label}
                             to={item.to}
                             underline="hover"
@@ -177,6 +178,7 @@ const CvPage = () => {
                   </Box>
                   <Box as="li">
                     <ActionLink
+                      standalone
                       href={`mailto:${cvProfile.email}`}
                       underline="hover"
                       className="cv-contact-link"
@@ -193,6 +195,7 @@ const CvPage = () => {
                        * external target and `rel` for the screen version.
                        */}
                       <ActionLink
+                        standalone
                         href={item.href}
                         isExternal={item.isExternal}
                         underline="hover"

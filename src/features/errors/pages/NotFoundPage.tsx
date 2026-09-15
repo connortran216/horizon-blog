@@ -62,13 +62,18 @@ const NotFoundPage = () => {
             align="start"
           >
             <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
-              <ActionLink to="/" underline="hover" iconStart={<FiArrowLeft aria-hidden="true" />}>
+              <ActionLink
+                to="/"
+                underline="hover"
+                standalone
+                iconStart={<FiArrowLeft aria-hidden="true" />}
+              >
                 Go home
               </ActionLink>
-              <ActionLink to="/blog" underline="hover">
+              <ActionLink to="/blog" underline="hover" standalone>
                 Browse blogs
               </ActionLink>
-              <ActionLink to="/series" underline="hover">
+              <ActionLink to="/series" underline="hover" standalone>
                 All series
               </ActionLink>
             </Stack>

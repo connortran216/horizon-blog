@@ -275,6 +275,7 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
 
           <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
             <ActionLink
+              standalone
               to="/blog"
               underline="hover"
               iconEnd={<FiArrowRight aria-hidden="true" />}
@@ -284,6 +285,7 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
               Read the blog
             </ActionLink>
             <ActionLink
+              standalone
               to="/contact"
               underline="hover"
               color="action.primary"

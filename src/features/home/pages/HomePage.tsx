@@ -133,7 +133,7 @@ const HomePage = () => {
             <ActionLink to="/blog" weight="primary" iconEnd={<FiArrowRight aria-hidden="true" />}>
               Explore the blog
             </ActionLink>
-            <ActionLink to={writeHref} underline="hover" color="text.secondary">
+            <ActionLink to={writeHref} underline="hover" standalone color="text.secondary">
               {writeLabel}
             </ActionLink>
           </Stack>
@@ -188,6 +188,7 @@ const HomePage = () => {
               align="start"
             >
               <ActionLink
+                standalone
                 to={canWrite ? '/blog-editor' : user ? '/blog' : '/register'}
                 underline="hover"
                 color="action.primary"
@@ -217,6 +218,7 @@ const HomePage = () => {
                   </Heading>
                 </Stack>
                 <ActionLink
+                  standalone
                   to="/blog"
                   underline="hover"
                   color="action.primary"

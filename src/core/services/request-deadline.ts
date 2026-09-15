@@ -19,6 +19,14 @@
 
 export const DEFAULT_REQUEST_TIMEOUT_MS = 10_000
 
+/**
+ * Budget for requests that carry a file body. The default 10s is sized for
+ * lightweight JSON reads; a 2MB thumbnail on a slow mobile connection needs
+ * far longer, so capping an upload at the JSON budget would turn a fix for
+ * hung reads into a broken upload. Callers can still override per request.
+ */
+export const UPLOAD_REQUEST_TIMEOUT_MS = 60_000
+
 export interface RequestDeadlineOptions {
   /**
    * Override the default budget. Pass a larger value for requests that are

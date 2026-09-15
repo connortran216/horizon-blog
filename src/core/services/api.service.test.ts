@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccessTokenStore } from './access-token.store'
 import { ApiError, ApiService, ApiTimeoutError } from './api.service'
 import { AuthInterceptor } from './auth.interceptor'
-import { DEFAULT_REQUEST_TIMEOUT_MS } from './request-deadline'
+import { DEFAULT_REQUEST_TIMEOUT_MS, UPLOAD_REQUEST_TIMEOUT_MS } from './request-deadline'
 
 /**
  * A fetcher that mimics real `fetch`'s abort contract: it never settles on
@@ -284,6 +284,31 @@ describe('ApiService request deadline', () => {
 
     const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
     await vi.advanceTimersByTimeAsync(60_000 - DEFAULT_REQUEST_TIMEOUT_MS)
+    await assertion
+  })
+
+  it('gives a FormData body the upload budget without the call site asking for it', async () => {
+    // Every upload in the app - post media, avatars, editor images - calls
+    // `apiService.post(path, formData)` with no options at all. If a file
+    // body silently inherited the 10s JSON budget, this fix for hung reads
+    // would become a broken upload on any slow connection.
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    const pending = api.post('/posts/1/media', new FormData())
+    const settled = vi.fn()
+    void pending.catch(settled)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+    expect(settled).not.toHaveBeenCalled()
+
+    const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
+    await vi.advanceTimersByTimeAsync(UPLOAD_REQUEST_TIMEOUT_MS - DEFAULT_REQUEST_TIMEOUT_MS)
     await assertion
   })
 

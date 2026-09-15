@@ -119,6 +119,7 @@ const ContactPage = () => (
         <SectionLabel id="contact-email">Write to me</SectionLabel>
         <Divider />
         <ActionLink
+          standalone
           href={`mailto:${EMAIL}`}
           underline="hover"
           /*
