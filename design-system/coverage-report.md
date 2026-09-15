@@ -19,8 +19,8 @@ Regenerate it rather than editing it.
 
 ## Counts
 
-- Legacy UI files on disk: **125**
-- Ledger rows: **125**
+- Legacy UI files on disk: **126**
+- Ledger rows: **126**
 - Exported v2 components: **107**
 - Exported components demonstrated in the gallery: **107**
 
@@ -28,7 +28,7 @@ Regenerate it rather than editing it.
 | --- | ---: |
 | adapt | 4 |
 | deferred-page-migration | 4 |
-| migrated | 101 |
+| migrated | 102 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 

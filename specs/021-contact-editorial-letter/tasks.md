@@ -2,7 +2,7 @@
 
 **Spec**: `specs/021-contact-editorial-letter/spec.md`
 **Plan**: `specs/021-contact-editorial-letter/plan.md`
-**Status**: Awaiting owner review. No production code changed.
+**Status**: Complete and verified on 2026-09-15. Workstream C stayed closed because the start of the shared footer is visible at 1440x1024.
 
 Ordering rule: G before everything. Within A, tests (A-1) before composition.
 B and C are separate review units and MUST NOT be folded into an A commit.
@@ -16,10 +16,10 @@ is resolved (plan section 2).
 
 ### G-1. Resolve the Storybook MCP discovery gate
 **Blocks**: A-2, A-3, A-4, B-1
-**Owner decision required.**
+**Completed with the live Codex Storybook MCP.**
 
-Pick one: wire the Storybook MCP into Claude Code; run the gate from Codex and
-paste the output here; or accept the DS-003 fallback in writing.
+`docs-list` and `docs-show` confirmed the six-component pilot and the Contact
+capability gap. The result is recorded in `design-system/storybook-mcp.md`.
 
 - **Verify**: `docs-list` returns a catalog in the implementing session, OR a
   pasted transcript of it exists in this task, OR the fallback is recorded.

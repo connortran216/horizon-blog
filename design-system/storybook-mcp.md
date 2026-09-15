@@ -34,3 +34,13 @@ Stories use the mounted Horizon v2 Chakra theme, a router context, production-sh
 ## Compatibility note
 
 The frontend currently uses Yarn Plug'n'Play. Storybook 10.6 still runs with it, but prints an upstream deprecation warning and the config must resolve addon preset paths explicitly. Keep the Storybook packages pinned together at 10.6.0; reassess the linker before a future major Storybook upgrade.
+
+## Contact Editorial Letter discovery outcome
+
+The `/contact` Option 2 implementation ran the discovery gate on 2026-09-15:
+
+- `docs-list` returned the six pilot components: `Button`, `Field`, `PostCard`, `MediaFrame`, `ErrorState`, and `NavItem`.
+- `docs-show` confirmed that `Button` owns button behavior while `ActionLink` is the semantic link counterpart.
+- `ActionLink`, `IconButton`, `Divider`, and a Contact rail pattern are not exposed by the pilot catalog, so there was no matching `docs-show-story` state to reuse.
+
+This is a catalog capability gap, not a reason to invent a global component. The implementation composes existing primitives in the feature-owned `ContactRail` and reuses the shared action copy-state logic. Add a Contact rail story only if the pattern becomes reusable outside this route.

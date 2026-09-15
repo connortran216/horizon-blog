@@ -44,3 +44,13 @@ export type {
   LinkWeight,
   RouterLinkState,
 } from './link.logic'
+
+export {
+  copyAnnouncement,
+  copyIsBusy,
+  copyLabel,
+  copyLiveRegion,
+  copyReducer,
+  idleCopyState,
+} from './copy.logic'
+export type { CopyEvent, CopyState, CopyStatus } from './copy.logic'

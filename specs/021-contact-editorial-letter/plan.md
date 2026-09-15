@@ -1,7 +1,7 @@
 # Implementation Plan: Contact Editorial Letter
 
 **Spec**: `specs/021-contact-editorial-letter/spec.md`
-**Status**: Awaiting owner review. No production code changed.
+**Status**: Implemented and verified on 2026-09-15.
 **Branch**: `codex/epic-horizon-blog-dsv2`
 
 ## Guides Loaded
@@ -34,44 +34,17 @@ Two notes the spec could not have known:
   the hero is already single-column and the duplicated hero actions are already
   gone. The plan targets the current file, not the version the spec describes.
 
-## 2. Storybook MCP Discovery Gate (DS-001) - BLOCKED
+## 2. Storybook MCP Discovery Gate (DS-001) - PASSED
 
-**This gate cannot be executed from this session, and that is a wiring fact, not a
-judgement call.**
+Codex ran `docs-list` against the live Horizon Storybook MCP. The catalog returned
+the six pilot components: `Button`, `Field`, `PostCard`, `MediaFrame`,
+`ErrorState`, and `NavItem`. `docs-show` documented `Button` and its semantic
+`ActionLink` counterpart. No `ActionLink`, `IconButton`, `Divider`, Contact rail,
+or applicable Contact story is exposed by the pilot catalog.
 
-`.codex/config.toml` registers the catalog for **Codex** clients only:
-
-```toml
-[mcp_servers.horizon_storybook]
-url = "http://localhost:6006/mcp"
-enabled_tools = ["docs-list", "docs-show", "docs-show-story"]
-```
-
-No Storybook MCP server is registered for Claude Code, and `docs-list`,
-`docs-show` and `docs-show-story` are absent from this session's tool catalog.
-DS-001 says the implementing agent MUST use them.
-
-Three ways forward; the owner picks one before implementation starts:
-
-1. **Wire the MCP into Claude Code** (`claude mcp add`, or a project `.mcp.json`
-   mirroring the Codex entry), start `yarn storybook`, then the gate runs as written.
-   Preferred, because it is what DS-001 asks for.
-2. **Run the gate from Codex** and paste the `docs-list` / `docs-show` output into
-   this task, so the discovery evidence exists even though a different client
-   produced it.
-3. **Use the documented fallback.** DS-003 already anticipates a gap: inspect the
-   `ContactCard` gallery states in `ui-kit.html` and record the capability gap.
-   This is weaker, because the pilot catalog covers only `Button`, `Field`,
-   `PostCard`, `MediaFrame`, `ErrorState`, `NavItem` - none of the contact-rail
-   candidates - so the gate would return nothing useful for this feature anyway.
-
-**Recommendation: option 1, with option 3 as the recorded fallback.** Note that
-even a working gate would not answer the contact-rail question, because the rail's
-candidates (`ActionLink`, `Divider`, `ContactCard`) are outside the pilot slice.
-That is itself a capability-gap finding worth writing down under DS-003.
-
-Implementation MUST NOT begin on any task marked `[gate: DS-001]` until this is
-resolved.
+The result is recorded in `design-system/storybook-mcp.md`. Per DS-004, the page
+composes existing primitives in a feature-owned `ContactRail`; it does not add a
+new global component.
 
 ## 3. Component Ownership Decisions
 

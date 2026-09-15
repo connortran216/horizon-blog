@@ -435,98 +435,18 @@ export function releaseScrollRegion(element: ScrollContainerLike): void {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Copying code                                                               */
+/* Shared copy action                                                         */
 /* -------------------------------------------------------------------------- */
 
-export type CopyStatus = 'idle' | 'copying' | 'copied' | 'failed'
-
-export interface CopyState {
-  readonly status: CopyStatus
-}
-
-export type CopyEvent =
-  | { readonly type: 'copy' }
-  | { readonly type: 'succeeded' }
-  | { readonly type: 'failed' }
-  | { readonly type: 'reset' }
-
-export const idleCopyState: CopyState = { status: 'idle' }
-
-/**
- * The copy button's state machine.
- *
- * `succeeded` and `failed` are ignored unless a copy is actually in flight, so
- * a clipboard promise that settles after the reader has already pressed the
- * button again cannot overwrite the newer attempt's result.
- *
- * There is no timer here, and that is deliberate. The confirmation would need a
- * hold duration of a second or two, the token source has no such value, and
- * inventing one in a component is exactly the raw design value `CONVENTIONS.md`
- * forbids. The frame resets on `pointerleave` and `blur` instead - an event the
- * reader generates, which needs no duration at all.
- */
-export function copyReducer(state: CopyState, event: CopyEvent): CopyState {
-  switch (event.type) {
-    case 'copy':
-      return state.status === 'copying' ? state : { status: 'copying' }
-
-    case 'succeeded':
-      return state.status === 'copying' ? { status: 'copied' } : state
-
-    case 'failed':
-      return state.status === 'copying' ? { status: 'failed' } : state
-
-    case 'reset':
-      return state.status === 'idle' || state.status === 'copying' ? state : idleCopyState
-  }
-}
-
-/** The button's own words. Never an icon alone - this is a labelled control. */
-export function copyLabel(status: CopyStatus, subject = 'code'): string {
-  switch (status) {
-    case 'copying':
-      return `Copying the ${subject}`
-    case 'copied':
-      return 'Copied'
-    case 'failed':
-      return 'Copy failed'
-    default:
-      return `Copy the ${subject}`
-  }
-}
-
-/**
- * What is announced, and `null` when there is nothing worth interrupting for.
- *
- * The failure says what to do instead. A clipboard write can be refused by the
- * browser for reasons the reader can do nothing about - an insecure origin, a
- * denied permission, a browser with no clipboard API - and "Copy failed" on its
- * own leaves them stuck in front of code they can still select by hand.
- */
-export function copyAnnouncement(status: CopyStatus, subject = 'code'): string | null {
-  switch (status) {
-    case 'copied':
-      return `The ${subject} is on your clipboard`
-    case 'failed':
-      return `We could not copy the ${subject}. Select it to copy it by hand.`
-    default:
-      return null
-  }
-}
-
-/** A failure is asserted; a success is polite. */
-export function copyLiveRegion(status: CopyStatus): {
-  readonly role: 'status' | 'alert'
-  readonly 'aria-live': 'polite' | 'assertive'
-} {
-  return status === 'failed'
-    ? { role: 'alert', 'aria-live': 'assertive' }
-    : { role: 'status', 'aria-live': 'polite' }
-}
-
-export function copyIsBusy(status: CopyStatus): boolean {
-  return status === 'copying'
-}
+export {
+  copyAnnouncement,
+  copyIsBusy,
+  copyLabel,
+  copyLiveRegion,
+  copyReducer,
+  idleCopyState,
+} from '../../components/actions/copy.logic'
+export type { CopyEvent, CopyState, CopyStatus } from '../../components/actions/copy.logic'
 
 /* -------------------------------------------------------------------------- */
 /* Labels                                                                     */

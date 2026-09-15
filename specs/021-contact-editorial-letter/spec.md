@@ -2,7 +2,7 @@
 
 **Feature Branch**: `codex/epic-horizon-blog-dsv2`  
 **Created**: 2026-09-15  
-**Status**: Ready for planning  
+**Status**: Implemented and verified
 **Input**: Redesign `/contact` from the selected Editorial Letter direction, fix the verified narrow-mobile defects, and keep direct contact honest and accessible without adding a form.
 
 ## Decision Summary
@@ -237,5 +237,10 @@ The audit also confirmed the existing page has a working skip link, logical land
 ## Assumptions
 
 - The current email, phone number, location, and no-form decision remain correct.
-- The selected reference is approved as a visual direction for planning, not yet approved implementation code.
-- The owner will review the implementation plan before Claude Code edits production UI.
+- The selected reference is the approved visual direction; the specification remains authoritative where responsive behavior or design-system contracts differ from the generated image.
+
+## Implementation Evidence
+
+- Implemented in the feature-owned `ContactRail` and the `/contact` page composition without a new production dependency or global design-system component.
+- Storybook MCP discovery confirmed the Contact rail is outside the six-component pilot catalog; the capability gap is recorded in `design-system/storybook-mcp.md`.
+- `design-qa.md` records light/dark checks at 320, 375, 768, 1024, and 1440, keyboard traversal, copy feedback, and final automated gates.
