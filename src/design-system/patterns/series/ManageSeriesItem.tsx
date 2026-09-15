@@ -85,7 +85,14 @@ export function ManageSeriesItem({
         <Text as="span" recipe="body" color="text.primary">
           {item.title}
         </Text>
-        <Box>
+        {/*
+         * `minW={0}` overrides this wrapper's default `auto`, which otherwise
+         * floors it at the badge's content width - inside a column flex
+         * container a stretched child still gets an automatic minimum equal
+         * to its min-content, so without this the badge's own shrink-and-
+         * truncate behaviour never gets the chance to apply.
+         */}
+        <Box minW={0}>
           <StatusBadge tone={statusTone[item.status]}>{statusLabel[item.status]}</StatusBadge>
         </Box>
       </Box>
