@@ -207,6 +207,88 @@ describe('the text weight is unchanged', () => {
 
     expect(markup).toContain('text-decoration:none')
   })
+
+  /*
+   * The default stays untouched by design: an inline link mid-paragraph must
+   * never reach the 44px floor by accident (see `needsTouchSizing`), so the
+   * absence of sizing here is the point of the test, not an oversight.
+   */
+  it('reaches for no touch sizing at all unless marked standalone', () => {
+    const markup = render(<ActionLink to="/blog">An inline link</ActionLink>)
+
+    expect(markup).not.toContain('min-height:44px')
+    expect(markup).not.toContain('min-width:44px')
+  })
+})
+
+/**
+ * horizon-blog-7et: a standalone action rendered at text weight - "Get in
+ * touch", "View CV", "Forgot password?" - had no sizing at all and measured
+ * 26px tall everywhere on the site. `standalone` is the caller's explicit
+ * opt-in to the same 44px floor a button-weight link gets, without adopting
+ * any of the Button chrome that would turn it into a button.
+ */
+describe('a standalone text-weight link', () => {
+  it('reaches the 44px touch floor', () => {
+    const markup = render(
+      <ActionLink to="/cv" standalone>
+        View CV
+      </ActionLink>,
+    )
+
+    expect(markup).toContain('min-height:44px')
+    expect(markup).toContain('min-width:44px')
+  })
+
+  it('stays a plain link: no Button fill, no Button outline', () => {
+    const markup = render(
+      <ActionLink to="/cv" standalone>
+        View CV
+      </ActionLink>,
+    )
+
+    expect(markup).not.toContain(BUTTON_FILL)
+    expect(markup).not.toContain(BUTTON_OUTLINE)
+  })
+
+  it('keeps the underline decoration the caller asked for', () => {
+    const alwaysOn = render(
+      <ActionLink to="/cv" standalone>
+        View CV
+      </ActionLink>,
+    )
+    const hoverOnly = render(
+      <ActionLink to="/cv" standalone underline="hover">
+        View CV
+      </ActionLink>,
+    )
+
+    expect(alwaysOn).toContain('text-decoration:underline')
+    expect(hoverOnly).toContain('text-decoration:none')
+  })
+
+  it('is a no-op at button weight, which already meets the floor', () => {
+    const withStandalone = render(
+      <ActionLink to="/cv" weight="primary" standalone>
+        View CV
+      </ActionLink>,
+    )
+    const without = render(
+      <ActionLink to="/cv" weight="primary">
+        View CV
+      </ActionLink>,
+    )
+
+    // Both reach the floor through the Button recipe alone; `standalone`
+    // contributes nothing on top of it, so the two markups carry the same
+    // count of the measurement it would otherwise have doubled up.
+    const countOf = (markup: string, needle: string) => markup.split(needle).length - 1
+
+    expect(withStandalone).toContain('min-height:44px')
+    expect(withStandalone).toContain(BUTTON_FILL)
+    expect(countOf(withStandalone, 'min-height:44px')).toBe(countOf(without, 'min-height:44px'))
+    expect(countOf(withStandalone, 'min-width:44px')).toBe(countOf(without, 'min-width:44px'))
+  })
 })
 
 /**
