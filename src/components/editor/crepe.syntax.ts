@@ -4,7 +4,9 @@
  * CodeMirror ships One Dark. It is a fixed dark palette with no idea the site
  * has a light theme, and measured on an article at 1440 in light, against
  * `bg.code`, all nine of its colours failed the 4.5:1 floor - the worst, plain
- * numbers, at 1.53:1. This replaces it on both surfaces, reading and writing.
+ * numbers, at 1.53:1. This is meant to replace it on both surfaces, reading
+ * and writing - see the status note on `horizonSyntaxExtensions` below for
+ * why, as of `horizon-blog-s6q`, it does not yet reach a rendered span.
  *
  * **Why the colours are CSS variables and not values.** A CodeMirror extension
  * is fixed when the editor is constructed, but the theme changes under a live
@@ -59,22 +61,21 @@ export const horizonHighlightStyle = HighlightStyle.define([
 ])
 
 /**
- * Handed to Crepe's CodeMirror feature as its `theme`, on both surfaces.
+ * Handed to Crepe's CodeMirror feature config as `theme` (see `CrepeEditor.tsx`),
+ * not folded into `extensions` - that placement is what keeps `oneDark` out of
+ * the config lodash's `defaultsDeep` builds (see the root-cause note in
+ * `CrepeEditor.tsx`). `Prec.highest` here is a defensive no-op, kept in case
+ * another extension ever registers a second non-fallback highlighter
+ * alongside this one.
  *
- * Two things had to be true for this to replace One Dark, and each was measured
- * failing first:
- *
- * - **It must not be an array.** Crepe merges with lodash `defaultsDeep`, which
- *   walks arrays element by element. `oneDark` is an array, so handing it
- *   another array merged the two: index 0 became ours and One Dark's highlight
- *   style survived at index 1. The listing came out with our code background
- *   and One Dark's colours, which is exactly what the measurement showed.
- *   `Prec` returns a single object, so there is nothing for `defaultsDeep` to
- *   recurse into.
- * - **It must outrank what remains.** CodeMirror resolves highlighters by
- *   precedence and the first to claim a tag wins; `basicSetup` registers
- *   `defaultHighlightStyle` before any config is read. `highest` settles that
- *   without depending on the order Crepe happens to build its list in.
+ * That fix is necessary but not sufficient: `horizon-blog-s6q` is still open.
+ * A second, unrelated bug - this project's own `@codemirror/language`
+ * dependency resolving to a different version than the rest of the
+ * CodeMirror/Milkdown tree, so this style registers against a private facet
+ * the actual code-block renderer never reads - means no span reaches this
+ * style yet. See the long comment in `CrepeEditor.tsx` and the task report
+ * for the evidence; fixing it is a `package.json`/`yarn.lock` change outside
+ * this pass's scope.
  */
 export function horizonSyntaxExtensions(): Extension {
   return Prec.highest(syntaxHighlighting(horizonHighlightStyle))
