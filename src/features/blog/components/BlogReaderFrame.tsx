@@ -45,10 +45,12 @@ import {
   Prose,
   ReaderFrame,
   ReadingProgress,
+  ResponsiveImage,
   Section,
   Stack,
   formatPostDate,
   localScrollStyle,
+  postPresentation,
   useMotionPolicy,
   type ReaderHeading,
 } from '../../../design-system'
@@ -63,6 +65,13 @@ import { useReaderHeadings } from '../useReaderHeadings'
 const LazyCrepeEditor = lazy(() => import('../../../components/editor/CrepeEditor'))
 
 const RENDER_FAILURE = 'The article body could not be rendered.'
+
+/**
+ * The reading page's cover borrows the Signature's proportions - the same
+ * wide editorial plate Home and the archive Feature use - rather than
+ * inventing a fifth cover shape for one more post surface.
+ */
+const READER_COVER_PRESENTATION = postPresentation('signature')
 
 /**
  * One frozen empty list, not a fresh `[]` per render. `useReaderHeadings`
@@ -104,6 +113,19 @@ interface BlogReaderFrameProps {
   /** The article does not exist, or is not published. */
   isMissing?: boolean
   authorArchivePath?: string | null
+  /**
+   * The article's cover, when one was found. `/posts/:id` carries no
+   * dedicated cover field - only `content_markdown` - so the page derives
+   * this from the same markdown the article renders, one level up, and hands
+   * it down already resolved; this frame only draws it.
+   */
+  coverImage?: { src: string; alt: string } | null
+  /**
+   * Shared with the departing list or Home cover so the two can morph into
+   * each other under the View Transitions API - see
+   * `postCoverTransitionName`. Meaningless without `coverImage`.
+   */
+  coverTransitionName?: string | null
   showReadingProgress?: boolean
   /** The headings the table of contents lists. Empty hides it entirely. */
   headings?: readonly ReaderHeading[]
@@ -129,6 +151,8 @@ const BlogReaderFrame = ({
   loadError = null,
   isMissing = false,
   authorArchivePath,
+  coverImage = null,
+  coverTransitionName = null,
   showReadingProgress = false,
   headings = NO_HEADINGS,
   titleSection,
@@ -341,6 +365,20 @@ const BlogReaderFrame = ({
 
               {helperSection}
             </Stack>
+          }
+          cover={
+            coverImage ? (
+              <ResponsiveImage
+                aspectRatio={READER_COVER_PRESENTATION.coverAspectRatio}
+                radius={READER_COVER_PRESENTATION.coverRadius}
+                src={coverImage.src}
+                alt={coverImage.alt}
+                sizes="(min-width: 1001px) 800px, 100vw"
+                task="the article cover"
+                loading="eager"
+                viewTransitionName={coverTransitionName ?? undefined}
+              />
+            ) : null
           }
           seriesContext={seriesSection}
           feedback={interactionSection}

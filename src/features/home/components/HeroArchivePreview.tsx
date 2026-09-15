@@ -13,7 +13,7 @@
  * instead of inventing one here.
  */
 
-import { SignatureStory } from '../../../design-system'
+import { SignatureStory, postCoverTransitionName } from '../../../design-system'
 import type { BlogPostSummary } from '../../../core'
 import { toPostSummary } from '../../blog/postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
@@ -30,7 +30,14 @@ const HeroArchivePreview = ({ post, sectionLabels = [] }: HeroArchivePreviewProp
   const coverMedia = useResolvedCoverMedia(post.featuredImage)
   const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
-  return <SignatureStory post={summary} sectionLabels={sectionLabels} titleAs="h2" />
+  return (
+    <SignatureStory
+      post={summary}
+      sectionLabels={sectionLabels}
+      titleAs="h2"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
+  )
 }
 
 export default HeroArchivePreview

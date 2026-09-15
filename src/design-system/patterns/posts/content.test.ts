@@ -8,6 +8,7 @@ import {
   excerptOrNull,
   formatPostDate,
   pluralise,
+  postCoverTransitionName,
   postMetadataItems,
   readingTimeLabel,
   seriesPositionLabel,
@@ -198,5 +199,25 @@ describe('visibleTags', () => {
 
   it('survives a missing tag list', () => {
     expect(visibleTags(undefined, 3).visible).toEqual([])
+  })
+})
+
+describe('postCoverTransitionName', () => {
+  it('is deterministic - the same id always yields the same name', () => {
+    expect(postCoverTransitionName('42')).toBe(postCoverTransitionName('42'))
+  })
+
+  it('gives two different ids two different names', () => {
+    expect(postCoverTransitionName('1')).not.toBe(postCoverTransitionName('2'))
+  })
+
+  it('sanitises characters a CSS custom-ident cannot carry', () => {
+    expect(postCoverTransitionName('a/b c')).toBe('post-cover-a-b-c')
+  })
+
+  it('is null for an absent id rather than a name every id-less post would share', () => {
+    expect(postCoverTransitionName(undefined)).toBeNull()
+    expect(postCoverTransitionName(null)).toBeNull()
+    expect(postCoverTransitionName('   ')).toBeNull()
   })
 })

@@ -7,7 +7,7 @@
  * would only echo the heading is dropped.
  */
 
-import { PostCard } from '../../../design-system'
+import { PostCard, postCoverTransitionName } from '../../../design-system'
 import { toPostSummary } from '../postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
 import { BlogArchiveSummary } from '../blog.types'
@@ -24,7 +24,14 @@ const EditorialCard = ({ post, sectionLabels = [] }: EditorialCardProps) => {
   const coverMedia = useResolvedCoverMedia(post.featuredImage)
   const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
-  return <PostCard post={summary} sectionLabels={sectionLabels} coverSizes={COVER_SIZES} />
+  return (
+    <PostCard
+      post={summary}
+      sectionLabels={sectionLabels}
+      coverSizes={COVER_SIZES}
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
+  )
 }
 
 export default EditorialCard

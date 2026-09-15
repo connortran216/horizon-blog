@@ -11,7 +11,7 @@
  * failure `hierarchy.logic.ts` was written for.
  */
 
-import { PostCard } from '../../../design-system'
+import { PostCard, postCoverTransitionName } from '../../../design-system'
 import type { BlogPostSummary } from '../../../core'
 import { toPostSummary } from '../../blog/postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
@@ -39,6 +39,7 @@ const StoryCard = ({ post, sectionLabels = [] }: StoryCardProps) => {
        * cutting the artwork.
        */
       coverFit="contain"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
     />
   )
 }

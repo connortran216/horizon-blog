@@ -37,6 +37,7 @@ import { PostMetadata } from './PostMetadata'
 import { excerptOrNull, visibleTags, type PostSummary } from './content.logic'
 import { resolveHierarchyLabel } from './hierarchy.logic'
 import { cardLinkOverlayStyle, coverBleeds, postPresentation } from './presentation.logic'
+import { useCoverTransitionNavigate } from './useCoverTransitionNavigate'
 
 export interface PostCardProps extends Omit<SurfaceProps, 'children' | 'depth' | 'as' | 'padded'> {
   post: PostSummary
@@ -66,6 +67,15 @@ export interface PostCardProps extends Omit<SurfaceProps, 'children' | 'depth' |
    * identical either way.
    */
   coverFit?: MediaFit
+  /**
+   * The cover's `view-transition-name`, shared with the reading page's own
+   * cover so the two can morph into each other - see
+   * `postCoverTransitionName`. Also gates whether the title link's plain
+   * click runs its navigation inside a view transition; see
+   * `useCoverTransitionNavigate`. Omitted, this card behaves exactly as
+   * before.
+   */
+  coverTransitionName?: string
 }
 
 export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard(
@@ -76,6 +86,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
     titleAs = 'h3',
     coverSizes = '(min-width: 801px) 33vw, 100vw',
     coverFit,
+    coverTransitionName,
     ...rest
   },
   ref,
@@ -85,6 +96,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
   const resolvedLabel = resolveHierarchyLabel(label, sectionLabels)
   const excerpt = excerptOrNull(post.excerpt)
   const tags = visibleTags(post.tags, presentation.tagLimit)
+  const handleTitleClick = useCoverTransitionNavigate(coverTransitionName ? post.href : null)
 
   return (
     <Surface
@@ -117,6 +129,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
         // The frame reserves 16/9 in every media state; a flex column would
         // otherwise be free to shrink it once the copy is tall.
         frameProps={{ flexShrink: 0 }}
+        viewTransitionName={coverTransitionName}
       />
 
       <Stack gap={4} flex="1" padding={bleeds ? componentTokens.card.padding : undefined}>
@@ -138,6 +151,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
             to={post.href}
             underline="hover"
             color="text.primary"
+            onClick={handleTitleClick}
             /*
              * One anchor for the whole card. Everything above that must stay
              * clickable - the topic chips, the author link inside the metadata

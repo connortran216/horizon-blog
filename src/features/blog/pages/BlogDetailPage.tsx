@@ -24,10 +24,12 @@ import { useReaderSession } from '../../reader-interactions/useReaderSession'
 import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
 import { extractMarkdownHeadings, getBlogService } from '../../../core'
+import { extractFirstImageFromMarkdown } from '../../../core/utils/blog-mapping.utils'
 import { useAuth } from '../../../context/AuthContext'
 import CommentSection from '../../comments/components/CommentSection'
 import SeriesContextCard from '../../series/components/SeriesContextCard'
 import { useSeriesContext } from '../../series/useSeriesContext'
+import { postCoverTransitionName } from '../../../design-system'
 
 /** Fewer than three headings is a list, not a map. */
 const MIN_TABLE_OF_CONTENTS_HEADINGS = 3
@@ -48,6 +50,20 @@ const BlogDetailPage = () => {
     () => (allHeadings.length >= MIN_TABLE_OF_CONTENTS_HEADINGS ? allHeadings : []),
     [allHeadings],
   )
+  /*
+   * `/posts/:id` carries no dedicated cover field - only `content_markdown` -
+   * so the article's cover is the first image the body itself embeds, read
+   * from the same already-resolved markdown `Prose` renders (media tokens are
+   * real URLs by the time `resolvedMedia.content` exists). A post with no
+   * image in its body has no cover here, same as today; this only adds one,
+   * it never invents a mismatched one from another source.
+   */
+  const coverImageSrc = useMemo(
+    () => extractFirstImageFromMarkdown(resolvedMedia.content),
+    [resolvedMedia.content],
+  )
+  const coverImage = post && coverImageSrc ? { src: coverImageSrc, alt: post.title } : null
+  const coverTransitionName = post ? postCoverTransitionName(String(post.id)) : null
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
   const shareUrl = typeof window === 'undefined' ? undefined : window.location.href
   const readerSession = useReaderSession({
@@ -103,6 +119,8 @@ const BlogDetailPage = () => {
       loadError={loadError}
       resolvedContent={resolvedMedia.content}
       resolvedMedia={resolvedMedia.sources}
+      coverImage={coverImage}
+      coverTransitionName={coverTransitionName}
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
       authorArchivePath={authorArchivePath}

@@ -1,7 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { fullMotionPolicy, reducedMotionPolicy } from './policy.logic'
-import { startViewTransition, type ViewTransitionDocumentLike } from './viewTransition.logic'
+import {
+  isPlainRouterClick,
+  startViewTransition,
+  type RouterClickLike,
+  type ViewTransitionDocumentLike,
+} from './viewTransition.logic'
+
+const plainClick = (): RouterClickLike => ({
+  button: 0,
+  metaKey: false,
+  ctrlKey: false,
+  shiftKey: false,
+  altKey: false,
+  defaultPrevented: false,
+})
 
 const capableDocument = (): ViewTransitionDocumentLike & { calls: () => number } => {
   let calls = 0
@@ -85,5 +99,27 @@ describe('startViewTransition', () => {
 
     await expect(result.finished).resolves.toBeUndefined()
     expect(update).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('isPlainRouterClick', () => {
+  it('accepts an unmodified left click', () => {
+    expect(isPlainRouterClick(plainClick())).toBe(true)
+  })
+
+  it('rejects every other mouse button', () => {
+    expect(isPlainRouterClick({ ...plainClick(), button: 1 })).toBe(false)
+    expect(isPlainRouterClick({ ...plainClick(), button: 2 })).toBe(false)
+  })
+
+  it('rejects a modifier-key click - the new-tab and background-load gestures', () => {
+    expect(isPlainRouterClick({ ...plainClick(), metaKey: true })).toBe(false)
+    expect(isPlainRouterClick({ ...plainClick(), ctrlKey: true })).toBe(false)
+    expect(isPlainRouterClick({ ...plainClick(), shiftKey: true })).toBe(false)
+    expect(isPlainRouterClick({ ...plainClick(), altKey: true })).toBe(false)
+  })
+
+  it('rejects an event another handler already prevented', () => {
+    expect(isPlainRouterClick({ ...plainClick(), defaultPrevented: true })).toBe(false)
   })
 })

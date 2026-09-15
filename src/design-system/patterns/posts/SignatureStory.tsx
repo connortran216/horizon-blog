@@ -34,6 +34,7 @@ import { PostMetadata } from './PostMetadata'
 import { excerptOrNull, visibleTags, type PostSummary } from './content.logic'
 import { resolveHierarchyLabel } from './hierarchy.logic'
 import { postPresentation } from './presentation.logic'
+import { useCoverTransitionNavigate } from './useCoverTransitionNavigate'
 
 export interface SignatureStoryProps extends Omit<BoxProps, 'children' | 'as'> {
   post: PostSummary
@@ -44,6 +45,15 @@ export interface SignatureStoryProps extends Omit<BoxProps, 'children' | 'as'> {
   actionLabel?: string
   /** Heading rank. `h1` when the Signature is the page's own title. */
   titleAs?: HeadingElement
+  /**
+   * The cover's `view-transition-name`, shared with the reading page's own
+   * cover so the two can morph into each other - see
+   * `postCoverTransitionName`. Also gates whether the title and
+   * call-to-action links' plain click runs its navigation inside a view
+   * transition; see `useCoverTransitionNavigate`. Omitted, this pattern
+   * behaves exactly as before.
+   */
+  coverTransitionName?: string
 }
 
 export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(function SignatureStory(
@@ -53,6 +63,7 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
     sectionLabels = [],
     actionLabel = 'Read the story',
     titleAs = 'h2',
+    coverTransitionName,
     ...rest
   },
   ref,
@@ -61,6 +72,7 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
   const resolvedLabel = resolveHierarchyLabel(label, sectionLabels)
   const excerpt = excerptOrNull(post.excerpt)
   const tags = visibleTags(post.tags, presentation.tagLimit)
+  const handleLinkClick = useCoverTransitionNavigate(coverTransitionName ? post.href : null)
 
   return (
     <Box
@@ -85,6 +97,7 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
           /* The one place the system draws editorial depth on media. */
           frameProps={{ boxShadow: 'card' }}
           loading="eager"
+          viewTransitionName={coverTransitionName}
         />
       </Reveal>
 
@@ -93,7 +106,12 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
           {resolvedLabel ? <Eyebrow as="p">{resolvedLabel}</Eyebrow> : null}
 
           <Heading as={titleAs} recipe={presentation.titleRecipe}>
-            <ActionLink to={post.href} underline="hover" color="text.primary">
+            <ActionLink
+              to={post.href}
+              underline="hover"
+              color="text.primary"
+              onClick={handleLinkClick}
+            >
               {post.title}
             </ActionLink>
           </Heading>
@@ -130,6 +148,7 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
               aria-label={`${actionLabel}: ${post.title}`}
               color="action.primary"
               fontWeight="semibold"
+              onClick={handleLinkClick}
             >
               {actionLabel}
             </ActionLink>

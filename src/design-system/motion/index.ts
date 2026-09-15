@@ -82,8 +82,9 @@ export type {
 
 export { loadingPulse, loadingPulseAnimation } from './loadingPulse'
 
-export { startViewTransition } from './viewTransition.logic'
+export { isPlainRouterClick, startViewTransition } from './viewTransition.logic'
 export type {
+  RouterClickLike,
   StartViewTransitionInput,
   ViewTransitionDocumentLike,
   ViewTransitionLike,

@@ -11,7 +11,10 @@
  * in the sort order, and the tagline was copy the page wrote about itself.
  */
 
-import { FeaturedStory as FeaturedStoryPattern } from '../../../design-system'
+import {
+  FeaturedStory as FeaturedStoryPattern,
+  postCoverTransitionName,
+} from '../../../design-system'
 import { toPostSummary } from '../postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
 import { BlogArchiveSummary } from '../blog.types'
@@ -34,6 +37,7 @@ const FeaturedStory = ({ post, sectionLabels = [] }: FeaturedStoryProps) => {
       sectionLabels={sectionLabels}
       titleAs="h3"
       actionLabel="Read the featured blog"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
     />
   )
 }
