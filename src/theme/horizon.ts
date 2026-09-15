@@ -10,9 +10,19 @@
  * the clean names while the legacy theme kept its own, so nothing shipped
  * changed appearance until the swap was reviewed on its own.
  *
- * The legacy theme in `./index.ts` is no longer mounted. It survives only
- * because the compatibility bridge below reads its vocabulary on behalf of pages
- * that have not migrated yet; both go in release M8 (`horizon-blog-y2e.9.1`).
+ * The legacy "Obsidian" theme that used to live at `./index.ts` is gone -
+ * release M8 (`horizon-blog-y2e.9.1`) removed it along with the raw palette it
+ * exposed as `colors.obsidian`, which no production file read directly anymore.
+ *
+ * The semantic alias bridge below (`legacyAliases`) is a separate thing and is
+ * NOT removed by M8: roughly twenty files across `features/author-analytics`,
+ * `features/access-management`, `components/core/animations` and elsewhere
+ * still read pre-v2 semantic names (`bg.secondary`, `text.tertiary`,
+ * `border.default`, `accent.primary`, `action.active`, `action.glow`,
+ * `loading.glow`, `bg.glass`, ...) rather than their v2 equivalents. Removing
+ * the bridge before those call sites migrate would silently break their colour
+ * (an unresolved Chakra token emits as a raw, invalid CSS value rather than
+ * erroring). That migration is tracked separately from this release.
  */
 
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
@@ -56,19 +66,21 @@ const semanticColorTokens = Object.fromEntries(
 /**
  * Temporary bridge for pages that have not migrated yet.
  *
- * Removal gate: `horizon-blog-y2e.9.1` (release M8). Every entry here is a name
- * the legacy theme defined and v2 does not. Without the bridge, swapping the
- * provider would leave Chakra emitting `color: text.tertiary` verbatim — an
- * invalid declaration — on several hundred call sites at once, so the theme swap
- * could not be reviewed on its own.
+ * NOT removed by release M8 (`horizon-blog-y2e.9.1`) - that release removed the
+ * legacy theme file and its raw palette (see the file header), but roughly
+ * twenty production files still read these semantic names directly (see
+ * `horizon.test.ts`'s `LEGACY_COMPATIBILITY_TOKENS`). Every entry here is a name
+ * the legacy theme defined and v2 does not. Without the bridge, those call sites
+ * would have Chakra emitting `color: text.tertiary` verbatim - an invalid
+ * declaration - so removing this requires migrating each of them first.
  *
  * Each alias points at the v2 role that carries the same meaning, following the
  * mapping the design handoff already recorded (secondary/tertiary/tertiary-text
  * become surface/subtle/muted). They are aliases, not new values: nothing here
  * introduces a colour the token source does not already define.
  *
- * When a page migrates it stops using these names. When the last one stops, this
- * block and the legacy theme go together.
+ * When a page migrates it stops using these names. When the last one stops,
+ * this block goes with it.
  */
 const legacyAliases = {
   // Surfaces
@@ -110,52 +122,6 @@ const legacyAliasTokens = Object.fromEntries(
     { default: pair.light, _dark: pair.dark },
   ]),
 )
-
-/**
- * The raw palette six unmigrated files still read directly, rather than through
- * a semantic role. Same removal gate as the aliases above.
- */
-const legacyPalette = {
-  light: {
-    bg: palette.white,
-    bgSecondary: palette.mist[50],
-    bgTertiary: palette.mist[100],
-    bgElevated: palette.white,
-    border: palette.mist[200],
-    borderSubtle: palette.mist[200],
-  },
-  dark: {
-    bg: palette.night[900],
-    bgSecondary: palette.night[800],
-    bgTertiary: palette.night[700],
-    bgElevated: palette.night[600],
-    border: palette.night[500],
-    borderSubtle: palette.night[500],
-  },
-  text: {
-    primary: palette.night[50],
-    secondary: palette.night[200],
-    tertiary: palette.night[300],
-    lightPrimary: palette.mist[900],
-    lightSecondary: palette.mist[700],
-    lightTertiary: palette.mist[600],
-  },
-  accent: {
-    primary: palette.cobalt[600],
-    secondary: palette.cobalt[400],
-    hover: palette.cobalt[800],
-    active: palette.cobalt[800],
-  },
-  action: {
-    primary: palette.cobalt[600],
-    hover: palette.cobalt[800],
-    active: palette.cobalt[800],
-  },
-  link: palette.cobalt[700],
-  linkHover: palette.cobalt[700],
-  codeBlock: palette.night[900],
-  selection: palette.night[500],
-} as const
 
 /**
  * The type ramp switches at `sm` (681px), matching the prototype: its
@@ -233,9 +199,7 @@ export const horizonTheme = extendTheme({
 
   breakpoints,
 
-  // `obsidian` is the legacy palette name; see `legacyPalette` for why it is
-  // still here and when it goes.
-  colors: { horizon: palette, obsidian: legacyPalette },
+  colors: { horizon: palette },
 
   semanticTokens: {
     colors: { ...semanticColorTokens, ...legacyAliasTokens },

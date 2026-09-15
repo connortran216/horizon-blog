@@ -6,8 +6,8 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 ## Scope and counts
 
-- Total UI implementation and composition files: **127**
-- Non-page component and infrastructure files: **78**
+- Total UI implementation and composition files: **124**
+- Non-page component and infrastructure files: **75**
 - Page/app composition files: **49** - of which **7** are still deferred.
 - Migrated to the v2 system so far: **88** across releases M2-M6 and the app shell.
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
@@ -20,7 +20,6 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | app-composition | 3 |
 | app-shell | 4 |
 | behavior-infrastructure | 5 |
-| compatibility-layout | 3 |
 | data-admin-pattern | 9 |
 | editor-integration | 3 |
 | editor-publishing-pattern | 4 |
@@ -39,7 +38,6 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 | Disposition | Files |
 | --- | ---: |
 | adapt | 13 |
-| compatibility | 3 |
 | deferred-page-migration | 7 |
 | migrated | 88 |
 | replace-with-adapter | 11 |
@@ -74,9 +72,6 @@ file; it leaves when the file does.
 | `src/components/editor/CrepeEditor.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 CrepeEditor pattern | Dense responsive workspace; async/error/permission states |
 | `src/components/editor/CrepePreview.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 CrepePreview pattern | Dense responsive workspace; async/error/permission states |
 | `src/components/editor/MermaidZoomModal.tsx` | editor-integration | migrated | M6 / horizon-blog-y2e | v2 MermaidZoomModal pattern | Dense responsive workspace; async/error/permission states |
-| `src/components/layout/Footer.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | SiteFooter | Retain re-export until page migration removes old import |
-| `src/components/layout/Layout.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | Layout | Retain re-export until page migration removes old import |
-| `src/components/layout/Navbar.tsx` | compatibility-layout | compatibility | B2 / horizon-blog-dsv2.3.1 | SiteHeader and NavItem | Retain re-export until page migration removes old import |
 | `src/components/reader/MarkdownReader.tsx` | reader-integration | migrated | M4 / horizon-blog-y2e | Prose, localScrollStyle | Prose owns the measure, contrast and local overflow; marked/DOMPurify/Shiki unchanged. Shiki shell restyled with reader and card role tokens only - the two gradients, eleven rgba() literals, five hex colours and the `obsidian.text.*` names are gone |
 | `src/components/reader/MilkdownReader.tsx` | reader-integration | migrated | M4 / horizon-blog-y2e | Prose, ErrorState via Prose renderError | Milkdown/commonmark/GFM/Prism/nord unchanged; the 170-line hand-written document theme and its `obsidian.*` and `gray.*` names are replaced by Prose. Setup failure is the system error state |
 | `src/components/seo/ClientSeoSync.tsx` | behavior-infrastructure | retain-behavior | B6 / horizon-blog-dsv2.7.2 | ClientSeoSync | No visual rewrite; verify compatibility and accessibility |

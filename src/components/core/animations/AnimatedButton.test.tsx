@@ -17,8 +17,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { ChakraProvider } from '@chakra-ui/react'
-// The theme the application actually mounts (`App.tsx`), not the legacy one
-// still exported from `src/theme/index.ts`.
+// The theme the application actually mounts (`App.tsx`).
 import horizonTheme from '../../../theme/horizon'
 import {
   contrastRatio,

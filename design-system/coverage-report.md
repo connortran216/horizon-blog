@@ -19,15 +19,14 @@ Regenerate it rather than editing it.
 
 ## Counts
 
-- Legacy UI files on disk: **127**
-- Ledger rows: **127**
+- Legacy UI files on disk: **124**
+- Ledger rows: **124**
 - Exported v2 components: **107**
 - Exported components demonstrated in the gallery: **107**
 
 | Disposition | Rows |
 | --- | ---: |
 | adapt | 13 |
-| compatibility | 3 |
 | deferred-page-migration | 7 |
 | migrated | 88 |
 | replace-with-adapter | 11 |
