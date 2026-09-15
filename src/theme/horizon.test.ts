@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import legacyTheme from './index'
 import horizonTheme from './horizon'
 import { semanticColors, reducedMotionQuery } from './tokens'
 
@@ -44,53 +43,16 @@ const LEGACY_COMPATIBILITY_TOKENS = [
   'link.hover',
 ]
 
-/** Raw palette entries still referenced directly by editor, reader and About. */
-const LEGACY_PALETTE_PATHS = [
-  ['light', 'bg'],
-  ['light', 'bgSecondary'],
-  ['light', 'bgTertiary'],
-  ['dark', 'bg'],
-  ['dark', 'bgSecondary'],
-  ['dark', 'bgTertiary'],
-  ['text', 'primary'],
-  ['text', 'secondary'],
-  ['text', 'tertiary'],
-  ['text', 'lightPrimary'],
-  ['text', 'lightSecondary'],
-  ['text', 'lightTertiary'],
-]
-
-describe('legacy theme compatibility', () => {
-  it('keeps every semantic name production still uses', () => {
-    for (const token of LEGACY_COMPATIBILITY_TOKENS) {
-      expect(legacyTheme.semanticTokens.colors, `legacy ${token} disappeared`).toHaveProperty(token)
-    }
-  })
-
-  it('keeps the raw palette that editor, reader and About read directly', () => {
-    for (const path of LEGACY_PALETTE_PATHS) {
-      const value = path.reduce<Record<string, unknown>>(
-        (node, key) => node[key] as Record<string, unknown>,
-        legacyTheme.colors.obsidian,
-      )
-
-      expect(value, `obsidian.${path.join('.')} disappeared`).toBeTruthy()
-    }
-  })
-
-  it('does not adopt v2 values, so shipped pages keep their appearance', () => {
-    expect(legacyTheme.colors.obsidian.light.bg).toBe('#ffffff')
-    expect(legacyTheme.colors.obsidian.dark.bg).toBe('#1e1e1e')
-    expect(legacyTheme.fonts.body).toContain('Inter')
-  })
-})
-
 /*
  * Release M1 mounted this theme on every route while the pages still speak the
  * legacy vocabulary. An unresolved semantic token is not an error in Chakra - it
  * emits the name verbatim as a CSS value, so a missing alias is a silently
  * broken colour on a shipped page rather than a failure anyone would notice.
- * These names therefore have to keep resolving until M8 removes the bridge.
+ * Release M8 (`horizon-blog-y2e.9.1`) removed the legacy theme file and its raw
+ * `colors.obsidian` palette, but not this bridge: roughly twenty production
+ * files still read these semantic names directly, so these names have to keep
+ * resolving until each of those files migrates to the v2 names and the bridge
+ * can go with them.
  */
 describe('legacy compatibility bridge', () => {
   it('resolves every legacy name the unmigrated pages still use', () => {
@@ -102,17 +64,6 @@ describe('legacy compatibility bridge', () => {
       expect(entry, `${token} would emit as a raw string on a shipped page`).toBeDefined()
       expect(entry?.default, `${token} has no light value`).toMatch(/^(#|rgb)/)
       expect(entry?._dark, `${token} has no dark value`).toMatch(/^(#|rgb)/)
-    }
-  })
-
-  it('keeps the raw palette the editor, reader and About read directly', () => {
-    for (const path of LEGACY_PALETTE_PATHS) {
-      const value = path.reduce<Record<string, unknown>>(
-        (node, key) => node[key] as Record<string, unknown>,
-        horizonTheme.colors.obsidian,
-      )
-
-      expect(value, `obsidian.${path.join('.')} would emit as a raw string`).toMatch(/^#/)
     }
   })
 
