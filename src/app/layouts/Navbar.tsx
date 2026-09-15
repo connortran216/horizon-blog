@@ -161,7 +161,24 @@ const Navbar = () => {
       borderBottom="1px solid"
       borderColor={componentTokens.header.border}
     >
-      <ContentContainer>
+      <ContentContainer
+        /*
+         * B-1 (specs/021-contact-editorial-letter): at 320 the brand mark was
+         * already on its icon-only variant (32px) below `sm`, and "Sign in"
+         * still measured 66x44 across two lines - its natural single-line
+         * box needs 85px (52.6px of text plus the control's 16px/side
+         * padding) but only 66px was left after the menu button, the brand
+         * icon, and the two-button theme toggle (44+44px plus its own
+         * padding). The icon-only brand mark (tried first, per plan section
+         * 4) was not enough on its own, and one token step of gutter
+         * (16px -> 12px, +8px total) still falls 11px short. Dropping the
+         * header's own side gutter to `space[1]` (4px) at the narrowest
+         * width - a local override, not a change to `containerGutter` - frees
+         * 24px, landing "Sign in" at ~90px with a real margin instead of a
+         * one-pixel one. `sm` and up keep the system's normal 24px gutter.
+         */
+        px={{ base: space[1], sm: space[6] }}
+      >
         <Flex
           minH={{ base: layout.header.mobile, sm: layout.header.desktop }}
           alignItems="center"
@@ -186,11 +203,27 @@ const Navbar = () => {
                 aria-label="Horizon home"
                 display="inline-flex"
                 alignItems="center"
+                justifyContent="center"
                 lineHeight="0"
                 flexShrink={0}
                 // The wordmark is 38px tall on its own; the link around it is a
                 // target like any other and takes the system's 44px floor.
                 minH={componentTokens.control.minTouchTarget}
+                /*
+                 * B-2 (specs/021-contact-editorial-letter): below `sm` the icon
+                 * variant is a 32px square (`BrandLogo`'s own `icon` dimensions),
+                 * short of the 44px width the control contract asks for (RR-006;
+                 * measured 32x44 before this fix). `minW` gives the link a real
+                 * 44px hit area; the matching `-6px` margin (half of the 12px
+                 * gap between 32 and 44) keeps that hit area from also widening
+                 * the header's flex layout, so it does not eat into the room B-1
+                 * needs for "Sign in" - the icon renders at the same visual spot,
+                 * just with its click target bleeding into the surrounding gaps.
+                 * `sm` and up show the full wordmark, already well past 44px, so
+                 * neither override applies there.
+                 */
+                minW={{ base: componentTokens.control.minTouchTarget, sm: 'auto' }}
+                mx={{ base: '-6px', sm: 0 }}
               >
                 <BrandLogo variant="icon" display={{ base: 'block', sm: 'none' }} />
                 <BrandLogo variant="full" display={{ base: 'none', sm: 'block' }} />
