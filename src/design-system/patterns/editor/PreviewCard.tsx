@@ -93,7 +93,10 @@ export function PreviewCard({
         {tags === undefined || tags.length === 0 ? null : (
           <Flex as="ul" gap={space[2]} flexWrap="wrap" listStyleType="none">
             {tags.map((tag) => (
-              <Box as="li" key={tag}>
+              // `minWidth={0}` overrides the flex item's default `auto`, which
+              // floors it at the tag's own content width and defeats the
+              // Chip's own shrink-and-truncate behaviour before it can apply.
+              <Box as="li" key={tag} minWidth={0}>
                 <Chip>{tag}</Chip>
               </Box>
             ))}
