@@ -6,10 +6,10 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 ## Scope and counts
 
-- Total UI implementation and composition files: **124**
-- Non-page component and infrastructure files: **75**
+- Total UI implementation and composition files: **125**
+- Non-page component and infrastructure files: **76**
 - Page/app composition files: **49** - of which **4** are still deferred.
-- Migrated to the v2 system so far: **100** across releases M2-M7 and the app shell.
+- Migrated to the v2 system so far: **101** across releases M2-M7, the app shell, and `horizon-blog-y2e.debt.1`.
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
 
 ### By category
@@ -120,6 +120,7 @@ file; it leaves when the file does.
 | `src/features/contact/pages/ContactPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Grid, Stack, Heading, Text, Eyebrow, ActionLink, ContactCard, ContactPrompt | Paired themes at 375/768/1024/1440; `mailto:`/`tel:`/location link semantics owned by `contactHref`, and the per-card action by `ContactCard`'s `actionLabel` slot, so the page owns no card of its own; no compatibility-bridge token |
 | `src/features/cv/pages/CvPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Surface, Stack, Grid, Heading, Text, Eyebrow, Metadata, Button, ActionLink, CVEntry | Paired themes at 375/768/1024/1440; print from both themes; keeps the `cv-*` class hooks that `src/index.css` print rules key on, and pins the v2 colour roles that block does not cover |
 | `src/features/editor/components/ActiveScheduleNotice.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 ActiveScheduleNotice pattern | Autosave/upload/publish/schedule/recovery/permission states |
+| `src/features/editor/components/DraftRecoveryNotice.tsx` | editor-publishing-pattern | migrated | debt.1 / horizon-blog-y2e | FeedbackSurface, Button, Stack | Added by `horizon-blog-y2e.debt.1`: wires the `blog_draft_backup` local backup back into the editor via `WorkspaceShell`'s banner slot, gated on `draftRecovery()` and a strict per-post ownership check so one post's backup can never be offered while editing another |
 | `src/features/editor/components/EditorTagField.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 EditorTagField pattern | Autosave/upload/publish/schedule/recovery/permission states |
 | `src/features/editor/components/EditorWorkspace.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 EditorWorkspace pattern | Autosave/upload/publish/schedule/recovery/permission states |
 | `src/features/editor/components/PublishBlogPreviewCard.tsx` | editor-publishing-pattern | migrated | M6 / horizon-blog-y2e | v2 PublishBlogPreviewCard pattern | Autosave/upload/publish/schedule/recovery/permission states |
