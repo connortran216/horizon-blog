@@ -75,3 +75,32 @@ export function startViewTransition({
     return { animated: false, finished: Promise.resolve() }
   }
 }
+
+export interface RouterClickLike {
+  readonly button: number
+  readonly metaKey: boolean
+  readonly ctrlKey: boolean
+  readonly shiftKey: boolean
+  readonly altKey: boolean
+  readonly defaultPrevented: boolean
+}
+
+/**
+ * Whether a click on a router link is the plain kind a view transition may
+ * take over - the same gate React Router's own `<Link>` applies internally
+ * before it calls `preventDefault`. A middle click, a modified click (Cmd,
+ * Ctrl, Shift or Alt) or an event some other handler already prevented all
+ * mean the browser's own behaviour - a new tab, a background load, whatever
+ * that other handler decided - has to win, and a transition must not start
+ * on top of it.
+ */
+export function isPlainRouterClick(event: RouterClickLike): boolean {
+  return (
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    !event.defaultPrevented
+  )
+}

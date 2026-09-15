@@ -79,6 +79,17 @@ interface ResponsiveImageOwnProps {
   loading?: 'lazy' | 'eager'
   /** Layout props for the frame. The ratio and radius stay this component's. */
   frameProps?: Omit<BoxProps, 'children' | 'aspectRatio'>
+  /**
+   * The frame's CSS `view-transition-name`, for a shared-element transition
+   * with a matching cover elsewhere - see `postCoverTransitionName`. Applied
+   * to the frame via `sx` rather than a typed style prop, because the View
+   * Transitions API's own property is newer than this repository's `csstype`
+   * and `sx` already accepts arbitrary CSS by design.
+   *
+   * Left unset, this changes nothing: a frame with no name never takes part
+   * in a shared-element transition, which is the same as today.
+   */
+  viewTransitionName?: string
 }
 
 export type ResponsiveImageProps = ResponsiveImageOwnProps & MediaAltInput
@@ -96,9 +107,16 @@ export function ResponsiveImage({
   absentCaption,
   loading = 'lazy',
   frameProps,
+  viewTransitionName,
   ...altInput
 }: ResponsiveImageProps) {
   const policy = useMotionPolicy()
+  const resolvedFrameProps = viewTransitionName
+    ? {
+        ...frameProps,
+        sx: { viewTransitionName, ...(frameProps?.sx as object | undefined) },
+      }
+    : frameProps
   const resolved = fallbackSource(src, sources)
   const { state, onLoaded, onFailed, retry } = useMediaState({
     src: resolved,
@@ -136,7 +154,7 @@ export function ResponsiveImage({
   }, [state.status, state.src, state.attempt, onLoaded, onFailed])
 
   return (
-    <MediaFrame aspectRatio={aspectRatio} radius={radius} {...frameProps}>
+    <MediaFrame aspectRatio={aspectRatio} radius={radius} {...resolvedFrameProps}>
       {imageMounted(state) && state.src ? (
         <Image
           key={`${state.src}#${state.attempt}`}

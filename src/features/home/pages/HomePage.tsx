@@ -99,7 +99,16 @@ const HomePage = () => {
   }, [location.pathname, reloadVersion])
 
   const signaturePost = blogPosts[0]
-  const latestPosts = blogPosts.slice(1)
+  /*
+   * Filtered by id rather than trusting position alone: the cover transition
+   * (`horizon-blog-y2e.4.2`) gives the Signature cover and every card cover a
+   * `view-transition-name` derived from the post id, and two elements on one
+   * page sharing that name is a real bug the browser cannot recover from
+   * gracefully. `slice(1)` already keeps the Signature post out of the grid
+   * today; this makes that guarantee resilient to a future change in how
+   * `blogPosts` is built rather than just to today's shape of it.
+   */
+  const latestPosts = blogPosts.slice(1).filter((post) => post.id !== signaturePost?.id)
   const latestLabels = hierarchyContext(LATEST_EYEBROW, LATEST_HEADING)
   const writeHref = canWrite ? '/blog-editor' : user ? `/profile/${user.username}` : '/register'
   const writeLabel = canWrite

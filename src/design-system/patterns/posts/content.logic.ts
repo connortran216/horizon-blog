@@ -75,6 +75,37 @@ export interface PostSummary {
 }
 
 /**
+ * The CSS `view-transition-name` for a post's cover.
+ *
+ * Shared between every discovery surface - `PostCard`, `FeaturedStory`,
+ * `SignatureStory` - and the reading page's own cover, so navigating from a
+ * list or Home into that post's article can morph one cover into the other
+ * under the View Transitions API. Deterministic and pure: the same post id
+ * always yields the same name, two different ids never collide, and a caller
+ * with no id gets `null` rather than a name that would collide with every
+ * other id-less post on the page.
+ *
+ * A page must still never render two elements carrying the same name at
+ * once - that is a browser-level rule, not one this function can enforce on
+ * its own - which is why the callers that place a post both in a "featured"
+ * slot and in the list beneath it (`BlogPage`, Home) filter the list by id
+ * rather than by position.
+ *
+ * `view-transition-name` is a CSS `<custom-ident>`; the sanitisation keeps
+ * the result a valid one even though every id this repository produces today
+ * is already alphanumeric.
+ */
+export function postCoverTransitionName(id: string | null | undefined): string | null {
+  const trimmed = id?.trim() ?? ''
+
+  if (trimmed.length === 0) {
+    return null
+  }
+
+  return `post-cover-${trimmed.replace(/[^a-zA-Z0-9_-]/g, '-')}`
+}
+
+/**
  * Shown when a post genuinely has no author name. It is a statement about the
  * data, not a person, which is why it is not a made-up name.
  */

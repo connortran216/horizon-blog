@@ -75,7 +75,16 @@ const BlogPage = () => {
   const resultsRef = useRef<HTMLDivElement>(null)
 
   const featuredPost = posts[0]
-  const remainingPosts = posts.slice(1)
+  /*
+   * Filtered by id rather than trusting position alone: the cover transition
+   * (`horizon-blog-y2e.4.2`) gives the featured cover and every card cover a
+   * `view-transition-name` derived from the post id, and two elements on one
+   * page sharing that name is a real bug the browser cannot recover from
+   * gracefully. `slice(1)` already keeps the featured post out of the grid
+   * today; this makes that guarantee resilient to a future change in how
+   * `posts` is built rather than just to today's shape of it.
+   */
+  const remainingPosts = posts.slice(1).filter((post) => post.id !== featuredPost?.id)
   const filterState = { query, selectedTags: activeTags }
   const resultsHeading = hasActiveFilters ? 'Search results' : 'Blogs worth reading next'
   const sectionLabels = hierarchyContext(RESULTS_EYEBROW, resultsHeading)

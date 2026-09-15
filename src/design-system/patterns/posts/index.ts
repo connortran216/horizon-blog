@@ -26,6 +26,8 @@ export type { PostCardProps } from './PostCard'
 export { PostRow } from './PostRow'
 export type { PostRowProps } from './PostRow'
 
+export { useCoverTransitionNavigate } from './useCoverTransitionNavigate'
+
 export { FilterBar } from './FilterBar'
 export type { FilterBarProps, FilterSortOption } from './FilterBar'
 
@@ -40,6 +42,7 @@ export {
   excerptOrNull,
   formatPostDate,
   pluralise,
+  postCoverTransitionName,
   postMetadataItems,
   readingTimeLabel,
   seriesPositionLabel,
