@@ -1,31 +1,35 @@
+/**
+ * Single-blog analytics diagnostics - migrated onto Horizon Design System v2.
+ *
+ * One request backs the whole page, so every panel shares its loading, denied
+ * and error state - unlike the overview page, where the summary and the table
+ * are two independent requests. Each panel still receives its own props
+ * rather than one page-level branch, so the zero-sample state (a real post
+ * with no activity yet) keeps rendering each pattern's own honest "no data"
+ * copy instead of a single blanket message that would talk about the whole
+ * page when only the numbers are the story.
+ */
+
+import { useParams, useSearchParams } from 'react-router-dom'
+
 import {
-  Badge,
-  Box,
-  Button,
-  Container,
+  ActionLink,
+  ContentContainer,
+  Eyebrow,
+  Grid,
   Heading,
-  HStack,
-  SimpleGrid,
+  Section,
   Stack,
   Text,
-  VStack,
-} from '@chakra-ui/react'
-import { Link as RouterLink, useParams, useSearchParams } from 'react-router-dom'
-
-import { LoadingPanel } from '../../../core'
-import {
-  formatAnalyticsDuration,
-  formatAnalyticsInteger,
-  formatAnalyticsPercent,
-  formatApproximateReaders,
-} from '../author-analytics.format'
+} from '../../../design-system'
+import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
-import { getAnalyticsErrorCopy } from '../author-analytics.visualization'
+import { AnalyticsDateRange } from '../author-analytics.types'
 import { useBlogAnalytics } from '../useBlogAnalytics'
 import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
 import AnalyticsInsightList from '../components/AnalyticsInsightList'
-import AnalyticsMetricCard from '../components/AnalyticsMetricCard'
 import AnalyticsReactionTrend from '../components/AnalyticsReactionTrend'
+import { AnalyticsSummaryMetrics } from '../components/AnalyticsSummaryMetrics'
 import LinkPerformanceTable from '../components/LinkPerformanceTable'
 import ReaderProgressFunnel from '../components/ReaderProgressFunnel'
 import TrafficSourceBreakdown from '../components/TrafficSourceBreakdown'
@@ -40,157 +44,85 @@ const BlogAnalyticsPage = () => {
     range,
   })
 
-  const updateRange = (nextRange: typeof range) => {
+  const updateRange = (nextRange: AnalyticsDateRange) => {
     setSearchParams(serializeAnalyticsRange(nextRange))
   }
 
-  const readers = analytics.data
-    ? formatApproximateReaders(
-        analytics.data.summary.estimatedUniqueReaders,
-        analytics.data.summary.uniqueReadersApproximate,
-      )
-    : null
+  const access = analyticsPanelAccess(analytics.error, 'view analytics for this blog')
 
   return (
-    <Box position="relative" pb={12} overflowX="hidden">
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '76%' }}
-        h="260px"
-        bg="action.subtle"
-        filter="blur(130px)"
-        opacity={0.55}
-        pointerEvents="none"
-      />
+    <ContentContainer>
+      <Section as="header">
+        <Stack gap={4} maxW="3xl">
+          <ActionLink
+            standalone
+            to={`/analytics?${serializeAnalyticsRange(range).toString()}`}
+            underline="hover"
+          >
+            Back to analytics
+          </ActionLink>
+          <Eyebrow as="p">Blog diagnostics</Eyebrow>
+          <Heading as="h1" recipe="pageTitle">
+            {analytics.data?.post.title ?? 'Blog analytics'}
+          </Heading>
+          <Text recipe="body" color="text.secondary">
+            Diagnose reader progress, reactions, links, and source quality for this blog.
+          </Text>
+        </Stack>
+      </Section>
 
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <VStack align="stretch" spacing={{ base: 7, md: 9 }}>
-          <Stack direction={{ base: 'column', md: 'row' }} justify="space-between" spacing={5}>
-            <Box>
-              <Button
-                as={RouterLink}
-                to={`/analytics?${serializeAnalyticsRange(range).toString()}`}
-                size="sm"
-                variant="ghost"
-                color="action.primary"
-                mb={4}
-              >
-                Back to analytics
-              </Button>
-              <Badge bg="bg.subtle" color="text.secondary" borderRadius="full" mb={3}>
-                Blog diagnostics
-              </Badge>
-              <Heading color="text.primary" letterSpacing="-0.04em">
-                {analytics.data?.post.title || 'Blog analytics'}
-              </Heading>
-              <Text color="text.secondary" mt={3} maxW="3xl" lineHeight="tall">
-                Diagnose reader progress, reactions, links, and source quality for this blog.
-              </Text>
-            </Box>
-            <Text color="text.muted" fontSize="sm">
-              Fresh through {analytics.dataFreshThrough || 'loading'}
-            </Text>
-          </Stack>
-
+      <Section density="compact">
+        <Stack gap={8}>
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
-          {analytics.isLoading ? (
-            <LoadingPanel label="Loading blog analytics" description="Preparing diagnostics." />
-          ) : analytics.error ? (
-            <AnalyticsErrorPanel error={analytics.error} onRetry={analytics.refresh} />
-          ) : analytics.data && readers ? (
-            <>
-              <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4}>
-                <AnalyticsMetricCard
-                  label="Views"
-                  value={formatAnalyticsInteger(analytics.data.summary.views)}
-                  helper="Total opens"
-                />
-                <AnalyticsMetricCard
-                  label={readers.label}
-                  value={readers.value}
-                  helper="Approximate by contract"
-                  approximate={readers.isApproximate}
-                />
-                <AnalyticsMetricCard
-                  label="Completion"
-                  value={formatAnalyticsPercent(analytics.data.summary.completionRate)}
-                  helper="Readers reaching the end"
-                />
-                <AnalyticsMetricCard
-                  label="Active read"
-                  value={formatAnalyticsDuration(analytics.data.summary.avgActiveReadSeconds)}
-                  helper="Average active reading"
-                />
-                <AnalyticsMetricCard
-                  label="Hearts received"
-                  value={formatAnalyticsInteger(analytics.data.summary.heartsReceived)}
-                  helper="Added during the selected range"
-                />
-                <AnalyticsMetricCard
-                  label="Active hearts"
-                  value={formatAnalyticsInteger(analytics.data.summary.activeHeartCount ?? 0)}
-                  helper="Current reader hearts"
-                />
-              </SimpleGrid>
+          <AnalyticsSummaryMetrics
+            summary={analytics.data?.summary ?? null}
+            isLoading={analytics.isLoading}
+            deniedAction={access.deniedAction}
+            failedAction={access.failedAction}
+            onRetry={analytics.refresh}
+          />
 
-              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
-                <ReaderProgressFunnel stages={analytics.data.progressFunnel} />
-                <AnalyticsReactionTrend points={analytics.data.reactionTrend} />
-              </SimpleGrid>
+          <Grid columns={2} gap={8} collapseAt="xl">
+            <ReaderProgressFunnel
+              stages={analytics.data?.progressFunnel ?? []}
+              isLoading={analytics.isLoading}
+              deniedAction={access.deniedAction}
+              failedAction={access.failedAction}
+            />
+            <AnalyticsReactionTrend
+              points={analytics.data?.reactionTrend ?? []}
+              isLoading={analytics.isLoading}
+              deniedAction={access.deniedAction}
+              failedAction={access.failedAction}
+            />
+          </Grid>
 
-              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
-                <LinkPerformanceTable links={analytics.data.topLinks} />
-                <TrafficSourceBreakdown sources={analytics.data.trafficSources} />
-              </SimpleGrid>
+          <Grid columns={2} gap={8} collapseAt="xl">
+            <LinkPerformanceTable
+              links={analytics.data?.topLinks ?? []}
+              isLoading={analytics.isLoading}
+              deniedAction={access.deniedAction}
+              failedAction={access.failedAction}
+            />
+            <TrafficSourceBreakdown
+              sources={analytics.data?.trafficSources ?? []}
+              isLoading={analytics.isLoading}
+              deniedAction={access.deniedAction}
+              failedAction={access.failedAction}
+            />
+          </Grid>
 
-              <AnalyticsInsightList insights={analytics.data.insights} title="Blog insights" />
-
-              {analytics.isEmpty ? (
-                <HStack
-                  border="1px solid"
-                  borderColor="border.subtle"
-                  bg="bg.surface"
-                  borderRadius="2xl"
-                  p={5}
-                >
-                  <Text color="text.secondary">
-                    This blog has no measurable activity in the selected range yet.
-                  </Text>
-                </HStack>
-              ) : null}
-            </>
-          ) : null}
-        </VStack>
-      </Container>
-    </Box>
-  )
-}
-
-const AnalyticsErrorPanel = ({
-  error,
-  onRetry,
-}: {
-  error: NonNullable<ReturnType<typeof useBlogAnalytics>['error']>
-  onRetry: () => void
-}) => {
-  const copy = getAnalyticsErrorCopy(error)
-
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={6}>
-      <Heading size="sm" color="text.primary">
-        {copy.title}
-      </Heading>
-      <Text color="text.secondary" mt={2}>
-        {copy.description}
-      </Text>
-      <Button mt={4} size="sm" variant="ghost" color="action.primary" onClick={onRetry}>
-        Retry
-      </Button>
-    </Box>
+          <AnalyticsInsightList
+            title="Blog insights"
+            insights={analytics.data?.insights ?? []}
+            isLoading={analytics.isLoading}
+            deniedAction={access.deniedAction}
+            failedAction={access.failedAction}
+          />
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

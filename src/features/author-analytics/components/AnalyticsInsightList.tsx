@@ -1,63 +1,49 @@
-import { Badge, Box, HStack, List, ListItem, Text, VStack } from '@chakra-ui/react'
+/**
+ * The author-facing insight list, composed from the design system's
+ * `InsightList` pattern.
+ *
+ * The backend's own field name is `sample_size`; the pattern's contract calls
+ * it `sampleSize` and requires it on every item, so mapping happens here rather
+ * than asking the pattern to know about the wire shape.
+ */
 
+import { InsightList, type DataPanelStateInput, type Insight } from '../../../design-system'
 import { AnalyticsInsight } from '../author-analytics.types'
-import { formatInsightEvidence } from '../author-analytics.visualization'
+import { formatEvidenceValue } from '../author-analytics.visualization'
 
-interface AnalyticsInsightListProps {
+interface AnalyticsInsightListProps extends DataPanelStateInput {
   insights: AnalyticsInsight[]
   title?: string
+  deniedDetail?: string
 }
 
-const AnalyticsInsightList = ({ insights, title = 'Insights' }: AnalyticsInsightListProps) => {
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
-      <HStack justify="space-between" align="start" mb={4}>
-        <Box>
-          <Text color="text.primary" fontWeight="semibold">
-            {title}
-          </Text>
-          <Text color="text.secondary" fontSize="sm">
-            Evidence-backed notes from the backend contract.
-          </Text>
-        </Box>
-        <Badge bg="bg.subtle" color="text.secondary" borderRadius="full">
-          Cautious
-        </Badge>
-      </HStack>
+const toInsight = (insight: AnalyticsInsight): Insight => ({
+  code: insight.code,
+  message: insight.message,
+  sampleSize: insight.sample_size,
+  evidence: insight.evidence.map((item) => ({
+    metric: item.metric,
+    value: formatEvidenceValue(item.value),
+    baseline: formatEvidenceValue(item.baseline),
+  })),
+})
 
-      {insights.length === 0 ? (
-        <Text color="text.muted" fontSize="sm">
-          No qualifying insights for this range yet.
-        </Text>
-      ) : (
-        <VStack as={List} align="stretch" spacing={4}>
-          {insights.map((insight) => {
-            const evidence = formatInsightEvidence(insight)
-
-            return (
-              <ListItem key={insight.code} borderRadius="xl" bg="bg.subtle" p={4}>
-                <Text color="text.primary" fontWeight="medium">
-                  {insight.message}
-                </Text>
-                <Text color="text.muted" fontSize="sm" mt={1}>
-                  {evidence.sampleLabel}
-                </Text>
-                {evidence.evidenceLabels.length > 0 ? (
-                  <VStack align="stretch" spacing={1} mt={3}>
-                    {evidence.evidenceLabels.map((label) => (
-                      <Text key={label} color="text.secondary" fontSize="sm">
-                        {label}
-                      </Text>
-                    ))}
-                  </VStack>
-                ) : null}
-              </ListItem>
-            )
-          })}
-        </VStack>
-      )}
-    </Box>
-  )
-}
+const AnalyticsInsightList = ({
+  insights,
+  title = 'Insights',
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: AnalyticsInsightListProps) => (
+  <InsightList
+    title={title}
+    insights={insights.map(toInsight)}
+    isLoading={isLoading}
+    deniedAction={deniedAction}
+    deniedDetail={deniedDetail}
+    failedAction={failedAction}
+  />
+)
 
 export default AnalyticsInsightList

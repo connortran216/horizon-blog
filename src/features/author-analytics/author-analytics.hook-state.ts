@@ -47,6 +47,29 @@ export const isAnalyticsOverviewEmpty = (overview: AnalyticsOverview | null): bo
 export const isBlogMetricsEmpty = (metrics: BlogMetricsPage | null): boolean =>
   metrics !== null && metrics.total === 0 && metrics.posts.length === 0
 
+export interface AnalyticsPanelAccess {
+  deniedAction?: string
+  failedAction?: string
+}
+
+/**
+ * Turns a load error into the `deniedAction` / `failedAction` pair the design
+ * system's data patterns expect.
+ *
+ * Only `forbidden` (403) reads as denied. `unauthorized` (401) means "sign in
+ * again", which `PermissionState`'s "you do not have permission to..." copy
+ * does not say - so it stays a regular failure, where `ErrorState`'s detail
+ * text can say the real thing.
+ */
+export const analyticsPanelAccess = (
+  error: AnalyticsLoadErrorState | null,
+  verb: string,
+): AnalyticsPanelAccess => {
+  if (error === null) return {}
+  if (error.kind === 'forbidden') return { deniedAction: verb }
+  return { failedAction: verb }
+}
+
 const getErrorKind = (status: number): AnalyticsLoadErrorKind => {
   if (status === 400) return 'bad_request'
   if (status === 401) return 'unauthorized'

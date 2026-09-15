@@ -156,7 +156,7 @@ export const formatInsightEvidence = (insight: AnalyticsInsight): FormattedInsig
   ),
 })
 
-const formatStageLabel = (stage: string) => {
+export const formatStageLabel = (stage: string) => {
   if (stage === '25' || stage === '50' || stage === '75') return `${stage}% read`
   return stage
     .split('_')
@@ -176,7 +176,7 @@ const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): numbe
   return blog.views
 }
 
-const formatEvidenceValue = (value: number): string => {
+export const formatEvidenceValue = (value: number): string => {
   if (value >= 0 && value <= 1) {
     const percent = value * 100
     const fractionDigits = Number.isInteger(percent) ? 0 : 1

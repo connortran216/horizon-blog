@@ -1,78 +1,70 @@
-import {
-  Badge,
-  Box,
-  HStack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react'
+/**
+ * Links a blog's readers clicked, composed from the design system's
+ * `DataTable` pattern. Four columns fit a 375px screen without stacking - see
+ * `tableAdaptation`'s three-column threshold - so this stays a scrolling table
+ * on every width rather than becoming cards.
+ */
+
+import { Box } from '@chakra-ui/react'
+
+import { DataTable, Text, type DataPanelStateInput } from '../../../design-system'
 import { AnalyticsLinkMetric } from '../author-analytics.types'
 import { formatAnalyticsInteger, formatAnalyticsPercent } from '../author-analytics.format'
 
-interface LinkPerformanceTableProps {
+interface LinkPerformanceTableProps extends DataPanelStateInput {
   links: AnalyticsLinkMetric[]
+  deniedDetail?: string
 }
 
-const LinkPerformanceTable = ({ links }: LinkPerformanceTableProps) => {
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
-      <HStack justify="space-between" mb={4} align="start">
-        <Box>
-          <Text fontWeight="semibold" color="text.primary">
-            Link performance
-          </Text>
-          <Text fontSize="sm" color="text.secondary">
-            Links readers clicked from this blog.
-          </Text>
-        </Box>
-      </HStack>
-
-      {links.length === 0 ? (
-        <Text color="text.muted" fontSize="sm">
-          No link clicks in this range.
-        </Text>
-      ) : (
-        <TableContainer>
-          <Table size="sm">
-            <Thead>
-              <Tr>
-                <Th>Link</Th>
-                <Th>Kind</Th>
-                <Th isNumeric>Clicks</Th>
-                <Th isNumeric>CTR</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {links.map((link) => (
-                <Tr key={link.linkKey}>
-                  <Td>
-                    <Text color="text.primary" fontWeight="medium" noOfLines={1}>
-                      {link.label || link.url}
-                    </Text>
-                    <Text color="text.muted" fontSize="xs" noOfLines={1}>
-                      {link.url}
-                    </Text>
-                  </Td>
-                  <Td>
-                    <Badge bg="bg.subtle" color="text.secondary">
-                      {link.kind}
-                    </Badge>
-                  </Td>
-                  <Td isNumeric>{formatAnalyticsInteger(link.clicks)}</Td>
-                  <Td isNumeric>{formatAnalyticsPercent(link.ctr)}</Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
-  )
-}
+const LinkPerformanceTable = ({
+  links,
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: LinkPerformanceTableProps) => (
+  <DataTable<AnalyticsLinkMetric>
+    caption="Link performance"
+    title="Link performance"
+    detail="Links readers clicked from this blog."
+    rows={links}
+    rowKey={(link) => link.linkKey}
+    isLoading={isLoading}
+    deniedAction={deniedAction}
+    deniedDetail={deniedDetail}
+    failedAction={failedAction}
+    emptySubject="link clicks in this range"
+    emptyNextAction="Add a link to the post, or come back once readers have clicked one."
+    columns={[
+      {
+        key: 'link',
+        label: 'Link',
+        render: (link) => (
+          <Box minW="0">
+            <Text recipe="body" as="span" lineClamp={1} fontWeight="medium" color="text.primary">
+              {link.label || link.url}
+            </Text>
+            <Text recipe="metadata" as="span" lineClamp={1} color="text.muted">
+              {link.url}
+            </Text>
+          </Box>
+        ),
+      },
+      { key: 'kind', label: 'Kind', render: (link) => link.kind },
+      {
+        key: 'clicks',
+        label: 'Clicks',
+        isNumeric: true,
+        render: (link) => formatAnalyticsInteger(link.clicks),
+      },
+      {
+        key: 'ctr',
+        label: 'CTR',
+        isNumeric: true,
+        render: (link) => formatAnalyticsPercent(link.ctr),
+      },
+    ]}
+  />
+)
 
 export default LinkPerformanceTable
