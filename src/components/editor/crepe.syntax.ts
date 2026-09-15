@@ -4,9 +4,9 @@
  * CodeMirror ships One Dark. It is a fixed dark palette with no idea the site
  * has a light theme, and measured on an article at 1440 in light, against
  * `bg.code`, all nine of its colours failed the 4.5:1 floor - the worst, plain
- * numbers, at 1.53:1. This is meant to replace it on both surfaces, reading
- * and writing - see the status note on `horizonSyntaxExtensions` below for
- * why, as of `horizon-blog-s6q`, it does not yet reach a rendered span.
+ * numbers, at 1.53:1. This replaces it on both surfaces, reading and writing -
+ * verified in-browser at every role, both themes; see the status note on
+ * `horizonSyntaxExtensions` below for the two bugs that stood in the way.
  *
  * **Why the colours are CSS variables and not values.** A CodeMirror extension
  * is fixed when the editor is constructed, but the theme changes under a live
@@ -63,19 +63,16 @@ export const horizonHighlightStyle = HighlightStyle.define([
 /**
  * Handed to Crepe's CodeMirror feature config as `theme` (see `CrepeEditor.tsx`),
  * not folded into `extensions` - that placement is what keeps `oneDark` out of
- * the config lodash's `defaultsDeep` builds (see the root-cause note in
- * `CrepeEditor.tsx`). `Prec.highest` here is a defensive no-op, kept in case
- * another extension ever registers a second non-fallback highlighter
- * alongside this one.
+ * the config lodash's `defaultsDeep` builds. `Prec.highest` here is a
+ * defensive no-op, kept in case another extension ever registers a second
+ * non-fallback highlighter alongside this one.
  *
- * That fix is necessary but not sufficient: `horizon-blog-s6q` is still open.
- * A second, unrelated bug - this project's own `@codemirror/language`
- * dependency resolving to a different version than the rest of the
- * CodeMirror/Milkdown tree, so this style registers against a private facet
- * the actual code-block renderer never reads - means no span reaches this
- * style yet. See the long comment in `CrepeEditor.tsx` and the task report
- * for the evidence; fixing it is a `package.json`/`yarn.lock` change outside
- * this pass's scope.
+ * A second, unrelated bug used to keep every span out of this style even
+ * with `oneDark` gone: this project's own `@codemirror/language` dependency
+ * resolved to a different version than the rest of the CodeMirror/Milkdown
+ * tree, so this style registered against a private facet the actual
+ * code-block renderer never read. Fixed by pinning the dependency (see the
+ * long comment in `CrepeEditor.tsx` for the full root-cause chain).
  */
 export function horizonSyntaxExtensions(): Extension {
   return Prec.highest(syntaxHighlighting(horizonHighlightStyle))

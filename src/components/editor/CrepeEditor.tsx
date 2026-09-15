@@ -425,64 +425,42 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       const codeMirrorConfig = {
         ...(mermaidConfigs[CrepeFeature.CodeMirror] || {}),
         /*
-         * PARTIALLY FIXED - see `horizon-blog-s6q`. One Dark is confirmed gone;
-         * a second, separate bug still blocks the contrast floor. Both are
-         * verified in-browser, not inferred.
+         * See `horizon-blog-s6q`. Two independent bugs kept every span in
+         * One Dark, then in CodeMirror's own generic palette; both are now
+         * fixed and verified in-browser (every `code.syntax.*` colour reads
+         * >= 4.5:1 on `bg.code`, light and dark).
          *
-         * Bug 1 (fixed here) - One Dark always won. `Crepe`'s constructor
-         * calls `defaultsDeep(featureConfigs, defaultConfig)` (lodash), and
+         * Bug 1 - One Dark always won. `Crepe`'s constructor calls
+         * `defaultsDeep(featureConfigs, defaultConfig)` (lodash), and
          * `defaultConfig[CrepeFeature.CodeMirror].theme` is `oneDark`. This
          * feature's config used to never set `theme` at all - only
-         * `extensions` - so `defaultsDeep` saw the key entirely missing on our
-         * side and copied `oneDark` (the full `[oneDarkTheme, syntaxHighlight
-         * ing(oneDarkHighlightStyle)]` pair) onto `finalConfig.theme`
-         * untouched. Crepe's own `feature/code-mirror` then does `if (theme)
-         * extensions.push(theme)`, so One Dark's highlighter was always in
-         * the list, our `HighlightStyle` or not - `Prec.highest` on our own
-         * entry never mattered because the two are non-fallback highlighters
-         * and CodeMirror's cascade unions every matching class from both.
-         * Fix: hand our extension over AS `theme` instead. Because we now
-         * provide a value for that key, `defaultsDeep` has nothing to fill in
-         * - `oneDark` never enters the config. (It still tries to merge
-         * `oneDark`'s array onto our `Prec` instance as stray own-enumerable
-         * keys, since lodash doesn't special-case class instances - verified
-         * with the project's own pinned `lodash-es` - but `@codemirror/
-         * state`'s extension flattening only ever reads `.inner`/`.prec` off
-         * a `Prec`-wrapped value, so that debris is inert.) Verified in the
-         * built bundle: zero occurrences of any `@codemirror/theme-one-dark`
-         * colour remain in the injected stylesheet.
+         * `extensions` - so `defaultsDeep` saw the key entirely missing on
+         * our side and copied `oneDark` onto `finalConfig.theme` untouched;
+         * Crepe's own `feature/code-mirror` then unconditionally pushes
+         * `theme` onto the extension list. Fix: hand our extension over AS
+         * `theme` instead, so `defaultsDeep` has nothing left to fill in.
          *
-         * Bug 2 (NOT fixed - blocked on a dependency version, see report) -
-         * a span still never gets one of our eight classes, even now that One
-         * Dark is gone. It falls through to CodeMirror's own generic
-         * `defaultHighlightStyle` instead (a fixed, non-theme-aware palette
-         * that clears the floor for exactly one of six colours measured in
-         * light and none in dark). Root cause: `yarn why @codemirror/
-         * language` shows this project's own `package.json` entry
-         * (`^6.12.1`) resolving independently to `6.12.4`, while every other
-         * consumer in the tree - `@milkdown/crepe`, every `@codemirror/lang-
-         * *` package, the `codemirror` meta-package, `@codemirror/theme-one-
-         * dark` - resolves the same range to `6.12.1`. `@codemirror/state`,
-         * `@codemirror/view` and `@lezer/highlight` are all singly-resolved;
-         * only `@codemirror/language` is split. Each copy owns its own
-         * private, unexported `highlighterFacet` (`Facet.define()` at module
-         * scope) - the two are different objects. `horizonHighlightStyle`
-         * registers against the 6.12.4 copy's facet (since this file imports
-         * `@codemirror/language` under this project's own resolution), but
-         * the code block's actual rendering runs on `codemirror`'s
-         * `basicSetup` and `@codemirror/lang-javascript` (and every other
-         * language package), all bound to the 6.12.1 copy - so its
-         * `treeHighlighter` queries a `highlighterFacet` our style was never
-         * added to, finds it empty, and falls back to `defaultHighlightStyle`
-         * exactly as CodeMirror's own fallback contract says it should. This
-         * does not self-heal on any edit or theme toggle, because nothing
-         * about either copy's facet ever changes at runtime - confirmed by
-         * editing a live code block and re-measuring.
-         *
-         * Fixing bug 2 means making `@codemirror/language` resolve to one
-         * version tree-wide (pin this project's own entry to `6.12.1`, or an
-         * equivalent lockfile fix) - a `package.json`/`yarn.lock` change this
-         * pass does not make; that decision belongs to the project owner.
+         * Bug 2 - even with One Dark gone, no span got one of our eight
+         * classes; it fell through to CodeMirror's own `defaultHighlightStyle`
+         * (a fixed, non-theme-aware palette that failed the floor in both
+         * modes). Root cause: this project's own `package.json` entry for
+         * `@codemirror/language` (`^6.12.1`) resolved independently to
+         * `6.12.4`, while every other consumer in the tree - `@milkdown/
+         * crepe`, every `@codemirror/lang-*` package, the `codemirror` meta-
+         * package, `@codemirror/theme-one-dark` - resolved the same range to
+         * `6.12.1` (`@codemirror/state`, `@codemirror/view` and `@lezer/
+         * highlight` were all singly-resolved; only `@codemirror/language`
+         * was split). Each copy owns its own private, unexported
+         * `highlighterFacet` (`Facet.define()` at module scope) - two
+         * different objects. `horizonHighlightStyle` registered against the
+         * 6.12.4 copy's facet, but the code block's actual rendering ran on
+         * `basicSetup`/`@codemirror/lang-javascript`, bound to the 6.12.1
+         * copy, whose `treeHighlighter` queried a `highlighterFacet` our
+         * style was never added to. Fixed by pinning this project's
+         * `@codemirror/language` dependency to the exact version the rest of
+         * the tree already used (`package.json`/`yarn.lock`, outside
+         * `src/components/editor/`) so only one copy - and one
+         * `highlighterFacet` - exists.
          */
         theme: horizonSyntaxExtensions(),
         extensions: readOnly ? readingCodeMirrorExtensions() : [],
