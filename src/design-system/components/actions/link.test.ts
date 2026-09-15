@@ -5,6 +5,7 @@ import {
   isExternalHref,
   linkDecoration,
   linkPresentation,
+  needsTouchSizing,
   resolveLinkTarget,
   routerLinkState,
   type LinkWeight,
@@ -187,5 +188,24 @@ describe('linkPresentation', () => {
       // neither: the variant and the decoration are exclusive.
       expect(presentation.variant === undefined).toBe(presentation.decoration !== undefined)
     }
+  })
+})
+
+/**
+ * `needsTouchSizing` is the one place that decides whether a link reaches the
+ * 44px floor - see the horizon-blog-7et audit: every standalone action across
+ * the site (About's "Get in touch", the 404 page's "Go home", CV's "Contact")
+ * rendered at 26px because text weight carried no sizing at all, while an
+ * inline link mid-paragraph must never gain it by accident.
+ */
+describe('needsTouchSizing', () => {
+  it('always sizes button weight, standalone or not', () => {
+    expect(needsTouchSizing('button', false)).toBe(true)
+    expect(needsTouchSizing('button', true)).toBe(true)
+  })
+
+  it('sizes text weight only when the caller marks it standalone', () => {
+    expect(needsTouchSizing('text', true)).toBe(true)
+    expect(needsTouchSizing('text', false)).toBe(false)
   })
 })

@@ -30,6 +30,7 @@ export {
   isExternalHref,
   linkDecoration,
   linkPresentation,
+  needsTouchSizing,
   resolveLinkTarget,
   routerLinkState,
 } from './link.logic'

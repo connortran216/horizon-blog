@@ -11,6 +11,7 @@ import { space } from '../../../theme/tokens'
 import { controlSizing } from './control.logic'
 import {
   linkPresentation,
+  needsTouchSizing,
   resolveLinkTarget,
   routerLinkState,
   type LinkUnderline,
@@ -50,6 +51,25 @@ interface ActionLinkBase extends Omit<
    * `underline` is ignored at button weight - see `linkPresentation`.
    */
   weight?: LinkWeight
+  /**
+   * Marks a text-weight link as a section's or a card's action rather than a
+   * link a reader meets mid-sentence - "View CV", "Forgot password?", the
+   * lone link in an empty state. Standalone text links get the same 44px
+   * touch floor a button-weight link gets, without adopting the Button fill,
+   * border or focus treatment: the link still looks like a link, it is just
+   * no longer sized like one word among many.
+   *
+   * Defaults to `false`, which is the inline case - a link inside a
+   * paragraph. Setting this on an inline link is the regression this prop
+   * exists to prevent: a 44px line box breaks the paragraph's line height for
+   * every line it touches. See `needsTouchSizing` for why this cannot be
+   * inferred instead of stated.
+   *
+   * Meaningless at `primary`/`secondary` weight, which already meets the
+   * floor through the Button recipe - passing it there changes nothing, the
+   * same way `underline` is ignored there.
+   */
+  standalone?: boolean
 }
 
 /**
@@ -105,6 +125,7 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
     isExternal,
     underline = 'always',
     weight = 'text',
+    standalone = false,
     iconStart,
     iconEnd,
     newTabLabel = 'opens in a new tab',
@@ -128,10 +149,13 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
   const buttonRecipe = useStyleConfig('Button', { variant: presentation.variant })
   /*
    * `md` is the 44x44 touch target of the accessibility floor, and a
-   * navigational call to action is never the cramped case that `sm` exists for.
-   * The measurements come from `controlSizing`, the same call `Button` makes.
+   * navigational call to action is never the cramped case that `sm` exists for
+   * - whether it borrows the Button variant at button weight or stays a plain
+   * text link marked `standalone`. The measurements come from `controlSizing`,
+   * the same call `Button` makes.
    */
   const sizing = controlSizing('md')
+  const touchSized = needsTouchSizing(presentation.kind, standalone)
 
   const content = (
     <>
@@ -181,7 +205,22 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
             textStyle: sizing.textStyle,
           },
         }
-      : {}),
+      : touchSized
+        ? /*
+           * `standalone` at text weight. Plain style props rather than `sx`:
+           * there is no Button recipe underneath to be outranked, and no fill,
+           * border or focus treatment to add - `presentation.decoration` above
+           * already owns every visual here, this only changes the box it sits
+           * in. Height is the floor the audit found missing; width is the same
+           * floor for content narrow enough to need it, which is why it is a
+           * minimum rather than a fixed size - it never shrinks a link that is
+           * already wider than 44px, such as every current standalone caller.
+           */
+          {
+            minHeight: sizing.minH,
+            minWidth: sizing.minW,
+          }
+        : {}),
     ...rest,
   }
 

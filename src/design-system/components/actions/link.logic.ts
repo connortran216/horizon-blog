@@ -206,3 +206,30 @@ export function linkPresentation(
     decoration: undefined,
   }
 }
+
+/**
+ * Whether a link needs the accessibility floor's touch sizing at all.
+ *
+ * Button weight always does - the Button recipe it borrows is built for the
+ * floor from the start, so this is really asking about text weight, where the
+ * floor is opt-in rather than automatic. `standalone` is that opt-in: a link
+ * that stands on its own as a section's or a card's action - "View CV",
+ * "Forgot password?" - and not a link a reader meets mid-sentence.
+ *
+ * The distinction has to live on the caller's side because nothing about the
+ * link itself says which case it is: the same weight, the same underline, the
+ * same href can appear either way. Guessing from context (is this the only
+ * link in its container? how long is the surrounding text?) is exactly the
+ * kind of call-site heuristic this system avoids elsewhere, so it is instead a
+ * fact the caller states.
+ *
+ * Sizing an inline link to the floor would be the regression, not the fix: a
+ * 44px line box dropped into a sentence breaks the paragraph's line height for
+ * every line it touches, which is a worse reading experience than the small
+ * target it would replace. `standalone` defaults to `false` so that damage
+ * cannot happen by omission - a caller has to ask for the floor, the same way
+ * `weight` and `underline` default to the inline case.
+ */
+export function needsTouchSizing(kind: LinkPresentation['kind'], standalone: boolean): boolean {
+  return kind === 'button' || standalone
+}
