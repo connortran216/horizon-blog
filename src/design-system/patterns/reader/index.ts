@@ -75,7 +75,9 @@ export type {
 } from './reader.logic'
 
 export {
+  SCROLL_FADE_ATTRIBUTE,
   SCROLL_REGION_FLAG,
+  chakraColorVar,
   codeLanguageLabel,
   codeTextStyle,
   copyAnnouncement,
@@ -90,10 +92,16 @@ export {
   localScrollStyle,
   proseRenderState,
   releaseScrollRegion,
+  scrollAffordanceStyle,
+  scrollFadeAttributeValue,
+  scrollFadeStyle,
+  scrollFadeVisibility,
   scrollRegionAttributes,
   scrollRegionLabel,
   scrollRegionSelector,
+  syncScrollFade,
   syncScrollRegion,
+  watchScrollFade,
   widensDocument,
 } from './code.logic'
 export type {
@@ -105,7 +113,13 @@ export type {
   LocalScrollStyle,
   ProseRenderInput,
   ProseRenderState,
+  ScrollAffordanceColors,
   ScrollContainerLike,
+  ScrollFadeElementLike,
+  ScrollFadeOptions,
+  ScrollFadeTarget,
+  ScrollFadeVisibility,
+  ScrollPositionLike,
   ScrollRegionAttribute,
   ScrollRegionSync,
 } from './code.logic'

@@ -20,7 +20,14 @@ import { Box, useColorModeValue } from '@chakra-ui/react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 
-import { Prose, codeTextStyle, localScrollStyle } from '../../design-system'
+import {
+  Prose,
+  chakraColorVar,
+  codeTextStyle,
+  localScrollStyle,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
+} from '../../design-system'
 import { componentTokens, radii, space } from '../../theme/tokens'
 import type { ReaderCodeTheme } from './shiki'
 
@@ -29,6 +36,29 @@ interface MarkdownReaderProps {
 }
 
 const RENDER_FAILURE = 'The markdown in this blog could not be parsed.'
+
+/**
+ * The visible signal that a fenced block's own shell scrolls. See
+ * `scrollAffordanceStyle` - `card.border` is the same divider colour the
+ * shell's own border already uses.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * The fade for the fenced block's own shell. Matched to `reader.codeBg`, the
+ * same background the shell's own surface already paints.
+ *
+ * `Prose`'s own sweep already wires the fade's `data-scroll-fade` state onto
+ * this exact `pre` - it is a bare tag with no `role`, so nothing excludes it
+ * the way `CodeBlock`'s own frame is excluded - so only the CSS needs
+ * restating here, for the reason the whole block comment above does: the
+ * shell's stylesheet can load after Emotion's.
+ */
+const scrollEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
 
 const sanitizeReaderHtml = (html: string, allowStyle: boolean) =>
   DOMPurify.sanitize(html, {
@@ -192,9 +222,13 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
             '.preview-code-block__chrome': { display: 'none' },
             // `codeTextStyle` keeps this at or below prose size rather than
             // the ambient prose size it would otherwise inherit; nothing here
-            // set a font at all before.
+            // set a font at all before. `scrollAffordance` and
+            // `scrollEdgeFade` are the visible signals that this shell - not
+            // the bare `pre` - is the scroller.
             '.preview-code-block pre': {
               ...localScrollStyle(),
+              ...scrollAffordance,
+              ...scrollEdgeFade,
               ...codeTextStyle,
               margin: 0,
               padding: space[4],

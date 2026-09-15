@@ -43,6 +43,225 @@ export function widensDocument(style: Partial<LocalScrollStyle>): boolean {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Scroll affordance                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A semantic colour token's CSS custom property, exactly as Chakra emits it -
+ * dots become dashes, under the `--chakra-colors-` prefix every semantic
+ * token is registered under.
+ *
+ * Needed wherever a style value is not itself a colour *prop* Chakra's own
+ * resolver translates against the theme - `scrollbar-color` takes a bare
+ * string of two colours, not a themed prop, so the token has to arrive
+ * already resolved to a variable reference. It is still the token: the
+ * variable repaints under `_dark` exactly as `componentTokens.card.border`
+ * does anywhere it is used as a normal colour prop.
+ */
+export function chakraColorVar(token: string): string {
+  return `var(--chakra-colors-${token.replace(/\./g, '-')})`
+}
+
+export interface ScrollAffordanceColors {
+  /** The moving part - conventionally the same divider colour the container's own border already uses. */
+  readonly thumb: string
+  /** The track behind it. Transparent by default: the container's own background already sits there. */
+  readonly track?: string
+}
+
+/**
+ * A scroll container that says so.
+ *
+ * `localScrollStyle` makes a wide table or code block reachable; it says
+ * nothing about whether the reader can tell it is. macOS and iOS hide a plain
+ * `overflow-x: auto` scrollbar until the container is touched, which looks
+ * exactly like content that was cut off - dsv2.5.3 acceptance 1 makes the
+ * content reachable, and a reader staring at the edge still cannot see that.
+ *
+ * Declaring `::-webkit-scrollbar` (Chromium, Safari) or `scrollbar-color`
+ * (Firefox) at all is what opts a container out of the auto-hiding overlay
+ * style, in favour of a classic, always-reserved scrollbar. No visibility
+ * condition is written here, and none is needed: a browser does not draw a
+ * scrollbar, styled or not, for a box with nothing to scroll. The signal is
+ * real exactly when the overflow is - which is also why this is decoration
+ * that encodes information rather than the kind `DESIGN.md`'s Avoid list
+ * rules out.
+ */
+export function scrollAffordanceStyle({ thumb, track = 'transparent' }: ScrollAffordanceColors) {
+  return {
+    scrollbarWidth: 'thin',
+    scrollbarColor: `${thumb} ${track}`,
+    '&::-webkit-scrollbar': { width: '10px', height: '10px' },
+    '&::-webkit-scrollbar-track': { background: track },
+    '&::-webkit-scrollbar-thumb': { background: thumb, borderRadius: '9999px' },
+  } as const
+}
+
+/**
+ * Whether a scroll position leaves more content off-screen at the start, at
+ * the end, or both.
+ *
+ * A `background-image` cannot answer this - a gradient painted behind a
+ * scroll container's content has no way to know how far the reader has
+ * scrolled, so it either shows always (obscuring the last real character
+ * once the reader reaches it, the exact failure this bead calls out) or never
+ * (an image gradient fades to the same colour as the box it sits on, so a
+ * fade painted *behind* the text is invisible against the text's own
+ * background regardless of scroll position). The fade this system draws
+ * instead sits *in front of* the content, as a pair of pseudo-elements - see
+ * `scrollFadeStyle` - and those need telling apart "more to scroll toward
+ * the start" from "more toward the end" as separate facts a reader watches
+ * change while scrolling.
+ *
+ * The epsilon absorbs the sub-pixel rounding a fractional zoom level or a
+ * fractional `scrollLeft` can leave behind; without it a container at its
+ * true end can read as "0.3px short of the end" and keep its fade lit.
+ */
+const SCROLL_FADE_EPSILON = 1
+
+export interface ScrollPositionLike {
+  readonly scrollLeft: number
+  readonly scrollWidth: number
+  readonly clientWidth: number
+}
+
+export interface ScrollFadeVisibility {
+  /** More content sits to the start; scrolling backward reveals it. */
+  readonly start: boolean
+  /** More content sits to the end; scrolling forward reveals it. */
+  readonly end: boolean
+}
+
+export function scrollFadeVisibility({
+  scrollLeft,
+  scrollWidth,
+  clientWidth,
+}: ScrollPositionLike): ScrollFadeVisibility {
+  return {
+    start: scrollLeft > SCROLL_FADE_EPSILON,
+    end: scrollLeft + clientWidth < scrollWidth - SCROLL_FADE_EPSILON,
+  }
+}
+
+/** The attribute a scroll container carries its current fade state on. */
+export const SCROLL_FADE_ATTRIBUTE = 'data-scroll-fade'
+
+/**
+ * `scrollFadeVisibility`, spelled as the attribute value CSS keys off with
+ * `~=` - `"start"`, `"end"`, `"start end"`, or absent entirely so the
+ * attribute selectors below match nothing rather than an empty string.
+ */
+export function scrollFadeAttributeValue(visibility: ScrollFadeVisibility): string {
+  return [visibility.start ? 'start' : null, visibility.end ? 'end' : null]
+    .filter((token): token is string => token !== null)
+    .join(' ')
+}
+
+/** The subset of `Element` `syncScrollFade` reads and writes. */
+export interface ScrollFadeElementLike extends ScrollPositionLike {
+  setAttribute(name: string, value: string): void
+  removeAttribute(name: string): void
+}
+
+/**
+ * Bring one container's fade attribute in line with where it is actually
+ * scrolled to. Called on mount, on resize, and on every `scroll` event - it
+ * is cheap enough to run on every one of those, and correctness here is worth
+ * more than throttling a boolean attribute write.
+ */
+export function syncScrollFade(element: ScrollFadeElementLike): void {
+  const value = scrollFadeAttributeValue(scrollFadeVisibility(element))
+
+  if (value) {
+    element.setAttribute(SCROLL_FADE_ATTRIBUTE, value)
+  } else {
+    element.removeAttribute(SCROLL_FADE_ATTRIBUTE)
+  }
+}
+
+/** The subset of `HTMLElement` `watchScrollFade` needs to keep itself current. */
+export interface ScrollFadeTarget extends ScrollFadeElementLike {
+  addEventListener(type: 'scroll', listener: () => void, options: { passive: true }): void
+  removeEventListener(type: 'scroll', listener: () => void): void
+}
+
+/**
+ * Keep one container's fade attribute current for as long as the caller
+ * holds onto the returned disposer.
+ *
+ * A `scroll` event is the only thing that changes *where* a reader is
+ * without changing *how much* there is to scroll - a resize or a content
+ * mutation changes the latter, and those are already sweeps `Prose` and
+ * `CodeBlock` run for other reasons. This is the one additional listener the
+ * fade needs beyond what `syncScrollRegion`'s sweep already recomputes on.
+ */
+export function watchScrollFade(element: ScrollFadeTarget): () => void {
+  const sync = () => syncScrollFade(element)
+
+  sync()
+  element.addEventListener('scroll', sync, { passive: true })
+
+  return () => element.removeEventListener('scroll', sync)
+}
+
+export interface ScrollFadeOptions {
+  /**
+   * The real background this fade must match, already resolved - the box's
+   * own `bg.surface`, `bg.page` or `bg.code`, through `chakraColorVar`. A fade
+   * that does not match what it sits on reads as a smear, not an edge.
+   */
+  readonly background: string
+  /** How far the fade reaches in from each edge. */
+  readonly width?: string
+}
+
+/**
+ * The visible edge fade: two pseudo-elements, in front of the scrolling
+ * content, lit by `SCROLL_FADE_ATTRIBUTE`.
+ *
+ * In front of, not behind: a `background-image` on the scroll container
+ * itself paints *behind* the content, where a fade to the container's own
+ * background is invisible against that same background showing through the
+ * gaps in the text - it can never read as "the content is fading out" the
+ * way a real fade needs to. A pseudo-element is ordinary painted content, so
+ * it sits in front of the text like any other box and can actually obscure
+ * the last few characters as they approach the edge - which is the point:
+ * that is the signal that there is more to scroll to.
+ *
+ * `pointer-events: none` on both so the fade is never what a click or a
+ * touch drag lands on. `opacity` rather than `display`, transitioned, so the
+ * fade never causes reflow of the very edge it sits at.
+ */
+export function scrollFadeStyle({ background, width = '32px' }: ScrollFadeOptions) {
+  const edge = {
+    content: '""',
+    position: 'absolute' as const,
+    top: 0,
+    bottom: 0,
+    width,
+    pointerEvents: 'none' as const,
+    opacity: 0,
+    transition: 'opacity 120ms ease',
+  }
+
+  return {
+    position: 'relative' as const,
+    '&::before': {
+      ...edge,
+      left: 0,
+      background: `linear-gradient(to right, ${background}, transparent)`,
+    },
+    '&::after': {
+      ...edge,
+      right: 0,
+      background: `linear-gradient(to left, ${background}, transparent)`,
+    },
+    [`&[${SCROLL_FADE_ATTRIBUTE}~="start"]::before`]: { opacity: 1 },
+    [`&[${SCROLL_FADE_ATTRIBUTE}~="end"]::after`]: { opacity: 1 },
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Code type                                                                  */
 /* -------------------------------------------------------------------------- */
 

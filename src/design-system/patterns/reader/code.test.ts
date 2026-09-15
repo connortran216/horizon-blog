@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  chakraColorVar,
   codeLanguageLabel,
   codeTextStyle,
   copyAnnouncement,
@@ -15,23 +16,20 @@ import {
   localScrollStyle,
   proseRenderState,
   releaseScrollRegion,
+  scrollAffordanceStyle,
+  scrollFadeAttributeValue,
+  scrollFadeStyle,
+  scrollFadeVisibility,
   scrollRegionLabel,
   scrollRegionSelector,
+  syncScrollFade,
   syncScrollRegion,
+  watchScrollFade,
   widensDocument,
   type CopyState,
   type ScrollContainerLike,
+  type ScrollFadeTarget,
 } from './code.logic'
-
-describe('codeTextStyle', () => {
-  it('reads at the type ramp step below prose, not at the ambient prose size', () => {
-    expect(codeTextStyle.textStyle).toBe('body')
-  })
-
-  it('carries the design system mono family rather than an unstyled monospace', () => {
-    expect(codeTextStyle.fontFamily).toBe('mono')
-  })
-})
 
 /** dsv2.5.3 acceptance 1: code and tables scroll locally. */
 describe('localScrollStyle', () => {
@@ -55,6 +53,244 @@ describe('localScrollStyle', () => {
     expect(widensDocument({ ...localScrollStyle(), minWidth: undefined })).toBe(true)
     expect(widensDocument({ ...localScrollStyle(), maxWidth: undefined })).toBe(true)
     expect(widensDocument({ ...localScrollStyle(), overflowX: undefined })).toBe(true)
+  })
+})
+
+/** dsv2.5.3 acceptance 1's visible half: reachable content that says so. */
+describe('chakraColorVar', () => {
+  it('turns a dotted semantic token into the CSS custom property Chakra emits for it', () => {
+    expect(chakraColorVar('border.subtle')).toBe('var(--chakra-colors-border-subtle)')
+  })
+
+  it('turns every dot into a dash, for a token nested more than one level deep', () => {
+    expect(chakraColorVar('code.syntax.keyword')).toBe('var(--chakra-colors-code-syntax-keyword)')
+  })
+})
+
+describe('scrollAffordanceStyle', () => {
+  const thumb = 'var(--chakra-colors-border-subtle)'
+
+  it('declares both the Chromium/Safari and the Firefox scrollbar, from the same colour', () => {
+    const style = scrollAffordanceStyle({ thumb })
+
+    expect(style.scrollbarWidth).toBe('thin')
+    expect(style.scrollbarColor).toBe(`${thumb} transparent`)
+    expect(style['&::-webkit-scrollbar-thumb'].background).toBe(thumb)
+  })
+
+  it('defaults the track to transparent, so the container keeps its own background', () => {
+    const style = scrollAffordanceStyle({ thumb })
+
+    expect(style['&::-webkit-scrollbar-track'].background).toBe('transparent')
+    expect(style.scrollbarColor.endsWith(' transparent')).toBe(true)
+  })
+
+  it('accepts an explicit track colour instead', () => {
+    const style = scrollAffordanceStyle({ thumb, track: 'var(--chakra-colors-bg-code)' })
+
+    expect(style.scrollbarColor).toBe(`${thumb} var(--chakra-colors-bg-code)`)
+    expect(style['&::-webkit-scrollbar-track'].background).toBe('var(--chakra-colors-bg-code)')
+  })
+})
+
+/**
+ * The fade's own half of dsv2.5.3 acceptance 1: a scroll container that says
+ * there is more to see, without ever hiding the last real character once the
+ * reader has scrolled all the way to it.
+ */
+describe('scrollFadeVisibility', () => {
+  it('shows neither fade when the container does not overflow at all', () => {
+    expect(scrollFadeVisibility({ scrollLeft: 0, scrollWidth: 300, clientWidth: 300 })).toEqual({
+      start: false,
+      end: false,
+    })
+  })
+
+  it('shows only the end fade at rest, when there is somewhere to scroll to', () => {
+    expect(scrollFadeVisibility({ scrollLeft: 0, scrollWidth: 600, clientWidth: 300 })).toEqual({
+      start: false,
+      end: true,
+    })
+  })
+
+  it('shows only the start fade once scrolled all the way to the end - never hiding the last character', () => {
+    expect(scrollFadeVisibility({ scrollLeft: 300, scrollWidth: 600, clientWidth: 300 })).toEqual({
+      start: true,
+      end: false,
+    })
+  })
+
+  it('shows both fades from a position in the middle', () => {
+    expect(scrollFadeVisibility({ scrollLeft: 150, scrollWidth: 600, clientWidth: 300 })).toEqual({
+      start: true,
+      end: true,
+    })
+  })
+
+  it('absorbs sub-pixel rounding at either extreme rather than leaving a fade lit by 0.3px', () => {
+    expect(
+      scrollFadeVisibility({ scrollLeft: 0.4, scrollWidth: 600.4, clientWidth: 300 }).start,
+    ).toBe(false)
+    expect(
+      scrollFadeVisibility({ scrollLeft: 300, scrollWidth: 600.4, clientWidth: 300 }).end,
+    ).toBe(false)
+  })
+})
+
+describe('scrollFadeAttributeValue', () => {
+  it('names the token CSS keys off with `~=`, one per visible edge', () => {
+    expect(scrollFadeAttributeValue({ start: false, end: false })).toBe('')
+    expect(scrollFadeAttributeValue({ start: true, end: false })).toBe('start')
+    expect(scrollFadeAttributeValue({ start: false, end: true })).toBe('end')
+    expect(scrollFadeAttributeValue({ start: true, end: true })).toBe('start end')
+  })
+})
+
+function fakeScrollElement({
+  scrollLeft = 0,
+  scrollWidth = 600,
+  clientWidth = 300,
+  attributes = {},
+}: {
+  scrollLeft?: number
+  scrollWidth?: number
+  clientWidth?: number
+  attributes?: Record<string, string>
+} = {}) {
+  const store = new Map(Object.entries(attributes))
+  const listeners = new Set<() => void>()
+
+  return {
+    scrollLeft,
+    scrollWidth,
+    clientWidth,
+    attributes: store,
+    setAttribute: (name: string, value: string) => {
+      store.set(name, value)
+    },
+    removeAttribute: (name: string) => {
+      store.delete(name)
+    },
+    addEventListener: (_type: 'scroll', listener: () => void) => {
+      listeners.add(listener)
+    },
+    removeEventListener: (_type: 'scroll', listener: () => void) => {
+      listeners.delete(listener)
+    },
+    fireScroll: () => listeners.forEach((listener) => listener()),
+    listenerCount: () => listeners.size,
+  }
+}
+
+describe('syncScrollFade', () => {
+  it('writes the attribute when there is somewhere left to scroll', () => {
+    const element = fakeScrollElement({ scrollWidth: 600, clientWidth: 300 })
+
+    syncScrollFade(element)
+
+    expect(element.attributes.get('data-scroll-fade')).toBe('end')
+  })
+
+  it('removes the attribute rather than writing an empty string when nothing overflows', () => {
+    const element = fakeScrollElement({
+      scrollWidth: 300,
+      clientWidth: 300,
+      attributes: { 'data-scroll-fade': 'end' },
+    })
+
+    syncScrollFade(element)
+
+    expect(element.attributes.has('data-scroll-fade')).toBe(false)
+  })
+})
+
+describe('watchScrollFade', () => {
+  it('syncs once immediately, without waiting for a scroll event', () => {
+    const element = fakeScrollElement({ scrollWidth: 600, clientWidth: 300 })
+
+    watchScrollFade(element as unknown as ScrollFadeTarget)
+
+    expect(element.attributes.get('data-scroll-fade')).toBe('end')
+  })
+
+  it('re-syncs on every scroll event, tracking the reader across the container', () => {
+    const element = fakeScrollElement({ scrollLeft: 0, scrollWidth: 600, clientWidth: 300 })
+
+    watchScrollFade(element as unknown as ScrollFadeTarget)
+    element.scrollLeft = 300
+    element.fireScroll()
+
+    expect(element.attributes.get('data-scroll-fade')).toBe('start')
+  })
+
+  it('stops watching once the returned disposer runs', () => {
+    const element = fakeScrollElement({ scrollLeft: 0, scrollWidth: 600, clientWidth: 300 })
+
+    const dispose = watchScrollFade(element as unknown as ScrollFadeTarget)
+    dispose()
+    element.scrollLeft = 300
+    element.fireScroll()
+
+    // Still "end" from the initial sync - the disposed listener never ran.
+    expect(element.attributes.get('data-scroll-fade')).toBe('end')
+    expect(element.listenerCount()).toBe(0)
+  })
+})
+
+describe('scrollFadeStyle', () => {
+  const background = 'var(--chakra-colors-bg-code)'
+
+  it('positions the container so its pseudo-elements have something to anchor to', () => {
+    expect(scrollFadeStyle({ background }).position).toBe('relative')
+  })
+
+  it('fades each edge from the real background to transparent, in front of the content', () => {
+    const style = scrollFadeStyle({ background })
+
+    expect(style['&::before'].background).toBe(
+      `linear-gradient(to right, ${background}, transparent)`,
+    )
+    expect(style['&::after'].background).toBe(
+      `linear-gradient(to left, ${background}, transparent)`,
+    )
+    expect(style['&::before'].position).toBe('absolute')
+  })
+
+  it('starts both edges invisible, never obscuring content nothing yet says is cut off', () => {
+    const style = scrollFadeStyle({ background })
+
+    expect(style['&::before'].opacity).toBe(0)
+    expect(style['&::after'].opacity).toBe(0)
+  })
+
+  it('lights each edge only under the attribute state that names it', () => {
+    const style = scrollFadeStyle({ background })
+
+    expect(style['&[data-scroll-fade~="start"]::before'].opacity).toBe(1)
+    expect(style['&[data-scroll-fade~="end"]::after'].opacity).toBe(1)
+  })
+
+  it('never intercepts a click or a drag', () => {
+    const style = scrollFadeStyle({ background })
+
+    expect(style['&::before'].pointerEvents).toBe('none')
+    expect(style['&::after'].pointerEvents).toBe('none')
+  })
+
+  it('reaches the width the caller asked for, defaulting to 32px', () => {
+    expect(scrollFadeStyle({ background }).position).toBe('relative')
+    expect(scrollFadeStyle({ background })['&::before'].width).toBe('32px')
+    expect(scrollFadeStyle({ background, width: '48px' })['&::after'].width).toBe('48px')
+  })
+})
+
+describe('codeTextStyle', () => {
+  it('reads at the type ramp step below prose, not at the ambient prose size', () => {
+    expect(codeTextStyle.textStyle).toBe('body')
+  })
+
+  it('carries the design system mono family rather than an unstyled monospace', () => {
+    expect(codeTextStyle.fontFamily).toBe('mono')
   })
 })
 

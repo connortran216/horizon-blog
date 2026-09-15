@@ -22,6 +22,7 @@ import { Button } from '../../components/actions'
 import { Text } from '../../components/typography'
 import { createDisposerBag, guardAsync } from '../../motion'
 import {
+  chakraColorVar,
   codeLanguageLabel,
   codeTextStyle,
   copyAnnouncement,
@@ -31,6 +32,11 @@ import {
   copyReducer,
   idleCopyState,
   localScrollStyle,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
+  syncScrollFade,
+  watchScrollFade,
+  type ScrollFadeTarget,
 } from './code.logic'
 
 export interface CodeBlockProps extends Omit<BoxProps, 'children' | 'onCopy'> {
@@ -51,6 +57,24 @@ export interface CodeBlockProps extends Omit<BoxProps, 'children' | 'onCopy'> {
   writeToClipboard?: (text: string) => Promise<void>
 }
 
+/**
+ * The visible signal that this frame's own `pre` scrolls. See
+ * `scrollAffordanceStyle` - `card.border` is the same divider colour the
+ * frame's own outer border already uses.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * The fade for this frame's own `pre`. Matched to `reader.codeBg`, the same
+ * background the frame's outer surface already paints - see `scrollFadeStyle`
+ * for why the colour has to match what it sits on.
+ */
+const scrollEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
+
 const defaultClipboard = (text: string): Promise<void> => {
   if (typeof navigator === 'undefined' || !navigator.clipboard) {
     return Promise.reject(new Error('This browser has no clipboard API.'))
@@ -68,6 +92,7 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const [copy, dispatch] = useReducer(copyReducer, idleCopyState)
   const bagRef = useRef(createDisposerBag())
+  const preRef = useRef<HTMLPreElement | null>(null)
 
   // One bag for the component's whole life: a clipboard promise that settles
   // after unmount is ignored rather than setting state on a gone component.
@@ -76,6 +101,36 @@ export function CodeBlock({
 
     return () => bag.dispose()
   }, [])
+
+  /*
+   * This frame's own `pre` is never adopted by `Prose`'s sweep - see
+   * `isOwnedCodeBlockFrame` there - so it keeps its own fade current here.
+   * Re-run when the highlighted markup changes: new `children` can change how
+   * much the block overflows without ever firing a `scroll` event, and a
+   * `ResizeObserver` catches the same case for a resize of the frame itself.
+   */
+  useEffect(() => {
+    const pre = preRef.current
+
+    if (!pre || typeof window === 'undefined') {
+      return
+    }
+
+    const target = pre as unknown as ScrollFadeTarget
+    const stopWatching = watchScrollFade(target)
+
+    if (typeof ResizeObserver === 'undefined') {
+      return stopWatching
+    }
+
+    const resize = new ResizeObserver(() => syncScrollFade(target))
+    resize.observe(pre)
+
+    return () => {
+      stopWatching()
+      resize.disconnect()
+    }
+  }, [children])
 
   const handleCopy = () => {
     if (!code || copyIsBusy(copy.status)) {
@@ -145,6 +200,7 @@ export function CodeBlock({
 
       <Box
         as="pre"
+        ref={preRef}
         tabIndex={0}
         /*
          * A scroll container has to be focusable or a keyboard-only reader
@@ -156,7 +212,7 @@ export function CodeBlock({
         margin={0}
         padding={space[4]}
         {...codeTextStyle}
-        sx={localScrollStyle()}
+        sx={{ ...localScrollStyle(), ...scrollAffordance, ...scrollEdgeFade }}
       >
         {children}
       </Box>
