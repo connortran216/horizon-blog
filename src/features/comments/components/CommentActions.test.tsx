@@ -1,7 +1,7 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import { Comment } from '../comments.types'
 import CommentActions from './CommentActions'
 
