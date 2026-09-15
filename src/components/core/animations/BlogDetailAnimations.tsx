@@ -68,7 +68,7 @@ interface AuthorAnimationProps {
 export const AuthorAnimation = ({
   post,
   authorNameColor = 'text.primary',
-  dateColor = 'text.tertiary',
+  dateColor = 'text.muted',
 }: AuthorAnimationProps) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -150,7 +150,7 @@ export const BlogDetailStructure = ({
   additionalContent,
   headingColor = 'text.primary',
   authorNameColor = 'text.primary',
-  dateColor = 'text.tertiary',
+  dateColor = 'text.muted',
   dividerColor = 'border.subtle',
 }: BlogDetailStructureProps) => (
   <VStack spacing={6} align="stretch">

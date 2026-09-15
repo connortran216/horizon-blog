@@ -12,7 +12,7 @@ interface TrafficSourceBreakdownProps {
 
 const TrafficSourceBreakdown = ({ sources }: TrafficSourceBreakdownProps) => {
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <VStack align="stretch" spacing={4}>
         <Box>
           <Text fontWeight="semibold" color="text.primary">
@@ -24,18 +24,18 @@ const TrafficSourceBreakdown = ({ sources }: TrafficSourceBreakdownProps) => {
         </Box>
 
         {sources.length === 0 ? (
-          <Text color="text.tertiary" fontSize="sm">
+          <Text color="text.muted" fontSize="sm">
             No source data in this range.
           </Text>
         ) : (
           sources.map((source) => (
-            <Box key={`${source.category}:${source.host}`} borderRadius="xl" bg="bg.tertiary" p={4}>
+            <Box key={`${source.category}:${source.host}`} borderRadius="xl" bg="bg.subtle" p={4}>
               <HStack justify="space-between" align="start">
                 <Box>
                   <Text color="text.primary" fontWeight="medium">
                     {source.category}
                   </Text>
-                  <Text color="text.tertiary" fontSize="sm">
+                  <Text color="text.muted" fontSize="sm">
                     {source.host || 'Direct or unknown'}
                   </Text>
                 </Box>
@@ -43,7 +43,7 @@ const TrafficSourceBreakdown = ({ sources }: TrafficSourceBreakdownProps) => {
                   {formatAnalyticsInteger(source.views)}
                 </Text>
               </HStack>
-              <Text mt={2} color="text.tertiary" fontSize="sm">
+              <Text mt={2} color="text.muted" fontSize="sm">
                 {formatAnalyticsPercent(source.completionRate)} completion ·{' '}
                 {formatAnalyticsDuration(source.avgActiveReadSeconds)} active read
               </Text>

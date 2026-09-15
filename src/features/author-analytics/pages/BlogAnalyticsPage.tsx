@@ -60,7 +60,7 @@ const BlogAnalyticsPage = () => {
         transform="translateX(-50%)"
         w={{ base: '92%', md: '76%' }}
         h="260px"
-        bg="action.glow"
+        bg="action.subtle"
         filter="blur(130px)"
         opacity={0.55}
         pointerEvents="none"
@@ -80,7 +80,7 @@ const BlogAnalyticsPage = () => {
               >
                 Back to analytics
               </Button>
-              <Badge bg="bg.tertiary" color="text.secondary" borderRadius="full" mb={3}>
+              <Badge bg="bg.subtle" color="text.secondary" borderRadius="full" mb={3}>
                 Blog diagnostics
               </Badge>
               <Heading color="text.primary" letterSpacing="-0.04em">
@@ -90,7 +90,7 @@ const BlogAnalyticsPage = () => {
                 Diagnose reader progress, reactions, links, and source quality for this blog.
               </Text>
             </Box>
-            <Text color="text.tertiary" fontSize="sm">
+            <Text color="text.muted" fontSize="sm">
               Fresh through {analytics.dataFreshThrough || 'loading'}
             </Text>
           </Stack>
@@ -153,7 +153,7 @@ const BlogAnalyticsPage = () => {
                 <HStack
                   border="1px solid"
                   borderColor="border.subtle"
-                  bg="bg.secondary"
+                  bg="bg.surface"
                   borderRadius="2xl"
                   p={5}
                 >
@@ -180,7 +180,7 @@ const AnalyticsErrorPanel = ({
   const copy = getAnalyticsErrorCopy(error)
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={6}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={6}>
       <Heading size="sm" color="text.primary">
         {copy.title}
       </Heading>

@@ -106,12 +106,12 @@ export const Shimmer: React.FC<ShimmerProps> = ({
 export const BlogCardSkeleton = () => (
   <Box
     maxW="100%"
-    bg="bg.secondary"
+    bg="bg.surface"
     boxShadow="xl"
     rounded="md"
     overflow="hidden"
     borderWidth="1px"
-    borderColor="border.default"
+    borderColor="border.subtle"
     p={6}
   >
     {/* Image placeholder */}

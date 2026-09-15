@@ -197,7 +197,7 @@ const DefaultPostCover = ({
       <Box
         position="relative"
         overflow="hidden"
-        bg="bg.secondary"
+        bg="bg.surface"
         backgroundImage="linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)"
         backgroundSize="100% 28px"
         {...boxProps}
@@ -240,7 +240,7 @@ const DefaultPostCover = ({
                 fontSize="xs"
                 textTransform="uppercase"
                 letterSpacing="0.16em"
-                color="text.tertiary"
+                color="text.muted"
               >
                 {eyebrowLabel}
               </Text>

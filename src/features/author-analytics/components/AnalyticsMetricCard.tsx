@@ -12,7 +12,7 @@ const AnalyticsMetricCard = ({ label, value, helper, approximate }: AnalyticsMet
     <Box
       border="1px solid"
       borderColor="border.subtle"
-      bg="bg.secondary"
+      bg="bg.surface"
       borderRadius="2xl"
       p={{ base: 5, md: 6 }}
     >
@@ -22,7 +22,7 @@ const AnalyticsMetricCard = ({ label, value, helper, approximate }: AnalyticsMet
             {label}
           </StatLabel>
           {approximate ? (
-            <Badge bg="bg.tertiary" color="text.secondary" borderRadius="full">
+            <Badge bg="bg.subtle" color="text.secondary" borderRadius="full">
               Approx.
             </Badge>
           ) : null}
@@ -31,7 +31,7 @@ const AnalyticsMetricCard = ({ label, value, helper, approximate }: AnalyticsMet
           {value}
         </StatNumber>
         {helper ? (
-          <StatHelpText color="text.tertiary" mb={0}>
+          <StatHelpText color="text.muted" mb={0}>
             {helper}
           </StatHelpText>
         ) : null}

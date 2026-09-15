@@ -14,15 +14,12 @@
  * release M8 (`horizon-blog-y2e.9.1`) removed it along with the raw palette it
  * exposed as `colors.obsidian`, which no production file read directly anymore.
  *
- * The semantic alias bridge below (`legacyAliases`) is a separate thing and is
- * NOT removed by M8: roughly twenty files across `features/author-analytics`,
- * `features/access-management`, `components/core/animations` and elsewhere
- * still read pre-v2 semantic names (`bg.secondary`, `text.tertiary`,
- * `border.default`, `accent.primary`, `action.active`, `action.glow`,
- * `loading.glow`, `bg.glass`, ...) rather than their v2 equivalents. Removing
- * the bridge before those call sites migrate would silently break their colour
- * (an unresolved Chakra token emits as a raw, invalid CSS value rather than
- * erroring). That migration is tracked separately from this release.
+ * That same release also removed the semantic alias bridge (`legacyAliases`)
+ * that used to sit here: the last production call sites reading pre-v2 names
+ * (`bg.secondary`, `text.tertiary`, `border.default`, `accent.primary`,
+ * `action.active`, `action.glow`, `loading.glow`, `bg.glass`, ...) were
+ * migrated onto their v2 equivalents first, so the bridge had nothing left to
+ * carry.
  */
 
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
@@ -58,66 +55,6 @@ const config: ThemeConfig = {
 /** Every paired role, handed to Chakra in its own light/dark shape. */
 const semanticColorTokens = Object.fromEntries(
   Object.entries(semanticColors).map(([token, pair]) => [
-    token,
-    { default: pair.light, _dark: pair.dark },
-  ]),
-)
-
-/**
- * Temporary bridge for pages that have not migrated yet.
- *
- * NOT removed by release M8 (`horizon-blog-y2e.9.1`) - that release removed the
- * legacy theme file and its raw palette (see the file header), but roughly
- * twenty production files still read these semantic names directly (see
- * `horizon.test.ts`'s `LEGACY_COMPATIBILITY_TOKENS`). Every entry here is a name
- * the legacy theme defined and v2 does not. Without the bridge, those call sites
- * would have Chakra emitting `color: text.tertiary` verbatim - an invalid
- * declaration - so removing this requires migrating each of them first.
- *
- * Each alias points at the v2 role that carries the same meaning, following the
- * mapping the design handoff already recorded (secondary/tertiary/tertiary-text
- * become surface/subtle/muted). They are aliases, not new values: nothing here
- * introduces a colour the token source does not already define.
- *
- * When a page migrates it stops using these names. When the last one stops,
- * this block goes with it.
- */
-const legacyAliases = {
-  // Surfaces
-  'bg.secondary': semanticColors['bg.surface'],
-  'bg.tertiary': semanticColors['bg.subtle'],
-  'bg.glass': semanticColors['bg.elevated'],
-
-  // Text
-  'text.tertiary': semanticColors['text.muted'],
-
-  // Borders
-  'border.default': semanticColors['border.subtle'],
-
-  /*
-   * The legacy accent was a purple used as a second action colour. DESIGN.md
-   * puts "purple as the default action" under Avoid, so the bridge resolves it
-   * to the action role rather than carrying the purple forward.
-   */
-  'accent.primary': semanticColors['action.primary'],
-  'accent.hover': semanticColors['action.hover'],
-  'accent.glow': semanticColors['action.subtle'],
-
-  // Actions. v2 expresses press as travel, not a third colour step, so the
-  // legacy active state resolves to hover.
-  'action.active': semanticColors['action.hover'],
-  'action.glow': semanticColors['action.subtle'],
-
-  // Loading
-  'loading.stroke': semanticColors['loading.indicator'],
-  'loading.glow': semanticColors['action.subtle'],
-
-  // Links. v2 underlines on hover rather than changing colour.
-  'link.hover': semanticColors['link.default'],
-} as const
-
-const legacyAliasTokens = Object.fromEntries(
-  Object.entries(legacyAliases).map(([token, pair]) => [
     token,
     { default: pair.light, _dark: pair.dark },
   ]),
@@ -202,7 +139,7 @@ export const horizonTheme = extendTheme({
   colors: { horizon: palette },
 
   semanticTokens: {
-    colors: { ...semanticColorTokens, ...legacyAliasTokens },
+    colors: { ...semanticColorTokens },
     shadows: {
       card: { default: elevation.card.light, _dark: elevation.card.dark },
     },

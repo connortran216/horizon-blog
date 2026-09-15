@@ -16,7 +16,7 @@ const AnalyticsReactionTrend = ({ points }: AnalyticsReactionTrendProps) => {
   )
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <VStack align="stretch" spacing={4}>
         <Box>
           <Text fontWeight="semibold" color="text.primary">
@@ -36,7 +36,7 @@ const AnalyticsReactionTrend = ({ points }: AnalyticsReactionTrendProps) => {
           {points.slice(-7).map((point) => (
             <HStack key={point.date} justify="space-between" fontSize="sm">
               <Text color="text.secondary">{point.date}</Text>
-              <Text color="text.tertiary">
+              <Text color="text.muted">
                 +{point.heartsAdded} / -{point.heartsRemoved}
               </Text>
             </HStack>
@@ -48,8 +48,8 @@ const AnalyticsReactionTrend = ({ points }: AnalyticsReactionTrendProps) => {
 }
 
 const ReactionTotal = ({ label, value }: { label: string; value: number }) => (
-  <Box flex={1} borderRadius="xl" bg="bg.tertiary" p={4}>
-    <Text fontSize="xs" color="text.tertiary" textTransform="uppercase" letterSpacing="0.08em">
+  <Box flex={1} borderRadius="xl" bg="bg.subtle" p={4}>
+    <Text fontSize="xs" color="text.muted" textTransform="uppercase" letterSpacing="0.08em">
       {label}
     </Text>
     <Text color="text.primary" fontSize="2xl" fontWeight="bold">

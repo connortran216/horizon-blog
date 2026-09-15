@@ -11,7 +11,7 @@ const ReaderProgressFunnel = ({ stages }: ReaderProgressFunnelProps) => {
   const normalizedStages = normalizeFunnelStages(stages)
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <VStack align="stretch" spacing={4}>
         <Box>
           <Text fontWeight="semibold" color="text.primary">
@@ -29,12 +29,12 @@ const ReaderProgressFunnel = ({ stages }: ReaderProgressFunnelProps) => {
                 <Text fontSize="sm" color="text.secondary">
                   {stage.label}
                 </Text>
-                <Text fontSize="sm" color="text.tertiary">
+                <Text fontSize="sm" color="text.muted">
                   {formatAnalyticsInteger(stage.sessions)} sessions ·{' '}
                   {formatAnalyticsPercent(stage.rate)}
                 </Text>
               </HStack>
-              <Box h="10px" borderRadius="full" bg="bg.tertiary" overflow="hidden">
+              <Box h="10px" borderRadius="full" bg="bg.subtle" overflow="hidden">
                 <Box
                   h="100%"
                   w={`${stage.widthPercent}%`}
