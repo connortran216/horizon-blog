@@ -241,6 +241,14 @@
  * radius, so inline code reads the way the design system's `Prose` specifies
  * it - a monospace run on `bg.code` - rather than as prose two pixels smaller.
  *
+ * "Two pixels smaller" was literal: Crepe's own reset sizes inline `code` at
+ * `87.5%` of its paragraph's `16px`, landing at 14px - below `codeTextStyle`'s
+ * 16px (`body` scale), which is what a bare `code` outside a live editor and a
+ * fenced block both read at. The same reader-facing role should not come out
+ * two different sizes depending on which renderer produced it, so this pulls
+ * the plate back up to that one size, restated as a literal for the reason
+ * `.cm-content` below states.
+ *
  * Block code is excluded: a `pre > code` is the code block's, and `CodeBlock`
  * owns that frame.
  */
@@ -248,6 +256,7 @@
   background: var(--crepe-code-bg);
   color: var(--crepe-code-fg);
   font-family: var(--crepe-font-code);
+  font-size: 16px;
   border-radius: var(--chakra-radii-control);
   padding: 0 var(--chakra-space-1);
 }
@@ -706,6 +715,99 @@
 .crepe-editor-wrapper[data-readonly='true'] .cm-activeLine,
 .crepe-editor-wrapper[data-readonly='true'] .cm-activeLineGutter {
   background-color: transparent;
+}
+
+/* =========================================
+   Fenced block type, and its scroll affordances
+   ========================================= */
+
+/*
+ * CodeMirror's own base theme sets `.cm-content { font-family: monospace }`
+ * and no font-size at all, so a fenced block inherited whatever ambient size
+ * sat above it - `Prose`'s 18/19px reading size, the one thing code is
+ * supposed to read at or below rather than at. `codeTextStyle`
+ * (`src/design-system/patterns/reader/code.logic.ts`) is the design system's
+ * one answer to that everywhere else code appears - `body` scale, 16px at
+ * every breakpoint, and the design system's own mono stack. The `16px` here
+ * is that same value restated as a literal, because this is a plain
+ * stylesheet and cannot import the TypeScript module the way `Prose` and
+ * `CodeBlock` do; `--crepe-font-code` is the actual token, unchanged, and
+ * already resolves to the identical mono stack `codeTextStyle` does.
+ *
+ * Selector depth matches the rest of this file's reason for it: CodeMirror's
+ * own base theme rule for `.cm-content` is two classes deep, so anything
+ * shallower loses the specificity tie depending on injection order.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-content {
+  font-family: var(--crepe-font-code);
+  font-size: 16px;
+}
+
+/*
+ * The same visible-scroll signal `Prose` gives every bare `pre` and `table`
+ * it contains (see `scrollAffordanceStyle` in `code.logic.ts`), restated here
+ * because CodeMirror's own `.cm-scroller` - not a `pre` - is the element that
+ * actually overflows a wide fenced block, and no descendant selector reaches
+ * inside a CodeMirror instance's own DOM. `--chakra-colors-border-subtle` is
+ * the same `border.subtle` token the design system's version borrows.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller {
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--chakra-colors-border-subtle) transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-thumb {
+  background: var(--chakra-colors-border-subtle);
+  border-radius: 9999px;
+}
+
+/*
+ * The matching edge fade - see `scrollFadeStyle` in `code.logic.ts` for the
+ * full mechanism: a pseudo-element pair, lit by the `data-scroll-fade`
+ * attribute (`SCROLL_FADE_ATTRIBUTE`), that hides itself once there is
+ * nothing left to scroll toward. `useCrepeCodeScrollFade`, in
+ * `crepe.presentation.ts`, is what keeps that attribute current on this
+ * exact element - this only paints what it lights. `--crepe-code-bg` is the
+ * same `bg.code` token `CodeBlock`'s own fade fades toward.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before,
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before {
+  left: 0;
+  background: linear-gradient(to right, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  right: 0;
+  background: linear-gradient(to left, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='start']::before {
+  opacity: 1;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='end']::after {
+  opacity: 1;
 }
 
 .mermaid-zoom-modal__viewport {

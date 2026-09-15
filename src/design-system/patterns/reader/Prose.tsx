@@ -28,11 +28,18 @@ import { ProseMeasure, type ProseMeasureProps } from '../../components/layout'
 import { Text } from '../../components/typography'
 import { createDisposerBag, scheduleFrame, type Disposer, type FrameScheduler } from '../../motion'
 import {
+  chakraColorVar,
+  codeTextStyle,
   localScrollStyle,
   proseRenderState,
   releaseScrollRegion,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
   scrollRegionSelector,
+  syncScrollFade,
   syncScrollRegion,
+  watchScrollFade,
+  type ScrollFadeTarget,
 } from './code.logic'
 import { proseHeadingRamp, proseHeadingSelector } from './reader.logic'
 
@@ -47,6 +54,36 @@ const headingRamp = Object.fromEntries(
     { ...style, color: componentTokens.reader.fg, letterSpacing: 'tight' },
   ]),
 )
+
+/**
+ * The visible signal that a wide table or code block scrolls. See
+ * `scrollAffordanceStyle` - the colour is `card.border`, the same divider
+ * colour a table's own rule and `CodeBlock`'s own frame already borrow, so the
+ * affordance reads as part of this system rather than a second opinion about
+ * what a scrollbar should look like.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * The fade for a wide table: it sits on the article's own card surface, so
+ * the fade matches `card.bg` rather than the code role's darker `codeBg`.
+ */
+const tableEdgeFade = scrollFadeStyle({ background: chakraColorVar(componentTokens.card.bg) })
+
+/**
+ * The fade for a bare renderer `pre`. `CodeBlock`'s own frame carries the
+ * matching fade itself - see there - because it is never adopted by this
+ * component's sweep.
+ */
+const codeEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
+
+/** A `pre` `CodeBlock` already owns - it watches its own fade; this sweep leaves it alone. */
+const isOwnedCodeBlockFrame = (element: Element): boolean =>
+  element.tagName === 'PRE' && element.hasAttribute('role')
 
 const frameScheduler: FrameScheduler = {
   request: (callback) =>
@@ -102,7 +139,9 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
   /*
    * Give every wide container inside the rendered article the three attributes
    * `CodeBlock` gives its own `pre`, so a keyboard-only reader can reach and
-   * scroll it. The decisions are `syncScrollRegion`'s; this is the sweep.
+   * scroll it - and keep its edge fade lit correctly as it scrolls. The
+   * attribute decisions are `syncScrollRegion`'s; the fade decisions are
+   * `watchScrollFade`'s; this is the one sweep that drives both.
    *
    * It has to keep running rather than run once. The renderer is lazy - the
    * article arrives after hydration, and a Crepe surface replaces its content
@@ -113,8 +152,9 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
    *
    * Every sweep is coalesced into one animation frame, both observers and the
    * frame go into a disposer bag, and teardown releases every container it
-   * adopted - so nothing here can outlive the reading page, and an element that
-   * was never adopted is handed back untouched.
+   * adopted and stops watching every container it wired a fade to - so
+   * nothing here can outlive the reading page, and an element that was never
+   * adopted is handed back untouched.
    */
   useEffect(() => {
     const root = frameRef.current
@@ -125,6 +165,11 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
 
     const bag = createDisposerBag()
     const adopted = new Set<Element>()
+    /**
+     * One watcher per scrolling container, keyed by the element itself so a
+     * re-sweep never attaches a second `scroll` listener to the same one.
+     */
+    const fadeWatchers = new Map<Element, () => void>()
     /*
      * One slot rather than one bag entry per sweep. A Crepe surface can mutate
      * hundreds of times in a session, and a disposer per mutation would grow for
@@ -143,6 +188,23 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
         } else if (result === 'released') {
           adopted.delete(element)
         }
+
+        // `CodeBlock`'s own frame watches its own fade; wiring it again here
+        // would be a second listener doing the identical, redundant work.
+        if (isOwnedCodeBlockFrame(element)) {
+          continue
+        }
+
+        const target = element as unknown as ScrollFadeTarget
+
+        if (fadeWatchers.has(element)) {
+          // Already watched for `scroll` events - but a resize can change how
+          // much a container overflows without ever firing one, so this sweep
+          // is the one place that re-checks every watched container anyway.
+          syncScrollFade(target)
+        } else {
+          fadeWatchers.set(element, watchScrollFade(target))
+        }
       }
 
       // A container the renderer has since thrown away keeps nothing alive, but
@@ -150,6 +212,13 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
       for (const element of adopted) {
         if (!element.isConnected) {
           adopted.delete(element)
+        }
+      }
+
+      for (const [element, stopWatching] of fadeWatchers) {
+        if (!element.isConnected) {
+          stopWatching()
+          fadeWatchers.delete(element)
         }
       }
     }
@@ -183,6 +252,8 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
       bag.dispose()
       adopted.forEach(releaseScrollRegion)
       adopted.clear()
+      fadeWatchers.forEach((stopWatching) => stopWatching())
+      fadeWatchers.clear()
     }
   }, [state])
 
@@ -236,19 +307,44 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
           borderEndEndRadius: radii.control,
         },
         // Inline code only. A `pre > code` is the block form and is styled by
-        // `CodeBlock`, which owns its own frame.
+        // `CodeBlock`, which owns its own frame. Sized through `codeTextStyle`
+        // so it reads at or below the sentence around it rather than at the
+        // ambient prose size it would otherwise inherit.
         ':not(pre) > code': {
           background: componentTokens.reader.codeBg,
           borderRadius: radii.control,
           paddingInline: space[1],
-          fontFamily: 'mono',
+          ...codeTextStyle,
         },
         '::selection': { background: componentTokens.reader.selectionBg },
 
-        // Wide content scrolls inside itself. Applied by descendant selector so
-        // markup this component never sees is still contained.
-        'pre, table': { ...scroll, display: 'block' },
-        table: { borderCollapse: 'collapse', width: '100%' },
+        // Wide content scrolls inside itself, and now says so. Applied by
+        // descendant selector so markup this component never sees - a bare
+        // `pre` or `table` from any renderer, and the plain `div` a table
+        // plugin wraps every `table` in: `.table-wrapper` from Crepe's own
+        // table block, `.tableWrapper` from `prosemirror-tables` directly.
+        // Neither renderer's own stylesheet gives that wrapper an overflow
+        // rule reliably - Crepe's theme has none at all, and `prosemirror`'s
+        // only applies inside a live `.ProseMirror` root - so it arrives as
+        // the block default, `visible`, while the table inside scrolls on
+        // its own. This restates the containment one level higher, on the
+        // box a reader actually sees the edge of.
+        'pre, table, .table-wrapper, .tableWrapper': {
+          ...scroll,
+          ...scrollAffordance,
+          display: 'block',
+        },
+        // A bare renderer `pre` reads at code's own size, with the matching
+        // fade. `CodeBlock`'s own frame sets both itself and carries
+        // `role="group"`, so it is left alone rather than styled twice.
+        'pre:not([role="group"])': { ...codeTextStyle, ...codeEdgeFade },
+        // The edge fade, matched to what a table sits on - the article's own
+        // card surface. Lit by `watchScrollFade`, from the sweep above; only
+        // on `table` itself, because that is where the overflow this bead
+        // measured actually lives - the wrapper's own box already fits it.
+        // One object literal, not two `table` keys: the second would silently
+        // replace the first rather than merge with it.
+        table: { ...tableEdgeFade, borderCollapse: 'collapse', width: '100%' },
         'th, td': {
           borderBottomWidth: '1px',
           borderBottomStyle: 'solid',

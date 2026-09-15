@@ -22,6 +22,7 @@ import { Box, useColorMode, useToast } from '@chakra-ui/react'
 import { space } from '../../theme/tokens'
 import { CREPE_CONFIG } from '../../config/crepe.config'
 import { crepeFeatures, crepeSurface, readingCodeMirrorExtensions } from './crepe.features'
+import { useCrepeCodeScrollFade } from './crepe.presentation'
 import { horizonSyntaxExtensions } from './crepe.syntax'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
@@ -173,6 +174,10 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const { colorMode } = useColorMode()
   const toast = useToast()
   const mermaidTheme = colorMode === 'dark' ? 'dark' : 'neutral'
+
+  // Keeps every fenced block's `.cm-scroller` edge fade current - see
+  // `useCrepeCodeScrollFade` for why this cannot be `Prose`'s own sweep.
+  useCrepeCodeScrollFade(editorRef)
 
   const applyHeadingAnchors = useCallback(() => {
     if (!readOnly || !editorRef.current) {

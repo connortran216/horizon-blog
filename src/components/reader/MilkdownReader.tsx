@@ -22,7 +22,15 @@ import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { nord } from '@milkdown/theme-nord'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
 
-import { Prose, localScrollStyle } from '../../design-system'
+import {
+  Prose,
+  chakraColorVar,
+  codeTextStyle,
+  localScrollStyle,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
+} from '../../design-system'
+import { componentTokens } from '../../theme/tokens'
 import { EDITOR_CONFIG } from '../../config/editor.config'
 
 // Import Prism themes
@@ -32,6 +40,27 @@ import '@milkdown/theme-nord/style.css'
 interface MilkdownReaderProps {
   content?: string
 }
+
+/**
+ * The visible signal that a wide `pre`, `table` or `.tableWrapper` inside this
+ * surface scrolls. See `scrollAffordanceStyle` - `card.border` is the same
+ * divider colour `Prose`'s own equivalent rule borrows.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * A table sits on the article's own card surface; a `pre` sits on `codeBg`.
+ * `Prose`'s own sweep wires the fade's `data-scroll-fade` state onto both -
+ * neither carries a `role`, so neither is excluded the way `CodeBlock`'s own
+ * frame is - so only the CSS needs restating here, for the same cascade-order
+ * race the comment below already explains.
+ */
+const tableEdgeFade = scrollFadeStyle({ background: chakraColorVar(componentTokens.card.bg) })
+const codeEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
 
 const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) => {
   const [editorError, setEditorError] = useState<string | null>(null)
@@ -104,9 +133,21 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
            * Prism stylesheets style `.milkdown pre` at the same specificity and
            * are imported by this module, so which wins depends on injection
            * order. The rule is restated one level deeper, from the design
-           * system's own `localScrollStyle`.
+           * system's own `localScrollStyle` - and now with the same visible
+           * scroll signal and code-sized type `Prose` gives every other
+           * renderer's output, plus `.tableWrapper`, the plain `div`
+           * `@milkdown/preset-gfm`'s table plugin wraps every `table` in.
            */
-          '.milkdown pre, .milkdown table': { ...localScrollStyle(), display: 'block' },
+          '.milkdown pre, .milkdown table, .milkdown .tableWrapper': {
+            ...localScrollStyle(),
+            ...scrollAffordance,
+            display: 'block',
+          },
+          // The fade only on `table` itself, not `.tableWrapper` - the
+          // wrapper's own box already fits the table, so the table is where
+          // the actual scrollable overflow (and its `scrollLeft`) lives.
+          '.milkdown table': { ...tableEdgeFade },
+          '.milkdown pre': { ...codeTextStyle, ...codeEdgeFade },
         }}
       >
         <Milkdown />
