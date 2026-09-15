@@ -2,21 +2,9 @@
   "version": 1,
   "entries": {
     "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
-      "last_emitted_at_ms": 1789312281510,
+      "last_emitted_at_ms": 1789445745684,
       "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
-    },
-    "445ed27a3872b681d98190bae61ccb84954e1bc4e140df5370be958dee776b3a": {
-      "last_emitted_at_ms": 1789311962839,
-      "message": "Verify changes work after editing. Test functionality before marking complete."
-    },
-    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
-      "last_emitted_at_ms": 1789311955230,
-      "message": "Read multiple files in parallel when possible for faster analysis."
-    },
-    "477fcb950ca6099eaf122a63efdc37d8028b051dca62b65e8816872367603cfc": {
-      "last_emitted_at_ms": 1789308779575,
-      "message": "Spawning agent: general-purpose (opus) | Task: Close M4 M5 design system gaps"
     }
   },
-  "updated_at": "2026-09-13T15:11:21.510Z"
+  "updated_at": "2026-09-15T04:15:45.684Z"
 }
