@@ -25,6 +25,15 @@ export interface RetryActionProps extends Omit<ButtonProps, 'onClick' | 'childre
   maxAttempts?: number
   /** A retry is in flight. */
   retrying?: boolean
+  /**
+   * Visible button text, for a caller whose `failedAction` makes the full
+   * "Try to <action> again" phrase too long for the control - a task
+   * description meant for prose, not a button label. The full phrase is
+   * still the accessible name: it becomes the button's `aria-label`, so a
+   * screen reader hears what is being retried even though the sighted label
+   * just says "Try again". Omit it and nothing changes from before.
+   */
+  label?: string
 }
 
 export function RetryAction({
@@ -33,6 +42,7 @@ export function RetryAction({
   attempt = 0,
   maxAttempts = 0,
   retrying = false,
+  label,
   ...rest
 }: RetryActionProps) {
   if (!retryAvailable({ attempt, maxAttempts })) {
@@ -40,6 +50,7 @@ export function RetryAction({
   }
 
   const hint = retryHint({ attempt, maxAttempts })
+  const fullLabel = retryLabel(failedAction)
 
   return (
     <VStack spacing={space[1]} align="center">
@@ -51,9 +62,10 @@ export function RetryAction({
         onClick={onRetry}
         isLoading={retrying}
         loadingText={retryingMessage(failedAction)}
+        aria-label={label ? fullLabel : undefined}
         {...rest}
       >
-        {retryLabel(failedAction)}
+        {label ?? fullLabel}
       </Button>
       {hint ? (
         <Text textStyle="meta" color="text.muted">

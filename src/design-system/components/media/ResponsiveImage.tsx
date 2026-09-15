@@ -186,6 +186,14 @@ export function ResponsiveImage({
           {alt['aria-hidden'] ? null : (
             <MediaRetry
               failedAction={failedAction}
+              // The full phrase ("Try to load the sample cover image again")
+              // is real content, not filler, so it stays the accessible name
+              // via `label`'s `aria-label` fallback in RetryAction - it is
+              // just too long to sit on a retry button as visible text. "Try
+              // again" is unambiguous here: the button is already inside this
+              // image's own failure state, so there is nothing else it could
+              // mean.
+              label="Try again"
               onRetry={retry}
               attempt={state.attempt}
               maxAttempts={state.maxAttempts}
