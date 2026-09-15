@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/.codex/worktrees/dsv2-epic\\ncat > .mcp.json <<'JSON'\\n{\\n  \\\"mcpServers\\\": {\\n    \\\"horizon_storybook\\\": {\\n      \\\"type\\\": \\...",
-  "error": "Exit code 1\nvalid JSON: ['horizon_storybook']\n--- mirrors the Codex entry ---\ncat: ../../../.codex/config.toml: No such file or directory",
-  "timestamp": "2026-09-15T04:06:46.948Z",
-  "retry_count": 1
-}
