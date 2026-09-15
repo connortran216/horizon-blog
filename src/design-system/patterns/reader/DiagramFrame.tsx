@@ -73,27 +73,53 @@ export function DiagramFrame({
     >
       <Box
         display="flex"
+        flexWrap="wrap"
         alignItems="center"
         justifyContent="space-between"
-        gap={space[3]}
+        rowGap={space[2]}
+        columnGap={space[3]}
         paddingInline={space[4]}
         paddingBlock={space[2]}
         borderBottomWidth="1px"
         borderBottomStyle="solid"
         borderBottomColor={componentTokens.card.border}
       >
-        <Text as="span" recipe="metadata">
+        {/*
+         * `minWidth: 0` is the fix, not `flexWrap` alone - a flex item's
+         * automatic minimum size is its content's unwrapped width, so
+         * without this the caption would rather overflow the row than wrap.
+         * With it, a caption too long to sit beside the toggle on one line
+         * wraps onto its own line or lines instead of pushing the row wider
+         * than the frame; a caption that fits stays exactly where it was,
+         * left of the toggle on the same line.
+         */}
+        <Text as="span" recipe="metadata" minWidth={0}>
           {caption}
         </Text>
 
         {canToggle ? (
+          // The old label repeated the whole caption - "Show the Sample
+          // diagram: how a request finds a server source" - which made the
+          // toggle itself as wide as the overflow it was supposed to fix, in
+          // a button Chakra keeps `white-space: nowrap` by default. Wrapping
+          // the row does nothing for a single control that is wider than the
+          // frame on its own. The caption still names which diagram this
+          // toggles - it is the visible text immediately to this button's
+          // left, read together with it - so the short label loses nothing
+          // an aria-label doesn't restate for anyone not reading the row
+          // visually. `size="md"` (44px - the `sm` a code-block toolbar
+          // usually gets, per control.logic.ts, does not clear the touch
+          // target) is a local override, same as the aria-label: neither
+          // touches the shared Button component.
           <Button
             tone="quiet"
-            size="sm"
+            size="md"
+            flexShrink={0}
+            aria-label={showSource ? `Show the ${caption} diagram` : `Show the ${caption} source`}
             onClick={() => onToggleSource?.(!showSource)}
             iconStart={showSource ? <FiImage aria-hidden="true" /> : <FiCode aria-hidden="true" />}
           >
-            {showSource ? `Show the ${caption} diagram` : `Show the ${caption} source`}
+            {showSource ? 'Show diagram' : 'Show source'}
           </Button>
         ) : null}
       </Box>
