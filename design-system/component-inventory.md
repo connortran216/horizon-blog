@@ -8,8 +8,8 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 - Total UI implementation and composition files: **124**
 - Non-page component and infrastructure files: **75**
-- Page/app composition files: **49** - of which **7** are still deferred.
-- Migrated to the v2 system so far: **88** across releases M2-M6 and the app shell.
+- Page/app composition files: **49** - of which **4** are still deferred.
+- Migrated to the v2 system so far: **100** across releases M2-M7 and the app shell.
 - Test files are excluded from inventory counts; tests are coverage evidence for their owning row.
 
 ### By category
@@ -37,9 +37,9 @@ This inventory is the migration ledger. A production page may adopt v2 only afte
 
 | Disposition | Files |
 | --- | ---: |
-| adapt | 13 |
-| deferred-page-migration | 7 |
-| migrated | 88 |
+| adapt | 4 |
+| deferred-page-migration | 4 |
+| migrated | 100 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
@@ -83,24 +83,24 @@ file; it leaves when the file does.
 | `src/features/about/components/AboutHero.tsx` | account-identity-pattern | migrated | M2 / horizon-blog-y2e | Surface (feature depth), Heading, Text, Eyebrow, Divider, Grid, Stack, ActionLink, useMotionPolicy | Paired themes at 375/768/1024/1440; ambient track stops under reduced motion; no compatibility-bridge token; track decisions in `aboutHero.logic.ts`, tested in `aboutHero.test.ts` |
 | `src/features/about/components/AboutStatCard.tsx` | account-identity-pattern | migrated | M2 / horizon-blog-y2e | Surface, Stack, Eyebrow, Heading, Text | Paired themes; long Vietnamese and English labels; no compatibility-bridge token. `Metric` rejected: every value is a phrase, not a number |
 | `src/features/about/pages/AboutPage.tsx` | page-composition | migrated | M2 / horizon-blog-y2e | ContentContainer, Section, Grid, Stack, Surface, Heading, Text, Eyebrow, Chip, ActionLink, ResponsiveImage, Reveal, Stagger | Paired themes at 375/768/1024/1440; portrait loading/absent/failed/retry through `ResponsiveImage`; reduced motion; no compatibility-bridge token |
-| `src/features/access-management/pages/AccessManagementPage.tsx` | page-composition | deferred-page-migration | page migration epic | AccessManagementPage | Consume completed v2 patterns after B6 gate |
+| `src/features/access-management/pages/AccessManagementPage.tsx` | page-composition | migrated | M7 / horizon-blog-y2e.6.3 | PermissionTable, DestructiveAction, ContentContainer, Section, Stack, Heading, Text, Eyebrow, EmptyState, ErrorState, PermissionState, RetryAction, PageLoading | Role select always shows `serverRole`, never the requested one; a role change stages a `DestructiveAction` confirm and only calls the server `onConfirm`, staying open with the server's message on a refusal; loading/denied/error/empty states on the list itself; no compatibility-bridge token |
 | `src/features/auth/pages/ForgotPasswordPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | ForgotPasswordPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/pages/LoginCallbackPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | LoginCallbackPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/pages/LoginPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | LoginPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/pages/RegisterPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | RegisterPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/pages/ResetPasswordPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | ResetPasswordPage | Consume completed v2 patterns after B6 gate |
 | `src/features/auth/pages/VerifyEmailPage.tsx` | page-composition | migrated | M5 / horizon-blog-y2e | VerifyEmailPage | Consume completed v2 patterns after B6 gate |
-| `src/features/author-analytics/components/AnalyticsDateRangeFilter.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 AnalyticsDateRangeFilter pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/AnalyticsInsightList.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 AnalyticsInsightList pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/AnalyticsMetricCard.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 AnalyticsMetricCard pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/AnalyticsReactionTrend.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 AnalyticsReactionTrend pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/AnalyticsTrendChart.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 AnalyticsTrendChart pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/BlogMetricsTable.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 BlogMetricsTable pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/LinkPerformanceTable.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 LinkPerformanceTable pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/ReaderProgressFunnel.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 ReaderProgressFunnel pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/components/TrafficSourceBreakdown.tsx` | data-admin-pattern | adapt | B5 / horizon-blog-dsv2.6.3 | v2 TrafficSourceBreakdown pattern | Loading/empty/error/partial/denied; responsive overflow |
-| `src/features/author-analytics/pages/AnalyticsOverviewPage.tsx` | page-composition | deferred-page-migration | page migration epic | AnalyticsOverviewPage | Consume completed v2 patterns after B6 gate |
-| `src/features/author-analytics/pages/BlogAnalyticsPage.tsx` | page-composition | deferred-page-migration | page migration epic | BlogAnalyticsPage | Consume completed v2 patterns after B6 gate |
+| `src/features/author-analytics/components/AnalyticsDateRangeFilter.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | DateRange pattern | Loading/empty/error/partial/denied via the pattern it wraps; responsive overflow; no compatibility-bridge token |
+| `src/features/author-analytics/components/AnalyticsInsightList.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | InsightList pattern | Loading/empty/error/partial/denied via the pattern it wraps; responsive overflow; no compatibility-bridge token |
+| `src/features/author-analytics/components/AnalyticsReactionTrend.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | MetricGrid and Trend patterns | Loading/empty/error/partial/denied via the patterns it wraps; responsive overflow; no compatibility-bridge token |
+| `src/features/author-analytics/components/AnalyticsSummaryMetrics.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | Metric, MetricGrid patterns | Supersedes `AnalyticsMetricCard.tsx` (removed); loading/denied/error/empty via `dataPanelState`, since `Metric` alone has no denied/error shape; approximate readers labelled via `metricValue`; no compatibility-bridge token |
+| `src/features/author-analytics/components/AnalyticsTrendChart.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | Trend pattern | Loading/empty/error/partial/denied via the pattern it wraps; partial-coverage notice via `assessCoverage`; no compatibility-bridge token |
+| `src/features/author-analytics/components/BlogMetricsTable.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | DataTable pattern | Loading/empty/error/partial/denied via the pattern it wraps; table scrolls within its own container at 320/375, never the document; no compatibility-bridge token |
+| `src/features/author-analytics/components/LinkPerformanceTable.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | DataTable pattern | Loading/empty/error/partial/denied via the pattern it wraps; responsive overflow; no compatibility-bridge token |
+| `src/features/author-analytics/components/ReaderProgressFunnel.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | Funnel pattern | Loading/empty/error/partial/denied via the pattern it wraps; zero-sample distinguished from loading/error via `assessSample`; no compatibility-bridge token |
+| `src/features/author-analytics/components/TrafficSourceBreakdown.tsx` | data-admin-pattern | migrated | M7 / horizon-blog-y2e.6.3 | Breakdown pattern | Loading/empty/error/partial/denied via the pattern it wraps; responsive overflow; no compatibility-bridge token |
+| `src/features/author-analytics/pages/AnalyticsOverviewPage.tsx` | page-composition | migrated | M7 / horizon-blog-y2e.6.3 | AnalyticsSummaryMetrics, AnalyticsTrendChart, AnalyticsInsightList, BlogMetricsTable, AnalyticsDateRangeFilter, ContentContainer, Section, Stack | Summary, trend, insights and table each carry independent loading/denied/error/empty state; approximate readers labelled via `metricValue`; table scrolls within its own container, never the document; no compatibility-bridge token |
+| `src/features/author-analytics/pages/BlogAnalyticsPage.tsx` | page-composition | migrated | M7 / horizon-blog-y2e.6.3 | AnalyticsSummaryMetrics, ReaderProgressFunnel, AnalyticsReactionTrend, LinkPerformanceTable, TrafficSourceBreakdown, AnalyticsInsightList, AnalyticsDateRangeFilter, ContentContainer, Section, Grid, Stack | One request backs every panel, so loading/denied/error are shared while each panel keeps its own zero-sample copy; no compatibility-bridge token |
 | `src/features/authors/components/AuthorArchiveHero.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | v2 AuthorArchiveHero pattern | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/authors/components/AuthorArchiveStoryListItem.tsx` | post-pattern | migrated | M3 / horizon-blog-y2e | v2 AuthorArchiveStoryListItem pattern | Long content; media states; hover/focus/touch; responsive themes |
 | `src/features/authors/pages/AuthorArchivePage.tsx` | page-composition | migrated | M3 / horizon-blog-y2e | AuthorArchivePage | Consume completed v2 patterns after B6 gate |

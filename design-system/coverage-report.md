@@ -26,9 +26,9 @@ Regenerate it rather than editing it.
 
 | Disposition | Rows |
 | --- | ---: |
-| adapt | 13 |
-| deferred-page-migration | 7 |
-| migrated | 88 |
+| adapt | 4 |
+| deferred-page-migration | 4 |
+| migrated | 100 |
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
