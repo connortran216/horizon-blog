@@ -23,7 +23,7 @@
  *   not signed in could not switch to dark at all.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Box, Flex, useDisclosure, useToast } from '@chakra-ui/react'
 import { FiMenu, FiX } from 'react-icons/fi'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
@@ -46,9 +46,11 @@ import '../../features/editor/editor.window'
 import UserMenu from './UserMenu'
 import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
+import { shouldCloseOnKey } from './navbar.logic'
 
 const Navbar = () => {
-  const { isOpen, onToggle } = useDisclosure()
+  const { isOpen, onToggle, onClose } = useDisclosure()
+  const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -73,6 +75,29 @@ const Navbar = () => {
     const interval = setInterval(checkEditorState, 1000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    // Only bound while the mobile menu is open, and torn down on close or
+    // unmount: a listener that outlived the menu would still be reachable
+    // (harmless in this handler, but the wrong lifecycle to build on) and
+    // would keep the check running on every keystroke for no reason.
+    if (!isOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (shouldCloseOnKey(event.key, isOpen)) {
+        onClose()
+        // Escape must hand focus back to the trigger it came from - the
+        // "predictable focus" half of US4 AC5 - rather than letting it fall
+        // to the document body.
+        menuTriggerRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   const handleLogout = async () => {
     if (isLoggingOut) {
@@ -188,6 +213,7 @@ const Navbar = () => {
           <Reveal trigger="mount">
             <Flex alignItems="center" gap={{ base: space[4], sm: space[8] }} minW={0}>
               <IconButton
+                ref={menuTriggerRef}
                 label={isOpen ? 'Close menu' : 'Open menu'}
                 tone="quiet"
                 icon={isOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
