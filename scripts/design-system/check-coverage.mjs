@@ -83,14 +83,30 @@ function parseInventory(markdown) {
 }
 
 /**
+ * True for anything React can render as a JSX tag: a plain function
+ * component, or an object React tags internally with a `$$typeof` symbol -
+ * `forwardRef`, `memo`, `context` (so `<Field>`'s `FieldContext` counts too),
+ * and any other special-case wrapper the barrel might start exporting later.
+ * `forwardRef()`/`memo()` return an object, not a function, so `typeof value
+ * === 'function'` alone silently drops every ref-forwarding component - this
+ * is what previously hid AppFrame, ContentContainer, Section, Stack, Grid,
+ * ProseMeasure, Surface, Text, Eyebrow, SectionLabel, and more from the count.
+ */
+function isComponentLike(value) {
+  if (typeof value === 'function') return true;
+  if (value && typeof value === 'object' && typeof value.$$typeof === 'symbol') return true;
+  return false;
+}
+
+/**
  * Components, as opposed to the logic functions and types that share the
- * barrel. The heuristic is deliberately simple - an exported function whose
- * name starts with a capital - and it is stated in the report so a reader can
- * judge it rather than trust it.
+ * barrel. The heuristic is deliberately simple - an exported name starting
+ * with a capital that is component-like per `isComponentLike` - and it is
+ * stated in the report so a reader can judge it rather than trust it.
  */
 function componentExports(module) {
   return Object.entries(module)
-    .filter(([name, value]) => /^[A-Z]/.test(name) && typeof value === 'function')
+    .filter(([name, value]) => /^[A-Z]/.test(name) && isComponentLike(value))
     .map(([name]) => name)
     .sort();
 }
@@ -251,8 +267,10 @@ async function main() {
     '2. **Ownership.** Every row that is not deferred to the page-migration epic names an owner',
     '   and a v2 target, and every compatibility alias states when it goes away.',
     '3. **Gallery.** Every component exported from `src/design-system/index.ts` appears in the',
-    '   gallery registry. "Component" here means an exported function whose name begins with a',
-    '   capital - a heuristic, stated so it can be judged rather than trusted.',
+    '   gallery registry. "Component" here means an exported name beginning with a capital that',
+    '   is either a function or an object React tags with a `$$typeof` symbol (forwardRef, memo,',
+    '   context, and similar wrappers) - a heuristic, stated so it can be judged rather than',
+    '   trusted.',
     '',
     '## Counts',
     '',

@@ -12,15 +12,17 @@ Regenerate it rather than editing it.
 2. **Ownership.** Every row that is not deferred to the page-migration epic names an owner
    and a v2 target, and every compatibility alias states when it goes away.
 3. **Gallery.** Every component exported from `src/design-system/index.ts` appears in the
-   gallery registry. "Component" here means an exported function whose name begins with a
-   capital - a heuristic, stated so it can be judged rather than trusted.
+   gallery registry. "Component" here means an exported name beginning with a capital that
+   is either a function or an object React tags with a `$$typeof` symbol (forwardRef, memo,
+   context, and similar wrappers) - a heuristic, stated so it can be judged rather than
+   trusted.
 
 ## Counts
 
 - Legacy UI files on disk: **127**
 - Ledger rows: **127**
-- Exported v2 components: **69**
-- Exported components demonstrated in the gallery: **69**
+- Exported v2 components: **107**
+- Exported components demonstrated in the gallery: **107**
 
 | Disposition | Rows |
 | --- | ---: |
