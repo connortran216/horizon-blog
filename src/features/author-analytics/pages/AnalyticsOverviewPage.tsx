@@ -82,7 +82,7 @@ const AnalyticsOverviewPage = () => {
         transform="translateX(-50%)"
         w={{ base: '92%', md: '76%' }}
         h="280px"
-        bg="action.glow"
+        bg="action.subtle"
         filter="blur(130px)"
         opacity={0.6}
         pointerEvents="none"
@@ -92,7 +92,7 @@ const AnalyticsOverviewPage = () => {
         <VStack align="stretch" spacing={{ base: 7, md: 9 }}>
           <Stack direction={{ base: 'column', md: 'row' }} justify="space-between" spacing={5}>
             <Box>
-              <Badge bg="bg.tertiary" color="text.secondary" borderRadius="full" mb={3}>
+              <Badge bg="bg.subtle" color="text.secondary" borderRadius="full" mb={3}>
                 Owner analytics
               </Badge>
               <Heading color="text.primary" letterSpacing="-0.04em">
@@ -103,7 +103,7 @@ const AnalyticsOverviewPage = () => {
                 workspace into a heavy dashboard.
               </Text>
             </Box>
-            <Text color="text.tertiary" fontSize="sm">
+            <Text color="text.muted" fontSize="sm">
               Fresh through {overview.dataFreshThrough || metrics.dataFreshThrough || 'loading'}
             </Text>
           </Stack>
@@ -181,11 +181,11 @@ const AnalyticsOverviewPage = () => {
             <Box
               border="1px solid"
               borderColor="border.subtle"
-              bg="bg.secondary"
+              bg="bg.surface"
               borderRadius="2xl"
               p={5}
             >
-              <Text color="text.tertiary">No analytics data for this range yet.</Text>
+              <Text color="text.muted">No analytics data for this range yet.</Text>
             </Box>
           )}
         </VStack>
@@ -204,7 +204,7 @@ const AnalyticsErrorPanel = ({
   const copy = getAnalyticsErrorCopy(error)
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={6}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={6}>
       <Heading size="sm" color="text.primary">
         {copy.title}
       </Heading>

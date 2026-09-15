@@ -147,7 +147,7 @@ export const AnimatedPrimaryButton = ({
             bg: componentTokens.control.solidBg,
             color: componentTokens.control.solidFg,
             _hover: { bg: componentTokens.control.solidHoverBg },
-            _active: { bg: 'action.active' },
+            _active: { bg: 'action.hover' },
           }
         : {})}
       {...props}

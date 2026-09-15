@@ -10,7 +10,7 @@ interface AnalyticsInsightListProps {
 
 const AnalyticsInsightList = ({ insights, title = 'Insights' }: AnalyticsInsightListProps) => {
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <HStack justify="space-between" align="start" mb={4}>
         <Box>
           <Text color="text.primary" fontWeight="semibold">
@@ -20,13 +20,13 @@ const AnalyticsInsightList = ({ insights, title = 'Insights' }: AnalyticsInsight
             Evidence-backed notes from the backend contract.
           </Text>
         </Box>
-        <Badge bg="bg.tertiary" color="text.secondary" borderRadius="full">
+        <Badge bg="bg.subtle" color="text.secondary" borderRadius="full">
           Cautious
         </Badge>
       </HStack>
 
       {insights.length === 0 ? (
-        <Text color="text.tertiary" fontSize="sm">
+        <Text color="text.muted" fontSize="sm">
           No qualifying insights for this range yet.
         </Text>
       ) : (
@@ -35,11 +35,11 @@ const AnalyticsInsightList = ({ insights, title = 'Insights' }: AnalyticsInsight
             const evidence = formatInsightEvidence(insight)
 
             return (
-              <ListItem key={insight.code} borderRadius="xl" bg="bg.tertiary" p={4}>
+              <ListItem key={insight.code} borderRadius="xl" bg="bg.subtle" p={4}>
                 <Text color="text.primary" fontWeight="medium">
                   {insight.message}
                 </Text>
-                <Text color="text.tertiary" fontSize="sm" mt={1}>
+                <Text color="text.muted" fontSize="sm" mt={1}>
                   {evidence.sampleLabel}
                 </Text>
                 {evidence.evidenceLabels.length > 0 ? (

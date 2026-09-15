@@ -20,7 +20,7 @@ interface LinkPerformanceTableProps {
 
 const LinkPerformanceTable = ({ links }: LinkPerformanceTableProps) => {
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <HStack justify="space-between" mb={4} align="start">
         <Box>
           <Text fontWeight="semibold" color="text.primary">
@@ -33,7 +33,7 @@ const LinkPerformanceTable = ({ links }: LinkPerformanceTableProps) => {
       </HStack>
 
       {links.length === 0 ? (
-        <Text color="text.tertiary" fontSize="sm">
+        <Text color="text.muted" fontSize="sm">
           No link clicks in this range.
         </Text>
       ) : (
@@ -54,12 +54,12 @@ const LinkPerformanceTable = ({ links }: LinkPerformanceTableProps) => {
                     <Text color="text.primary" fontWeight="medium" noOfLines={1}>
                       {link.label || link.url}
                     </Text>
-                    <Text color="text.tertiary" fontSize="xs" noOfLines={1}>
+                    <Text color="text.muted" fontSize="xs" noOfLines={1}>
                       {link.url}
                     </Text>
                   </Td>
                   <Td>
-                    <Badge bg="bg.tertiary" color="text.secondary">
+                    <Badge bg="bg.subtle" color="text.secondary">
                       {link.kind}
                     </Badge>
                   </Td>

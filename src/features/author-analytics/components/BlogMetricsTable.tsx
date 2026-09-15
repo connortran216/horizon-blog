@@ -50,7 +50,7 @@ const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetri
   const rangeQuery = serializeAnalyticsRange(range).toString()
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <HStack justify="space-between" align="start" mb={4} gap={4}>
         <Box>
           <Text color="text.primary" fontWeight="semibold">
@@ -60,7 +60,7 @@ const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetri
             Compare blogs by reach, completion, active reading, and reactions.
           </Text>
         </Box>
-        <Badge bg="bg.tertiary" color="text.secondary" borderRadius="full">
+        <Badge bg="bg.subtle" color="text.secondary" borderRadius="full">
           {order === 'asc' ? 'Ascending' : 'Descending'}
         </Badge>
       </HStack>
@@ -105,7 +105,7 @@ const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetri
                     <Text color="text.primary" fontWeight="medium" noOfLines={2}>
                       {blog.title}
                     </Text>
-                    <Text color="text.tertiary" fontSize="xs">
+                    <Text color="text.muted" fontSize="xs">
                       {formatAnalyticsInteger(blog.linkClicks)} link clicks ·{' '}
                       {formatAnalyticsInteger(blog.shares)} shares ·{' '}
                       {formatAnalyticsInteger(blog.activeHeartCount)} active hearts

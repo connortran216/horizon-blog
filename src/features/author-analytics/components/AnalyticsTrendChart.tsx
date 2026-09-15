@@ -17,13 +17,13 @@ const AnalyticsTrendChart = ({ title, points, metric = 'views' }: AnalyticsTrend
   const latest = chartPoints.length > 0 ? chartPoints[chartPoints.length - 1] : undefined
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
+    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
       <VStack align="stretch" spacing={4}>
         <HStack justify="space-between" align="baseline">
           <Text fontWeight="semibold" color="text.primary">
             {title}
           </Text>
-          <Text fontSize="sm" color="text.tertiary">
+          <Text fontSize="sm" color="text.muted">
             {latest ? `Latest: ${latest.value}` : 'No trend yet'}
           </Text>
         </HStack>

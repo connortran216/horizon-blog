@@ -22,7 +22,7 @@ const AnalyticsDateRangeFilter = ({ range, onRangeChange }: AnalyticsDateRangeFi
       justify="space-between"
       border="1px solid"
       borderColor="border.subtle"
-      bg="bg.secondary"
+      bg="bg.surface"
       borderRadius="2xl"
       p={4}
     >
@@ -31,7 +31,7 @@ const AnalyticsDateRangeFilter = ({ range, onRangeChange }: AnalyticsDateRangeFi
           <Button
             key={preset.value}
             color="text.secondary"
-            bg="bg.tertiary"
+            bg="bg.subtle"
             _hover={{ bg: 'action.subtle', color: 'text.primary' }}
             onClick={() => onRangeChange(createAnalyticsRangePreset(preset.value))}
           >
@@ -41,7 +41,7 @@ const AnalyticsDateRangeFilter = ({ range, onRangeChange }: AnalyticsDateRangeFi
       </ButtonGroup>
 
       <HStack spacing={3} align="center">
-        <Text fontSize="sm" color="text.tertiary">
+        <Text fontSize="sm" color="text.muted">
           UTC
         </Text>
         <Input

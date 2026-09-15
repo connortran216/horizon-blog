@@ -32,12 +32,7 @@ const AccessManagementPage = () => {
     <Container maxW="container.lg" py={{ base: 10, md: 16 }}>
       <Stack spacing={8}>
         <Stack spacing={2}>
-          <Text
-            color="text.tertiary"
-            textTransform="uppercase"
-            letterSpacing="0.14em"
-            fontSize="sm"
-          >
+          <Text color="text.muted" textTransform="uppercase" letterSpacing="0.14em" fontSize="sm">
             Administration
           </Text>
           <Heading color="text.primary">Access management</Heading>
@@ -62,7 +57,7 @@ const AccessManagementPage = () => {
 
         <Box
           overflowX="auto"
-          bg="bg.secondary"
+          bg="bg.surface"
           border="1px solid"
           borderColor="border.subtle"
           borderRadius="2xl"

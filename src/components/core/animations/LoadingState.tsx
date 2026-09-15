@@ -71,9 +71,9 @@ export const LoadingSignal = ({ size = 'md' }: LoadingSignalProps) => {
             borderRadius: '999px',
             transformOrigin: 'center bottom',
             background:
-              'linear-gradient(180deg, var(--chakra-colors-loading-stroke) 0%, var(--chakra-colors-action-primary) 100%)',
+              'linear-gradient(180deg, var(--chakra-colors-loading-indicator) 0%, var(--chakra-colors-action-primary) 100%)',
             boxShadow:
-              '0 0 0 1px var(--chakra-colors-loading-track), 0 12px 28px var(--chakra-colors-loading-glow)',
+              '0 0 0 1px var(--chakra-colors-loading-track), 0 12px 28px var(--chakra-colors-action-subtle)',
           }}
         />
       ))}
@@ -132,7 +132,7 @@ export const LoadingState = ({
         <Box
           position="absolute"
           inset="-20%"
-          bg="loading.glow"
+          bg="action.subtle"
           filter="blur(32px)"
           opacity={0.9}
           pointerEvents="none"
@@ -146,7 +146,7 @@ export const LoadingState = ({
         borderRadius="full"
         border="1px solid"
         borderColor="border.subtle"
-        bg="bg.glass"
+        bg="bg.elevated"
         backdropFilter="blur(18px)"
         boxShadow="0 18px 44px rgba(0, 0, 0, 0.14)"
       >
@@ -176,7 +176,7 @@ export const LoadingState = ({
       border={isPanel ? '1px solid' : undefined}
       borderColor={isPanel ? 'border.subtle' : undefined}
       borderRadius={isPanel ? '3xl' : undefined}
-      bg={isPanel ? 'bg.glass' : undefined}
+      bg={isPanel ? 'bg.elevated' : undefined}
       backdropFilter={isPanel ? 'blur(18px)' : undefined}
       boxShadow={isPanel ? '0 20px 44px rgba(0, 0, 0, 0.22)' : undefined}
       {...rest}

@@ -74,7 +74,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         {paginationRange.map((pageNumber, index) => {
           if (pageNumber === '...') {
             return (
-              <Text key={`dots-${index}`} color="text.tertiary" fontSize="sm" userSelect="none">
+              <Text key={`dots-${index}`} color="text.muted" fontSize="sm" userSelect="none">
                 ...
               </Text>
             )
@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               size="sm"
               variant={isCurrentPage ? 'solid' : 'ghost'}
               colorScheme="gray"
-              bg={isCurrentPage ? 'accent.primary' : undefined}
+              bg={isCurrentPage ? 'action.primary' : undefined}
               color={isCurrentPage ? 'text.onAction' : undefined}
               onClick={() => handlePageChange(pageNum)}
               variants={buttonVariants}
