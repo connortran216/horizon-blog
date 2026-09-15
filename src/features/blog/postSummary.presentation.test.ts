@@ -71,11 +71,61 @@ describe('coverSourcesFrom', () => {
 describe('postCoverFrom', () => {
   it('describes the cover with the post title', () => {
     expect(postCoverFrom(media, 'Indexes first', '50vw')).toEqual({
-      src: 'https://cdn.example.com/cover-1200.png',
+      src: 'https://cdn.example.com/cover-600.png',
       sources: [{ src: 'https://cdn.example.com/cover-600.png', width: 600 }],
       sizes: '50vw',
       alt: 'Indexes first',
     })
+  })
+
+  it('falls back to the smallest resized variant, not the raw upload, for src', () => {
+    // The `src` a browser without `srcset` support - and any crawler - is
+    // guaranteed to fetch has to be a real, already-resized image. `media.url`
+    // here stands in for the resolved record's canonical URL, which can be
+    // the original, multi-megabyte upload; it must lose to the 320w variant.
+    const multiVariantMedia: ResolvedMediaSource = {
+      id: 'm4',
+      url: 'https://cdn.example.com/original-2mb.png',
+      variants: [
+        {
+          url: 'https://cdn.example.com/cover-1200.webp',
+          mimeType: 'image/webp',
+          sizeBytes: 1,
+          height: 1,
+          width: 1200,
+        },
+        {
+          url: 'https://cdn.example.com/cover-320.webp',
+          mimeType: 'image/webp',
+          sizeBytes: 1,
+          height: 1,
+          width: 320,
+        },
+        {
+          url: 'https://cdn.example.com/cover-640.webp',
+          mimeType: 'image/webp',
+          sizeBytes: 1,
+          height: 1,
+          width: 640,
+        },
+      ],
+    }
+
+    expect(postCoverFrom(multiVariantMedia, 'Indexes first')?.src).toBe(
+      'https://cdn.example.com/cover-320.webp',
+    )
+  })
+
+  it('falls back to the raw URL only when there is no resized variant to prefer', () => {
+    const noVariantMedia: ResolvedMediaSource = {
+      id: 'm5',
+      url: 'https://cdn.example.com/avatar.png',
+      variants: [],
+    }
+
+    expect(postCoverFrom(noVariantMedia, 'Indexes first')?.src).toBe(
+      'https://cdn.example.com/avatar.png',
+    )
   })
 
   it('is null when there is no artwork, so the absent state is reachable', () => {
@@ -108,7 +158,7 @@ describe('toPostSummary', () => {
     expect(summary.href).toBe(toPublicPostPath(42))
     expect(summary.title).toBe('Indexes first')
     expect(summary.excerpt).toBe('Start with the read path.')
-    expect(summary.cover?.src).toBe('https://cdn.example.com/cover-1200.png')
+    expect(summary.cover?.src).toBe('https://cdn.example.com/cover-600.png')
     expect(summary.tags).toEqual(['database'])
     expect(summary.metadata.author).toEqual({
       name: 'Connor Tran',
