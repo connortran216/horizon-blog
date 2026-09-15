@@ -8,12 +8,12 @@
  * the hand-built `FormControl`/`FormLabel`/`FormHelperText` title field and the
  * permission `Alert`.
  *
- * Presentation only. Autosave timing, the local backup, draft loading and its
- * authorisation check, the media lifecycle inside Crepe, the publish handoff
- * through `window.editorState` and every route this page can take are byte for
- * byte what they were.
+ * Presentation only, with one addition: draft recovery. Autosave timing, draft
+ * loading and its authorisation check, the media lifecycle inside Crepe, the
+ * publish handoff through `window.editorState` and every route this page can
+ * take are byte for byte what they were.
  *
- * Two composition notes worth knowing before changing anything here:
+ * Three composition notes worth knowing before changing anything here:
  *
  * - There is no publish button on this page and there never was. The navbar
  *   reads `window.editorState.handlePublish`, so adding an action to the
@@ -22,6 +22,10 @@
  *   `autosaveState` treats a lost permission as the strongest state there is,
  *   announces it assertively, and its detail sentence already tells the author
  *   their draft is kept in this browser.
+ * - `useDraftRecovery` decides whether `blog_draft_backup` is worth offering
+ *   back for the post open here; `restoreNonce` exists only to force Crepe to
+ *   remount when the author accepts, since it reads `initialContent` once, at
+ *   mount, and never again.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -45,11 +49,13 @@ import { ApiError } from '../../../core/services/api.service'
 import { useAutoSave } from '../hooks/useAutoSave'
 import { useBlogPost } from '../hooks/useBlogPost'
 import { useConnectionStatus } from '../hooks/useConnectionStatus'
+import { useDraftRecovery } from '../hooks/useDraftRecovery'
 import { useEditorContent } from '../hooks/useEditorContent'
 import { autosaveIndicator, workspaceFooter } from '../editor-status.utils'
 import EditorTagField from '../components/EditorTagField'
 import EditorWorkspace from '../components/EditorWorkspace'
 import ActiveScheduleNotice from '../components/ActiveScheduleNotice'
+import DraftRecoveryNotice from '../components/DraftRecoveryNotice'
 import '../editor.window'
 
 const BlogEditorPage = () => {
@@ -86,6 +92,47 @@ const BlogEditorPage = () => {
     postId,
     { onPermissionLost: refreshUserProfile },
   )
+
+  /*
+   * `postId` here, not `autoSave.currentPostId` - the former only reflects the
+   * URL/router-provided post and stays fixed for this mount, while the latter
+   * is mutated by this session's own first autosave when the draft is brand
+   * new. Keying the recovery decision on a value this session itself changes
+   * would make an already-offered banner disappear mid-interaction the moment
+   * that first save landed.
+   */
+  const draftRecovery = useDraftRecovery({
+    rawBackup: autoSave.localBackupSnapshot,
+    postId,
+    serverSavedAt: post?.updated_at,
+    isLoading,
+  })
+
+  // The Crepe instance only reads `initialContent` once, at mount - bumping
+  // this remounts it (via `editorKey` below) so a restored backup actually
+  // appears in the writing surface, the same way switching posts already does.
+  const [restoreNonce, setRestoreNonce] = useState(0)
+
+  const handleRestoreDraft = useCallback(() => {
+    const backup = draftRecovery.backup
+    if (!backup) return
+
+    editorContent.setTitle(backup.title)
+    editorContent.setContentMarkdown(backup.contentMarkdown)
+    editorContent.setContentJSON(backup.contentJSON)
+    editorContent.setTags([...backup.tags])
+    setRestoreNonce((n) => n + 1)
+    draftRecovery.resolve()
+    // The backup's content now lives in the editor's own state; keeping the
+    // old copy around would only invite the same offer again on next load,
+    // once this restored content is itself backed up a second later.
+    autoSave.clearLocalStorage()
+  }, [autoSave, draftRecovery, editorContent])
+
+  const handleDiscardDraft = useCallback(() => {
+    draftRecovery.resolve()
+    autoSave.clearLocalStorage()
+  }, [autoSave, draftRecovery])
 
   const ensurePostId = useCallback(async (): Promise<number | null> => {
     if (autoSave.currentPostId) return autoSave.currentPostId
@@ -169,23 +216,33 @@ const BlogEditorPage = () => {
             mode={mode}
             onModeChange={changeMode}
             isPreviewMounted={isPreviewMounted}
-            editorKey={postId || autoSave.currentPostId || 'new-post'}
+            editorKey={`${postId || autoSave.currentPostId || 'new-post'}:${restoreNonce}`}
             initialContent={editorContent.contentMarkdown}
             previewContent={editorContent.contentMarkdown}
             postId={autoSave.currentPostId}
             ensurePostId={ensurePostId}
             onEditorChange={editorContent.handleEditorChange}
             banner={
-              scheduledAt ? (
-                <ActiveScheduleNotice
-                  scheduledAt={scheduledAt}
-                  onManage={() =>
-                    navigate(`/blog-editor/publish?id=${post?.id}&mode=schedule`, {
-                      state: { authorizedEdit: true },
-                    })
-                  }
-                />
-              ) : undefined
+              <>
+                {scheduledAt ? (
+                  <ActiveScheduleNotice
+                    scheduledAt={scheduledAt}
+                    onManage={() =>
+                      navigate(`/blog-editor/publish?id=${post?.id}&mode=schedule`, {
+                        state: { authorizedEdit: true },
+                      })
+                    }
+                  />
+                ) : null}
+                {draftRecovery.offersRecovery && draftRecovery.headline && draftRecovery.detail ? (
+                  <DraftRecoveryNotice
+                    headline={draftRecovery.headline}
+                    detail={draftRecovery.detail}
+                    onRestore={handleRestoreDraft}
+                    onDiscard={handleDiscardDraft}
+                  />
+                ) : null}
+              </>
             }
             status={
               <AutosaveState
