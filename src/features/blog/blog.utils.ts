@@ -1,16 +1,9 @@
+import { slugifyAuthorName } from '../../core/utils/author-slug.utils'
 import {
   buildExcerptFromMarkdown,
   extractPreviewText,
 } from '../../core/utils/markdown-preview.utils'
 import { BlogArchiveOwner, BlogArchivePost } from './blog.types'
-
-const slugifyAuthorName = (name: string) =>
-  name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 
 export const extractFirstImageUrl = (content: string): string | undefined => {
   if (!content) return undefined
@@ -82,14 +75,8 @@ export const getAuthorArchivePath = (authorId?: number | null, authorName?: stri
   return slug ? `/authors/${slug}` : `/authors/${authorId}`
 }
 
-export const getAuthorArchiveState = (authorId?: number | null) =>
-  typeof authorId === 'number' && Number.isFinite(authorId) ? { authorId } : undefined
-
 export const getPostAuthorArchivePath = (post: BlogArchivePost) =>
   getAuthorArchivePath(getPostAuthorId(post), getPostAuthorName(post))
-
-export const getPostAuthorArchiveState = (post: BlogArchivePost) =>
-  getAuthorArchiveState(getPostAuthorId(post))
 
 export const formatArchiveDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString('en-US', {

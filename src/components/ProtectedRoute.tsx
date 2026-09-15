@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) =
     return (
       <Container maxW="container.md" py={{ base: 16, md: 24 }}>
         <Box
-          bg="bg.secondary"
+          bg="bg.surface"
           border="1px solid"
           borderColor="border.subtle"
           borderRadius="2xl"
@@ -50,7 +50,7 @@ const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) =
               as={RouterLink}
               to="/"
               bg="action.primary"
-              color="white"
+              color="text.onAction"
               _hover={{ bg: 'action.hover' }}
             >
               Return home

@@ -1,5 +1,9 @@
 # Component Recipes
 
+> The v2 contract and ownership model live in [`DESIGN.md`](../../DESIGN.md), with every legacy
+> implementation tracked in [`component-inventory.md`](../component-inventory.md). Recipes below
+> describe current production behavior until v2 coverage is complete.
+
 This file defines the reusable component system for Horizon Blog.
 
 Use this document to decide:

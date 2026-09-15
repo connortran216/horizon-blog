@@ -1,12 +1,28 @@
-import { Box, HStack, Text, VStack } from '@chakra-ui/react'
-import { AnalyticsReactionTrendPoint } from '../author-analytics.types'
-import { formatAnalyticsInteger } from '../author-analytics.format'
+/**
+ * Reaction movement for a single blog - hearts added and removed - composed
+ * from `MetricGrid` for the two totals and `Trend` for the daily shape.
+ *
+ * `Trend` plots one series. Rather than force two lines through a pattern that
+ * draws exactly one, this keeps the totals as the two numbers an author
+ * actually compares ("added" vs "removed") and lets the line show the net
+ * change per day, which is the shape a reader cannot get from the totals alone.
+ */
 
-interface AnalyticsReactionTrendProps {
+import { MetricGrid, Metric, Stack, Trend, type DataPanelStateInput } from '../../../design-system'
+import { AnalyticsReactionTrendPoint } from '../author-analytics.types'
+
+interface AnalyticsReactionTrendProps extends DataPanelStateInput {
   points: AnalyticsReactionTrendPoint[]
+  deniedDetail?: string
 }
 
-const AnalyticsReactionTrend = ({ points }: AnalyticsReactionTrendProps) => {
+const AnalyticsReactionTrend = ({
+  points,
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: AnalyticsReactionTrendProps) => {
   const totals = points.reduce(
     (sum, point) => ({
       added: sum.added + point.heartsAdded,
@@ -16,46 +32,25 @@ const AnalyticsReactionTrend = ({ points }: AnalyticsReactionTrendProps) => {
   )
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.secondary" borderRadius="2xl" p={5}>
-      <VStack align="stretch" spacing={4}>
-        <Box>
-          <Text fontWeight="semibold" color="text.primary">
-            Reaction movement
-          </Text>
-          <Text fontSize="sm" color="text.secondary">
-            Hearts added and removed during the selected range.
-          </Text>
-        </Box>
-
-        <HStack spacing={4}>
-          <ReactionTotal label="Added" value={totals.added} />
-          <ReactionTotal label="Removed" value={totals.removed} />
-        </HStack>
-
-        <VStack align="stretch" spacing={2}>
-          {points.slice(-7).map((point) => (
-            <HStack key={point.date} justify="space-between" fontSize="sm">
-              <Text color="text.secondary">{point.date}</Text>
-              <Text color="text.tertiary">
-                +{point.heartsAdded} / -{point.heartsRemoved}
-              </Text>
-            </HStack>
-          ))}
-        </VStack>
-      </VStack>
-    </Box>
+    <Stack gap={4}>
+      <MetricGrid columns={2}>
+        <Metric label="Hearts added" value={totals.added} isLoading={isLoading} />
+        <Metric label="Hearts removed" value={totals.removed} isLoading={isLoading} />
+      </MetricGrid>
+      <Trend
+        title="Net reaction change"
+        detail="Hearts added minus hearts removed, per day."
+        points={points.map((point) => ({
+          label: point.date,
+          value: point.heartsAdded - point.heartsRemoved,
+        }))}
+        isLoading={isLoading}
+        deniedAction={deniedAction}
+        deniedDetail={deniedDetail}
+        failedAction={failedAction}
+      />
+    </Stack>
   )
 }
-
-const ReactionTotal = ({ label, value }: { label: string; value: number }) => (
-  <Box flex={1} borderRadius="xl" bg="bg.tertiary" p={4}>
-    <Text fontSize="xs" color="text.tertiary" textTransform="uppercase" letterSpacing="0.08em">
-      {label}
-    </Text>
-    <Text color="text.primary" fontSize="2xl" fontWeight="bold">
-      {formatAnalyticsInteger(value)}
-    </Text>
-  </Box>
-)
 
 export default AnalyticsReactionTrend

@@ -1,11 +1,16 @@
 /**
- * CrepeEditor Component
+ * CrepeEditor - the writing surface.
  *
- * A WYSIWYG markdown editor built on Crepe (@milkdown/crepe).
- * Features:
- * - Rich-text editing with live preview
- * - Custom syntax conversion (wiki links, hashtags)
- * - Theme integration with Obsidian design system
+ * A WYSIWYG markdown editor built on Crepe (@milkdown/crepe). Rich-text
+ * editing, wiki-link and hashtag conversion, mermaid previews and CodeMirror
+ * code blocks all belong to Crepe and are untouched by the v2 migration.
+ *
+ * What the migration changed is the frame: this component no longer draws a
+ * border, a radius, a shadow or a backdrop of its own. One visual owner per
+ * surface - inside the editor that owner is `WorkspaceShell`, and inside the
+ * reader it is `Prose`. Drawing a second card here put a bordered panel inside
+ * a bordered panel and gave the read-only article a 500px-tall glass box it had
+ * no use for.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,7 +19,11 @@ import { editorViewCtx, parserCtx } from '@milkdown/core'
 import type { EditorView } from '@milkdown/prose/view'
 import type { Node as ProseMirrorNode } from '@milkdown/prose/model'
 import { Box, useColorMode, useToast } from '@chakra-ui/react'
+import { space } from '../../theme/tokens'
 import { CREPE_CONFIG } from '../../config/crepe.config'
+import { crepeFeatures, crepeSurface, readingCodeMirrorExtensions } from './crepe.features'
+import { useCrepeCodeScrollFade } from './crepe.presentation'
+import { horizonSyntaxExtensions } from './crepe.syntax'
 import { parseWikiLinks } from './plugins/wikiLinkPlugin'
 import { parseHashtags } from './plugins/hashtagPlugin'
 import { createMermaidFeatureConfigs } from './mermaid'
@@ -37,6 +46,17 @@ import '@milkdown/crepe/theme/common/style.css'
 import './crepe-theme.css'
 
 const headingSelector = 'h1, h2, h3, h4, h5, h6'
+
+/**
+ * The blank writing area's minimum height, derived from the spacing scale.
+ *
+ * The token source has no editor-canvas height - the tallest thing on it is
+ * `space[24]` (96px), which is a gap between blocks rather than the size of a
+ * page of writing. Multiplying the largest step is how this stays traceable to
+ * the scale instead of becoming another bare pixel value; the missing token is
+ * reported rather than invented here.
+ */
+const editorCanvasMinHeight = `calc(${space[24]} * 5)`
 
 const decodeHash = (hash: string): string => {
   try {
@@ -155,6 +175,10 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
   const toast = useToast()
   const mermaidTheme = colorMode === 'dark' ? 'dark' : 'neutral'
 
+  // Keeps every fenced block's `.cm-scroller` edge fade current - see
+  // `useCrepeCodeScrollFade` for why this cannot be `Prose`'s own sweep.
+  useCrepeCodeScrollFade(editorRef)
+
   const applyHeadingAnchors = useCallback(() => {
     if (!readOnly || !editorRef.current) {
       return
@@ -243,9 +267,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       throw new Error('Unsupported media format. Allowed: JPEG, PNG, WebP, SVG')
     }
   }
-
-  const editorRadius = { base: '2xl', md: '3xl' } as const
-  const surfaceShadow = '0 4px 8px 0 rgba(0, 0, 0, 0.25)'
 
   const handleMermaidPreviewClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target
@@ -383,16 +404,71 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
       // Convert custom syntax (wiki links, hashtags) to standard markdown
       const convertedContent = parseWikiLinks(parseHashtags(resolvedInitialContent))
 
-      // Create Crepe instance with Phase 1 features
-      const features = {
-        [CrepeFeature.Toolbar]: CREPE_CONFIG.features.toolbar,
-        [CrepeFeature.CodeMirror]: CREPE_CONFIG.features.codeBlocks,
-        [CrepeFeature.BlockEdit]: true,
-        [CrepeFeature.LinkTooltip]: true,
-        [CrepeFeature.Cursor]: false,
-        [CrepeFeature.ListItem]: true,
-        [CrepeFeature.Table]: CREPE_CONFIG.features.tables,
-        ...(CREPE_CONFIG.features.imageBlock ? { [CrepeFeature.ImageBlock]: true } : {}),
+      // A reading surface and a writing surface are two different builds, not
+      // one build with a flag flipped afterwards. See `crepe.features.ts`.
+      const features = crepeFeatures(crepeSurface(readOnly))
+
+      const mermaidConfigs: Partial<ReturnType<typeof createMermaidFeatureConfigs>> = CREPE_CONFIG
+        .features.mermaid
+        ? createMermaidFeatureConfigs({
+            defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
+            previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
+            readOnly,
+            theme: mermaidTheme,
+          })
+        : {}
+
+      /*
+       * One CodeMirror config, merged rather than spread twice: the mermaid
+       * preview owns the same feature key, so two separate spreads would leave
+       * whichever came last silently deleting the other's fields.
+       *
+       * ProseMirror's editable flag stops at the code block's boundary - each
+       * fenced block is its own CodeMirror editor - so a reading surface has to
+       * hand it the facets that own `contenteditable` itself.
+       */
+      const codeMirrorConfig = {
+        ...(mermaidConfigs[CrepeFeature.CodeMirror] || {}),
+        /*
+         * See `horizon-blog-s6q`. Two independent bugs kept every span in
+         * One Dark, then in CodeMirror's own generic palette; both are now
+         * fixed and verified in-browser (every `code.syntax.*` colour reads
+         * >= 4.5:1 on `bg.code`, light and dark).
+         *
+         * Bug 1 - One Dark always won. `Crepe`'s constructor calls
+         * `defaultsDeep(featureConfigs, defaultConfig)` (lodash), and
+         * `defaultConfig[CrepeFeature.CodeMirror].theme` is `oneDark`. This
+         * feature's config used to never set `theme` at all - only
+         * `extensions` - so `defaultsDeep` saw the key entirely missing on
+         * our side and copied `oneDark` onto `finalConfig.theme` untouched;
+         * Crepe's own `feature/code-mirror` then unconditionally pushes
+         * `theme` onto the extension list. Fix: hand our extension over AS
+         * `theme` instead, so `defaultsDeep` has nothing left to fill in.
+         *
+         * Bug 2 - even with One Dark gone, no span got one of our eight
+         * classes; it fell through to CodeMirror's own `defaultHighlightStyle`
+         * (a fixed, non-theme-aware palette that failed the floor in both
+         * modes). Root cause: this project's own `package.json` entry for
+         * `@codemirror/language` (`^6.12.1`) resolved independently to
+         * `6.12.4`, while every other consumer in the tree - `@milkdown/
+         * crepe`, every `@codemirror/lang-*` package, the `codemirror` meta-
+         * package, `@codemirror/theme-one-dark` - resolved the same range to
+         * `6.12.1` (`@codemirror/state`, `@codemirror/view` and `@lezer/
+         * highlight` were all singly-resolved; only `@codemirror/language`
+         * was split). Each copy owns its own private, unexported
+         * `highlighterFacet` (`Facet.define()` at module scope) - two
+         * different objects. `horizonHighlightStyle` registered against the
+         * 6.12.4 copy's facet, but the code block's actual rendering ran on
+         * `basicSetup`/`@codemirror/lang-javascript`, bound to the 6.12.1
+         * copy, whose `treeHighlighter` queried a `highlighterFacet` our
+         * style was never added to. Fixed by pinning this project's
+         * `@codemirror/language` dependency to the exact version the rest of
+         * the tree already used (`package.json`/`yarn.lock`, outside
+         * `src/components/editor/`) so only one copy - and one
+         * `highlighterFacet` - exists.
+         */
+        theme: horizonSyntaxExtensions(),
+        extensions: readOnly ? readingCodeMirrorExtensions() : [],
       }
 
       const crepe = new Crepe({
@@ -404,14 +480,8 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
           [CrepeFeature.Placeholder]: {
             text: placeholder || CREPE_CONFIG.behavior.placeholder,
           },
-          ...(CREPE_CONFIG.features.mermaid
-            ? createMermaidFeatureConfigs({
-                defaultTemplate: CREPE_CONFIG.mermaid.defaultTemplate,
-                previewLoadingText: CREPE_CONFIG.mermaid.previewLoadingText,
-                readOnly,
-                theme: mermaidTheme,
-              })
-            : {}),
+          ...mermaidConfigs,
+          [CrepeFeature.CodeMirror]: codeMirrorConfig,
           ...(CREPE_CONFIG.features.imageBlock
             ? {
                 [CrepeFeature.ImageBlock]: {
@@ -452,6 +522,14 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             : {}),
         },
       })
+
+      // Before `create()`, not after. Crepe's `editable` option reads this flag
+      // live, so setting it here means the first render is already non-editable
+      // and every node view is constructed for reading. Setting it afterwards
+      // leaves a document full of node views that were built to be edited.
+      if (readOnly) {
+        crepe.setReadonly(true)
+      }
 
       // Set up change listener using Crepe's on method before creating
       if (onChange) {
@@ -531,11 +609,6 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
             }
           }, 0)
 
-          // Set readonly mode if specified
-          if (readOnly) {
-            crepe.setReadonly(true)
-          }
-
           const applyFormAttrs = () => {
             const editorInput = editorRef.current?.querySelector('[role="textbox"]')
             if (editorInput) {
@@ -581,7 +654,11 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
         crepeRef.current = null
       }
     }
-  }, [applyHeadingAnchors, mermaidTheme])
+    // `readOnly` is a dependency, not a runtime toggle: the two surfaces are
+    // built from different feature sets and their node views read the editable
+    // flag once, in their constructors, so switching surfaces means building a
+    // new editor rather than flipping a flag on the old one.
+  }, [applyHeadingAnchors, mermaidTheme, readOnly])
 
   // Update content when initialContent changes (e.g., edit existing post after async load)
   useEffect(() => {
@@ -595,43 +672,32 @@ export const CrepeEditor: React.FC<CrepeEditorProps> = ({
     })
   }, [initialContent, syncExternalContent])
 
-  // Update readonly state when prop changes
-  useEffect(() => {
-    if (isEditorReadyRef.current && crepeRef.current) {
-      crepeRef.current.setReadonly(readOnly)
-    }
-  }, [readOnly])
-
   return (
     <>
       <Box
         ref={editorRef}
-        bg="bg.glass"
-        borderWidth="1px"
-        borderColor="border.subtle"
-        borderRadius={editorRadius}
-        backdropFilter="blur(18px)"
-        boxShadow={surfaceShadow}
+        /*
+         * No border, radius, shadow or background: `WorkspaceShell` owns the
+         * panel in the editor and `Prose` owns the frame in the reader. The
+         * focus ring is the global `*:focus-visible` rule on the ProseMirror
+         * surface itself, which is the thing that actually receives focus.
+         */
         overflow="visible"
-        minH="500px"
+        // A writing surface needs a target big enough to click into before a
+        // word is typed. There is no editor-canvas height token, so this is
+        // derived from the spacing scale rather than written as a bare pixel
+        // value. Read-only use (the reader) sizes itself to its content.
+        minH={readOnly ? undefined : editorCanvasMinHeight}
         className="crepe-editor-wrapper"
         data-readonly={readOnly ? 'true' : 'false'}
         onClick={handleEditorClick}
         sx={{
-          // Ensure proper height and scrolling
           '& .milkdown': {
-            minHeight: '500px',
-            borderRadius: 'inherit',
+            minHeight: readOnly ? undefined : editorCanvasMinHeight,
             overflow: 'visible',
           },
           '& .milkdown .ProseMirror': {
-            borderRadius: 'inherit',
             overflow: 'visible',
-          },
-          // Focus state styling
-          '&:focus-within': {
-            borderColor: 'action.primary',
-            boxShadow: `${surfaceShadow}, 0 0 0 1px var(--chakra-colors-action-primary)`,
           },
         }}
       />

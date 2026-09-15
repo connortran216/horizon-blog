@@ -79,6 +79,7 @@ export interface IBlogService {
   getPublicPostDetail(id: string): Promise<PublicPostRecord>
   getRelatedPosts(id: string, limit?: number): Promise<BlogPostSummary[]>
   getPopularTags(limit?: number): Promise<PublicPostTag[]>
+  resolveAuthorIdBySlug(slug: string): Promise<string>
   getPublicAuthorProfile(authorId: string): Promise<PublicAuthor>
   getPublicAuthorPosts(
     authorId: string,

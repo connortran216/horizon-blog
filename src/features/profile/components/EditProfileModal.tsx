@@ -1,8 +1,17 @@
+/**
+ * The owner's profile fields.
+ *
+ * The dialog shell is still Chakra's `Modal`: the design system has no dialog
+ * primitive, and Chakra's is the only thing in the repository that does focus
+ * trapping, the escape key and `aria-modal` correctly. `horizonTheme` already
+ * dresses it, so the overlay, the ground and the radius are tokens. Everything
+ * inside it - the fields, their labels, their hints and the two buttons - is the
+ * design system's, so the form no longer carries a hand-written
+ * `_hover={{ bg: 'action.hover' }}` that replaced the variant's own hover
+ * rather than merging with it.
+ */
+
 import {
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -10,10 +19,10 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
-  Textarea,
-  VStack,
 } from '@chakra-ui/react'
+
+import { Button, Field, Input, Select, Stack, Textarea } from '../../../design-system'
+import { space } from '../../../theme/tokens'
 import { ProfileFormValues } from '../profile.types'
 
 const COUNTRY_OPTIONS = [
@@ -241,65 +250,63 @@ const EditProfileModal = ({
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Edit Profile</ModalHeader>
+        <ModalHeader>Edit profile</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <VStack spacing={4} align="stretch">
-            <FormControl isRequired>
-              <FormLabel>Name</FormLabel>
+          <Stack gap={4}>
+            <Field label="Name" isRequired>
               <Input
                 value={profileForm.name}
                 onChange={(event) => onProfileFormChange('name', event.target.value)}
                 placeholder="Your name"
+                autoComplete="name"
               />
-            </FormControl>
+            </Field>
 
-            <FormControl>
-              <FormLabel>Bio</FormLabel>
+            <Field label="Bio" hint="A sentence or two readers see under your name.">
               <Textarea
                 value={profileForm.bio}
                 onChange={(event) => onProfileFormChange('bio', event.target.value)}
                 placeholder="Tell readers about you"
                 rows={4}
               />
-            </FormControl>
+            </Field>
 
-            <FormControl>
-              <FormLabel>Website</FormLabel>
+            <Field label="Website">
               <Input
                 value={profileForm.website}
                 onChange={(event) => onProfileFormChange('website', event.target.value)}
                 placeholder="https://example.com"
+                type="url"
+                autoComplete="url"
               />
-            </FormControl>
+            </Field>
 
-            <FormControl>
-              <FormLabel>Country</FormLabel>
+            <Field label="Country">
               <Select
+                placeholder="Select country"
                 value={profileForm.location}
                 onChange={(event) => onProfileFormChange('location', event.target.value)}
               >
-                <option value="">Select country</option>
                 {locationOptions.map((location) => (
                   <option key={location} value={location}>
                     {location}
                   </option>
                 ))}
               </Select>
-            </FormControl>
-          </VStack>
+            </Field>
+          </Stack>
         </ModalBody>
 
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
+        <ModalFooter gap={space[3]}>
+          <Button tone="quiet" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            bg="action.primary"
-            color="white"
-            _hover={{ bg: 'action.hover' }}
+            tone="primary"
             onClick={onSaveProfile}
             isLoading={isSavingProfile}
+            loadingLabel="Saving your profile"
           >
             Save
           </Button>

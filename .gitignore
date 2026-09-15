@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+storybook-static
 dist-ssr
 *.local
 
@@ -41,6 +42,13 @@ dist-ssr
 
 
 .codex/
+
+# oh-my-claudecode session runtime state.
+# Rewritten on every turn, and it carries session ids plus project-memory.json's
+# absolute path to whoever's machine last scanned - none of which survives a
+# clone. Local agent scratch, not project content. Sits beside .codex/ above for
+# the same reason.
+.omc/
 # Added by code-review-graph
 .code-review-graph/
 

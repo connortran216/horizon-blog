@@ -1,18 +1,38 @@
+/**
+ * The blog archive.
+ *
+ * Composition over `useBlogArchive`, which still owns the query string, the
+ * debounce, the paging and the two requests. Nothing about search, filtering or
+ * pagination behaviour moved; what moved is who draws it.
+ *
+ * The four async states are now distinct. Loading is content-shaped skeletons,
+ * a failed request is an error with a retry, no results is an empty state that
+ * names the next valid action, and results are results - where a failed request
+ * used to render the same "nothing matched that search" panel as an empty one.
+ */
+
+import { useRef } from 'react'
+import { Box } from '@chakra-ui/react'
+
 import {
-  Badge,
-  Box,
   Button,
-  Container,
-  Flex,
+  ContentContainer,
+  EmptyState,
+  ErrorState,
+  Eyebrow,
+  Grid,
   Heading,
-  SimpleGrid,
+  Pagination,
+  RetryAction,
+  Section,
+  Skeleton,
   Stack,
+  Stagger,
   Text,
-  VStack,
-} from '@chakra-ui/react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { FadeInShimmer, MotionWrapper, ShimmerLoader } from '../../../core'
-import PaginationControls from '../../../components/PaginationControls'
+  filterResultSummary,
+  hierarchyContext,
+  noResultsNextAction,
+} from '../../../design-system'
 import BlogArchiveHero from '../components/BlogArchiveHero'
 import BlogFilterToolbar from '../components/BlogFilterToolbar'
 import EditorialCard from '../components/EditorialCard'
@@ -20,8 +40,10 @@ import FeaturedStory from '../components/FeaturedStory'
 import { useBlogArchive } from '../useBlogArchive'
 import SeriesShelf from '../../series/components/SeriesShelf'
 
+const PAGE_SIZE = 9
+const RESULTS_EYEBROW = 'Latest blogs'
+
 const BlogPage = () => {
-  const limit = 9
   const {
     searchInput,
     setSearchInput,
@@ -30,8 +52,9 @@ const BlogPage = () => {
     popularTags,
     loading,
     tagsLoading,
+    error,
+    tagsError,
     page,
-    totalPages,
     total,
     activeTags,
     hasActiveFilters,
@@ -40,178 +63,128 @@ const BlogPage = () => {
     clearQuery,
     removeTag,
     clearAllFilters,
-  } = useBlogArchive(limit)
+    retry,
+    retryTags,
+  } = useBlogArchive(PAGE_SIZE)
+
+  /*
+   * The block the pager pages, not the list inside it. This wrapper survives
+   * the swap between skeletons, error, empty and results, so it is still there
+   * to be scrolled to and focused when `Pagination` moves the reader.
+   */
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   const featuredPost = posts[0]
-  const remainingPosts = posts.slice(1)
-  const resultLabel = query
-    ? `${total} result${total === 1 ? '' : 's'} for "${query}"`
-    : hasActiveFilters
-      ? `${total} result${total === 1 ? '' : 's'}`
-      : `${total} blog${total === 1 ? '' : 's'}`
+  /*
+   * Filtered by id rather than trusting position alone: the cover transition
+   * (`horizon-blog-y2e.4.2`) gives the featured cover and every card cover a
+   * `view-transition-name` derived from the post id, and two elements on one
+   * page sharing that name is a real bug the browser cannot recover from
+   * gracefully. `slice(1)` already keeps the featured post out of the grid
+   * today; this makes that guarantee resilient to a future change in how
+   * `posts` is built rather than just to today's shape of it.
+   */
+  const remainingPosts = posts.slice(1).filter((post) => post.id !== featuredPost?.id)
+  const filterState = { query, selectedTags: activeTags }
+  const resultsHeading = hasActiveFilters ? 'Search results' : 'Blogs worth reading next'
+  const sectionLabels = hierarchyContext(RESULTS_EYEBROW, resultsHeading)
+  const resultSummary = filterResultSummary(filterState, total, loading)
 
   return (
-    <Box position="relative" pb={12}>
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '80%' }}
-        h="320px"
-        bg="accent.glow"
-        filter="blur(120px)"
-        opacity={0.7}
-        pointerEvents="none"
-      />
+    <ContentContainer>
+      <Section>
+        <Stack gap={12}>
+          <BlogArchiveHero />
 
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <VStack spacing={{ base: 8, md: 10 }} align="stretch">
-          <MotionWrapper
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            duration={0.7}
-          >
-            <BlogArchiveHero
-              searchQuery={searchInput}
-              setSearchQuery={setSearchInput}
-              resultLabel={resultLabel}
-              page={page}
-              totalPages={totalPages}
-              hasActiveSearch={hasActiveFilters}
-            />
-          </MotionWrapper>
-
-          <MotionWrapper
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            duration={0.5}
-          >
-            <BlogFilterToolbar
-              popularTags={popularTags}
-              activeTags={activeTags}
-              activeQuery={query}
-              loading={tagsLoading}
-              onToggleTag={toggleTag}
-              onClearQuery={clearQuery}
-              onRemoveTag={removeTag}
-              onClearAll={clearAllFilters}
-            />
-          </MotionWrapper>
+          <BlogFilterToolbar
+            popularTags={popularTags}
+            activeTags={activeTags}
+            searchInput={searchInput}
+            onSearchChange={setSearchInput}
+            loading={tagsLoading}
+            tagsError={tagsError}
+            onRetryTags={retryTags}
+            onToggleTag={toggleTag}
+            onClearQuery={clearQuery}
+            onRemoveTag={removeTag}
+            onClearAll={clearAllFilters}
+            summary={
+              resultSummary ? (
+                <Text as="p" recipe="metadata" aria-live="polite">
+                  {resultSummary}
+                </Text>
+              ) : null
+            }
+          />
 
           {page === 1 && !hasActiveFilters && !searchInput.trim() ? <SeriesShelf compact /> : null}
 
-          <AnimatePresence mode="wait">
+          <Box ref={resultsRef} minW={0}>
             {loading ? (
-              <FadeInShimmer key="loading" delay={0.2}>
-                <ShimmerLoader variant="blog" count={9} />
-              </FadeInShimmer>
+              <Grid columns={2} gap={8}>
+                {Array.from({ length: PAGE_SIZE }, (_unused, index) => (
+                  <Skeleton
+                    key={`blog-skeleton-${index}`}
+                    shape={{ shape: 'media', aspectRatio: '16 / 9' }}
+                    label={index === 0 ? 'the blog archive' : undefined}
+                  />
+                ))}
+              </Grid>
+            ) : error ? (
+              <ErrorState failedAction="load the blog archive" detail={error} align="start">
+                <RetryAction failedAction="load the blog archive" onRetry={retry} />
+              </ErrorState>
             ) : posts.length === 0 ? (
-              <MotionWrapper
-                key="empty"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                duration={0.4}
+              <EmptyState
+                subject="blogs"
+                nextAction={noResultsNextAction(filterState)}
+                align="start"
               >
-                <Box
-                  border="1px solid"
-                  borderColor="border.subtle"
-                  borderRadius="3xl"
-                  bg="bg.secondary"
-                  px={{ base: 6, md: 10 }}
-                  py={{ base: 10, md: 14 }}
-                  textAlign="center"
-                >
-                  <VStack spacing={4} align="center">
-                    <Badge
-                      px={3}
-                      py={1}
-                      borderRadius="full"
-                      bg="bg.tertiary"
-                      color="text.secondary"
-                    >
-                      Nothing matched
-                    </Badge>
-                    <Heading size="lg" color="text.primary">
-                      No stories found for that search.
-                    </Heading>
-                    <Text maxW="2xl" color="text.secondary" lineHeight="tall">
-                      Try a broader keyword, remove a topic filter, or clear the search to return to
-                      the latest blogs.
-                    </Text>
-                    <Button
-                      variant="ghost"
-                      color="action.primary"
-                      _hover={{ bg: 'bg.tertiary' }}
-                      onClick={clearAllFilters}
-                    >
-                      Reset filters
-                    </Button>
-                  </VStack>
-                </Box>
-              </MotionWrapper>
+                {hasActiveFilters ? (
+                  <Button tone="secondary" onClick={clearAllFilters}>
+                    Clear all filters
+                  </Button>
+                ) : null}
+              </EmptyState>
             ) : (
-              <motion.div
-                key="results"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <VStack align="stretch" spacing={{ base: 8, md: 10 }}>
-                  <Flex
-                    direction={{ base: 'column', md: 'row' }}
-                    align={{ base: 'flex-start', md: 'flex-end' }}
-                    justify="space-between"
-                    gap={4}
-                  >
-                    <Stack spacing={2}>
-                      <Text
-                        fontSize="sm"
-                        textTransform="uppercase"
-                        letterSpacing="0.14em"
-                        color="text.tertiary"
-                      >
-                        Latest blogs
-                      </Text>
-                      <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                        {hasActiveFilters ? 'Search results' : 'Blogs worth reading next'}
-                      </Heading>
-                    </Stack>
-                    <Text color="text.secondary" fontSize="sm">
-                      {hasActiveFilters
-                        ? `Showing page ${page} of ${Math.max(totalPages, 1)}.`
-                        : `Showing page ${page} of ${Math.max(totalPages, 1)}.`}
-                    </Text>
-                  </Flex>
+              <Stack as="section" gap={8} aria-labelledby="blog-results-heading">
+                <Stack gap={2}>
+                  <Eyebrow as="p">{RESULTS_EYEBROW}</Eyebrow>
+                  <Heading id="blog-results-heading" as="h2" recipe="sectionTitle">
+                    {resultsHeading}
+                  </Heading>
+                </Stack>
 
-                  {featuredPost && <FeaturedStory post={featuredPost} />}
+                {featuredPost ? (
+                  <FeaturedStory post={featuredPost} sectionLabels={sectionLabels} />
+                ) : null}
 
-                  {remainingPosts.length > 0 && (
-                    <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
-                      {remainingPosts.map((post, index) => (
-                        <EditorialCard key={post.id} post={post} index={index + 1} />
+                {remainingPosts.length > 0 ? (
+                  <Grid columns={2} gap={8}>
+                    <Stagger>
+                      {remainingPosts.map((post) => (
+                        <EditorialCard key={post.id} post={post} sectionLabels={sectionLabels} />
                       ))}
-                    </SimpleGrid>
-                  )}
-                </VStack>
-              </motion.div>
+                    </Stagger>
+                  </Grid>
+                ) : null}
+              </Stack>
             )}
-          </AnimatePresence>
+          </Box>
 
-          {!loading && totalPages > 1 && (
-            <PaginationControls
-              currentPage={page}
-              totalPages={totalPages}
-              totalCount={total}
-              pageSize={limit}
+          {loading || error ? null : (
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              totalItems={total}
               onPageChange={setPage}
-              showOnlyWhenMultiple={false}
+              regionRef={resultsRef}
+              label="Blog pagination"
             />
           )}
-        </VStack>
-      </Container>
-    </Box>
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

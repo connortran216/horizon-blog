@@ -1,7 +1,14 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import theme from '../../../theme'
+/**
+ * Rewritten for release M4. The thread keeps its cursor-paged lifecycle and its
+ * inline composers, but the copy is now the design system's: a removed comment
+ * says "This comment was removed." through `commentBody`, which is the same
+ * sentence the gallery shows.
+ */
+
+import theme from '../../../theme/horizon'
 import { Comment } from '../comments.types'
 import CommentThread from './CommentThread'
 
@@ -67,7 +74,8 @@ describe('CommentThread', () => {
       </ChakraProvider>,
     )
 
-    expect(markup).toContain('Comment removed')
+    expect(markup).toContain('This comment was removed.')
+    expect(markup).toContain('Deleted reader')
     expect(markup).not.toContain('>Reply<')
     expect(markup).not.toContain('unsafe')
   })

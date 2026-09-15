@@ -1,68 +1,24 @@
-import { Box, Heading, HStack, Icon, Stack, Text } from '@chakra-ui/react'
-import { FiArrowRight } from 'react-icons/fi'
-import { Link as RouterLink } from 'react-router-dom'
+/**
+ * One public Series on a shelf or in the index grid.
+ *
+ * A thin adapter over the design system's `SeriesCard`, which is what gives a
+ * Series its book identity - the feature radius, the spine and the "Series · 4
+ * blogs" line that names the object before its title. None of that is drawn
+ * here.
+ */
+
+import { SeriesCard as SeriesCardPattern } from '../../../design-system'
+import { toSeriesSummary } from '../series.presentation'
 import { PublicSeriesSummary } from '../series.types'
 
 interface SeriesCardProps {
   series: PublicSeriesSummary
-  compact?: boolean
+  /** Lines the description is clamped to in a dense grid. */
+  descriptionLines?: number
 }
 
-const formatUpdatedDate = (value: string) =>
-  new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-
-const SeriesCard = ({ series, compact = false }: SeriesCardProps) => (
-  <Box
-    as={RouterLink}
-    to={`/series/${series.slug}`}
-    display="block"
-    h="full"
-    border="1px solid"
-    borderColor="border.subtle"
-    borderRadius={compact ? '2xl' : '3xl'}
-    bg="bg.secondary"
-    p={{ base: 5, md: compact ? 6 : 7 }}
-    transition="transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease"
-    _hover={{ borderColor: 'action.primary', transform: 'translateY(-2px)', boxShadow: 'md' }}
-    _focusVisible={{ boxShadow: 'outline', borderColor: 'action.primary' }}
-  >
-    <Stack spacing={compact ? 3 : 5} h="full">
-      <Text
-        color="text.tertiary"
-        fontSize="xs"
-        fontWeight="bold"
-        letterSpacing="0.14em"
-        textTransform="uppercase"
-      >
-        Series · {series.partCount} {series.partCount === 1 ? 'blog' : 'blogs'}
-      </Text>
-      <Stack spacing={3} flex={1}>
-        <Heading
-          size={compact ? 'md' : 'lg'}
-          color="text.primary"
-          letterSpacing="-0.03em"
-          noOfLines={2}
-        >
-          {series.title}
-        </Heading>
-        {series.description ? (
-          <Text color="text.secondary" lineHeight="tall" noOfLines={compact ? 2 : 3}>
-            {series.description}
-          </Text>
-        ) : null}
-      </Stack>
-      <HStack justify="space-between" align="center" gap={4}>
-        <Text color="text.tertiary" fontSize="sm" noOfLines={1}>
-          {series.author.name} · Updated {formatUpdatedDate(series.updatedAt)}
-        </Text>
-        <Icon as={FiArrowRight} color="action.primary" aria-hidden />
-      </HStack>
-    </Stack>
-  </Box>
+const SeriesCard = ({ series, descriptionLines = 3 }: SeriesCardProps) => (
+  <SeriesCardPattern series={toSeriesSummary(series)} descriptionLines={descriptionLines} />
 )
 
 export default SeriesCard

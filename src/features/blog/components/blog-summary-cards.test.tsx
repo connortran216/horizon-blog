@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { BlogPostSummary, toPublicPostPath } from '../../../core'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import EditorialCard from './EditorialCard'
 import FeaturedStory from './FeaturedStory'
 import RelatedPosts from './RelatedPosts'
@@ -42,7 +42,7 @@ describe('blog summary cards', () => {
       <MemoryRouter>
         <ChakraProvider theme={theme}>
           <FeaturedStory post={summary} />
-          <EditorialCard post={summary} index={1} />
+          <EditorialCard post={summary} />
         </ChakraProvider>
       </MemoryRouter>,
     )
@@ -61,7 +61,7 @@ describe('blog summary cards', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
-          <EditorialCard post={{ ...summary, series: null }} index={1} />
+          <EditorialCard post={{ ...summary, series: null }} />
         </ChakraProvider>
       </MemoryRouter>,
     )
@@ -81,7 +81,7 @@ describe('blog summary cards', () => {
       <MemoryRouter>
         <ChakraProvider theme={theme}>
           <FeaturedStory post={postWithProtectedCover} />
-          <EditorialCard post={postWithProtectedCover} index={1} />
+          <EditorialCard post={postWithProtectedCover} />
         </ChakraProvider>
       </MemoryRouter>,
     )
@@ -89,7 +89,16 @@ describe('blog summary cards', () => {
     expect(markup).not.toContain('src="media://40"')
   })
 
-  it('rounds the standard blog card cover frame', () => {
+  /*
+   * This used to assert the cover's own `240px` box and its own `radii.xl`
+   * corners. The v2 card draws the cover differently and deliberately: the
+   * picture bleeds to the card's edge, so the frame declines its corners and
+   * renders square, and the card surface is the single owner of the radius and
+   * the clip. What the old assertion protected - a cover whose corners follow
+   * the card's rounded language rather than cutting across it - is what is
+   * asserted here, from the other side.
+   */
+  it('gives the card one rounded, clipped frame that the cover bleeds into', () => {
     const postWithCover = {
       ...summary,
       featuredImage: 'https://cdn.example.com/rounded-cover.png',
@@ -98,13 +107,21 @@ describe('blog summary cards', () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <ChakraProvider theme={theme}>
-          <EditorialCard post={postWithCover} index={1} />
+          <EditorialCard post={postWithCover} />
         </ChakraProvider>
       </MemoryRouter>,
     )
 
     expect(markup).toContain('src="https://cdn.example.com/rounded-cover.png"')
-    expect(markup).toContain('height:240px;overflow:hidden;border-radius:var(--chakra-radii-xl)')
+    // The cover reserves 16/9 in every media state and owns no corners.
+    expect(markup).toContain('aspect-ratio:16/9;border-radius:0px;overflow:hidden')
+
+    const cardClass = /<article class="(css-[a-z0-9]+)"/.exec(markup)?.[1]
+    expect(cardClass).toBeDefined()
+
+    const cardRule = new RegExp(`\\.${cardClass}\\{[^}]*\\}`).exec(markup)?.[0] ?? ''
+    expect(cardRule).toContain('overflow:hidden')
+    expect(cardRule).toMatch(/border-radius:(?!0px)/)
   })
 
   it('renders related posts without score or reason labels', () => {

@@ -3,11 +3,30 @@
  *
  * Follows Single Responsibility Principle by managing auto-save timers,
  * local storage operations, and backend saving logic separate from UI components.
+ *
+ * Release M6 changed nothing about when a save happens or what it sends. The
+ * only thing it removed is `getSaveStatusText`, which turned this state into a
+ * sentence. Six of those sentences now come from the design system's
+ * `autosaveState`, which returns a label *and* an icon *and* a tone together so
+ * a save state cannot be shipped as a coloured word; `editor-status.utils.ts`
+ * is the join.
+ *
+ * This hook writes a copy of the draft to `blog_draft_backup` a second after
+ * the last keystroke (`localSaveDelay`), tagged with the post it was written
+ * for. `localBackupSnapshot` is that key's value as it was the moment this
+ * hook first mounted - captured before this session's own writes can touch
+ * it - so a caller can decide whether an *earlier* session's backup is worth
+ * offering back. That decision, the ownership check, and the safe parsing all
+ * live in `../draft-backup.logic` and `../hooks/useDraftRecovery`; this hook
+ * only owns reading and writing the key itself. `clearLocalStorage` removes
+ * it; callers decide when that is warranted (a rejected recovery offer, a
+ * restored one, or a permission loss).
  */
 
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { ApiError } from '../../../core/services/api.service'
 import { EditorPostInput, getEditorPostService } from '../editor-post.service'
+import { DRAFT_BACKUP_STORAGE_KEY } from '../draft-backup.logic'
 
 interface UseAutoSaveOptions {
   autoSaveDelay?: number // Auto-save delay in milliseconds (default: 5000)
@@ -55,6 +74,23 @@ export function useAutoSave(
   const postIdRef = useRef<number | null>(postId)
   const createInFlightRef = useRef<Promise<number | null> | null>(null)
   const permissionLostRef = useRef(false)
+
+  /*
+   * The backup key's value as it stood the moment this hook first mounted -
+   * read once, via a lazy initializer, so it happens during the initial
+   * render itself and cannot lose a race against this session's own
+   * `saveToLocalStorage` (which only ever runs from an effect, after mount).
+   * Whatever an earlier session left here is frozen in this value for the
+   * rest of the component's life; it is not re-read as the draft changes.
+   */
+  const [localBackupSnapshot] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(DRAFT_BACKUP_STORAGE_KEY)
+    } catch (error) {
+      console.error('Error reading localStorage draft backup:', error)
+      return null
+    }
+  })
 
   // State management
   const [state, setState] = useState<AutoSaveState>({
@@ -106,8 +142,12 @@ export function useAutoSave(
 
     try {
       localStorage.setItem(
-        'blog_draft_backup',
+        DRAFT_BACKUP_STORAGE_KEY,
         JSON.stringify({
+          // The post this content belongs to, or `null` for a draft that has
+          // never reached the server yet - see `draft-backup.logic.ts` for why
+          // that is its own bucket rather than a wildcard.
+          postId: postIdRef.current,
           title,
           contentMarkdown,
           contentJSON,
@@ -257,7 +297,11 @@ export function useAutoSave(
 
   // Clear local storage backup
   const clearLocalStorage = useCallback(() => {
-    localStorage.removeItem('blog_draft_backup')
+    try {
+      localStorage.removeItem(DRAFT_BACKUP_STORAGE_KEY)
+    } catch (error) {
+      console.error('Error clearing localStorage draft backup:', error)
+    }
   }, [])
 
   // Set up auto-save timers
@@ -304,19 +348,11 @@ export function useAutoSave(
     currentPostId,
     validationMessage: state.validationMessage,
     permissionLost: state.permissionLost,
+    localBackupSnapshot,
 
     // Methods
     saveToBackend,
     publishPost,
     clearLocalStorage,
-
-    // Status helpers
-    getSaveStatusText: () => {
-      if (state.isSaving || state.saveStatus === 'saving') return 'Saving...'
-      if (state.permissionLost) return 'Access changed — saved locally'
-      if (state.saveStatus === 'error') return 'Save failed'
-      if (postIdRef.current) return 'Draft saved'
-      return 'Draft'
-    },
   }
 }

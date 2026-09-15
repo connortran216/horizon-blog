@@ -1,152 +1,46 @@
-import {
-  Avatar,
-  Badge,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { AnimatedCard, BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
-import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
-import SeriesPostContext from '../../series/components/SeriesPostContext'
+/**
+ * One of Home's latest blogs.
+ *
+ * The card itself is the design system's `PostCard`; this component exists only
+ * to resolve the cover, which is a hook and therefore cannot live in the pure
+ * adapter, and to hand the pattern the section's own words so it can drop a
+ * label that would merely echo the heading above it.
+ *
+ * The "Lead blog" / "Recent blog" badges are gone. They sat under a section
+ * headed "Recent blogs" and repeated it on every card, which is the exact
+ * failure `hierarchy.logic.ts` was written for.
+ */
 
-const DEFAULT_AVATAR =
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
+import { PostCard, postCoverTransitionName } from '../../../design-system'
+import type { BlogPostSummary } from '../../../core'
+import { toPostSummary } from '../../blog/postSummary.presentation'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+
+const COVER_SIZES = '(min-width: 1169px) 33vw, (min-width: 801px) 50vw, 100vw'
 
 interface StoryCardProps {
   post: BlogPostSummary
-  index: number
-  formatDate: (dateString: string) => string
+  /** The enclosing section's eyebrow and heading, for label de-duplication. */
+  sectionLabels?: readonly string[]
 }
 
-const StoryCard = ({ post, index, formatDate }: StoryCardProps) => {
+const StoryCard = ({ post, sectionLabels = [] }: StoryCardProps) => {
   const coverMedia = useResolvedCoverMedia(post.featuredImage)
-  const coverImage = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 50vw')
-    : undefined
-  const previewText =
-    extractPreviewText(post.excerpt || post.subtitle || '') || 'A new blog from the site.'
+  const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
   return (
-    <Box
-      as={RouterLink}
-      to={toPublicPostPath(post.id)}
-      display="block"
-      _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'action.primary',
-        outlineOffset: '2px',
-        borderRadius: 'xl',
-      }}
-    >
-      <AnimatedCard
-        maxW="100%"
-        overflow="hidden"
-        p={0}
-        intensity="light"
-        staggerDelay={0.08}
-        index={index}
-        animation="fadeInUp"
-      >
-        <Box p={{ base: 3, md: 4 }}>
-          <Box aspectRatio={16 / 9} w="full" overflow="hidden" borderRadius="lg" bg="bg.page">
-            {coverImage ? (
-              <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
-            ) : (
-              <DefaultPostCover
-                title={post.title}
-                eyebrow={index === 0 ? 'Lead blog' : 'Recent blog'}
-                w="full"
-                h="full"
-              />
-            )}
-          </Box>
-
-          <VStack
-            data-layout="inset-information-panel"
-            align="stretch"
-            spacing={4}
-            mt={{ base: 3, md: 4 }}
-            p={{ base: 5, md: 6 }}
-            border="1px solid"
-            borderColor="border.subtle"
-            borderRadius="lg"
-            bg="bg.elevated"
-            boxShadow="md"
-          >
-            <HStack spacing={3}>
-              <Badge
-                px={3}
-                py={1}
-                borderRadius="full"
-                bg="bg.tertiary"
-                color="text.secondary"
-                textTransform="uppercase"
-                letterSpacing="0.12em"
-                fontSize="10px"
-              >
-                {index === 0 ? 'Lead blog' : 'Recent blog'}
-              </Badge>
-            </HStack>
-
-            <SeriesPostContext series={post.series} />
-
-            <Heading
-              size="lg"
-              color="text.primary"
-              lineHeight="1.08"
-              letterSpacing="-0.03em"
-              noOfLines={2}
-            >
-              {post.title}
-            </Heading>
-
-            <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-              {previewText}
-            </Text>
-
-            <Flex
-              as="footer"
-              pt={4}
-              borderTop="1px solid"
-              borderColor="border.subtle"
-              align="center"
-              justify="space-between"
-              gap={4}
-              wrap="wrap"
-            >
-              <HStack spacing={3} flexWrap="wrap">
-                <Avatar size="2xs" src={post.author.avatar || DEFAULT_AVATAR} />
-                <Text fontSize="sm" color="text.secondary">
-                  {post.author.username}
-                </Text>
-                <Text fontSize="sm" color="text.tertiary">
-                  {formatDate(post.createdAt)}
-                </Text>
-                <HStack spacing={1.5}>
-                  <Icon as={FiClock} />
-                  <Text fontSize="sm" color="text.tertiary">
-                    {post.readingTime || 1} min read
-                  </Text>
-                </HStack>
-              </HStack>
-              <HStack spacing={1.5} color="action.primary" fontWeight="semibold">
-                <Text>Read</Text>
-                <Icon as={FiArrowRight} />
-              </HStack>
-            </Flex>
-          </VStack>
-        </Box>
-      </AnimatedCard>
-    </Box>
+    <PostCard
+      post={summary}
+      sectionLabels={sectionLabels}
+      coverSizes={COVER_SIZES}
+      /*
+       * Spec 008 ("Preserve Landing Card Cover") requires the whole cover to
+       * stay visible on this card: quiet surrounding space is preferred over
+       * cutting the artwork.
+       */
+      coverFit="contain"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
   )
 }
 

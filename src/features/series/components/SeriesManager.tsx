@@ -1,19 +1,44 @@
+/**
+ * One owned Series, managed.
+ *
+ * The form itself is the design system's `SeriesManagerForm`, which was built
+ * for this screen: identity fields, the ordered rows (`ManageSeriesItem`), the
+ * add-a-blog control, an explicit save and a server-owned delete. What is left
+ * in this file is the adapter between that form and `useOwnerSeries`, and it
+ * does three jobs.
+ *
+ * **It translates ids.** The API speaks in numbers and the form speaks in
+ * strings, because a `select` value and a React key are strings. The conversion
+ * happens here, once, at the boundary - nothing above it sees a string id and
+ * nothing below it sees a number.
+ *
+ * **It holds the draft.** The form is controlled, as every editor pattern in the
+ * system is, so the unsaved title, description and order live here and reset
+ * whenever the server hands back a new `series` object. That reset is the same
+ * `useEffect` the legacy component had, for the same reason.
+ *
+ * **It turns one save into the requests the API actually needs.**
+ * `seriesSaveRequest` reports which of the two endpoints a save has to touch,
+ * and only those are called. The legacy component had two separate buttons -
+ * "Save details" and "Save blog order" - so an author who renamed a Series and
+ * reordered it had to press twice and could leave with half of it saved. One
+ * button now covers both, and if the second request fails the failure is
+ * reported and the draft stays exactly where it is.
+ *
+ * Nothing about who may do this moved. `useOwnerSeries` calls the same service
+ * methods it always did, and the server's answer is the only thing that removes
+ * a Series from the list - `onDelete` resolves before the parent stops rendering
+ * this form.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import {
-  Badge,
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  HStack,
-  IconButton,
-  Input,
-  Select,
-  Stack,
-  Text,
-  Textarea,
-} from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
-import { FiArrowDown, FiArrowUp, FiPlus, FiSave, FiTrash2 } from 'react-icons/fi'
+  SeriesManagerForm,
+  type ManagedSeriesPart,
+  type SeriesFormValues,
+  type SeriesSaveRequest,
+} from '../../../design-system'
 import { OwnerSeries } from '../series.types'
 
 export interface SeriesBlogOption {
@@ -29,7 +54,19 @@ interface SeriesManagerProps {
   onUpdate: (seriesId: number, input: { title: string; description: string }) => Promise<void>
   onReplacePosts: (seriesId: number, postIds: number[]) => Promise<void>
   onDelete: (seriesId: number) => Promise<void>
+  /** The list of owned blogs could not be loaded. Passed through to the form. */
+  optionsError?: string
+  onRetryOptions?: () => void
 }
+
+const savedValuesOf = (series: OwnerSeries): SeriesFormValues => ({
+  title: series.title,
+  description: series.description,
+  partIds: series.parts.map((part) => String(part.postId)),
+})
+
+const messageOf = (error: unknown, fallback: string): string =>
+  error instanceof Error && error.message.trim().length > 0 ? error.message : fallback
 
 const SeriesManager = ({
   series,
@@ -38,198 +75,161 @@ const SeriesManager = ({
   onUpdate,
   onReplacePosts,
   onDelete,
+  optionsError,
+  onRetryOptions,
 }: SeriesManagerProps) => {
-  const [title, setTitle] = useState(series.title)
-  const [description, setDescription] = useState(series.description)
-  const [postIds, setPostIds] = useState(series.parts.map((part) => part.postId))
-  const [selectedPostId, setSelectedPostId] = useState('')
-  const [saving, setSaving] = useState(false)
+  const saved = useMemo(() => savedValuesOf(series), [series])
 
+  const [draft, setDraft] = useState<SeriesFormValues>(saved)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | undefined>(undefined)
+  const [lastSavedLabel, setLastSavedLabel] = useState<string | undefined>(undefined)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | undefined>(undefined)
+
+  /*
+   * True from the moment a save starts until the moment it settles, either way.
+   *
+   * A ref rather than `isSaving`, because the effect below has to read it
+   * without depending on it. It is the guard on a real defect: a save that
+   * changes both the identity and the order makes two requests, and the first
+   * one comes back with a Series that still has the old order in it. The effect
+   * would take that as the new truth and put the author's reordered rows back
+   * where they were - mid-save, and permanently if the second request then
+   * failed.
+   */
+  const isSavingRef = useRef(false)
+
+  /*
+   * The server answered with a different Series, so what is on screen describes
+   * one that no longer exists and the draft starts again from what came back.
+   *
+   * Skipped while a save is open. On success the draft already equals what was
+   * just sent, so there is nothing to reset; on failure the only copy of the
+   * author's work is the one on screen, and this is the effect that would throw
+   * it away.
+   */
   useEffect(() => {
-    setTitle(series.title)
-    setDescription(series.description)
-    setPostIds(series.parts.map((part) => part.postId))
-  }, [series])
+    if (isSavingRef.current) {
+      return
+    }
 
-  const optionById = useMemo(
-    () => new Map(blogOptions.map((blog) => [blog.id, blog])),
+    setDraft(saved)
+  }, [saved])
+
+  const options = useMemo(
+    () =>
+      blogOptions.map((blog) => ({
+        id: String(blog.id),
+        title: blog.title,
+        status: blog.status,
+      })),
     [blogOptions],
   )
-  const addableBlogs = blogOptions.filter(
-    (blog) => !postIds.includes(blog.id) && !assignedSeriesByPostId.has(blog.id),
+
+  const assignedSeriesByPartId = useMemo(() => {
+    const result = new Map<string, string>()
+    assignedSeriesByPostId.forEach((seriesId, postId) => {
+      result.set(String(postId), String(seriesId))
+    })
+    return result
+  }, [assignedSeriesByPostId])
+
+  /*
+   * Titles for parts the options list has not loaded. `loadAllOwnedBlogs` pages
+   * through two views and can come back short, and a row dropped for a missing
+   * title would silently change the order the author is about to save.
+   */
+  const partFallbacks = useMemo<ManagedSeriesPart[]>(
+    () =>
+      series.parts.map((part) => ({
+        id: String(part.postId),
+        title: part.title,
+        status: part.status,
+      })),
+    [series.parts],
   )
 
-  const move = (index: number, direction: -1 | 1) => {
-    const target = index + direction
-    if (target < 0 || target >= postIds.length) return
-    setPostIds((current) => {
-      const next = [...current]
-      ;[next[index], next[target]] = [next[target], next[index]]
-      return next
-    })
+  /*
+   * Every edit clears the last outcome.
+   *
+   * Both of these describe a request that has already finished: "Series saved a
+   * moment ago" stops being true the instant the author types, and "We could not
+   * save this Series" outranks "Unsaved changes" in `seriesFormState`, so
+   * leaving it set would hide the state the author is actually in.
+   */
+  const edit = (change: Partial<SeriesFormValues>) => {
+    setDraft((current) => ({ ...current, ...change }))
+    setLastSavedLabel(undefined)
+    setSaveError(undefined)
   }
 
-  const add = () => {
-    const postId = Number(selectedPostId)
-    if (!postId) return
-    setPostIds((current) => [...current, postId])
-    setSelectedPostId('')
-  }
+  const save = async (request: SeriesSaveRequest) => {
+    isSavingRef.current = true
+    setIsSaving(true)
+    setSaveError(undefined)
 
-  const run = async (action: () => Promise<void>) => {
-    setSaving(true)
     try {
-      await action()
-    } catch {
-      // The owner hook exposes a calm inline error for failed mutations.
+      if (request.identity !== null) {
+        await onUpdate(series.id, request.identity)
+      }
+
+      if (request.partIds !== null) {
+        await onReplacePosts(
+          series.id,
+          request.partIds.map((partId) => Number(partId)),
+        )
+      }
+
+      setLastSavedLabel('a moment ago')
+    } catch (error) {
+      // The draft is left alone on purpose. A failed save is the one moment the
+      // only copy of the author's work is the one on screen.
+      setSaveError(messageOf(error, 'This Series could not be saved.'))
     } finally {
-      setSaving(false)
+      isSavingRef.current = false
+      setIsSaving(false)
+    }
+  }
+
+  const remove = async () => {
+    setIsDeleting(true)
+    setDeleteError(undefined)
+
+    try {
+      await onDelete(series.id)
+    } catch (error) {
+      setDeleteError(messageOf(error, 'This Series could not be deleted.'))
+    } finally {
+      setIsDeleting(false)
     }
   }
 
   return (
-    <Box
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="2xl"
-      bg="bg.secondary"
-      p={{ base: 5, md: 7 }}
-    >
-      <Stack spacing={6}>
-        <Stack spacing={4}>
-          <FormControl>
-            <FormLabel>Series title</FormLabel>
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} bg="bg.page" />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Description</FormLabel>
-            <Textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              bg="bg.page"
-              resize="vertical"
-            />
-          </FormControl>
-          <HStack justify="space-between" flexWrap="wrap" gap={3}>
-            <Button
-              leftIcon={<FiSave />}
-              isLoading={saving}
-              onClick={() => run(() => onUpdate(series.id, { title, description }))}
-            >
-              Save details
-            </Button>
-            <Button
-              variant="ghost"
-              colorScheme="red"
-              leftIcon={<FiTrash2 />}
-              onClick={() => {
-                if (window.confirm(`Delete “${series.title}”? The blogs will remain.`)) {
-                  void run(() => onDelete(series.id))
-                }
-              }}
-            >
-              Delete series
-            </Button>
-          </HStack>
-        </Stack>
-
-        <Stack spacing={3}>
-          <Text color="text.primary" fontWeight="semibold">
-            Ordered blogs
-          </Text>
-          <Text color="text.tertiary" fontSize="sm">
-            Each blog can belong to one series. Saving replaces this complete order.
-          </Text>
-          {postIds.length === 0 ? (
-            <Text color="text.secondary">No blogs in this series yet.</Text>
-          ) : (
-            postIds.map((postId, index) => {
-              const blog = optionById.get(postId)
-              const fallback = series.parts.find((part) => part.postId === postId)
-              return (
-                <HStack
-                  key={postId}
-                  border="1px solid"
-                  borderColor="border.subtle"
-                  borderRadius="xl"
-                  bg="bg.page"
-                  p={3}
-                  align="center"
-                >
-                  <Text color="text.tertiary" minW="2rem" fontSize="sm">
-                    {index + 1}
-                  </Text>
-                  <Stack spacing={1} flex={1} minW={0}>
-                    <Text color="text.primary" fontWeight="medium" noOfLines={2}>
-                      {blog?.title ?? fallback?.title ?? `Blog ${postId}`}
-                    </Text>
-                    <Badge
-                      alignSelf="flex-start"
-                      textTransform="none"
-                      colorScheme={blog?.status === 'published' ? 'green' : 'gray'}
-                    >
-                      {blog?.status ?? fallback?.status ?? 'draft'}
-                    </Badge>
-                  </Stack>
-                  <IconButton
-                    aria-label={`Move ${blog?.title ?? 'blog'} up`}
-                    icon={<FiArrowUp />}
-                    variant="ghost"
-                    isDisabled={index === 0}
-                    onClick={() => move(index, -1)}
-                  />
-                  <IconButton
-                    aria-label={`Move ${blog?.title ?? 'blog'} down`}
-                    icon={<FiArrowDown />}
-                    variant="ghost"
-                    isDisabled={index === postIds.length - 1}
-                    onClick={() => move(index, 1)}
-                  />
-                  <IconButton
-                    aria-label={`Remove ${blog?.title ?? 'blog'} from series`}
-                    icon={<FiTrash2 />}
-                    variant="ghost"
-                    onClick={() => setPostIds((current) => current.filter((id) => id !== postId))}
-                  />
-                </HStack>
-              )
-            })
-          )}
-
-          <HStack align="end">
-            <FormControl>
-              <FormLabel>Add an owned blog</FormLabel>
-              <Select
-                value={selectedPostId}
-                onChange={(event) => setSelectedPostId(event.target.value)}
-                bg="bg.page"
-              >
-                <option value="">Choose a blog</option>
-                {addableBlogs.map((blog) => (
-                  <option key={blog.id} value={blog.id}>
-                    {blog.title} ({blog.status})
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-            <IconButton
-              aria-label="Add selected blog"
-              icon={<FiPlus />}
-              isDisabled={!selectedPostId}
-              onClick={add}
-            />
-          </HStack>
-          <Button
-            variant="outline"
-            leftIcon={<FiSave />}
-            isLoading={saving}
-            onClick={() => run(() => onReplacePosts(series.id, postIds))}
-          >
-            Save blog order
-          </Button>
-        </Stack>
-      </Stack>
-    </Box>
+    <SeriesManagerForm
+      seriesId={String(series.id)}
+      saved={saved}
+      draft={draft}
+      options={options}
+      assignedSeriesByPartId={assignedSeriesByPartId}
+      partFallbacks={partFallbacks}
+      optionsError={optionsError}
+      onRetryOptions={onRetryOptions}
+      onTitleChange={(title) => edit({ title })}
+      onDescriptionChange={(description) => edit({ description })}
+      onPartIdsChange={(partIds) => edit({ partIds })}
+      onSave={(request) => {
+        void save(request)
+      }}
+      onDelete={() => {
+        void remove()
+      }}
+      isSaving={isSaving}
+      saveError={saveError}
+      lastSavedLabel={lastSavedLabel}
+      isDeleting={isDeleting}
+      deleteError={deleteError}
+    />
   )
 }
 

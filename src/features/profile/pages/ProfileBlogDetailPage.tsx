@@ -1,6 +1,21 @@
-import { Badge, Heading, HStack, Text } from '@chakra-ui/react'
-import { motion } from 'framer-motion'
+/**
+ * An author reading their own blog, draft or published.
+ *
+ * The same `BlogReaderFrame` the public page uses, so a draft is read in the
+ * frame it will be published in. `useOwnerBlogPostDetail` still owns the
+ * ownership check and the redirect; nothing about permissions moved.
+ *
+ * The two hand-rolled Framer Motion entrances are gone. Their `y: 30` and
+ * `y: 10` translations moved the title and the notice on every visit, which is
+ * the document movement `DESIGN.md` rules out on a reading surface - and both
+ * ran regardless of the reader's motion preference.
+ */
+
 import { useNavigate, useParams } from 'react-router-dom'
+import { Box } from '@chakra-ui/react'
+
+import { Heading, StatusBadge, Text } from '../../../design-system'
+import { space } from '../../../theme/tokens'
 import { useAuth } from '../../../context/AuthContext'
 import { useResolvedMarkdownMedia } from '../../media/useResolvedMarkdown'
 import BlogReaderFrame from '../../blog/components/BlogReaderFrame'
@@ -28,44 +43,27 @@ const ProfileBlogDetailPage = () => {
     <BlogReaderFrame
       post={post}
       loading={loading}
+      isMissing={!loading && !post}
       resolvedContent={resolvedMedia.content}
       resolvedMedia={resolvedMedia.sources}
       onBack={() => navigate(redirectPath)}
       backLabel="Back to Profile"
-      emptyLabel="Blog not found"
-      bottomPadding={false}
       titleSection={
         post ? (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <HStack justify="space-between" align="start">
-              <Heading as="h1" size="2xl" color="text.primary" lineHeight="1.2">
-                {post.title}
-              </Heading>
-              {post.status === 'draft' ? (
-                <Badge colorScheme="yellow" fontSize="md" px={3} py={1}>
-                  Draft
-                </Badge>
-              ) : null}
-            </HStack>
-          </motion.div>
+          <Box display="flex" flexWrap="wrap" alignItems="center" gap={space[3]}>
+            <Heading as="h1" recipe="pageTitle" minW={0}>
+              {post.title}
+            </Heading>
+            {post.status === 'draft' ? <StatusBadge tone="warning">Draft</StatusBadge> : null}
+          </Box>
         ) : null
       }
       helperSection={
         isOwnProfile ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.7 }}
-          >
-            <Text fontSize="sm" color="text.secondary" fontStyle="italic">
-              This is a read-only view. To edit this blog, go back to your profile and use the Edit
-              option from the menu.
-            </Text>
-          </motion.div>
+          <Text as="p" recipe="metadata">
+            This is a read-only view. To edit this blog, go back to your profile and use the Edit
+            option from the menu.
+          </Text>
         ) : null
       }
     />

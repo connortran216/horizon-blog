@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import BlogPage from './BlogPage'
 
 const renderPage = (path: string) =>

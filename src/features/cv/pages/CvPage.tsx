@@ -1,36 +1,82 @@
+/**
+ * CV - migrated onto Horizon Design System v2 (release M2).
+ *
+ * Every role, project and qualification is a `CVEntry`, which is the pattern
+ * that replaced the two near-identical legacy entry components. The page keeps
+ * the `cv-*` class hooks: `src/index.css` owns the CV's print stylesheet - page
+ * size, the hidden navigation, the section and entry separators, the two-column
+ * competency grid that must survive an A4 sheet - and that file is outside this
+ * release. The classes are print contract, not styling the page does itself.
+ */
+
+import { Box, Icon } from '@chakra-ui/react'
+
+import { semanticColor, space } from '../../../theme/tokens'
 import {
-  Box,
+  ActionLink,
   Button,
-  Container,
+  CVEntry,
+  ContentContainer,
+  Grid,
   Heading,
-  Icon,
-  Link,
-  SimpleGrid,
+  Metadata,
+  Section,
+  SectionLabel,
   Stack,
+  Surface,
   Text,
-  Wrap,
-  WrapItem,
-} from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import CvExperienceCard from '../components/CvExperienceCard'
-import CvProjectEntry from '../components/CvProjectEntry'
+  readableLinkText,
+  type CVEntryLink,
+} from '../../../design-system'
 import { cvProfile } from '../cv.data'
-import { CvLinkItem } from '../cv.types'
+import { CvLinkItem, CvProject } from '../cv.types'
 import '../cv-fonts.css'
 
-const headingFont = "'Newsreader', serif"
+/**
+ * Print is a second theme. `src/index.css` already owns most of it, but it was
+ * written against the legacy role names; these are the v2 roles it does not
+ * cover, pinned to the light pair straight from the token source so a reader
+ * printing from dark mode does not get pale link and metadata text on paper.
+ */
+const printOverrides = {
+  '--chakra-colors-bg-page': semanticColor('bg.page', 'light'),
+  '--chakra-colors-bg-surface': semanticColor('bg.surface', 'light'),
+  '--chakra-colors-bg-subtle': semanticColor('bg.subtle', 'light'),
+  '--chakra-colors-bg-elevated': semanticColor('bg.elevated', 'light'),
+  '--chakra-colors-text-primary': semanticColor('text.primary', 'light'),
+  '--chakra-colors-text-secondary': semanticColor('text.secondary', 'light'),
+  '--chakra-colors-text-muted': semanticColor('text.muted', 'light'),
+  '--chakra-colors-link-default': semanticColor('link.default', 'light'),
+  '--chakra-colors-action-primary': semanticColor('action.primary', 'light'),
+  '--chakra-colors-action-hover': semanticColor('action.hover', 'light'),
+  '--chakra-colors-border-subtle': semanticColor('border.subtle', 'light'),
+  '--chakra-colors-border-control': semanticColor('border.control', 'light'),
 
-const getReadableLinkText = (href: string) => {
-  try {
-    const url = new URL(href)
-    const path = decodeURIComponent(url.pathname).replace(/\/$/, '')
-    return `${url.hostname}${path}`
-  } catch {
-    return href.replace(/^https?:\/\//, '').replace(/\/$/, '')
-  }
-}
+  /*
+   * `Surface` clips, at every depth, because it draws a radius. A clipped block
+   * cannot be paginated - a browser has nowhere to put the overflow but the
+   * first sheet - and this CV is four pages long. Print is the one context
+   * where the document surface gives its clipping up, and the radius it was
+   * protecting is removed on the same sheet.
+   */
+  '.cv-document': { overflow: 'visible' },
+} as const
 
 const hasHref = (item: CvLinkItem): item is CvLinkItem & { href: string } => Boolean(item.href)
+
+function projectLinks(project: CvProject): CVEntryLink[] {
+  const links: CVEntryLink[] = []
+
+  if (project.githubUrl) {
+    links.push({ label: 'GitHub', href: project.githubUrl })
+  }
+
+  if (project.publicationUrl) {
+    links.push({ label: 'Publication', href: project.publicationUrl })
+  }
+
+  return links
+}
 
 const CvPage = () => {
   const externalLinks = cvProfile.links.filter(hasHref)
@@ -41,283 +87,218 @@ const CvPage = () => {
   }
 
   return (
-    <Box className="cv-page" pb={{ base: 12, md: 16 }}>
-      <Container maxW="4xl" py={{ base: 8, md: 12 }}>
-        <Box
-          className="cv-document"
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius={{ base: '2xl', md: '3xl' }}
-          bg="bg.elevated"
-          boxShadow="xl"
-          px={{ base: 6, md: 10 }}
-          py={{ base: 7, md: 10 }}
-        >
-          <Stack spacing={{ base: 8, md: 10 }}>
-            <Stack
-              as="header"
-              className="cv-document-header"
-              spacing={{ base: 5, md: 6 }}
-              pb={{ base: 6, md: 7 }}
-            >
+    <Box className="cv-page" sx={{ '@media print': printOverrides }}>
+      <ContentContainer width="prose">
+        <Section density="comfortable">
+          <Surface
+            className="cv-document"
+            as="article"
+            depth="feature"
+            p={{ base: space[6], sm: space[8] }}
+          >
+            <Stack gap={8}>
               <Stack
-                direction={{ base: 'column', md: 'row' }}
-                justify="space-between"
-                align={{ base: 'flex-start', md: 'flex-start' }}
-                gap={4}
+                as="header"
+                className="cv-document-header"
+                gap={6}
+                pb={{ base: space[6], sm: space[8] }}
               >
-                <Stack spacing={2}>
-                  <Heading
-                    fontFamily={headingFont}
-                    fontSize={{ base: '4xl', md: '6xl' }}
-                    lineHeight={{ base: 0.96, md: 0.92 }}
-                    letterSpacing="-0.06em"
-                    color="text.primary"
-                  >
-                    {cvProfile.name}
-                  </Heading>
-                  <Text
-                    className="cv-role"
-                    fontSize={{ base: 'lg', md: 'xl' }}
-                    fontWeight="semibold"
-                    letterSpacing="0.08em"
-                    textTransform="uppercase"
-                    color="action.primary"
-                  >
-                    {cvProfile.title}
-                  </Text>
-                </Stack>
-
-                <Wrap className="cv-actions cv-no-print" spacing={2.5} justify="flex-end">
-                  {actionLinks.map((item) => {
-                    if (item.label === 'Export PDF') {
-                      return (
-                        <WrapItem key={item.label}>
-                          <Button
-                            leftIcon={<Icon as={item.icon} />}
-                            onClick={handlePrint}
-                            variant="ghost"
-                            size="sm"
-                            color="action.primary"
-                            _hover={{ bg: 'action.subtle', color: 'action.hover' }}
-                          >
-                            {item.label}
-                          </Button>
-                        </WrapItem>
-                      )
-                    }
-
-                    if (item.to) {
-                      return (
-                        <WrapItem key={item.label}>
-                          <Button
-                            as={RouterLink}
-                            to={item.to}
-                            leftIcon={<Icon as={item.icon} />}
-                            variant="ghost"
-                            size="sm"
-                            color="action.primary"
-                            _hover={{ bg: 'action.subtle', color: 'action.hover' }}
-                          >
-                            {item.label}
-                          </Button>
-                        </WrapItem>
-                      )
-                    }
-
-                    return null
-                  })}
-                </Wrap>
-              </Stack>
-
-              <Wrap className="cv-contact-list" spacing={4} rowGap={2}>
-                <WrapItem>
-                  <Text className="cv-contact-item" color="text.secondary">
-                    {cvProfile.location}
-                  </Text>
-                </WrapItem>
-                <WrapItem>
-                  <Link
-                    href={`mailto:${cvProfile.email}`}
-                    className="cv-contact-link"
-                    color="text.secondary"
-                    _hover={{ color: 'action.hover' }}
-                  >
-                    {cvProfile.email}
-                  </Link>
-                </WrapItem>
-                {externalLinks.map((item) => (
-                  <WrapItem key={item.label}>
-                    <Link
-                      href={item.href}
-                      target={item.isExternal ? '_blank' : undefined}
-                      rel={item.isExternal ? 'noreferrer' : undefined}
-                      className="cv-contact-link"
-                      color="text.secondary"
-                      _hover={{ color: 'action.hover' }}
-                    >
-                      {getReadableLinkText(item.href)}
-                    </Link>
-                  </WrapItem>
-                ))}
-              </Wrap>
-            </Stack>
-
-            <Stack as="section" className="cv-section" spacing={4}>
-              <Text
-                className="cv-section-label"
-                fontSize="xs"
-                color="text.tertiary"
-                textTransform="uppercase"
-                letterSpacing="0.18em"
-              >
-                Summary
-              </Text>
-              <Text
-                className="cv-body-text cv-section-body"
-                color="text.secondary"
-                lineHeight="tall"
-                whiteSpace="pre-line"
-              >
-                {cvProfile.summary}
-              </Text>
-            </Stack>
-
-            <Stack as="section" className="cv-section" spacing={4}>
-              <Text
-                className="cv-section-label"
-                fontSize="xs"
-                color="text.tertiary"
-                textTransform="uppercase"
-                letterSpacing="0.18em"
-              >
-                Core Stack
-              </Text>
-              <SimpleGrid
-                className="cv-competency-grid cv-section-body"
-                columns={{ base: 1, md: 2 }}
-                spacingX={{ base: 0, md: 8 }}
-                spacingY={4}
-              >
-                {cvProfile.competencies.map((group) => (
-                  <Stack key={group.title} className="cv-competency-item" spacing={1}>
+                <Stack
+                  direction="row"
+                  collapseAt="md"
+                  gap={4}
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                >
+                  <Stack gap={2}>
+                    <Heading recipe="display" as="h1">
+                      {cvProfile.name}
+                    </Heading>
                     <Text
-                      className="cv-entry-label"
-                      color="text.primary"
-                      fontSize="sm"
+                      className="cv-role"
+                      recipe="body"
+                      as="p"
+                      color="action.primary"
                       fontWeight="semibold"
+                      letterSpacing="wider"
+                      textTransform="uppercase"
                     >
-                      {group.title}
-                    </Text>
-                    <Text className="cv-body-text" color="text.secondary" lineHeight="tall">
-                      {group.items.join(', ')}
+                      {cvProfile.title}
                     </Text>
                   </Stack>
-                ))}
-              </SimpleGrid>
-            </Stack>
 
-            <Stack as="section" className="cv-section" spacing={5}>
-              <Text
-                className="cv-section-label"
-                fontSize="xs"
-                color="text.tertiary"
-                textTransform="uppercase"
-                letterSpacing="0.18em"
-              >
-                Experience
-              </Text>
-              <Stack className="cv-section-body" spacing={0}>
-                {cvProfile.experience.map((experience) => (
-                  <CvExperienceCard
-                    key={`${experience.company}-${experience.role}`}
-                    experience={experience}
-                  />
-                ))}
-              </Stack>
-            </Stack>
+                  <Stack
+                    className="cv-actions cv-no-print"
+                    direction="row"
+                    collapseAt={undefined}
+                    gap={3}
+                    flexWrap="wrap"
+                    alignItems="center"
+                    justifyContent="flex-end"
+                  >
+                    {actionLinks.map((item) => {
+                      if (item.label === 'Export PDF') {
+                        return (
+                          <Button
+                            key={item.label}
+                            tone="quiet"
+                            size="sm"
+                            onClick={handlePrint}
+                            iconStart={<Icon as={item.icon} aria-hidden="true" />}
+                          >
+                            {item.label}
+                          </Button>
+                        )
+                      }
 
-            <Stack as="section" className="cv-section" spacing={5}>
-              <Text
-                className="cv-section-label"
-                fontSize="xs"
-                color="text.tertiary"
-                textTransform="uppercase"
-                letterSpacing="0.18em"
-              >
-                Personal Projects
-              </Text>
-              <Stack className="cv-section-body" spacing={0}>
-                {cvProfile.projects.map((project) => (
-                  <CvProjectEntry key={`${project.title}-${project.period}`} project={project} />
-                ))}
-              </Stack>
-            </Stack>
-
-            <Stack as="section" className="cv-section" spacing={5}>
-              <Text
-                className="cv-section-label"
-                fontSize="xs"
-                color="text.tertiary"
-                textTransform="uppercase"
-                letterSpacing="0.18em"
-              >
-                Education
-              </Text>
-              <Stack className="cv-section-body" spacing={0}>
-                {cvProfile.education.map((item) => (
-                  <Box key={`${item.school}-${item.degree}`} className="cv-entry cv-avoid-break">
-                    <Stack spacing={3}>
-                      <Stack
-                        direction={{ base: 'column', md: 'row' }}
-                        justify="space-between"
-                        align={{ base: 'flex-start', md: 'baseline' }}
-                        gap={2}
-                      >
-                        <Stack spacing={1}>
-                          <Heading as="h3" size="md" color="text.primary" letterSpacing="-0.03em">
-                            {item.degree}
-                          </Heading>
-                          <Text
-                            className="cv-entry-kicker"
-                            color="text.primary"
+                      if (item.to) {
+                        return (
+                          <ActionLink
+                            standalone
+                            key={item.label}
+                            to={item.to}
+                            underline="hover"
+                            iconStart={<Icon as={item.icon} aria-hidden="true" />}
+                            color="action.primary"
                             fontWeight="semibold"
                           >
-                            {item.school}
-                          </Text>
-                        </Stack>
-                        <Text
-                          className="cv-entry-period"
-                          color="text.tertiary"
-                          fontSize="sm"
-                          textTransform="uppercase"
-                          letterSpacing="0.12em"
-                        >
-                          {item.period}
-                        </Text>
-                      </Stack>
+                            {item.label}
+                          </ActionLink>
+                        )
+                      }
 
-                      <Stack as="ul" className="cv-bullet-list" spacing={2} pl={5}>
-                        {item.details.map((detail) => (
-                          <Text
-                            as="li"
-                            key={detail}
-                            className="cv-body-text"
-                            color="text.secondary"
-                            lineHeight="tall"
-                          >
-                            {detail}
-                          </Text>
-                        ))}
-                      </Stack>
-                    </Stack>
+                      return null
+                    })}
+                  </Stack>
+                </Stack>
+
+                <Metadata as="ul" className="cv-contact-list" gap={space[4]}>
+                  <Box as="li" className="cv-contact-item">
+                    {cvProfile.location}
                   </Box>
-                ))}
+                  <Box as="li">
+                    <ActionLink
+                      standalone
+                      href={`mailto:${cvProfile.email}`}
+                      underline="hover"
+                      className="cv-contact-link"
+                    >
+                      {cvProfile.email}
+                    </ActionLink>
+                  </Box>
+                  {externalLinks.map((item) => (
+                    <Box as="li" key={item.label}>
+                      {/*
+                       * The visible text is the destination rather than the
+                       * label, because a printed CV has to carry something a
+                       * reader could type. `ActionLink` still resolves the
+                       * external target and `rel` for the screen version.
+                       */}
+                      <ActionLink
+                        standalone
+                        href={item.href}
+                        isExternal={item.isExternal}
+                        underline="hover"
+                        className="cv-contact-link"
+                      >
+                        {readableLinkText(item.href)}
+                      </ActionLink>
+                    </Box>
+                  ))}
+                </Metadata>
+              </Stack>
+
+              <Stack as="section" className="cv-section" gap={4}>
+                <SectionLabel className="cv-section-label">Summary</SectionLabel>
+                <Text className="cv-body-text cv-section-body" recipe="body" whiteSpace="pre-line">
+                  {cvProfile.summary}
+                </Text>
+              </Stack>
+
+              <Stack as="section" className="cv-section" gap={4}>
+                <SectionLabel className="cv-section-label">Core Stack</SectionLabel>
+                <Grid className="cv-competency-grid cv-section-body" columns={2} gap={4}>
+                  {cvProfile.competencies.map((group) => (
+                    <Stack key={group.title} className="cv-competency-item" gap={1}>
+                      <Text
+                        className="cv-entry-label"
+                        recipe="metadata"
+                        as="p"
+                        color="text.primary"
+                        fontWeight="semibold"
+                      >
+                        {group.title}
+                      </Text>
+                      <Text className="cv-body-text" recipe="body">
+                        {group.items.join(', ')}
+                      </Text>
+                    </Stack>
+                  ))}
+                </Grid>
+              </Stack>
+
+              <Stack as="section" className="cv-section" gap={6}>
+                <SectionLabel className="cv-section-label">Experience</SectionLabel>
+                <Box className="cv-section-body">
+                  {cvProfile.experience.map((experience) => (
+                    <Box
+                      key={`${experience.company}-${experience.role}`}
+                      className="cv-entry cv-avoid-break"
+                    >
+                      <CVEntry
+                        title={experience.role}
+                        organisation={experience.company}
+                        period={experience.period}
+                        highlights={experience.highlights}
+                        stack={experience.stack}
+                        headingLevel="h3"
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Stack>
+
+              <Stack as="section" className="cv-section" gap={6}>
+                <SectionLabel className="cv-section-label">Personal Projects</SectionLabel>
+                <Box className="cv-section-body">
+                  {cvProfile.projects.map((project) => (
+                    <Box
+                      key={`${project.title}-${project.period}`}
+                      className="cv-entry cv-avoid-break"
+                    >
+                      <CVEntry
+                        title={project.title}
+                        period={project.period}
+                        description={project.description}
+                        links={projectLinks(project)}
+                        stack={project.stack}
+                        headingLevel="h3"
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Stack>
+
+              <Stack as="section" className="cv-section" gap={6}>
+                <SectionLabel className="cv-section-label">Education</SectionLabel>
+                <Box className="cv-section-body">
+                  {cvProfile.education.map((item) => (
+                    <Box key={`${item.school}-${item.degree}`} className="cv-entry cv-avoid-break">
+                      <CVEntry
+                        title={item.degree}
+                        organisation={item.school}
+                        period={item.period}
+                        highlights={item.details}
+                        headingLevel="h3"
+                      />
+                    </Box>
+                  ))}
+                </Box>
               </Stack>
             </Stack>
-          </Stack>
-        </Box>
-      </Container>
+          </Surface>
+        </Section>
+      </ContentContainer>
     </Box>
   )
 }

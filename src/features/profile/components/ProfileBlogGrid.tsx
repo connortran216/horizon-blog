@@ -1,53 +1,77 @@
-import {
-  Badge,
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  Icon,
-  IconButton,
-  Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  SimpleGrid,
-  Tag,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
-import { motion } from 'framer-motion'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiArrowRight, FiMoreVertical } from 'react-icons/fi'
-import PaginationControls from '../../../components/PaginationControls'
-import { AnimatedCard } from '../../../core'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
+/**
+ * The owner's published and draft blogs, as cards.
+ *
+ * `PostCard` draws the card and `Pagination` draws the pager, so what is left
+ * here is the two things the design system deliberately does not know: that a
+ * cover has to be resolved through `useResolvedCoverMedia` before it is a URL,
+ * and that an owner gets an Edit/Delete menu the public never sees.
+ *
+ * The menu sits above the card's own link overlay rather than inside it. A
+ * `PostCard` is one anchor covering the whole card - `cardLinkOverlayStyle` -
+ * so a control drawn inside it would be unreachable by pointer; it is a sibling
+ * in a positioned wrapper instead, which also keeps it in the tab order right
+ * after the title it belongs to.
+ */
+
+import { useRef } from 'react'
+import { Box } from '@chakra-ui/react'
+import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
+import { FiMoreVertical } from 'react-icons/fi'
+
+import { Grid, IconButton, Pagination, PostCard, Stack } from '../../../design-system'
+import { componentTokens, space } from '../../../theme/tokens'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
 import { ProfileBlogPost } from '../profile.types'
-import { formatBlogDate } from '../profile.utils'
+import { ownerPostLabel, toOwnerPostSummary } from '../profile.presentation'
+
+/** Two columns from `xl`, matching the grid the legacy page laid out by hand. */
+const COVER_SIZES = '(min-width: 1280px) 50vw, 100vw'
 
 interface ProfileBlogGridProps {
   blogs: ProfileBlogPost[]
   totalCount: number
   currentPage: number
   pageSize: number
+  label: string
   onPageChange: (page: number) => void
   onEdit: (blogId: string) => void
   onDelete: (blogId: string) => void
   profileUsername: string
 }
 
-const ProfileBlogCover = ({ blog }: { blog: ProfileBlogPost }) => {
-  const coverMedia = useResolvedCoverMedia(blog.featuredImage)
-  const cover = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 100vw, 50vw')
-    : undefined
+interface ProfileBlogCardProps {
+  blog: ProfileBlogPost
+  profileUsername: string
+  onEdit: (blogId: string) => void
+  onDelete: (blogId: string) => void
+}
 
-  return cover ? (
-    <Image {...cover} alt={blog.title} w="full" h="full" objectFit="cover" />
-  ) : (
-    <DefaultPostCover title={blog.title} eyebrow={blog.status} h="full" />
+const ProfileBlogCard = ({ blog, profileUsername, onEdit, onDelete }: ProfileBlogCardProps) => {
+  const coverMedia = useResolvedCoverMedia(blog.featuredImage)
+  const post = toOwnerPostSummary(blog, coverMedia, profileUsername, COVER_SIZES)
+
+  return (
+    <Box position="relative">
+      <PostCard post={post} label={ownerPostLabel(blog.status)} coverSizes={COVER_SIZES} />
+
+      <Box position="absolute" insetBlockStart={space[2]} insetInlineEnd={space[2]} zIndex={2}>
+        <Menu isLazy lazyBehavior="unmount" placement="bottom-end">
+          <MenuButton
+            as={IconButton}
+            icon={<FiMoreVertical />}
+            tone="quiet"
+            size="sm"
+            label={`Manage ${blog.title}`}
+          />
+          <MenuList zIndex="tooltip">
+            <MenuItem onClick={() => onEdit(blog.id)}>Edit blog</MenuItem>
+            <MenuItem color={componentTokens.control.dangerFg} onClick={() => onDelete(blog.id)}>
+              Delete blog
+            </MenuItem>
+          </MenuList>
+        </Menu>
+      </Box>
+    </Box>
   )
 }
 
@@ -56,123 +80,42 @@ const ProfileBlogGrid = ({
   totalCount,
   currentPage,
   pageSize,
+  label,
   onPageChange,
   onEdit,
   onDelete,
   profileUsername,
 }: ProfileBlogGridProps) => {
-  const dateMeta = 'text.tertiary'
-  const getStatusLabel = (status: string) => (status === 'published' ? 'Blog' : 'Draft')
-  const getStatusStyles = (status: string) =>
-    status === 'published'
-      ? { bg: 'action.primary', color: 'white' }
-      : { bg: 'bg.tertiary', color: 'text.secondary' }
-  const getSupportText = (status: string) =>
-    status === 'published'
-      ? 'Live on the blog and ready to revisit.'
-      : 'Still being shaped before publication.'
+  // The block the pager pages: the grid and the pager together, so changing
+  // page puts the top of the tab's cards back on screen and moves focus there.
+  const regionRef = useRef<HTMLElement>(null)
 
   return (
-    <VStack spacing={6} align="stretch">
-      <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
-        {blogs.map((blog, index) => (
-          <Box key={blog.id} position="relative">
-            <Box as={RouterLink} to={`/profile/${profileUsername}/blog/${blog.id}`} display="block">
-              <Box height="100%" display="flex">
-                <AnimatedCard
-                  maxW="100%"
-                  overflow="hidden"
-                  intensity="light"
-                  staggerDelay={0.12}
-                  index={index}
-                  animation="fadeInUp"
-                >
-                  <VStack align="stretch" spacing={0}>
-                    <Box h="210px" overflow="hidden" position="relative">
-                      <ProfileBlogCover blog={blog} />
-                    </Box>
-
-                    <VStack p={5} spacing={4} align="stretch" flex={1}>
-                      <HStack justify="space-between" align="center" spacing={4}>
-                        <Badge
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          fontSize="10px"
-                          textTransform="uppercase"
-                          letterSpacing="0.12em"
-                          {...getStatusStyles(blog.status)}
-                        >
-                          {getStatusLabel(blog.status)}
-                        </Badge>
-                        <Text fontSize="sm" color={dateMeta}>
-                          {formatBlogDate(blog.createdAt)}
-                        </Text>
-                      </HStack>
-
-                      <Heading size="md" color="text.primary" noOfLines={3} lineHeight="1.15">
-                        {blog.title}
-                      </Heading>
-
-                      <Text color="text.secondary" lineHeight="tall" noOfLines={2}>
-                        {getSupportText(blog.status)}
-                      </Text>
-
-                      <Flex
-                        pt={3}
-                        mt="auto"
-                        borderTop="1px solid"
-                        borderColor="border.subtle"
-                        align="center"
-                        justify="space-between"
-                        gap={4}
-                      >
-                        <Tag size="sm" borderRadius="full" bg="bg.tertiary" color="text.secondary">
-                          {blog.status === 'published' ? 'Live blog' : 'Private draft'}
-                        </Tag>
-                        <HStack spacing={2} color="action.primary" fontWeight="semibold">
-                          <Text fontSize="sm">Open blog</Text>
-                          <Icon as={FiArrowRight} />
-                        </HStack>
-                      </Flex>
-                    </VStack>
-                  </VStack>
-                </AnimatedCard>
-              </Box>
-            </Box>
-
-            <Box position="absolute" top={1} right={1} zIndex="10">
-              <Menu isLazy lazyBehavior="unmount" placement="bottom-end">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <MenuButton
-                    as={IconButton}
-                    icon={<FiMoreVertical />}
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Options"
-                  />
-                </motion.div>
-                <MenuList zIndex="tooltip">
-                  <MenuItem onClick={() => onEdit(blog.id)}>Edit Blog</MenuItem>
-                  <MenuItem onClick={() => onDelete(blog.id)} color="red.500">
-                    Delete Blog
-                  </MenuItem>
-                </MenuList>
-              </Menu>
+    <Stack ref={regionRef} gap={6}>
+      <Grid as="ul" columns={2} gap={6} collapseAt="xl">
+        {blogs.map((blog) => (
+          <Box as="li" key={blog.id} listStyleType="none" display="flex">
+            <Box flex="1" minW={0}>
+              <ProfileBlogCard
+                blog={blog}
+                profileUsername={profileUsername}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             </Box>
           </Box>
         ))}
-      </SimpleGrid>
+      </Grid>
 
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={Math.ceil(totalCount / pageSize)}
-        totalCount={totalCount}
+      <Pagination
+        page={currentPage}
         pageSize={pageSize}
+        totalItems={totalCount}
         onPageChange={onPageChange}
-        textColor={dateMeta}
+        regionRef={regionRef}
+        label={label}
       />
-    </VStack>
+    </Stack>
   )
 }
 

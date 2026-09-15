@@ -1,101 +1,37 @@
-import {
-  Box,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-  Tag,
-  TagCloseButton,
-  TagLabel,
-  Wrap,
-  WrapItem,
-} from '@chakra-ui/react'
+/**
+ * The draft's tags - migrated onto Horizon Design System v2 (release M6).
+ *
+ * `TagField` owns the input, the chips, the per-tag remove buttons and the
+ * Enter/comma/Backspace behaviour. What stays here is the one rule the design
+ * system has no business knowing: Horizon tags are stored lower case, because
+ * that is what `tag_names` has always carried to the backend. Normalising on
+ * the way out keeps the request byte-identical to the legacy field's.
+ *
+ * The legacy field added a tag on Enter only. `TagField` also adds on comma and
+ * on blur, which is a strictly larger set - a tag the author typed and walked
+ * away from is no longer silently dropped.
+ */
+
+import { TagField } from '../../../design-system'
 
 interface EditorTagFieldProps {
-  tagInput: string
   tags: string[]
-  isDisabled: boolean
-  onTagInputChange: (value: string) => void
-  onTagKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
-  onRemoveTag: (tag: string) => void
+  onChange: (tags: string[]) => void
+  isDisabled?: boolean
 }
 
-const EditorTagField = ({
-  tagInput,
-  tags,
-  isDisabled,
-  onTagInputChange,
-  onTagKeyDown,
-  onRemoveTag,
-}: EditorTagFieldProps) => {
+/** The backend's own limit on a tag name. */
+const MAX_TAG_LENGTH = 32
+
+const EditorTagField = ({ tags, onChange, isDisabled = false }: EditorTagFieldProps) => {
   return (
-    <FormControl>
-      <FormLabel
-        htmlFor="blog-tags"
-        mb={1.5}
-        fontSize="sm"
-        fontWeight="semibold"
-        color="text.primary"
-      >
-        Tags
-      </FormLabel>
-      <FormHelperText mt={0} mb={3} color="text.tertiary">
-        Use short labels to group related writing. Press Enter to add each tag.
-      </FormHelperText>
-
-      <Box
-        border="1px solid"
-        borderColor="border.default"
-        borderRadius="2xl"
-        bg="bg.page"
-        px={4}
-        py={4}
-        transition="border-color 0.2s ease, box-shadow 0.2s ease"
-        _focusWithin={{
-          borderColor: 'action.primary',
-          boxShadow: '0 0 0 1px var(--chakra-colors-action-primary)',
-        }}
-      >
-        <Input
-          id="blog-tags"
-          name="blogTags"
-          placeholder="Add a tag and press Enter"
-          variant="unstyled"
-          size="md"
-          value={tagInput}
-          onChange={(event) => onTagInputChange(event.target.value)}
-          onKeyDown={onTagKeyDown}
-          isDisabled={isDisabled}
-          color="text.primary"
-          _placeholder={{ color: 'text.tertiary' }}
-        />
-
-        {tags.length > 0 ? (
-          <Wrap mt={4} spacing={2}>
-            {tags.map((tag) => (
-              <WrapItem key={tag}>
-                <Tag
-                  size="md"
-                  borderRadius="full"
-                  bg="action.subtle"
-                  color="action.primary"
-                  border="1px solid"
-                  borderColor="border.subtle"
-                >
-                  <TagLabel>{tag}</TagLabel>
-                  <TagCloseButton
-                    onClick={() => onRemoveTag(tag)}
-                    isDisabled={isDisabled}
-                    color="text.secondary"
-                    _hover={{ bg: 'transparent', color: 'text.primary' }}
-                  />
-                </Tag>
-              </WrapItem>
-            ))}
-          </Wrap>
-        ) : null}
-      </Box>
-    </FormControl>
+    <TagField
+      tags={tags}
+      isDisabled={isDisabled}
+      maxLength={MAX_TAG_LENGTH}
+      hint="Short labels that group related writing. Press Enter or comma to add one."
+      onChange={(next) => onChange(next.map((tag) => tag.toLowerCase()))}
+    />
   )
 }
 

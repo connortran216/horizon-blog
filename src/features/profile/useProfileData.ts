@@ -1,4 +1,4 @@
-import { ChangeEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { UseToastOptions, useToast } from '@chakra-ui/react'
 import { User } from '../../core/types/common.types'
 import { UserProfile } from '../../core/types/profile.types'
@@ -26,14 +26,14 @@ interface UseProfileDataResult {
   profileForm: ProfileFormValues
   isSavingProfile: boolean
   isUploadingAvatar: boolean
-  avatarInputRef: RefObject<HTMLInputElement>
+  /** Why the last avatar upload failed, until another one is started. */
+  avatarUploadError?: string
   profileName: string
   avatarSrc?: string
   setProfileFormField: (field: keyof ProfileFormValues, value: string) => void
   openEditor: (onOpen: () => void) => void
   saveProfile: (onSuccess: () => void) => Promise<void>
-  selectAvatar: () => void
-  onAvatarChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>
+  uploadAvatarFile: (file: File) => Promise<void>
 }
 
 const buildToast = (config: UseToastOptions): UseToastOptions => ({
@@ -49,13 +49,13 @@ export const useProfileData = ({
   refreshUserProfile,
 }: UseProfileDataParams): UseProfileDataResult => {
   const toast = useToast()
-  const avatarInputRef = useRef<HTMLInputElement | null>(null)
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [profileForm, setProfileForm] = useState<ProfileFormValues>(DEFAULT_PROFILE_FORM)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarUploadError, setAvatarUploadError] = useState<string | undefined>(undefined)
   const [avatarRefreshAttempted, setAvatarRefreshAttempted] = useState(false)
 
   const loadCurrentProfile = useCallback(
@@ -169,19 +169,24 @@ export const useProfileData = ({
     }
   }
 
-  const selectAvatar = () => {
-    avatarInputRef.current?.click()
-  }
-
-  const onAvatarChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-
-    if (!file) {
-      return
-    }
-
+  /*
+   * The upload, by file rather than by change event.
+   *
+   * The request, the profile refresh and the success toast are exactly what the
+   * old `onAvatarChange` did. What changed is where the file comes from: the
+   * design system's `AvatarEditor` owns its own visually hidden input and hands
+   * over a `File`, so the hook no longer keeps a ref to an input that was
+   * `display: none` and therefore unreachable by keyboard.
+   *
+   * The failure moved too. It used to be a toast that cleared itself after three
+   * seconds; it is now `avatarUploadError`, which the editor renders under the
+   * portrait that failed and keeps there until the next attempt. The sentence is
+   * unchanged and still comes from `getProfileErrorMessage`, so "Max 5MB" and
+   * "Use JPG/PNG" read exactly as before.
+   */
+  const uploadAvatarFile = async (file: File) => {
     setIsUploadingAvatar(true)
+    setAvatarUploadError(undefined)
     try {
       const updatedProfile = await getProfileService().uploadAvatar(file)
       setProfile(updatedProfile)
@@ -197,13 +202,7 @@ export const useProfileData = ({
         }),
       )
     } catch (error) {
-      toast(
-        buildToast({
-          title: 'Avatar upload failed',
-          description: getProfileErrorMessage(error, 'Failed to upload avatar.'),
-          status: 'error',
-        }),
-      )
+      setAvatarUploadError(getProfileErrorMessage(error, 'Failed to upload avatar.'))
     } finally {
       setIsUploadingAvatar(false)
     }
@@ -249,13 +248,12 @@ export const useProfileData = ({
     profileForm,
     isSavingProfile,
     isUploadingAvatar,
-    avatarInputRef,
+    avatarUploadError,
     profileName,
     avatarSrc,
     setProfileFormField,
     openEditor,
     saveProfile,
-    selectAvatar,
-    onAvatarChange,
+    uploadAvatarFile,
   }
 }

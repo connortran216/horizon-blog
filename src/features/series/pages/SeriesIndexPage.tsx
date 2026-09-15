@@ -1,20 +1,35 @@
+/**
+ * Every published Series, paged.
+ *
+ * The first page lifts one Series out as the featured plate and puts the rest
+ * in a grid; later pages are a plain grid, because "featured" on page four is
+ * just the fourth page's first row wearing a label.
+ */
+
+import { useRef } from 'react'
+import { Box } from '@chakra-ui/react'
+import { useSearchParams } from 'react-router-dom'
+
 import {
-  Box,
-  Button,
-  Container,
+  ActionLink,
+  ContentContainer,
+  EmptyState,
+  ErrorState,
+  Eyebrow,
+  Grid,
   Heading,
-  Link,
-  SimpleGrid,
+  Pagination,
+  RetryAction,
+  Section,
   Skeleton,
   Stack,
   Text,
-} from '@chakra-ui/react'
-import { Link as RouterLink, useSearchParams } from 'react-router-dom'
-import PaginationControls from '../../../components/PaginationControls'
+} from '../../../design-system'
 import SeriesCard from '../components/SeriesCard'
 import { usePublicSeriesList } from '../usePublicSeriesList'
 
 const PAGE_SIZE = 9
+const SKELETON_COUNT = 3
 
 const parsePage = (value: string | null) => {
   const parsed = Number(value)
@@ -27,6 +42,12 @@ const SeriesIndexPage = () => {
   const { data, items, loading, error, retry } = usePublicSeriesList({ page, limit: PAGE_SIZE })
   const featured = page === 1 ? items[0] : undefined
   const gridItems = page === 1 ? items.slice(1) : items
+  /*
+   * The block the pager pages. It wraps every async state, not just the
+   * results, so the focus destination survives the swap to skeletons while the
+   * next page loads.
+   */
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   const setPage = (nextPage: number) => {
     const next = new URLSearchParams(searchParams)
@@ -36,133 +57,100 @@ const SeriesIndexPage = () => {
   }
 
   return (
-    <Box position="relative" pb={12}>
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '78%' }}
-        h="300px"
-        bg="accent.glow"
-        filter="blur(120px)"
-        opacity={0.65}
-        pointerEvents="none"
-      />
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <Stack spacing={{ base: 8, md: 10 }}>
-          <Stack spacing={4} maxW="3xl">
-            <Text
-              fontSize="sm"
-              textTransform="uppercase"
-              letterSpacing="0.14em"
-              color="text.tertiary"
-            >
-              Series
-            </Text>
-            <Heading
-              fontSize={{ base: '4xl', md: '5xl' }}
-              lineHeight="1"
-              letterSpacing="-0.05em"
-              color="text.primary"
-            >
+    <ContentContainer>
+      <Section>
+        <Stack gap={12}>
+          <Stack as="header" gap={4} maxW="3xl">
+            <Eyebrow as="p">Series</Eyebrow>
+            <Heading as="h1" recipe="pageTitle">
               Connected blogs, arranged to be read in order.
             </Heading>
-            <Text color="text.secondary" fontSize={{ base: 'md', md: 'lg' }} lineHeight="tall">
+            <Text recipe="prose">
               Follow an idea from its first question to its practical details, one blog at a time.
             </Text>
           </Stack>
 
-          {loading ? (
-            <Stack spacing={6} aria-label="Loading Series">
-              <Skeleton h={{ base: '240px', md: '280px' }} borderRadius="3xl" />
-              <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={6}>
-                {[0, 1, 2].map((item) => (
-                  <Skeleton key={item} h="220px" borderRadius="3xl" />
-                ))}
-              </SimpleGrid>
-            </Stack>
-          ) : error ? (
-            <Stack
-              spacing={5}
-              align="start"
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius="3xl"
-              bg="bg.secondary"
-              p={{ base: 6, md: 10 }}
-            >
-              <Heading size="lg" color="text.primary">
-                Series could not load.
-              </Heading>
-              <Text color="text.secondary">{error}</Text>
-              <Stack direction={{ base: 'column', sm: 'row' }}>
-                <Button onClick={retry}>Try again</Button>
-                <Button as={RouterLink} to="/blog" variant="ghost">
-                  Browse blogs
-                </Button>
-              </Stack>
-            </Stack>
-          ) : items.length === 0 ? (
-            <Stack
-              spacing={4}
-              border="1px solid"
-              borderColor="border.subtle"
-              borderRadius="3xl"
-              bg="bg.secondary"
-              p={{ base: 6, md: 10 }}
-            >
-              <Heading size="lg" color="text.primary">
-                No Series have been published yet.
-              </Heading>
-              <Link as={RouterLink} to="/blog" color="action.primary" fontWeight="semibold">
-                Browse the latest blogs
-              </Link>
-            </Stack>
-          ) : (
-            <Stack spacing={{ base: 8, md: 10 }}>
-              {featured ? (
-                <Stack spacing={4}>
-                  <Text
-                    color="text.tertiary"
-                    fontSize="sm"
-                    letterSpacing="0.14em"
-                    textTransform="uppercase"
-                  >
-                    Featured Series
-                  </Text>
-                  <SeriesCard series={featured} />
-                </Stack>
-              ) : null}
-
-              {gridItems.length > 0 ? (
-                <Stack spacing={4}>
-                  <Heading size="lg" color="text.primary" letterSpacing="-0.03em">
-                    All series
-                  </Heading>
-                  <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={6}>
-                    {gridItems.map((series) => (
-                      <SeriesCard key={series.id} series={series} />
-                    ))}
-                  </SimpleGrid>
-                </Stack>
-              ) : null}
-
-              {data && data.totalPages > 1 ? (
-                <PaginationControls
-                  currentPage={data.page}
-                  totalPages={data.totalPages}
-                  totalCount={data.total}
-                  pageSize={data.limit}
-                  onPageChange={setPage}
-                  showOnlyWhenMultiple={false}
+          <Box ref={resultsRef} minW={0}>
+            {loading ? (
+              <Stack gap={8}>
+                <Skeleton
+                  shape={{ shape: 'media', aspectRatio: '16 / 10' }}
+                  label="the Series list"
                 />
-              ) : null}
-            </Stack>
-          )}
+                <Grid columns={3} gap={6}>
+                  {Array.from({ length: SKELETON_COUNT }, (_unused, index) => (
+                    <Skeleton
+                      key={`series-skeleton-${index}`}
+                      shape={{ shape: 'media', aspectRatio: '16 / 10' }}
+                    />
+                  ))}
+                </Grid>
+              </Stack>
+            ) : error ? (
+              <ErrorState failedAction="load the Series list" detail={error} align="start">
+                <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
+                  <RetryAction failedAction="load the Series list" onRetry={retry} />
+                  <ActionLink to="/blog" underline="hover" standalone>
+                    Browse blogs
+                  </ActionLink>
+                </Stack>
+              </ErrorState>
+            ) : items.length === 0 ? (
+              <EmptyState
+                subject="Series"
+                nextAction="New Series appear here as they are published."
+                align="start"
+              >
+                <ActionLink
+                  standalone
+                  to="/blog"
+                  underline="hover"
+                  color="action.primary"
+                  fontWeight="semibold"
+                >
+                  Browse the latest blogs
+                </ActionLink>
+              </EmptyState>
+            ) : (
+              <Stack gap={12}>
+                {featured ? (
+                  <Stack as="section" gap={4} aria-labelledby="featured-series-heading">
+                    <Heading id="featured-series-heading" as="h2" recipe="sectionTitle">
+                      Featured Series
+                    </Heading>
+                    <SeriesCard series={featured} />
+                  </Stack>
+                ) : null}
+
+                {gridItems.length > 0 ? (
+                  <Stack as="section" gap={4} aria-labelledby="all-series-heading">
+                    <Heading id="all-series-heading" as="h2" recipe="sectionTitle">
+                      All series
+                    </Heading>
+                    <Grid columns={3} gap={6}>
+                      {gridItems.map((series) => (
+                        <SeriesCard key={series.id} series={series} />
+                      ))}
+                    </Grid>
+                  </Stack>
+                ) : null}
+
+                {data ? (
+                  <Pagination
+                    page={data.page}
+                    pageSize={data.limit}
+                    totalItems={data.total}
+                    onPageChange={setPage}
+                    regionRef={resultsRef}
+                    label="Series pagination"
+                  />
+                ) : null}
+              </Stack>
+            )}
+          </Box>
         </Stack>
-      </Container>
-    </Box>
+      </Section>
+    </ContentContainer>
   )
 }
 

@@ -17,7 +17,7 @@ const StatChip = ({ label, value, minWidth = { base: 'auto', md: '148px' } }: St
       borderRadius="full"
       minW={minWidth}
     >
-      <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.14em" color="text.tertiary">
+      <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.14em" color="text.muted">
         {label}
       </Text>
       <Text mt={1} fontSize="sm" fontWeight="semibold" color="text.primary">

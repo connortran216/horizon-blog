@@ -1,6 +1,22 @@
+/**
+ * The author archive, resolved from the URL and nothing else.
+ *
+ * The id used to come from React Router's location state, cached in
+ * `sessionStorage` against the slug. Both are properties of a browsing session,
+ * so the page only worked for a reader who had already clicked an author link in
+ * this tab: a shared link, a bookmark, a search result and a crawler all arrived
+ * with an empty cache and no history state, and got "The author identifier is
+ * invalid."
+ *
+ * Neither is kept as a fast path. A fast path would leave the cold path - the one
+ * that was broken - exercised only by strangers, which is how it broke without
+ * anyone noticing.
+ */
+
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { ApiError, getBlogService } from '../../core'
+import { authorIdFromRouteParam } from '../../core/utils/author-slug.utils'
 import {
   AuthorArchiveData,
   AuthorArchiveErrorState,
@@ -9,73 +25,10 @@ import {
 } from './authors.types'
 
 const DEFAULT_PAGE_SIZE = 6
-const AUTHOR_ROUTE_ID_CACHE_KEY = 'horizon_blog_author_route_ids'
 
 const parsePage = (value: string | null) => {
   const parsed = Number(value)
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 1
-}
-
-const toAuthorIdString = (value: unknown) => {
-  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
-    return String(value)
-  }
-
-  if (typeof value === 'string' && /^\d+$/.test(value)) {
-    return value
-  }
-
-  return ''
-}
-
-const readCachedAuthorId = (authorName: string | undefined) => {
-  if (!authorName || typeof window === 'undefined') {
-    return ''
-  }
-
-  try {
-    const raw = window.sessionStorage.getItem(AUTHOR_ROUTE_ID_CACHE_KEY)
-    if (!raw) {
-      return ''
-    }
-
-    const parsed = JSON.parse(raw) as Record<string, unknown>
-    return toAuthorIdString(parsed[authorName])
-  } catch {
-    return ''
-  }
-}
-
-const writeCachedAuthorId = (authorName: string | undefined, authorId: string) => {
-  if (!authorName || !authorId || typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    const raw = window.sessionStorage.getItem(AUTHOR_ROUTE_ID_CACHE_KEY)
-    const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {}
-    parsed[authorName] = authorId
-    window.sessionStorage.setItem(AUTHOR_ROUTE_ID_CACHE_KEY, JSON.stringify(parsed))
-  } catch {
-    // Ignore cache persistence failures and rely on in-memory route state instead.
-  }
-}
-
-const parseAuthorId = (
-  routeValue: string | undefined,
-  stateValue: unknown,
-  cachedValue: string,
-) => {
-  const fromState = toAuthorIdString(stateValue)
-  if (fromState) {
-    return fromState
-  }
-
-  if (cachedValue) {
-    return cachedValue
-  }
-
-  return toAuthorIdString(routeValue)
 }
 
 const mapPageError = (error: unknown): AuthorArchiveErrorState => {
@@ -125,7 +78,6 @@ const mapPostsError = (error: unknown): AuthorArchiveErrorState => {
 
 export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const { authorName } = useParams<{ authorName: string }>()
-  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [profile, setProfile] = useState<AuthorArchiveUser | null>(null)
   const [postsPage, setPostsPage] = useState<AuthorPostsPage | null>(null)
@@ -136,28 +88,55 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
   const [postsRequestVersion, setPostsRequestVersion] = useState(0)
 
   const currentPage = useMemo(() => parsePage(searchParams.get('page')), [searchParams])
-  const routeState = location.state as { authorId?: number | string } | null
-  const cachedAuthorId = useMemo(() => readCachedAuthorId(authorName), [authorName])
-  const authorId = useMemo(
-    () => parseAuthorId(authorName, routeState?.authorId, cachedAuthorId),
-    [authorName, cachedAuthorId, routeState?.authorId],
-  )
+  const routeAuthorId = useMemo(() => authorIdFromRouteParam(authorName), [authorName])
+  const [authorId, setAuthorId] = useState(routeAuthorId)
+  const [resolvingAuthor, setResolvingAuthor] = useState(!routeAuthorId)
 
   useEffect(() => {
-    if (authorName && authorId && !/^\d+$/.test(authorName)) {
-      writeCachedAuthorId(authorName, authorId)
+    if (routeAuthorId) {
+      setAuthorId(routeAuthorId)
+      setResolvingAuthor(false)
+      return
     }
-  }, [authorId, authorName])
+
+    let isCancelled = false
+
+    setAuthorId('')
+    setResolvingAuthor(true)
+    setPageErrorState(null)
+
+    void getBlogService()
+      .resolveAuthorIdBySlug(authorName || '')
+      .then((resolved) => {
+        if (isCancelled) return
+        setAuthorId(resolved)
+      })
+      .catch((error: unknown) => {
+        if (isCancelled) return
+        setAuthorId('')
+        setPageErrorState(mapPageError(error))
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setResolvingAuthor(false)
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [authorName, routeAuthorId])
 
   useEffect(() => {
+    // Nothing to ask for until the slug has been turned into an id, and nothing
+    // to report either - the resolver records its own failure.
+    if (resolvingAuthor) {
+      return
+    }
+
     if (!authorId) {
       setProfile(null)
       setPostsPage(null)
-      setPageErrorState({
-        statusCode: 400,
-        title: 'Invalid author',
-        description: 'The author identifier is invalid.',
-      })
       setProfileLoading(false)
       setPostsLoading(false)
       return
@@ -190,10 +169,10 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [authorId])
+  }, [authorId, resolvingAuthor])
 
   useEffect(() => {
-    if (!authorId) {
+    if (resolvingAuthor || !authorId) {
       return
     }
 
@@ -230,7 +209,7 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     return () => {
       isCancelled = true
     }
-  }, [authorId, currentPage, pageSize, postsRequestVersion])
+  }, [authorId, currentPage, pageSize, postsRequestVersion, resolvingAuthor])
 
   const setPage = useCallback(
     (page: number) => {
@@ -273,8 +252,10 @@ export const useAuthorArchive = (pageSize: number = DEFAULT_PAGE_SIZE) => {
     authorId,
     currentPage,
     totalPages,
-    profileLoading,
-    postsLoading,
+    // Resolving the slug is part of loading the page, not a state of its own:
+    // until it finishes there is no profile to show and no reason to say so.
+    profileLoading: profileLoading || resolvingAuthor,
+    postsLoading: postsLoading || resolvingAuthor,
     pageErrorState,
     postsErrorState,
     setPage,

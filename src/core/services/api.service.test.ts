@@ -1,8 +1,23 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AccessTokenStore } from './access-token.store'
-import { ApiService } from './api.service'
+import { ApiError, ApiService, ApiTimeoutError } from './api.service'
 import { AuthInterceptor } from './auth.interceptor'
+import { DEFAULT_REQUEST_TIMEOUT_MS, UPLOAD_REQUEST_TIMEOUT_MS } from './request-deadline'
+
+/**
+ * A fetcher that mimics real `fetch`'s abort contract: it never settles on
+ * its own, and rejects with `init.signal.reason` once that signal fires.
+ * This is how a request to a host that drops packets (rather than refusing
+ * the connection) actually behaves - nothing but the deadline ends it.
+ */
+const neverRespondingFetcher = () =>
+  vi.fn<typeof fetch>(
+    (_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+      }),
+  )
 
 const jsonResponse = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -203,5 +218,136 @@ describe('ApiService authentication pipeline', () => {
     expect(fetcher.mock.calls[0][1]?.headers).not.toEqual(
       expect.objectContaining({ Authorization: expect.anything() }),
     )
+  })
+})
+
+describe('ApiService request deadline', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('rejects with a retryable ApiTimeoutError once a hung request outlives the default budget', async () => {
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    const pending = api.get('/series')
+    const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+    await assertion
+
+    // ApiTimeoutError extends ApiError with status 0, so every existing
+    // `error instanceof ApiError` / `error.status` consumer (e.g.
+    // usePublicSeriesList's getPublicSeriesListError) keeps working as-is.
+    await pending.catch((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiError)
+      expect((error as ApiError).status).toBe(0)
+    })
+  })
+
+  it('does not fire before the deadline elapses', async () => {
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    const settled = vi.fn()
+    void api.get('/series').then(settled, settled)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS - 1)
+
+    expect(settled).not.toHaveBeenCalled()
+  })
+
+  it('honors a per-request timeoutMs override for requests with a different budget (e.g. uploads)', async () => {
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    const pending = api.post('/posts/1/media', new FormData(), { timeoutMs: 60_000 })
+    const settled = vi.fn()
+    void pending.catch(settled)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+    expect(settled).not.toHaveBeenCalled()
+
+    const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
+    await vi.advanceTimersByTimeAsync(60_000 - DEFAULT_REQUEST_TIMEOUT_MS)
+    await assertion
+  })
+
+  it('gives a FormData body the upload budget without the call site asking for it', async () => {
+    // Every upload in the app - post media, avatars, editor images - calls
+    // `apiService.post(path, formData)` with no options at all. If a file
+    // body silently inherited the 10s JSON budget, this fix for hung reads
+    // would become a broken upload on any slow connection.
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+
+    const pending = api.post('/posts/1/media', new FormData())
+    const settled = vi.fn()
+    void pending.catch(settled)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+    expect(settled).not.toHaveBeenCalled()
+
+    const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
+    await vi.advanceTimersByTimeAsync(UPLOAD_REQUEST_TIMEOUT_MS - DEFAULT_REQUEST_TIMEOUT_MS)
+    await assertion
+  })
+
+  it('surfaces a caller-driven abort (component unmount / navigation) as a plain AbortError, not an ApiTimeoutError', async () => {
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+    const controller = new AbortController()
+
+    const pending = api.get('/series', undefined, { signal: controller.signal })
+    const assertion = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+
+    controller.abort()
+    await assertion
+
+    // It must not have been reinterpreted as a timeout failure.
+    await pending.catch((error: unknown) => {
+      expect(error).not.toBeInstanceOf(ApiTimeoutError)
+    })
+  })
+
+  it('still resolves as a timeout when the deadline wins a race against a caller signal that never fires', async () => {
+    const fetcher = neverRespondingFetcher()
+    const api = new ApiService(
+      'https://api.example.com',
+      new AuthInterceptor(new AccessTokenStore()),
+      { refreshAccessToken: vi.fn() },
+      fetcher,
+    )
+    const controller = new AbortController()
+
+    const pending = api.get('/series', undefined, { signal: controller.signal })
+    const assertion = expect(pending).rejects.toBeInstanceOf(ApiTimeoutError)
+
+    await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+    await assertion
   })
 })

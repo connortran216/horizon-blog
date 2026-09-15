@@ -123,3 +123,14 @@ A UI change is not done until:
 - Light and dark modes are considered.
 - Reduced-motion behavior is considered when motion exists.
 - Design-system docs are updated when reusable rules changed.
+
+## Agent Component Discovery
+
+Before custom reusable UI work, start the local Storybook catalog with `yarn storybook` and follow `design-system/storybook-mcp.md`:
+
+1. Discover candidates with `docs-list`.
+2. Inspect their APIs with `docs-show`.
+3. Inspect the closest complete states with `docs-show-story`.
+4. Reuse or compose when the requirement is already covered; document a capability gap before adding a shared component.
+
+Storybook is the agent-readable catalog. `ui-kit.html` remains the complete visual-review and design-system coverage gate.

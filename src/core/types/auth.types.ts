@@ -64,6 +64,19 @@ export interface ApiRequestOptions {
   authMode?: RequestAuthMode
   allowGuestFallback?: boolean
   keepalive?: boolean
+  /**
+   * Overrides the default request deadline (see `request-deadline.ts`).
+   * Use this for requests that are legitimately expected to take longer
+   * than a normal JSON read/write, such as a media upload. `0` disables
+   * the deadline for that request.
+   */
+  timeoutMs?: number
+  /**
+   * An external, caller-owned AbortSignal (e.g. tied to a component
+   * unmounting or a route change) to cancel this request independently of
+   * the deadline. See `isCallerAbort` in `request-deadline.ts`.
+   */
+  signal?: AbortSignal
 }
 
 export interface LogoutResult {

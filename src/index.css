@@ -388,7 +388,12 @@ body {
 
   .cv-section-label,
   .cv-entry-period {
-    color: #6d7987 !important;
+    /*
+     * #6d7987 measured 4.44:1 on the printed white page - just under the 4.5:1
+     * AA floor for 13px/500 text. #66727f keeps the same muted slate but clears
+     * it (4.9:1).
+     */
+    color: #66727f !important;
   }
 
   .cv-entry,

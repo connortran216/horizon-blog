@@ -1,180 +1,42 @@
-import {
-  Avatar,
-  Badge,
-  Box,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  Stack,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiArrowUpRight, FiClock } from 'react-icons/fi'
-import { BlogPostSummary, extractPreviewText, toPublicPostPath } from '../../../core'
-import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
+/**
+ * Home's Signature story - the single most prominent piece of writing on the
+ * site.
+ *
+ * It is the design system's `SignatureStory`, which is a different editorial
+ * object from the cards below it rather than a larger one: the feature radius,
+ * the display type ramp, a wide plate and a real call to action.
+ *
+ * The post is required. This component used to render a card full of standing
+ * copy - a made-up title, a made-up byline and a sentence about "a calmer
+ * rhythm" - whenever there was nothing to show. A site with no published
+ * writing has no Signature, and Home now says so in its own empty state
+ * instead of inventing one here.
+ */
 
-const DEFAULT_AVATAR =
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60'
+import { SignatureStory, postCoverTransitionName } from '../../../design-system'
+import type { BlogPostSummary } from '../../../core'
+import { toPostSummary } from '../../blog/postSummary.presentation'
+import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+
+const COVER_SIZES = '(min-width: 1001px) 55vw, 100vw'
 
 interface HeroArchivePreviewProps {
-  post?: BlogPostSummary
-  formatDate: (dateString: string) => string
+  post: BlogPostSummary
+  /** The enclosing section's own words, for label de-duplication. */
+  sectionLabels?: readonly string[]
 }
 
-const HeroArchivePreview = ({ post, formatDate }: HeroArchivePreviewProps) => {
-  const coverMedia = useResolvedCoverMedia(post?.featuredImage)
-  const coverImage = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 768px) 100vw, 520px', true)
-    : undefined
-  const previewText =
-    extractPreviewText(post?.excerpt || post?.subtitle || '') ||
-    'Blogs, essays, and technical writing shared with a calmer rhythm.'
-  const previewContent = (
-    <>
-      {coverImage ? (
-        <Image
-          {...coverImage}
-          alt={post?.title || 'Latest blog'}
-          w="full"
-          h="220px"
-          objectFit="cover"
-        />
-      ) : (
-        <DefaultPostCover
-          title={post?.title || 'Start with the latest story'}
-          eyebrow="Latest blog"
-          h="220px"
-          borderBottom="1px solid"
-          borderColor="border.subtle"
-        />
-      )}
-
-      <Stack spacing={5} px={{ base: 5, lg: 7 }} py={{ base: 5, lg: 7 }}>
-        <HStack justify="space-between" align="flex-start" spacing={4}>
-          <Badge
-            px={3}
-            py={1}
-            borderRadius="full"
-            bg="bg.tertiary"
-            color="text.secondary"
-            textTransform="uppercase"
-            letterSpacing="0.14em"
-            fontSize="10px"
-          >
-            Latest blog
-          </Badge>
-          <Icon as={FiArrowUpRight} color="action.primary" boxSize={5} />
-        </HStack>
-
-        <VStack align="stretch" spacing={3}>
-          <Text
-            fontSize="xs"
-            textTransform="uppercase"
-            letterSpacing="0.14em"
-            color="text.tertiary"
-          >
-            {post ? formatDate(post.createdAt) : 'Latest published'}
-          </Text>
-          <Heading
-            size="lg"
-            color="text.primary"
-            lineHeight="1.05"
-            letterSpacing="-0.03em"
-            noOfLines={3}
-          >
-            {post?.title || 'Start with the latest story'}
-          </Heading>
-          <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-            {previewText}
-          </Text>
-        </VStack>
-
-        <HStack justify="space-between" pt={1} flexWrap="wrap" spacing={3}>
-          <HStack spacing={3}>
-            <Avatar
-              size="2xs"
-              src={post?.author.avatar || DEFAULT_AVATAR}
-              name={post?.author.username || 'Connor Tran'}
-            />
-            <Text fontSize="sm" color="text.secondary">
-              {post?.author.username || 'Connor Tran'}
-            </Text>
-          </HStack>
-          <HStack spacing={1.5} color="text.tertiary" fontSize="sm">
-            <Icon as={FiClock} />
-            <Text>{post?.readingTime || 1} min read</Text>
-          </HStack>
-        </HStack>
-      </Stack>
-    </>
-  )
+const HeroArchivePreview = ({ post, sectionLabels = [] }: HeroArchivePreviewProps) => {
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
   return (
-    <Box position="relative" minH={{ base: '340px', lg: '520px' }}>
-      <Box
-        position="absolute"
-        top={{ base: 10, lg: 6 }}
-        right={{ base: 8, lg: 12 }}
-        w={{ base: 20, lg: 28 }}
-        h={{ base: 20, lg: 28 }}
-        borderRadius="full"
-        bg="accent.glow"
-        filter="blur(18px)"
-        opacity={0.95}
-      />
-      <Box
-        position="absolute"
-        bottom={{ base: 12, lg: 16 }}
-        left={{ base: 2, lg: 4 }}
-        w={{ base: 14, lg: 20 }}
-        h={{ base: 14, lg: 20 }}
-        borderRadius="2xl"
-        border="1px solid"
-        borderColor="border.subtle"
-        bg="bg.tertiary"
-        transform="rotate(-14deg)"
-        opacity={0.9}
-      />
-
-      {post ? (
-        <Box
-          as={RouterLink}
-          to={toPublicPostPath(post.id)}
-          position="relative"
-          display="block"
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="3xl"
-          overflow="hidden"
-          bg="bg.secondary"
-          boxShadow="xl"
-          transform={{ base: 'none', lg: 'rotate(1.5deg)' }}
-          _hover={{ transform: { base: 'none', lg: 'rotate(0.5deg) translateY(-4px)' } }}
-          transition="transform 0.25s ease, box-shadow 0.25s ease"
-        >
-          {previewContent}
-        </Box>
-      ) : (
-        <Box
-          position="relative"
-          display="block"
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="3xl"
-          overflow="hidden"
-          bg="bg.secondary"
-          boxShadow="xl"
-          transform={{ base: 'none', lg: 'rotate(1.5deg)' }}
-          transition="transform 0.25s ease, box-shadow 0.25s ease"
-        >
-          {previewContent}
-        </Box>
-      )}
-    </Box>
+    <SignatureStory
+      post={summary}
+      sectionLabels={sectionLabels}
+      titleAs="h2"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
   )
 }
 

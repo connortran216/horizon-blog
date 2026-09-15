@@ -1,28 +1,49 @@
+/**
+ * The publish screen - migrated onto Horizon Design System v2 (release M6).
+ *
+ * Composed from `ContentContainer`, `Section`, `Grid`, `PublishPanel`,
+ * `ScheduleNotice`, `PreviewCard` (through `PublishBlogPreviewCard`), `Field` +
+ * `Select` and `ActionLink`. Removed on the way: two hand-built bordered
+ * panels, the uppercase letter-spaced "PUBLISH SETTINGS" labels, the Chakra
+ * `Alert`, the `FormControl`/`FormErrorMessage` pairs and the two clickable
+ * `Box as="label"` cards that wrapped a decorative `Radio`.
+ *
+ * The request sequence is unchanged: assign the series first when the list
+ * loaded, then either publish and route to the public post, or schedule and
+ * route to the profile. The same guard still stands between a past timestamp
+ * and `schedule()`.
+ *
+ * What changed is what the screen says a schedule *is*. The legacy page called
+ * it "Schedule blog" and the toast said "Blog scheduled", which reads as a post
+ * that is on its way out. Scheduling writes a timestamp onto a record that is
+ * still a draft and stays unreadable until a worker publishes it, so the button
+ * says "Schedule this draft", the confirmation under the fields says it stays a
+ * draft until then, and the toast says the same.
+ *
+ * The mode choice is also a real `radiogroup` now. The legacy cards responded
+ * to a click but not to an arrow key, because the radio inside them was
+ * decorative.
+ */
+
 import { useEffect, useMemo, useState } from 'react'
+import { useToast } from '@chakra-ui/react'
+import { FiArrowLeft } from 'react-icons/fi'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  Box,
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  Button,
-  Container,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
+  ActionLink,
+  ContentContainer,
+  Field,
+  Grid,
   Heading,
-  HStack,
-  Input,
-  Radio,
+  PanelLoading,
+  PublishPanel,
+  ScheduleNotice,
+  Section,
   Select,
-  SimpleGrid,
   Stack,
   Text,
-  useToast,
-} from '@chakra-ui/react'
-import { FiArrowLeft } from 'react-icons/fi'
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
-import { LoadingPanel, toPublicPostPath } from '../../../core'
+} from '../../../design-system'
+import { toPublicPostPath } from '../../../core'
 import { PublicPostRecord } from '../../../core/types/blog.types'
 import { mapApiPostToSummary } from '../../../core/utils/blog-mapping.utils'
 import { useAuth } from '../../../context/AuthContext'
@@ -116,11 +137,12 @@ const PublishBlogPage = () => {
 
   const scheduledAt = useMemo(() => new Date(`${date}T${time}`), [date, time])
   const hasValidSchedule = Number.isFinite(scheduledAt.getTime())
+  const isScheduling = mode === 'schedule' && hasValidSchedule
   const publicationDate = new Intl.DateTimeFormat(undefined, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(mode === 'schedule' && hasValidSchedule ? scheduledAt : new Date())
+  }).format(isScheduling ? scheduledAt : new Date())
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const preview = blog ? mapApiPostToSummary(blog) : null
 
@@ -131,6 +153,9 @@ const PublishBlogPage = () => {
 
   const submit = async () => {
     if (!blog || !postId) return
+    // The panel disables the action for a past or unparseable moment. This
+    // guard stays anyway: it is the last thing between a bad timestamp and a
+    // request the backend would accept.
     if (mode === 'schedule' && (!hasValidSchedule || scheduledAt <= new Date())) {
       setError('Choose a publication time in the future.')
       return
@@ -157,8 +182,8 @@ const PublishBlogPage = () => {
       }
       await getEditorPostService().schedule(postId, scheduledAt.toISOString())
       toast({
-        title: 'Blog scheduled',
-        description: `Scheduled for ${scheduledAt.toLocaleString()} (${timezone}).`,
+        title: 'Draft scheduled',
+        description: `It stays a draft until ${scheduledAt.toLocaleString()} (${timezone}), then publishes itself.`,
         status: 'success',
         duration: 4000,
         isClosable: true,
@@ -172,189 +197,99 @@ const PublishBlogPage = () => {
   }
 
   if (!blog || !preview) {
-    return <LoadingPanel label="Preparing publishing" description="Loading your saved blog." />
+    return (
+      <ContentContainer>
+        <Section>
+          <PanelLoading task="your saved blog" />
+        </Section>
+      </ContentContainer>
+    )
   }
 
   return (
-    <Container maxW="7xl" px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
-      <Button
-        variant="ghost"
-        leftIcon={<FiArrowLeft />}
-        color="text.secondary"
-        mb={6}
-        onClick={() =>
-          navigate(`/blog-editor?id=${blog.id}`, { state: { blog, authorizedEdit: true } })
-        }
-      >
-        Back to editor
-      </Button>
-      <Heading color="text.primary" mb={8}>
-        Publish your blog
-      </Heading>
-
-      <SimpleGrid columns={{ base: 1, lg: 12 }} spacing={{ base: 8, lg: 6 }} alignItems="start">
-        <Stack
-          gridColumn={{ lg: 'span 5' }}
-          spacing={6}
-          p={{ base: 5, md: 7 }}
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="2xl"
-          bg="bg.secondary"
-          position={{ lg: 'sticky' }}
-          top={{ lg: 24 }}
-        >
-          <Text color="text.tertiary" fontSize="xs" fontWeight="bold" letterSpacing="0.14em">
-            PUBLISH SETTINGS
-          </Text>
-          <Heading size="lg" color="text.primary">
-            When should it go live?
-          </Heading>
-
-          {existingSchedule ? (
-            <Alert status="info" borderRadius="xl" alignItems="flex-start">
-              <AlertIcon mt={1} />
-              <AlertDescription>
-                Current schedule: {new Date(existingSchedule).toLocaleString()} ({timezone}).
-                {mode === 'now' ? ' Publishing now will cancel this schedule.' : ''}
-              </AlertDescription>
-            </Alert>
-          ) : null}
-
-          <FormControl isDisabled={!seriesLoaded}>
-            <FormLabel color="text.secondary">Series</FormLabel>
-            <Select
-              value={selectedSeriesId}
-              onChange={(event) => setSelectedSeriesId(event.target.value)}
-              bg="bg.page"
-              borderColor="border.default"
+    <ContentContainer>
+      <Section density="compact">
+        <Stack gap={8}>
+          <Stack gap={4}>
+            <ActionLink
+              to={`/blog-editor?id=${blog.id}`}
+              state={{ blog, authorizedEdit: true }}
+              iconStart={<FiArrowLeft aria-hidden="true" />}
             >
-              <option value="">Standalone blog</option>
-              {ownedSeries.map((series) => (
-                <option key={series.id} value={series.id}>
-                  {series.title}
-                </option>
-              ))}
-            </Select>
-            <FormHelperText color={seriesLoadError ? 'red.500' : 'text.tertiary'}>
-              {seriesLoadError || (
-                <>
-                  A blog can belong to one series.{' '}
-                  <RouterLink to="/series/manage">Manage Series</RouterLink>
-                </>
+              Back to editor
+            </ActionLink>
+
+            <Heading recipe="pageTitle" as="h1">
+              Publish your blog
+            </Heading>
+          </Stack>
+
+          {existingSchedule ? <ScheduleNotice scheduledAt={existingSchedule} /> : null}
+
+          <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
+            <PublishPanel
+              mode={mode}
+              onModeChange={chooseMode}
+              date={date}
+              onDateChange={setDate}
+              time={time}
+              onTimeChange={setTime}
+              onSubmit={submit}
+              hasTitle={Boolean(blog.title?.trim())}
+              hasContent={Boolean(blog.content_markdown?.trim())}
+              isSubmitting={isSubmitting}
+              submitError={error || undefined}
+              existingScheduledAt={existingSchedule ?? undefined}
+            >
+              <Field
+                label="Series"
+                hint="A blog can belong to one series."
+                isDisabled={!seriesLoaded}
+              >
+                <Select
+                  value={selectedSeriesId}
+                  onChange={(event) => setSelectedSeriesId(event.target.value)}
+                >
+                  <option value="">Standalone blog</option>
+                  {ownedSeries.map((series) => (
+                    <option key={series.id} value={series.id}>
+                      {series.title}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              {/*
+               * The list failing to load is not the select being invalid, so it
+               * is reported beside the field rather than through `Field`'s
+               * error channel, which would mark the control `aria-invalid`.
+               */}
+              {seriesLoadError ? (
+                <Text recipe="metadata" role="status" aria-live="polite">
+                  {seriesLoadError}
+                </Text>
+              ) : (
+                <ActionLink to="/series/manage">Manage Series</ActionLink>
               )}
-            </FormHelperText>
-          </FormControl>
+            </PublishPanel>
 
-          {(
-            [
-              ['now', 'Publish now', 'Make it public immediately.'],
-              ['schedule', 'Schedule for later', 'Choose a date and time.'],
-            ] as const
-          ).map(([value, label, description]) => (
-            <Box
-              key={value}
-              as="label"
-              p={5}
-              border="1px solid"
-              borderColor={mode === value ? 'action.primary' : 'border.default'}
-              borderRadius="xl"
-              bg={mode === value ? 'action.subtle' : 'bg.page'}
-              cursor="pointer"
-              onClick={() => chooseMode(value)}
-              _focusWithin={{
-                outline: '2px solid',
-                outlineColor: 'action.primary',
-                outlineOffset: '2px',
-              }}
-            >
-              <HStack align="start" spacing={4}>
-                <Radio
-                  value={value}
-                  isChecked={mode === value}
-                  mt={1}
-                  _checked={{
-                    bg: 'action.primary',
-                    borderColor: 'action.primary',
-                  }}
-                  onChange={() => chooseMode(value)}
-                />
-                <Stack spacing={1}>
-                  <Text color="text.primary" fontWeight="semibold">
-                    {label}
-                  </Text>
-                  <Text color="text.secondary">{description}</Text>
-                </Stack>
-              </HStack>
-            </Box>
-          ))}
-
-          {mode === 'schedule' ? (
-            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4}>
-              <FormControl isInvalid={Boolean(error)}>
-                <FormLabel color="text.secondary">Publication date</FormLabel>
-                <Input
-                  type="date"
-                  min={localDateValue(new Date())}
-                  value={date}
-                  onChange={(event) => setDate(event.target.value)}
-                  bg="bg.page"
-                  borderColor="border.default"
-                />
-              </FormControl>
-              <FormControl isInvalid={Boolean(error)}>
-                <FormLabel color="text.secondary">Publication time</FormLabel>
-                <Input
-                  type="time"
-                  value={time}
-                  onChange={(event) => setTime(event.target.value)}
-                  bg="bg.page"
-                  borderColor="border.default"
-                />
-              </FormControl>
-            </SimpleGrid>
-          ) : null}
-
-          {mode === 'schedule' ? (
-            <Text color="text.tertiary" fontSize="sm">
-              {timezone} ·{' '}
-              {hasValidSchedule ? scheduledAt.toLocaleString() : 'Select a date and time'}
-            </Text>
-          ) : null}
-          {error ? (
-            <FormControl isInvalid>
-              <FormErrorMessage>{error}</FormErrorMessage>
-            </FormControl>
-          ) : null}
-          <Button
-            variant="solid"
-            isLoading={isSubmitting}
-            loadingText={mode === 'now' ? 'Publishing' : 'Scheduling'}
-            onClick={submit}
-          >
-            {mode === 'now' ? 'Publish now' : 'Schedule blog'}
-          </Button>
+            <Stack as="section" gap={4}>
+              <Heading recipe="sectionTitle" as="h2">
+                Landing page preview
+              </Heading>
+              <PublishBlogPreviewCard
+                blog={preview}
+                publicationDate={publicationDate}
+                publicationDateLabel={isScheduling ? 'Scheduled for' : 'Publishing today'}
+              />
+              <Text recipe="metadata">
+                This is how the post will appear on the landing page once it is published.
+              </Text>
+            </Stack>
+          </Grid>
         </Stack>
-
-        <Stack
-          gridColumn={{ lg: 'span 7' }}
-          spacing={4}
-          p={{ base: 4, md: 6 }}
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="2xl"
-          bg="bg.page"
-        >
-          <Text color="text.tertiary" fontSize="xs" fontWeight="bold" letterSpacing="0.14em">
-            LANDING PAGE PREVIEW
-          </Text>
-          <PublishBlogPreviewCard blog={preview} publicationDate={publicationDate} />
-          <Text color="text.tertiary" fontSize="sm">
-            This is how your blog will appear on the landing page.
-          </Text>
-        </Stack>
-      </SimpleGrid>
-    </Container>
+      </Section>
+    </ContentContainer>
   )
 }
 

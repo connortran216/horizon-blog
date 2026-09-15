@@ -1,5 +1,10 @@
 # Horizon Blog Design System
 
+> Design System v2 is governed by [`DESIGN.md`](../DESIGN.md) and tracked by
+> [`component-inventory.md`](./component-inventory.md). Production pages still use the legacy
+> composition after the R1/R3 rollback. Where this compatibility reference conflicts with
+> `DESIGN.md`, `DESIGN.md` wins.
+
 This folder is the canonical source of truth for Horizon Blog UI rules.
 
 Use this documentation before changing:

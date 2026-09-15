@@ -1,22 +1,45 @@
+/**
+ * The author's Series workspace: create one, then manage each one.
+ *
+ * `useOwnerSeries` still owns the list, the four mutations and the retry;
+ * `loadAllOwnedBlogs` still pages through both owner views exactly as it did.
+ * What changed is where a failure is shown. The page used to render every error
+ * `useOwnerSeries` produced in one alert at the top, whichever Series or action
+ * had caused it, and it swallowed a failed blog load entirely - `catch(() =>
+ * setBlogs([]))` - which left the add-a-blog control claiming that every blog
+ * the author owns already belongs to a Series.
+ *
+ * Now each failure is shown where it happened: a create failure under the create
+ * form, a save or delete failure on the Series it belongs to, and a failed blog
+ * load in the add control with a retry. The page-level state is reserved for the
+ * one failure that has nothing to attach itself to - the list itself not
+ * loading.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Box } from '@chakra-ui/react'
+import { FiArrowLeft, FiPlus } from 'react-icons/fi'
+
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  Box,
+  ActionLink,
   Button,
-  Container,
-  FormControl,
-  FormLabel,
+  ContentContainer,
+  EmptyState,
+  ErrorState,
+  Eyebrow,
+  Field,
   Heading,
   Input,
+  PageLoading,
+  RetryAction,
+  Section,
   Stack,
+  Surface,
   Text,
   Textarea,
-} from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
-import { FiArrowLeft, FiPlus } from 'react-icons/fi'
-import { Link as RouterLink } from 'react-router-dom'
-import { getBlogService, LoadingPanel } from '../../../core'
+} from '../../../design-system'
+import { componentTokens } from '../../../theme/tokens'
+import { getBlogService } from '../../../core'
 import SeriesManager, { SeriesBlogOption } from '../components/SeriesManager'
 import { useOwnerSeries } from '../useOwnerSeries'
 
@@ -48,16 +71,30 @@ const ManageSeriesPage = () => {
   const owner = useOwnerSeries()
   const [blogs, setBlogs] = useState<SeriesBlogOption[]>([])
   const [blogsLoading, setBlogsLoading] = useState(true)
+  const [blogsError, setBlogsError] = useState<string | undefined>(undefined)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadAllOwnedBlogs()
+  const loadBlogs = useCallback(() => {
+    setBlogsError(undefined)
+    return loadAllOwnedBlogs()
       .then(setBlogs)
-      .catch(() => setBlogs([]))
+      .catch((error: unknown) => {
+        setBlogs([])
+        setBlogsError(
+          error instanceof Error && error.message.trim().length > 0
+            ? error.message
+            : 'We could not load the blogs you own.',
+        )
+      })
       .finally(() => setBlogsLoading(false))
   }, [])
+
+  useEffect(() => {
+    void loadBlogs()
+  }, [loadBlogs])
 
   const assignedSeriesByPostId = useMemo(() => {
     const result = new Map<number, number>()
@@ -69,108 +106,147 @@ const ManageSeriesPage = () => {
 
   const create = async () => {
     setCreating(true)
+    setCreateError(null)
     try {
       await owner.create({ title, description })
       setTitle('')
       setDescription('')
-    } catch {
-      // The owner hook exposes a calm inline error for failed mutations.
+    } catch (error) {
+      setCreateError(
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : 'This Series could not be created.',
+      )
     } finally {
       setCreating(false)
     }
   }
 
   if (owner.loading || blogsLoading) {
-    return <LoadingPanel label="Loading your Series" description="Preparing your Series." />
+    return <PageLoading task="your Series" />
   }
 
+  const canCreate = title.trim().length > 0 && !creating
+
   return (
-    <Container maxW="container.lg" py={{ base: 8, md: 12 }}>
-      <Stack spacing={{ base: 8, md: 10 }}>
-        <Button
-          as={RouterLink}
-          to="/blog-editor"
-          variant="ghost"
-          leftIcon={<FiArrowLeft />}
-          alignSelf="flex-start"
-        >
-          Back to editor
-        </Button>
-
-        <Stack spacing={3}>
-          <Text color="text.tertiary" fontSize="xs" fontWeight="bold" letterSpacing="0.14em">
-            AUTHOR WORKSPACE
-          </Text>
-          <Heading color="text.primary">Manage series</Heading>
-          <Text color="text.secondary" maxW="2xl">
-            Group related blogs into one ordered Series. Each blog can belong to one Series.
-          </Text>
-        </Stack>
-
-        {owner.error ? (
-          <Alert status="error" borderRadius="xl">
-            <AlertIcon />
-            <AlertDescription>{owner.error}</AlertDescription>
-          </Alert>
-        ) : null}
-
-        <Box
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="2xl"
-          bg="bg.secondary"
-          p={{ base: 5, md: 7 }}
-        >
-          <Stack spacing={4}>
-            <Heading size="md" color="text.primary">
-              Create a series
-            </Heading>
-            <FormControl isRequired>
-              <FormLabel>Series title</FormLabel>
-              <Input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                bg="bg.page"
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Description</FormLabel>
-              <Textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                bg="bg.page"
-              />
-            </FormControl>
-            <Button
-              leftIcon={<FiPlus />}
-              alignSelf="flex-start"
-              isLoading={creating}
-              onClick={() => void create()}
+    <ContentContainer>
+      <Section>
+        <Stack gap={8}>
+          <Stack gap={3} alignItems="flex-start">
+            <ActionLink
+              to="/blog-editor"
+              weight="secondary"
+              iconStart={<FiArrowLeft aria-hidden="true" />}
             >
-              Create series
-            </Button>
+              Back to editor
+            </ActionLink>
           </Stack>
-        </Box>
 
-        {owner.series.length === 0 ? (
-          <Text color="text.secondary">No Series yet. Create the first Series above.</Text>
-        ) : (
-          <Stack spacing={6}>
-            {owner.series.map((series) => (
-              <SeriesManager
-                key={series.id}
-                series={series}
-                blogOptions={blogs}
-                assignedSeriesByPostId={assignedSeriesByPostId}
-                onUpdate={owner.update}
-                onReplacePosts={owner.replacePosts}
-                onDelete={owner.remove}
-              />
-            ))}
+          <Stack gap={3}>
+            <Eyebrow as="p">Author workspace</Eyebrow>
+            <Heading as="h1" recipe="pageTitle">
+              Manage Series
+            </Heading>
+            <Text recipe="body">
+              Group related blogs into one ordered Series. Each blog can belong to one Series.
+            </Text>
           </Stack>
-        )}
-      </Stack>
-    </Container>
+
+          {/*
+            The one failure with nothing to attach itself to. Every other error
+            `useOwnerSeries` reports belongs to a form that is on screen, and is
+            shown there.
+          */}
+          {owner.error !== null && owner.series.length === 0 && createError === null ? (
+            <ErrorState failedAction="load your Series" detail={owner.error}>
+              <RetryAction
+                failedAction="load your Series"
+                onRetry={() => {
+                  void owner.retry()
+                }}
+              />
+            </ErrorState>
+          ) : null}
+
+          <Surface as="section" depth="raised">
+            <Stack gap={4}>
+              <Heading as="h2" recipe="cardTitle">
+                Create a Series
+              </Heading>
+
+              <Field label="Series title" isRequired>
+                <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+              </Field>
+
+              <Field
+                label="Description"
+                hint="One or two sentences telling a reader what the Series covers."
+              >
+                <Textarea
+                  rows={3}
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </Field>
+
+              {createError === null ? null : (
+                <Text
+                  recipe="metadata"
+                  role="alert"
+                  aria-live="assertive"
+                  color={componentTokens.field.invalidText}
+                >
+                  {createError}
+                </Text>
+              )}
+
+              <Stack direction="row" gap={3} collapseAt={undefined} flexWrap="wrap">
+                <Button
+                  tone="primary"
+                  iconStart={<FiPlus aria-hidden="true" />}
+                  isDisabled={!canCreate}
+                  isLoading={creating}
+                  loadingLabel="Creating this Series"
+                  onClick={() => void create()}
+                >
+                  Create Series
+                </Button>
+              </Stack>
+
+              {canCreate || creating ? null : (
+                // A disabled control with no explanation is a dead end.
+                <Text recipe="metadata" role="status" aria-live="polite">
+                  A Series needs a title before it can be created.
+                </Text>
+              )}
+            </Stack>
+          </Surface>
+
+          {owner.series.length === 0 ? (
+            <EmptyState subject="Series" nextAction="Create the first one with the form above." />
+          ) : (
+            <Stack as="ul" gap={6}>
+              {owner.series.map((series) => (
+                <Box as="li" key={series.id} listStyleType="none">
+                  <SeriesManager
+                    series={series}
+                    blogOptions={blogs}
+                    assignedSeriesByPostId={assignedSeriesByPostId}
+                    optionsError={blogsError}
+                    onRetryOptions={() => {
+                      void loadBlogs()
+                    }}
+                    onUpdate={owner.update}
+                    onReplacePosts={owner.replacePosts}
+                    onDelete={owner.remove}
+                  />
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

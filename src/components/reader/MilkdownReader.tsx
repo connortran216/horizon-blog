@@ -1,23 +1,36 @@
 /**
- * Milkdown Reader - Read-Only Content Display
+ * Milkdown Reader - read-only content display.
  *
- * Features:
- * - Read-only markdown content rendering
- * - Text selection enabled for copying
- * - Optimized typography for reading
- * - No editing capabilities
- * - Clean, distraction-free UI
+ * The editor stack is untouched: Milkdown, commonmark, GFM, Prism and the nord
+ * theme are configured exactly as before, read-only, from the same
+ * `EDITOR_CONFIG` flags. What left is the 170-line `sx` block that restyled the
+ * rendered document by hand - `em`-based heading ramps, `gray.*` and
+ * `obsidian.*` palette names, and a light/dark pair for every one of them.
+ *
+ * `Prose` owns that now, by descendant selector, which is also why the rule
+ * that wide content scrolls inside itself reaches markup this file never sees.
+ * A setup failure is the system's error state rather than an orange panel: a
+ * reader who cannot see the article needs to know that, not a stack message.
  */
 
-import React, { useState, useRef } from 'react'
-import { Box, Text, VStack, HStack, useColorModeValue } from '@chakra-ui/react'
-import { WarningIcon } from '@chakra-ui/icons'
+import React, { useState } from 'react'
+import { Box } from '@chakra-ui/react'
 import { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx } from '@milkdown/core'
 import { commonmark } from '@milkdown/preset-commonmark'
 import { gfm } from '@milkdown/preset-gfm'
 import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { nord } from '@milkdown/theme-nord'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
+
+import {
+  Prose,
+  chakraColorVar,
+  codeTextStyle,
+  localScrollStyle,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
+} from '../../design-system'
+import { componentTokens } from '../../theme/tokens'
 import { EDITOR_CONFIG } from '../../config/editor.config'
 
 // Import Prism themes
@@ -28,26 +41,29 @@ interface MilkdownReaderProps {
   content?: string
 }
 
+/**
+ * The visible signal that a wide `pre`, `table` or `.tableWrapper` inside this
+ * surface scrolls. See `scrollAffordanceStyle` - `card.border` is the same
+ * divider colour `Prose`'s own equivalent rule borrows.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * A table sits on the article's own card surface; a `pre` sits on `codeBg`.
+ * `Prose`'s own sweep wires the fade's `data-scroll-fade` state onto both -
+ * neither carries a `role`, so neither is excluded the way `CodeBlock`'s own
+ * frame is - so only the CSS needs restating here, for the same cascade-order
+ * race the comment below already explains.
+ */
+const tableEdgeFade = scrollFadeStyle({ background: chakraColorVar(componentTokens.card.bg) })
+const codeEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
+
 const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) => {
   const [editorError, setEditorError] = useState<string | null>(null)
-  const editorContainerRef = useRef<HTMLDivElement>(null)
-
-  // Color mode values for styling
-  const errorBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.1)')
-  const errorBorderColor = useColorModeValue('orange.200', 'orange.700')
-  const errorTextColor = useColorModeValue('orange.600', 'orange.300')
-  const errorHelpTextColor = useColorModeValue('gray.600', 'text.secondary')
-  const headingH1Color = useColorModeValue('gray.900', 'text.primary')
-  const headingH2H3Color = useColorModeValue('gray.800', 'text.primary')
-  const inlineCodeBg = useColorModeValue('gray.100', 'obsidian.dark.bgTertiary')
-  const preCodeBg = useColorModeValue('gray.900', 'obsidian.codeBlock')
-  const blockquoteBorderColor = useColorModeValue('gray.300', 'border.default')
-  const blockquoteTextColor = useColorModeValue('gray.600', 'text.secondary')
-  const linkColor = useColorModeValue('blue.500', 'link.default')
-  const linkHoverColor = useColorModeValue('blue.600', 'link.hover')
-  const hrBorderColor = useColorModeValue('gray.300', 'border.default')
-  const tableBorderColor = useColorModeValue('gray.300', 'border.default')
-  const tableHeaderBg = useColorModeValue('gray.100', 'bg.tertiary')
 
   // Configure Milkdown editor in read-only mode
   useEditor(
@@ -93,7 +109,7 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
 
         return editor
       } catch (error: unknown) {
-        console.error('❌ Error setting up Milkdown reader:', error)
+        console.error('Error setting up Milkdown reader:', error)
         const errorMessage = error instanceof Error ? error.message : 'Failed to setup reader'
         setEditorError(errorMessage)
       }
@@ -101,202 +117,42 @@ const MilkdownReaderInner: React.FC<MilkdownReaderProps> = ({ content = '' }) =>
     [content],
   )
 
-  // Show error if reader failed to initialize
-  if (editorError) {
-    return (
-      <Box p={6} border="1px" borderColor={errorBorderColor} borderRadius="md" bg={errorBg}>
-        <VStack spacing={4} align="stretch">
-          <HStack>
-            <WarningIcon color="orange.500" />
-            <Text fontWeight="bold" color={errorTextColor}>
-              Content Display Error
-            </Text>
-          </HStack>
-          <Text color={errorTextColor}>{editorError}</Text>
-          <Text fontSize="sm" color={errorHelpTextColor}>
-            Please try refreshing the page. If the problem persists, contact support.
-          </Text>
-        </VStack>
-      </Box>
-    )
-  }
-
-  // Render Milkdown in read-only mode
   return (
-    <Box
-      ref={editorContainerRef}
+    <Prose
       className="milkdown-reader-wrapper"
-      sx={{
-        '.milkdown': {
-          minHeight: `${EDITOR_CONFIG.ui.minHeight}px`,
-          padding: '2rem',
-          border: 'none',
-          backgroundColor: 'transparent',
-          fontFamily: 'inherit',
-        },
-
-        '.milkdown-reader-content': {
-          outline: 'none',
-          minHeight: `${EDITOR_CONFIG.ui.minHeight - 50}px`,
-          fontSize: '1.1rem',
-          maxWidth: '100%',
-          cursor: 'text',
-          userSelect: 'text', // Allow text selection
-
-          // Typography optimized for reading
-          p: {
-            marginBottom: '1.2em',
-            lineHeight: '1.8',
-          },
-
-          // Headings
-          h1: {
-            fontSize: '2.8em',
-            fontWeight: 'bold',
-            marginTop: '0.8em',
-            marginBottom: '0.6em',
-            lineHeight: '1.2',
-            color: headingH1Color,
-          },
-          h2: {
-            fontSize: '2.2em',
-            fontWeight: 'bold',
-            marginTop: '0.8em',
-            marginBottom: '0.6em',
-            lineHeight: '1.3',
-            color: headingH2H3Color,
-          },
-          h3: {
-            fontSize: '1.7em',
-            fontWeight: 'bold',
-            marginTop: '0.8em',
-            marginBottom: '0.6em',
-            lineHeight: '1.4',
-            color: headingH2H3Color,
-          },
-          h4: {
-            fontSize: '1.25em',
-            fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
-          },
-          h5: {
-            fontSize: '1.1em',
-            fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
-          },
-          h6: {
-            fontSize: '1em',
-            fontWeight: 'bold',
-            marginTop: '0.5em',
-            marginBottom: '0.5em',
-          },
-
-          // Lists
-          'ul, ol': {
-            paddingLeft: '2em',
-            marginBottom: '1em',
-          },
-          li: {
-            marginBottom: '0.5em',
-          },
-
-          // Code
-          code: {
-            backgroundColor: inlineCodeBg,
-            padding: '0.2em 0.4em',
-            borderRadius: 'sm',
-            fontSize: '0.9em',
-            fontFamily: 'monospace',
-          },
-          pre: {
-            backgroundColor: preCodeBg,
-            color: 'white',
-            padding: '1em',
-            borderRadius: 'md',
-            marginBottom: '1em',
-            overflow: 'auto',
-
-            code: {
-              backgroundColor: 'transparent',
-              padding: '0',
-              color: 'inherit',
-            },
-          },
-
-          // Blockquote
-          blockquote: {
-            borderLeft: '4px solid',
-            borderColor: blockquoteBorderColor,
-            paddingLeft: '1em',
-            marginLeft: '0',
-            marginBottom: '1em',
-            fontStyle: 'italic',
-            color: blockquoteTextColor,
-          },
-
-          // Links
-          a: {
-            color: linkColor,
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            '&:hover': {
-              color: linkHoverColor,
-            },
-          },
-
-          // Horizontal rule
-          hr: {
-            border: 'none',
-            borderTop: '2px solid',
-            borderColor: hrBorderColor,
-            marginTop: '2em',
-            marginBottom: '2em',
-          },
-
-          // Tables
-          table: {
-            borderCollapse: 'collapse',
-            width: '100%',
-            marginBottom: '1em',
-          },
-          'th, td': {
-            border: '1px solid',
-            borderColor: tableBorderColor,
-            padding: '0.5em',
-            textAlign: 'left',
-          },
-          th: {
-            backgroundColor: tableHeaderBg,
-            fontWeight: 'bold',
-          },
-
-          // Images
-          img: {
-            maxWidth: '100%',
-            height: 'auto',
-            borderRadius: 'md',
-            marginBottom: '1em',
-          },
-
-          // Strong and emphasis
-          strong: {
-            fontWeight: 'bold',
-          },
-          em: {
-            fontStyle: 'italic',
-          },
-
-          // Strikethrough
-          's, del': {
-            textDecoration: 'line-through',
-          },
-        },
-      }}
+      renderError={editorError}
+      emptyMessage="This blog has no content yet."
     >
-      <Milkdown />
-    </Box>
+      <Box
+        className="milkdown-reader-host"
+        minW={0}
+        sx={{
+          '.milkdown': { outline: 'none' },
+          /*
+           * `Prose` already contains a bare `pre` or `table`, but the nord and
+           * Prism stylesheets style `.milkdown pre` at the same specificity and
+           * are imported by this module, so which wins depends on injection
+           * order. The rule is restated one level deeper, from the design
+           * system's own `localScrollStyle` - and now with the same visible
+           * scroll signal and code-sized type `Prose` gives every other
+           * renderer's output, plus `.tableWrapper`, the plain `div`
+           * `@milkdown/preset-gfm`'s table plugin wraps every `table` in.
+           */
+          '.milkdown pre, .milkdown table, .milkdown .tableWrapper': {
+            ...localScrollStyle(),
+            ...scrollAffordance,
+            display: 'block',
+          },
+          // The fade only on `table` itself, not `.tableWrapper` - the
+          // wrapper's own box already fits the table, so the table is where
+          // the actual scrollable overflow (and its `scrollLeft`) lives.
+          '.milkdown table': { ...tableEdgeFade },
+          '.milkdown pre': { ...codeTextStyle, ...codeEdgeFade },
+        }}
+      >
+        <Milkdown />
+      </Box>
+    </Prose>
   )
 }
 

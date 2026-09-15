@@ -1,81 +1,54 @@
-import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
-import { FiArrowRight, FiClock } from 'react-icons/fi'
+/**
+ * "This is how the post will look" - migrated onto Horizon Design System v2
+ * (release M6).
+ *
+ * `PreviewCard` draws the card. What stays here is resolving the cover, because
+ * `featuredImage` may be a `media://` token that only the media feature knows
+ * how to turn into a URL, and `ResponsiveImage` inside the card wants a URL.
+ *
+ * Two honesty changes came with the pattern:
+ *
+ * - The card is named as a preview in the accessibility tree. The legacy card
+ *   was indistinguishable from a real post to anyone navigating by heading.
+ * - The date is labelled with what it means. A bare date under a draft
+ *   scheduled for next week read as the date it would carry today.
+ *
+ * The cover is decorative: the title it illustrates is the next thing in the
+ * card, so the legacy `alt={blog.title}` made a screen reader read the title
+ * twice. `ResponsiveImage` handles the absent case with the title as its
+ * caption, which is what `DefaultPostCover` was doing by hand.
+ */
+
+import { PreviewCard } from '../../../design-system'
 import { BlogPostSummary } from '../../../core'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
 
 interface PublishBlogPreviewCardProps {
   blog: BlogPostSummary
+  /** Already formatted by the page, which owns the locale. */
   publicationDate: string
+  /** What that date means: "Publishing today", "Scheduled for". */
+  publicationDateLabel: string
 }
 
-const PublishBlogPreviewCard = ({ blog, publicationDate }: PublishBlogPreviewCardProps) => {
+const PublishBlogPreviewCard = ({
+  blog,
+  publicationDate,
+  publicationDateLabel,
+}: PublishBlogPreviewCardProps) => {
   const coverMedia = useResolvedCoverMedia(blog.featuredImage)
-  const cover = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 100vw, 640px')
-    : undefined
 
   return (
-    <Box
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="2xl"
-      overflow="hidden"
-      bg="bg.secondary"
-      boxShadow="lg"
-    >
-      <Box h={{ base: '220px', xl: '320px' }} bg="bg.page">
-        {cover ? (
-          <Image {...cover} alt={blog.title} w="full" h="full" objectFit="cover" />
-        ) : (
-          <DefaultPostCover title={blog.title} eyebrow="Recent blog" h="full" />
-        )}
-      </Box>
-      <VStack align="stretch" spacing={5} p={{ base: 6, xl: 8 }}>
-        <Text
-          alignSelf="flex-start"
-          px={3}
-          py={1}
-          borderRadius="full"
-          bg="bg.tertiary"
-          color="text.secondary"
-          fontSize="10px"
-          fontWeight="semibold"
-          letterSpacing="0.12em"
-        >
-          RECENT BLOG
-        </Text>
-        <Heading size="xl" color="text.primary" lineHeight="1.08" letterSpacing="-0.04em">
-          {blog.title}
-        </Heading>
-        <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-          {blog.excerpt || 'Fresh thoughts are on the way.'}
-        </Text>
-        <Flex
-          pt={5}
-          borderTop="1px solid"
-          borderColor="border.subtle"
-          justify="space-between"
-          gap={4}
-          wrap="wrap"
-        >
-          <HStack spacing={3} color="text.tertiary" flexWrap="wrap">
-            <Avatar size="xs" name={blog.author.username} src={blog.author.avatar} />
-            <Text color="text.secondary">{blog.author.username}</Text>
-            <Text>{publicationDate}</Text>
-            <HStack spacing={1.5}>
-              <Icon as={FiClock} />
-              <Text>{blog.readingTime || 1} min read</Text>
-            </HStack>
-          </HStack>
-          <HStack color="action.primary" fontWeight="semibold">
-            <Text>Read</Text>
-            <Icon as={FiArrowRight} />
-          </HStack>
-        </Flex>
-      </VStack>
-    </Box>
+    <PreviewCard
+      title={blog.title}
+      excerpt={blog.excerpt}
+      coverUrl={coverMedia?.url ?? null}
+      tags={blog.tags}
+      author={{ name: blog.author.username, avatarUrl: blog.author.avatar }}
+      publicationDate={publicationDate}
+      publicationDateLabel={publicationDateLabel}
+      readingTime={`${blog.readingTime || 1} min read`}
+    />
   )
 }
 

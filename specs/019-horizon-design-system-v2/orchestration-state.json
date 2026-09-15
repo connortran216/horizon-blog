@@ -1,0 +1,232 @@
+{
+  "version": 1,
+  "epic_id": "horizon-blog-dsv2",
+  "status": "complete",
+  "endpoint": "validated complete component system; page migration remains blocked",
+  "repo_paths": {
+    "frontend": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/.codex/worktrees/dsv2-epic"
+  },
+  "base_branch": "main",
+  "base_commit": "536c262719376d4f5dd6903641acbdba6399fc4e",
+  "epic_branch": "codex/epic-horizon-blog-dsv2",
+  "worktree": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/.codex/worktrees/dsv2-epic",
+  "source": [
+    "approved prototype",
+    "Beads design decisions",
+    "current production source"
+  ],
+  "waves": {
+    "0": [
+      "B0"
+    ],
+    "1": [
+      "B1"
+    ],
+    "2": [
+      "B2",
+      "B3"
+    ],
+    "3": [
+      "B4",
+      "B5"
+    ],
+    "4": [
+      "B6"
+    ]
+  },
+  "bundles": {
+    "B0": {
+      "status": "done",
+      "evidence": [
+        "component-inventory.md reconciled: 138 ledger rows == 138 non-test src/**/*.tsx files, zero unclassified, category and disposition tables match row tallies",
+        "DESIGN.md published with brand, goals, personas, IA, principles, visual language, components, accessibility, responsive, states, voice, constraints and open questions",
+        "design-system/MASTER.md, components/README.md and pages/README.md subordinated to DESIGN.md with the page-migration gate stated"
+      ],
+      "tickets": [
+        "horizon-blog-dsv2.1.1",
+        "horizon-blog-dsv2.1.2"
+      ]
+    },
+    "B1": {
+      "status": "implemented",
+      "tickets": [
+        "horizon-blog-dsv2.2.1",
+        "horizon-blog-dsv2.2.2"
+      ],
+      "decision": "v2 ships as a separate Chakra theme (src/theme/horizon.ts), not merged into the legacy theme. Twelve token names collide with different values between the two systems; a separate theme lets v2 keep the clean names while every production route stays pixel-identical on the legacy theme. Page migration becomes a provider swap in main.tsx plus deletion of the legacy theme, with no rename of call sites. Owner decision, 2026-09-10.",
+      "files": [
+        "src/theme/tokens/primitives.ts",
+        "src/theme/tokens/semantic.ts",
+        "src/theme/tokens/motion.ts",
+        "src/theme/tokens/components.ts",
+        "src/theme/tokens/index.ts",
+        "src/theme/tokens/tokens.test.ts",
+        "src/theme/tokens/tokens.export.test.ts",
+        "src/theme/horizon.ts",
+        "src/theme/horizon.test.ts",
+        "src/theme/fonts.css",
+        "scripts/design-system/export-tokens.mjs",
+        "design-system/tokens.json",
+        "public/fonts/be-vietnam-pro/**"
+      ],
+      "checks": [
+        "305 tests / 86 files passed (no regression; 82 pre-existing files untouched)",
+        "ESLint clean, Prettier clean, tsc --noEmit clean, vite build succeeded",
+        "39 semantic roles: 19 approved baseline verified byte for byte, 20 derived and marked as such",
+        "Contrast asserted in both themes: reading text >= 4.5:1 on all four surfaces, control borders >= 3:1, action and accent labels >= 4.5:1"
+      ],
+      "deviations": [
+        "src/main.tsx untouched (ticket plan listed it): with a separate theme, production keeps mounting the legacy theme, so no bootstrap change is warranted until migration.",
+        "Fonts vendored as woff2 into public/fonts/ rather than installed from @fontsource, keeping the no-new-dependency constraint. woff fallback omitted; woff2 is universally supported by the browsers this build targets.",
+        "scripts/design-system/export-tokens.mjs + yarn tokens:export added so design-system/tokens.json is generated from the typed source, with a drift test rather than a hand-maintained copy."
+      ],
+      "open_risk": "Chakra ships Input variants the v2 system does not offer (filled, flushed) that still carry its grey and focus blue. Fields pin variant: outline, and dsv2.3.3 form primitives are the real containment. Revisit at B6.",
+      "corrections": [
+        "Breakpoints were first set to 375/768/1024/1440, which are DESIGN.md's review widths, not layout transitions. The approved prototype changes layout at max-width 680 and 1000 (with secondary tweaks at 800 and 1168), so breakpoints are now sm 681 / md 801 / lg 1001 / xl 1169 and the review widths live separately as reviewWidths. Surfaced by dsv2.3.1 AC 1; corrected before B2 started.",
+        "The type ramp switched at lg, which would have left tablets on mobile heading sizes. It now switches at sm (681px), matching the prototype query that drops heading sizes."
+      ]
+    },
+    "B2": {
+      "status": "implemented",
+      "tickets": [
+        "horizon-blog-dsv2.3.1",
+        "horizon-blog-dsv2.3.2",
+        "horizon-blog-dsv2.3.3"
+      ],
+      "scope": "src/design-system/components/{layout,surface,typography,actions,navigation,forms,status}",
+      "notes": [
+        "Polymorphism uses explicit element unions (RegionElement, CollectionElement, HeadingElement, TextElement) instead of Chakra's open As, so an invalid element is a compile error. No any.",
+        "Field wiring is taken from context by the control, not passed per control, so aria-describedby and aria-invalid cannot be attached to one field and forgotten on the next.",
+        "Current nav item is signalled by aria-current plus a persistent indicator and colour, never by hover or by a font-weight change (a weight change would rewrap a horizontal nav on every navigation)."
+      ],
+      "known_gaps": [
+        "Button and IconButton use Chakra's default spinner speed: the token source has no spin duration, and passing one would be a raw ms value.",
+        "Divider forwards no ref because its two branches render hr and div and one ref type cannot honestly describe both.",
+        "Radio ships without a RadioGroup; it is not in the ticket's component list and callers pair it with Field control=\"group\" plus Chakra's RadioGroup.",
+        "Control size sm sits below the 44px touch floor. meetsTouchTarget records this rather than hiding it; whether each sm usage genuinely lacks space is a B6 review call."
+      ]
+    },
+    "B3": {
+      "status": "implemented",
+      "tickets": [
+        "horizon-blog-dsv2.4.1",
+        "horizon-blog-dsv2.4.2",
+        "horizon-blog-dsv2.4.3"
+      ],
+      "scope": "src/design-system/{motion,components/feedback,components/media}",
+      "notes": [
+        "The media reducer is total: an event that does not apply returns the identical object, so a stale load event from a replaced element cannot corrupt state. It includes ready -> error, an image breaking after it was shown.",
+        "Retry calls an injected resolveSource({attempt, previousSrc}) so a fresh signed URL is possible; with no resolver the element is keyed on src#attempt so the browser re-requests. No URL mutation in a render component.",
+        "mediaFrameStyle takes only aspectRatio and radius. Status is not an argument, so layout cannot vary by state - the invariant is structural, not merely asserted.",
+        "Alt vs decorative is enforced at the type level and a blank alt throws, with the error naming the decorative escape hatch.",
+        "One reduced-motion policy (useMotionPolicy) collapses both duration and delay to zero and drops fades rather than shortening them."
+      ],
+      "known_gaps": [
+        "PageLoading, PanelLoading and InlineLoading share one file as scopes of a single LoadingIndicator rather than three near-empty modules.",
+        "The loading pulse uses keyframes from @emotion/react (an existing direct dependency) because Chakra v2.8 re-exports it at runtime but not in its types."
+      ]
+    },
+    "B4": {
+      "status": "implemented",
+      "tickets": [
+        "horizon-blog-dsv2.5.1",
+        "horizon-blog-dsv2.5.2",
+        "horizon-blog-dsv2.5.3"
+      ],
+      "scope": "src/design-system/patterns/{posts,series,reader}",
+      "notes": [
+        "Signature and ordinary cards differ on surface family, radius and title ramp at once, so they cannot be collapsed into one card with a size prop.",
+        "The rail is a scroll container, never a translated track, so finger, trackpad, scrollbar, Tab and screen-reader scrolling all keep working. Overlay arrows are an addition to scrolling, never a replacement.",
+        "Rail position is hidden visually when the controls already carry it but still announced ('Series 3 of 8').",
+        "Overlay-arrow translucency is derived from action.subtle having an alpha channel, so retuning that token to an opaque value fails a test rather than silently changing the design.",
+        "localScrollStyle asserts minWidth: 0 alongside overflowX: auto - the flex/grid min-width:auto default is the actual cause of horizontal document scroll."
+      ],
+      "known_gaps": [
+        "Copy confirmation has no auto-reset timer. The prototype held it ~1.8s; no token is near that value and inventing one in a component breaks the raw-value rule. CodeBlock resets on pointerleave/blur instead. Needs a confirmation-hold duration token in B1 if a timed hold is wanted.",
+        "PostCard's cover is inset rather than full-bleed as the prototype draws it. MediaFrame always applies a radius and Surface owns the card's, so full-bleed would need one of them to surrender its radius from outside - the exact thing CONVENTIONS rule 4 forbids. Needs an explicit B6 decision.",
+        "SeriesManager is only partially discharged: ManageSeriesItem (the row) plus reorder/dirty logic exist, but the surrounding form (title, description, add-a-blog, save/delete) is a workspace surface straddling B5's editor area. The inventory row is NOT fully covered - assign it before B6 signs off.",
+        "The Signature pointer light is absent: the prototype's own final stylesheet disables it, its gradient is not a token, and DESIGN.md lists 'random glow' under Avoid. Entry motion is a Reveal instead.",
+        "ShareAction's menu trigger widens Button to ElementType for Chakra's polymorphic as, because our Button narrows Chakra's props and MergeWithAs cannot infer it. A widening, not an unsafe cast, but the one place the type system does less work."
+      ]
+    },
+    "B5": {
+      "status": "implemented",
+      "tickets": [
+        "horizon-blog-dsv2.6.1",
+        "horizon-blog-dsv2.6.2",
+        "horizon-blog-dsv2.6.3"
+      ],
+      "scope": "src/design-system/patterns/{account,editor,data}",
+      "notes": [
+        "publicationCopy is test-locked: a scheduled post shows 'Draft - scheduled', says no reader can open it yet, and never contains the word published.",
+        "permissionRowState().displayedRole always equals serverRole across all five states including in-flight and refused, so a permission change is never shown optimistically as done.",
+        "destructiveGate blocks on server denial ahead of anything the reader types into a confirmation box.",
+        "A metric display containing '~' can never exist without an 'Approx.' marker and a spoken 'approximate' label.",
+        "No charting library was added: Trend, Funnel and Breakdown are inline SVG with token-sized bars, compensating for the missing axes and tooltips with a text summary as the figure's accessible name and the full series in a details table."
+      ],
+      "known_gaps": [
+        "SCHEDULE_GRACE_MS duplicates the 5-minute constant in src/features/profile/schedule-display.utils.ts. It cannot be imported without a design-system -> features dependency, so it is a documented default parameter citing its source. If the worker window changes, two places need updating. Resolve at dsv2.7.3.",
+        "AuthFailureReason is a small presentation union, not the backend's OAuth error codes; the feature keeps that mapping.",
+        "chartMotion(policy) ignores its argument by design - the geometry is never animated - and keeps the parameter so the property stays visible and a future change breaks a test."
+      ]
+    },
+    "B6": {
+      "status": "done",
+      "tickets": [
+        "horizon-blog-dsv2.7.1",
+        "horizon-blog-dsv2.7.2",
+        "horizon-blog-dsv2.7.3"
+      ],
+      "decisions": [
+        "Gallery ships as a second Vite entry (gallery.html), not a development-only route. A guarded route sits in the production router and depends on tree-shaking to stay out of the bundle; a separate entry cannot leak into it. Owner decision, 2026-09-10.",
+        "Compatibility adapters warn once per adapter in development, naming their v2 replacement, so migration debt is visible while editing rather than only in the inventory. Owner decision, 2026-09-10."
+      ],
+      "status_detail": "7.1 and 7.2 done; 7.3 NOT passed.",
+      "checks": [
+        "yarn coverage:design-system exits 0: 138 legacy files / 138 ledger rows, 68/68 exports in the gallery, 0 findings",
+        "yarn build emits both dist/index.html (production entry, app-meta block intact) and dist/ui-kit.html",
+        "Browser-measured at 375 and 1440 in both themes: type ramp flips at the right boundary, 0 text contrast failures either theme, focus ring 2px/3px at 5.63:1 light and 10.42:1 dark"
+      ],
+      "defect_found_and_fixed": "A busy control painted itself as a disabled one. Loading sets aria-disabled=true to keep focus while refusing clicks, but Chakra styles _disabled on [aria-disabled=true] too, so a working button took the disabled fill: 1.81:1 light, 1.64:1 dark against a 4.5:1 floor. WCAG 1.4.3 exempts inactive components, not busy ones. Fixed in src/theme/horizon.ts for both routes into the state (our aria-busy and Chakra's data-loading), locked by a test. Rendered failures 18 -> 2, the remaining 2 being genuinely disabled controls. Invisible to every unit test in the epic and to both bundle agents - only findable by rendering.",
+      "gate_blockers": [],
+      "not_verified": "Component-level responsive collapse (the gallery's own shell does not collapse and its viewport control constrains a frame rather than firing media queries), screen-reader output, print, real touch gestures on the rail, and OS-level prefers-reduced-motion.",
+      "owner_rulings_2026_09_12": [
+        "SeriesManager: BUILD the missing form (title, description, add-a-blog, save, delete with confirmation) into patterns/editor, composing the existing ManageSeriesItem and reorder/dirty logic. Discharges the PARTIAL inventory row and unblocks release M6.",
+        "PostCard cover: FULL-BLEED, matching the approved prototype. Resolved by making the deferral explicit in the API - a media frame can decline to own its corners, a surface can clip its children - so exactly one visual owner remains rather than an outside override.",
+        "Commit: after the gate passes, not before. The design system stays uncommitted in the worktree until dsv2.7.3 is green."
+      ],
+      "gate_result": "PASSED 2026-09-12. Both blockers closed: SeriesManagerForm discharges the SeriesManager ledger row, and PostCard is full-bleed via an explicit corner-ownership API (media frames can decline their corners; clipping moved from an overridable literal into the tested surfaceStyle contract). 1184 tests, tsc/lint/format/build exit 0, coverage audit 69/69 exports with 0 findings. Full-bleed confirmed in the built gallery: card radius 20px with overflow hidden and zero padding, frame radius 0px, 1px inset on each side being the card border."
+    }
+  },
+  "next_action": "Gate passed; horizon-blog-y2e is unblocked. Next: commit the design system to establish an integration base (owner approved committing after the gate passed), then run release M1 - mount horizonTheme app-wide - per specs/018-signal-uiux-redesign/release-plan.md.",
+  "wave_3": {
+    "orchestrator_fixes": [
+      "mediaState maxAttempts had 0 meaning unlimited, the opposite of how the number reads, which left 'offer no retry' inexpressible - the case a 24px avatar needs, where a retry button is a keyboard stop for nothing. 0 now means no retries and Number.POSITIVE_INFINITY means unlimited; the old behaviour's test was replaced by one for each end.",
+      "The top-level barrel surfaced two cross-bundle name collisions that neither agent could see alone. patterns/series re-declared RailDirection instead of using the navigation primitive's type: the duplicate is deleted and the type imported. patterns/posts and patterns/editor both exported removeTag for genuinely different jobs (a filter tag versus a post's own tags); the filter one is now removeFilterTag."
+    ],
+    "checks": [
+      "1102 tests / 121 files passed; tsc --noEmit, ESLint, Prettier and vite build all exit 0",
+      "Verified independently of the agents' reports: no raw hex or ms literal in any pattern; src/features, src/pages and src/components untouched; no cross-bundle imports between pattern areas; no pattern imports back into features"
+    ]
+  },
+  "wave_2": {
+    "shared_conventions": "src/design-system/CONVENTIONS.md - binding for everything under src/design-system. Records that this repo has no jsdom and no Testing Library, so decisions are extracted into *.logic.ts modules and tested there, and states plainly what that cannot cover.",
+    "barrel": "src/design-system/index.ts is owned by the orchestrator, not by bundle agents.",
+    "checks": [
+      "589 tests / 102 files passed; 282 of those tests are the design system's own",
+      "tsc --noEmit, ESLint, Prettier and vite build all exit 0",
+      "Verified independently of the agents' reports: no raw hex, no px radius and no ms literal in any component; no click handler on a div or span; no cross-bundle imports; every external import resolves to a dependency that already existed"
+    ],
+    "deferred_to_b6": "Anything that needs a real DOM: focus actually moving, screen-reader output, rendered contrast of the derived roles, real prefers-reduced-motion, paint and fade timing, useEffect cleanup on unmount, the 44px hit area as a measured value, and the responsive pass at 375/768/1024/1440. The gallery (dsv2.7.1) plus the manual accessibility matrix is where these are settled."
+  },
+  "b1_inputs": {
+    "approved_tokens": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/design-handoff/tokens.json",
+    "approved_tokens_doc": "/Users/trantuancanh/Personal/work/horizon-blog/horizon-blog/specs/018-signal-uiux-redesign/design-handoff/approved-tokens.md",
+    "font_assets": "/Users/trantuancanh/Personal/work/horizon-blog/prototypes/horizon-uiux/dist/client/assets (Be Vietnam Pro 400/600/700, latin + latin-ext + vietnamese, woff2/woff) — copy into public/fonts/be-vietnam-pro/, no new production dependency"
+  },
+  "authorization": {
+    "design": "approved prototype baseline",
+    "implementation": "user requested start on 2026-09-10",
+    "commit_push": false
+  }
+}

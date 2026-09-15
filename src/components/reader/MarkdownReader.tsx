@@ -1,126 +1,156 @@
+/**
+ * The markdown reading surface.
+ *
+ * Nothing about the rendering changed: `marked` still parses, DOMPurify still
+ * sanitises with the same two allow-lists, and Shiki still highlights the
+ * fenced blocks asynchronously with the same effect and the same cancellation.
+ * What changed is who owns the container. `Prose` now supplies the measure, the
+ * rhythm, the link and code contrast, the render-failure state and the rule
+ * that nothing inside may widen the document; this file supplies the parsed
+ * HTML and the two structural rules Shiki's own markup needs.
+ *
+ * That replaced roughly 260 lines of hand-written `sx` holding two gradients,
+ * eleven `rgba()` literals, five hex colours, a hard-coded shadow pair and the
+ * `obsidian.text.*` palette names - every one of which had to be picked twice,
+ * once per theme, and none of which came from the token source.
+ */
+
 import React, { useEffect, useMemo, useState } from 'react'
 import { Box, useColorModeValue } from '@chakra-ui/react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
+
+import {
+  Prose,
+  chakraColorVar,
+  codeTextStyle,
+  localScrollStyle,
+  scrollAffordanceStyle,
+  scrollFadeStyle,
+} from '../../design-system'
+import { componentTokens, radii, space } from '../../theme/tokens'
 import type { ReaderCodeTheme } from './shiki'
 
 interface MarkdownReaderProps {
   content?: string
 }
 
-const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
-  const textColor = useColorModeValue('obsidian.text.lightPrimary', 'obsidian.text.primary')
-  const codeBlockBg = useColorModeValue('#f6f8fa', '#0d1117')
-  const codeBg = useColorModeValue('#f0f1f3', '#2d2d2d')
-  const codeTheme: ReaderCodeTheme = useColorModeValue('github-light', 'github-dark')
-  const codeShellBg = useColorModeValue(
-    'linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.98) 100%)',
-    'linear-gradient(180deg, rgba(9, 14, 23, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%)',
-  )
-  const codeHeaderBg = useColorModeValue('rgba(226, 232, 240, 0.7)', 'rgba(15, 23, 42, 0.9)')
-  const codeShellBorder = useColorModeValue('rgba(148, 163, 184, 0.35)', 'rgba(71, 85, 105, 0.65)')
-  const codeHeaderBorder = useColorModeValue(
-    'rgba(148, 163, 184, 0.35)',
-    'rgba(148, 163, 184, 0.18)',
-  )
-  const codeLineNumberColor = useColorModeValue(
-    'rgba(71, 85, 105, 0.82)',
-    'rgba(148, 163, 184, 0.55)',
-  )
-  const codeLineHoverBg = useColorModeValue('rgba(37, 99, 235, 0.06)', 'rgba(96, 165, 250, 0.08)')
-  const codeLanguageBadgeBg = useColorModeValue(
-    'rgba(59, 130, 246, 0.12)',
-    'rgba(96, 165, 250, 0.14)',
-  )
-  const codeLanguageBadgeColor = useColorModeValue('#1d4ed8', '#bfdbfe')
-  const codeShadow = useColorModeValue(
-    '0 18px 40px rgba(15, 23, 42, 0.10)',
-    '0 24px 60px rgba(2, 6, 23, 0.45)',
-  )
+const RENDER_FAILURE = 'The markdown in this blog could not be parsed.'
 
+/**
+ * The visible signal that a fenced block's own shell scrolls. See
+ * `scrollAffordanceStyle` - `card.border` is the same divider colour the
+ * shell's own border already uses.
+ */
+const scrollAffordance = scrollAffordanceStyle({
+  thumb: chakraColorVar(componentTokens.card.border),
+})
+
+/**
+ * The fade for the fenced block's own shell. Matched to `reader.codeBg`, the
+ * same background the shell's own surface already paints.
+ *
+ * `Prose`'s own sweep already wires the fade's `data-scroll-fade` state onto
+ * this exact `pre` - it is a bare tag with no `role`, so nothing excludes it
+ * the way `CodeBlock`'s own frame is excluded - so only the CSS needs
+ * restating here, for the reason the whole block comment above does: the
+ * shell's stylesheet can load after Emotion's.
+ */
+const scrollEdgeFade = scrollFadeStyle({
+  background: chakraColorVar(componentTokens.reader.codeBg),
+})
+
+const sanitizeReaderHtml = (html: string, allowStyle: boolean) =>
+  DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'u',
+      's',
+      'del',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'ul',
+      'ol',
+      'li',
+      'a',
+      'img',
+      'blockquote',
+      'div',
+      'pre',
+      'code',
+      'span',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'hr',
+    ],
+    ALLOWED_ATTR: allowStyle
+      ? [
+          'href',
+          'src',
+          'srcset',
+          'sizes',
+          'alt',
+          'title',
+          'class',
+          'id',
+          'style',
+          'tabindex',
+          'loading',
+          'decoding',
+          'width',
+          'height',
+        ]
+      : [
+          'href',
+          'src',
+          'srcset',
+          'sizes',
+          'alt',
+          'title',
+          'class',
+          'id',
+          'tabindex',
+          'loading',
+          'decoding',
+          'width',
+          'height',
+        ],
+  })
+
+const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
+  const codeTheme: ReaderCodeTheme = useColorModeValue('github-light', 'github-dark')
   const [renderedHTML, setRenderedHTML] = useState<{ __html: string }>({ __html: '' })
 
-  const sanitizeReaderHtml = (html: string, allowStyle: boolean) =>
-    DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: [
-        'p',
-        'br',
-        'strong',
-        'em',
-        'u',
-        's',
-        'del',
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'ul',
-        'ol',
-        'li',
-        'a',
-        'img',
-        'blockquote',
-        'div',
-        'pre',
-        'code',
-        'span',
-        'table',
-        'thead',
-        'tbody',
-        'tr',
-        'th',
-        'td',
-        'hr',
-      ],
-      ALLOWED_ATTR: allowStyle
-        ? [
-            'href',
-            'src',
-            'srcset',
-            'sizes',
-            'alt',
-            'title',
-            'class',
-            'id',
-            'style',
-            'tabindex',
-            'loading',
-            'decoding',
-            'width',
-            'height',
-          ]
-        : [
-            'href',
-            'src',
-            'srcset',
-            'sizes',
-            'alt',
-            'title',
-            'class',
-            'id',
-            'tabindex',
-            'loading',
-            'decoding',
-            'width',
-            'height',
-          ],
-    })
-
-  const rawHTML = useMemo(() => {
+  const parsed = useMemo(() => {
     try {
       const html = marked.parse(content, {
         gfm: true,
         breaks: true,
       }) as string
-      return html.replace(/<img /g, '<img loading="lazy" decoding="async" ')
+
+      return {
+        html: html.replace(/<img /g, '<img loading="lazy" decoding="async" '),
+        error: null as string | null,
+      }
     } catch (error) {
       console.error('Error rendering markdown:', error)
-      return '<p>Error rendering content</p>'
+
+      return { html: '', error: RENDER_FAILURE }
     }
   }, [content])
 
+  const rawHTML = parsed.html
   const sanitizedBaseHTML = useMemo(() => sanitizeReaderHtml(rawHTML, false), [rawHTML])
 
   useEffect(() => {
@@ -150,276 +180,65 @@ const MarkdownReader: React.FC<MarkdownReaderProps> = ({ content = '' }) => {
   }, [codeTheme, rawHTML, sanitizedBaseHTML])
 
   return (
-    <Box
-      color={textColor}
-      maxW="46rem"
-      mx="auto"
-      w="full"
-      className="markdown-reader"
-      dangerouslySetInnerHTML={renderedHTML}
-      sx={{
-        fontFamily: 'body',
-        fontSize: { base: 'md', md: 'lg' },
-        lineHeight: '1.9',
-
-        '& h1': {
-          fontSize: { base: '2.2em', md: '2.6em' },
-          fontWeight: 'bold',
-          mb: 5,
-          mt: 8,
-          color: textColor,
-          letterSpacing: '-0.04em',
-        },
-        '& h2': {
-          fontSize: { base: '1.8em', md: '2em' },
-          fontWeight: 'bold',
-          mb: 4,
-          mt: 10,
-          color: textColor,
-          letterSpacing: '-0.03em',
-        },
-        '& h3': {
-          fontSize: { base: '1.45em', md: '1.65em' },
-          fontWeight: 'semibold',
-          mb: 3,
-          mt: 8,
-          color: textColor,
-          letterSpacing: '-0.02em',
-        },
-        '& h4, & h5, & h6': {
-          fontWeight: 'semibold',
-          mb: 3,
-          mt: 6,
-          color: textColor,
-        },
-        '& p': {
-          mb: 6,
-          lineHeight: '1.95',
-        },
-        '& a': {
-          color: 'link.default',
-          textDecoration: 'underline',
-          transition: 'color 0.2s ease-in-out',
-          _hover: {
-            color: 'link.hover',
-          },
-        },
-        '& code': {
-          bg: codeBg,
-          px: 2.5,
-          py: 1,
-          borderRadius: 'md',
-          fontSize: '0.875em',
-          fontFamily: 'mono',
-          color: textColor,
-        },
-        '& pre': {
-          bg: codeBlockBg,
-          p: { base: 4, md: 5 },
-          borderRadius: 'xl',
-          overflow: 'auto',
-          my: 8,
-          border: '1px solid',
-          borderColor: 'border.subtle',
-        },
-        '& pre code': {
-          bg: 'transparent',
-          p: 0,
-          fontSize: '0.875rem',
-          lineHeight: '1.6',
-        },
-        '& pre.shiki': {
-          bg: codeBlockBg,
-        },
-        '& pre.shiki code': {
-          display: 'grid',
-          gap: 0,
-        },
-        '& pre.shiki .line': {
-          display: 'block',
-          minH: '1.6em',
-        },
-        '& .preview-code-block': {
-          my: 8,
-          overflow: 'hidden',
-          borderRadius: '2xl',
-          border: '1px solid',
-          borderColor: codeShellBorder,
-          bg: codeShellBg,
-          boxShadow: codeShadow,
-        },
-        '& .preview-code-block__header': {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 3,
-          px: { base: 4, md: 5 },
-          py: 3,
-          bg: codeHeaderBg,
-          borderBottom: '1px solid',
-          borderColor: codeHeaderBorder,
-          backdropFilter: 'blur(12px)',
-        },
-        '& .preview-code-block__chrome': {
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 2,
-        },
-        '& .preview-code-block__dot': {
-          w: 2.5,
-          h: 2.5,
-          borderRadius: 'full',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
-        },
-        '& .preview-code-block__dot--red': {
-          bg: '#fb7185',
-        },
-        '& .preview-code-block__dot--amber': {
-          bg: '#f59e0b',
-        },
-        '& .preview-code-block__dot--green': {
-          bg: '#22c55e',
-        },
-        '& .preview-code-block__language': {
-          display: 'inline-flex',
-          alignItems: 'center',
-          px: 3,
-          py: 1,
-          borderRadius: 'full',
-          bg: codeLanguageBadgeBg,
-          color: codeLanguageBadgeColor,
-          fontFamily: 'mono',
-          fontSize: 'xs',
-          fontWeight: '700',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          border: '1px solid',
-          borderColor: codeHeaderBorder,
-        },
-        '& .preview-code-block pre': {
-          my: 0,
-          border: 'none',
-          borderRadius: 0,
-          boxShadow: 'none',
-          bg: 'transparent !important',
-        },
-        '& .preview-code-block pre.shiki': {
-          bg: 'transparent !important',
-        },
-        '& .preview-code-block pre code': {
-          display: 'block',
-          minW: 'max-content',
-          p: { base: 4, md: 5 },
-          bg: 'transparent',
-          counterReset: 'preview-code-line',
-        },
-        '& .preview-code-block pre code .line': {
-          display: 'block',
-          position: 'relative',
-          pl: { base: '3.75rem', md: '4.5rem' },
-          pr: { base: 2, md: 3 },
-          py: '0.1rem',
-          minH: '1.75em',
-          borderRadius: 'md',
-          transition: 'background-color 0.18s ease',
-        },
-        '& .preview-code-block pre code .line::before': {
-          counterIncrement: 'preview-code-line',
-          content: 'counter(preview-code-line)',
-          position: 'absolute',
-          left: { base: '0.75rem', md: '1rem' },
-          top: 0,
-          width: { base: '2.25rem', md: '2.5rem' },
-          color: codeLineNumberColor,
-          textAlign: 'right',
-          fontFamily: 'mono',
-          fontSize: '0.72rem',
-          lineHeight: '1.75rem',
-          userSelect: 'none',
-        },
-        '& .preview-code-block pre code .line:hover': {
-          bg: codeLineHoverBg,
-        },
-        '& img': {
-          display: 'block',
-          maxW: '100%',
-          height: 'auto',
-          borderRadius: 'xl',
-          mx: 'auto',
-          my: 8,
-          border: '1px solid',
-          borderColor: 'border.subtle',
-        },
-        '& ul, & ol': {
-          pl: 6,
-          my: 6,
-        },
-        '& li': {
-          mb: 3,
-          lineHeight: '1.85',
-        },
-        '& ul': {
-          listStyleType: 'disc',
-        },
-        '& ol': {
-          listStyleType: 'decimal',
-        },
-        '& li > ul, & li > ol': {
-          my: 2,
-        },
-        '& blockquote': {
-          borderLeft: '4px solid',
-          borderColor: 'action.primary',
-          pl: 5,
-          ml: 0,
-          my: 8,
-          color: 'text.secondary',
-          py: 1,
-          pr: 2,
-          fontSize: { base: 'lg', md: 'xl' },
-          lineHeight: '1.75',
-        },
-        '& table': {
-          borderCollapse: 'collapse',
-          width: '100%',
-          my: 8,
-          fontSize: '0.9375rem',
-          border: '1px solid',
-          borderColor: 'border.default',
-          borderRadius: 'md',
-          overflow: 'hidden',
-        },
-        '& thead': {
-          bg: 'bg.secondary',
-        },
-        '& th, & td': {
-          border: '1px solid',
-          borderColor: 'border.default',
-          px: 3,
-          py: 2,
-          textAlign: 'left',
-        },
-        '& th': {
-          fontWeight: '600',
-          color: textColor,
-        },
-        '& tr:hover': {
-          bg: 'bg.tertiary',
-        },
-        '& hr': {
-          border: 'none',
-          borderTop: '2px solid',
-          borderColor: 'border.subtle',
-          my: 10,
-        },
-        '& strong': {
-          fontWeight: 'bold',
-        },
-        '& em': {
-          fontStyle: 'italic',
-        },
-      }}
-    />
+    <Prose className="markdown-reader" renderError={parsed.error}>
+      {renderedHTML.__html ? (
+        <Box
+          dangerouslySetInnerHTML={renderedHTML}
+          minW={0}
+          sx={{
+            /*
+             * Shiki wraps each block in its own shell, so the shell is the
+             * scroll container rather than the bare `pre` `Prose` contains by
+             * descendant selector. Structure only - the surface, the border and
+             * the radius are the reader's own code role.
+             */
+            '.preview-code-block': {
+              marginBlock: space[6],
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: componentTokens.card.border,
+              borderRadius: radii.card,
+              background: componentTokens.reader.codeBg,
+              overflow: 'hidden',
+            },
+            '.preview-code-block__header': {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: space[3],
+              paddingInline: space[4],
+              paddingBlock: space[2],
+              borderBottomWidth: '1px',
+              borderBottomStyle: 'solid',
+              borderBottomColor: componentTokens.card.border,
+              color: componentTokens.reader.secondaryFg,
+              textStyle: 'meta',
+            },
+            '.preview-code-block__language': {
+              fontFamily: 'mono',
+              textTransform: 'uppercase',
+            },
+            /* The window-chrome dots are decoration on a reading surface. */
+            '.preview-code-block__chrome': { display: 'none' },
+            // `codeTextStyle` keeps this at or below prose size rather than
+            // the ambient prose size it would otherwise inherit; nothing here
+            // set a font at all before. `scrollAffordance` and
+            // `scrollEdgeFade` are the visible signals that this shell - not
+            // the bare `pre` - is the scroller.
+            '.preview-code-block pre': {
+              ...localScrollStyle(),
+              ...scrollAffordance,
+              ...scrollEdgeFade,
+              ...codeTextStyle,
+              margin: 0,
+              padding: space[4],
+              background: 'transparent',
+            },
+            '.shiki .line': { display: 'block' },
+          }}
+        />
+      ) : null}
+    </Prose>
   )
 }
 

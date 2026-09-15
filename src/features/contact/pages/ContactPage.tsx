@@ -1,186 +1,100 @@
+import { Box, Flex, Grid as ChakraGrid } from '@chakra-ui/react'
+
 import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Grid,
-  GridItem,
+  ContentContainer,
+  Divider,
+  Eyebrow,
   Heading,
-  HStack,
-  Link,
-  SimpleGrid,
+  Section,
   Stack,
   Text,
-  VStack,
-} from '@chakra-ui/react'
-import { FaEnvelope, FaMapMarkerAlt, FaPhone } from 'react-icons/fa'
-import { FiArrowRight, FiClock, FiMessageSquare, FiPenTool } from 'react-icons/fi'
-import ContactInfoCard from '../components/ContactInfoCard'
-import ContactPromptCard from '../components/ContactPromptCard'
-import { ContactInfoItem, ContactPromptItem } from '../contact.types'
+} from '../../../design-system'
+import { space } from '../../../theme/tokens'
+import { ContactRail } from '../components'
 
-const contactInfo: ContactInfoItem[] = [
-  {
-    icon: FaMapMarkerAlt,
-    title: 'Location',
-    content: '10 Lam Van Ben, Tan Hung ward, HCM City, Vietnam',
-    description: 'Useful when a conversation needs timezone or local context.',
-    variant: 'secondary',
-  },
-  {
-    icon: FaPhone,
-    title: 'Phone',
-    content: '+84 96 345 2909',
-    href: 'tel:+84963452909',
-    description: 'Best for time-sensitive conversations after a short heads-up.',
-    actionLabel: 'Call',
-    variant: 'secondary',
-  },
-  {
-    icon: FaEnvelope,
-    title: 'Email',
-    content: 'canhtran210699@gmail.com',
-    href: 'mailto:canhtran210699@gmail.com',
-    description: 'Best for blog feedback, frontend discussion, and thoughtful async context.',
-    actionLabel: 'Email directly',
-    variant: 'primary',
-  },
-]
+const topics = ['Writing feedback', 'Frontend architecture', 'Product conversations'] as const
 
-const prompts: ContactPromptItem[] = [
-  {
-    icon: FiPenTool,
-    title: 'Writing and editorial feedback',
-    description: 'Reach out with ideas, feedback on the blog, or topics you want to see explored.',
-  },
-  {
-    icon: FiMessageSquare,
-    title: 'Frontend and product conversations',
-    description:
-      'The project is also a design and engineering playground, so thoughtful product discussions are always welcome.',
-  },
-  {
-    icon: FiClock,
-    title: 'Clear expectations',
-    description:
-      'Messages should feel as intentional as the product. Short context and a concrete ask work best.',
-  },
-]
+const ContactPage = () => (
+  <ContentContainer>
+    <Section density="comfortable" aria-labelledby="contact-title">
+      <ChakraGrid
+        templateColumns={{
+          base: 'minmax(0, 1fr)',
+          lg: 'minmax(0, 1.14fr) minmax(0, 0.86fr)',
+        }}
+        gap={{ base: space[12], lg: space[12] }}
+        alignItems="start"
+      >
+        <Stack gap={8} minW={0}>
+          <Stack gap={6}>
+            <Eyebrow as="p">Contact Horizon</Eyebrow>
 
-const ContactPage = () => {
-  const primaryContact = contactInfo.find((info) => info.variant === 'primary')
-  const secondaryContacts = contactInfo.filter((info) => info.variant !== 'primary')
-
-  return (
-    <Box position="relative" pb={12}>
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '78%' }}
-        h="320px"
-        bg="action.glow"
-        filter="blur(130px)"
-        opacity={0.72}
-        pointerEvents="none"
-      />
-
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <VStack spacing={{ base: 8, md: 12 }} align="stretch">
-          <Grid templateColumns={{ base: '1fr', lg: '1.05fr 0.95fr' }} gap={{ base: 8, lg: 10 }}>
-            <GridItem>
-              <Stack spacing={6} pt={{ lg: 6 }}>
-                <Badge
-                  alignSelf="flex-start"
-                  px={3}
-                  py={1}
-                  borderRadius="full"
-                  bg="bg.tertiary"
-                  color="text.secondary"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  fontSize="10px"
-                >
-                  Contact Horizon
-                </Badge>
-
-                <Heading
-                  fontSize={{ base: '4xl', md: '5xl', lg: '6xl' }}
-                  lineHeight={{ base: 1.08, md: 1 }}
-                  color="text.primary"
-                >
-                  Reach out directly, with no form in the middle.
-                </Heading>
-
-                <Text
-                  maxW="2xl"
-                  fontSize={{ base: 'md', md: 'lg' }}
-                  color="text.secondary"
-                  lineHeight="tall"
-                >
-                  Email is the best place for thoughtful notes about writing, frontend architecture,
-                  or the direction of Horizon. A little context makes the reply more useful.
-                </Text>
-
-                <HStack spacing={4} flexWrap="wrap">
-                  <Button
-                    as={Link}
-                    href="mailto:canhtran210699@gmail.com"
-                    rightIcon={<FiArrowRight />}
-                    _hover={{ textDecoration: 'none' }}
-                  >
-                    Email directly
-                  </Button>
-                  <Button
-                    as={Link}
-                    href="tel:+84963452909"
-                    variant="outline"
-                    _hover={{ textDecoration: 'none' }}
-                  >
-                    Call instead
-                  </Button>
-                </HStack>
-              </Stack>
-            </GridItem>
-
-            <GridItem>
-              <Stack spacing={4}>
-                {primaryContact && <ContactInfoCard info={primaryContact} />}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 1 }} spacing={4}>
-                  {secondaryContacts.map((info) => (
-                    <ContactInfoCard key={info.title} info={info} />
-                  ))}
-                </SimpleGrid>
-              </Stack>
-            </GridItem>
-          </Grid>
-
-          <Box>
-            <Stack spacing={4} mb={5}>
-              <Text
-                fontSize="sm"
-                textTransform="uppercase"
-                letterSpacing="0.14em"
-                color="text.tertiary"
+            <Heading recipe="display" as="h1" id="contact-title">
+              A quieter inbox
+              <Box as="br" display={{ base: 'none', lg: 'block' }} /> for deeper
+              <Box as="br" display={{ base: 'none', lg: 'block' }} />{' '}
+              <Box
+                as="span"
+                textDecorationLine="underline"
+                textDecorationColor="accent.lime"
+                textDecorationThickness={space[1]}
+                textUnderlineOffset={space[2]}
               >
-                Good conversations start with clarity
-              </Text>
-              <Heading size="lg" color="text.primary">
-                A few helpful reasons to reach out.
-              </Heading>
-            </Stack>
+                conversations.
+              </Box>
+            </Heading>
+          </Stack>
 
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
-              {prompts.map((prompt) => (
-                <ContactPromptCard key={prompt.title} prompt={prompt} />
+          <Stack gap={6} maxW="prose">
+            <Text recipe="prose" color="text.secondary">
+              If you have a question, an idea, or just want to share your thoughts, I&apos;d love to
+              hear from you. Email is the best place to reach me, whether it&apos;s about a blog,
+              frontend architecture, or where the web is headed.
+            </Text>
+
+            <Text recipe="prose" color="text.secondary">
+              A little context goes a long way.
+            </Text>
+
+            <Text recipe="prose" color="text.muted" fontStyle="italic">
+              - Canh
+            </Text>
+          </Stack>
+
+          <Divider />
+
+          <Stack gap={3}>
+            <Eyebrow as="p">Some things people often write about</Eyebrow>
+            <Flex gap={space[4]} flexWrap="wrap">
+              {topics.map((topic, index) => (
+                <Text
+                  key={topic}
+                  as="span"
+                  recipe="body"
+                  color="text.secondary"
+                  paddingRight={index === topics.length - 1 ? 0 : space[4]}
+                  borderRight={index === topics.length - 1 ? '0' : '1px solid'}
+                  borderColor="border.subtle"
+                >
+                  {topic}
+                </Text>
               ))}
-            </SimpleGrid>
-          </Box>
-        </VStack>
-      </Container>
-    </Box>
-  )
-}
+            </Flex>
+          </Stack>
+        </Stack>
+
+        <Box
+          minW={0}
+          paddingLeft={{ base: 0, lg: space[12] }}
+          borderLeftWidth={{ base: 0, lg: '1px' }}
+          borderLeftStyle="solid"
+          borderLeftColor="border.subtle"
+        >
+          <ContactRail />
+        </Box>
+      </ChakraGrid>
+    </Section>
+  </ContentContainer>
+)
 
 export default ContactPage

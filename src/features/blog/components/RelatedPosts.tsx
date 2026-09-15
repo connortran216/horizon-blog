@@ -1,16 +1,46 @@
-import { Box, Heading, HStack, Image, LinkBox, LinkOverlay, Text, VStack } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiClock } from 'react-icons/fi'
-import { Icon } from '@chakra-ui/react'
-import { toPublicPostPath } from '../../../core'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
+/**
+ * What to read next, under the article.
+ *
+ * The design system's `PostRow` - the same row the Series part list and the
+ * author archive use, so a related blog and a Series part are recognisably the
+ * same kind of thing. Cover resolution is a hook, so each row is its own
+ * component; the mapping from a blog record to the post contract is
+ * `toPostSummary`, shared with the archive.
+ *
+ * These used to be a 280px sticky rail beside the article. `ReaderFrame` puts
+ * the related region in the reading column after the discussion, which is what
+ * makes the excerpt worth showing at last: the rail was too narrow for it and
+ * hid it above 1280px.
+ *
+ * The hand-written `LinkBox`, its `translateY(-1px)` hover and its
+ * "Fresh thoughts are on the way." filler excerpt are gone: hover depth belongs
+ * to the pattern, and an invented excerpt is content the site never wrote.
+ */
+
+import { Heading, PostRow, Stack, hierarchyContext } from '../../../design-system'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
+import { toPostSummary } from '../postSummary.presentation'
 import { BlogArchiveSummary } from '../blog.types'
-import { formatArchiveDate } from '../blog.utils'
+
+/** `PostRow`'s own thumbnail track: 88px below `sm`, 144px above it. */
+const COVER_SIZES = '(min-width: 480px) 144px, 88px'
+const HEADING = 'More like this'
 
 interface RelatedPostsProps {
   posts: BlogArchiveSummary[]
+}
+
+const RelatedPostRow = ({
+  post,
+  sectionLabels,
+}: {
+  post: BlogArchiveSummary
+  sectionLabels: readonly string[]
+}) => {
+  const coverMedia = useResolvedCoverMedia(post.featuredImage)
+  const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
+
+  return <PostRow post={summary} sectionLabels={sectionLabels} titleAs="h3" />
 }
 
 const RelatedPosts = ({ posts }: RelatedPostsProps) => {
@@ -18,84 +48,22 @@ const RelatedPosts = ({ posts }: RelatedPostsProps) => {
     return null
   }
 
+  const sectionLabels = hierarchyContext(HEADING)
+
   return (
-    <VStack align="stretch" spacing={4}>
-      <Heading as="h2" size="sm" color="text.primary" lineHeight="1.2">
-        More like this
+    <Stack as="section" gap={4} aria-labelledby="related-posts-heading">
+      <Heading id="related-posts-heading" as="h2" recipe="cardTitle">
+        {HEADING}
       </Heading>
-      <VStack align="stretch" spacing={2}>
+
+      <Stack as="ul" gap={2} listStyleType="none" margin={0} padding={0}>
         {posts.map((post) => (
-          <RelatedPostCard key={post.id} post={post} />
+          <li key={post.id}>
+            <RelatedPostRow post={post} sectionLabels={sectionLabels} />
+          </li>
         ))}
-      </VStack>
-    </VStack>
-  )
-}
-
-interface RelatedPostCardProps {
-  post: BlogArchiveSummary
-}
-
-const RelatedPostCard = ({ post }: RelatedPostCardProps) => {
-  const coverMedia = useResolvedCoverMedia(post.featuredImage)
-  const coverImage = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 1280px) 160px, 280px')
-    : undefined
-
-  return (
-    <LinkBox
-      display={{ base: 'grid', xl: 'block' }}
-      gridTemplateColumns={{ base: 'minmax(0, 10rem) minmax(0, 1fr)' }}
-      alignItems="stretch"
-      border="1px solid"
-      borderColor="border.subtle"
-      borderRadius="md"
-      overflow="hidden"
-      bg="bg.secondary"
-      transition="border-color 0.2s ease, transform 0.2s ease"
-      _hover={{ borderColor: 'action.primary', transform: 'translateY(-1px)' }}
-    >
-      <Box
-        aspectRatio={{ base: 'auto', xl: '16 / 9' }}
-        h={{ base: 'full', xl: 'auto' }}
-        minH={{ base: '7rem', md: '8rem' }}
-        overflow="hidden"
-        bg="bg.tertiary"
-      >
-        {coverImage ? (
-          <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="contain" />
-        ) : (
-          <DefaultPostCover title={post.title} eyebrow="" h="full" />
-        )}
-      </Box>
-
-      <VStack align="stretch" spacing={{ base: 2, md: 3, xl: 2 }} p={{ base: 3, md: 4, xl: 3 }}>
-        <LinkOverlay as={RouterLink} to={toPublicPostPath(post.id)}>
-          <Heading size="sm" color="text.primary" lineHeight="1.25" noOfLines={2}>
-            {post.title}
-          </Heading>
-        </LinkOverlay>
-
-        <Text
-          display={{ base: 'block', xl: 'none' }}
-          color="text.secondary"
-          fontSize="sm"
-          lineHeight="tall"
-          noOfLines={2}
-        >
-          {post.excerpt || 'Fresh thoughts are on the way.'}
-        </Text>
-
-        <HStack spacing={2} color="text.tertiary" fontSize="xs" flexWrap="wrap">
-          <Text>{formatArchiveDate(post.createdAt)}</Text>
-          <Text>•</Text>
-          <HStack spacing={1}>
-            <Icon as={FiClock} />
-            <Text>{post.readingTime || 1} min read</Text>
-          </HStack>
-        </HStack>
-      </VStack>
-    </LinkBox>
+      </Stack>
+    </Stack>
   )
 }
 

@@ -2,7 +2,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import theme from '../theme'
+import theme from '../theme/horizon'
 import { AuthStatus } from '../core/types/auth.types'
 import ProtectedRoute from './ProtectedRoute'
 

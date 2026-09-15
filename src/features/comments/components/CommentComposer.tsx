@@ -1,14 +1,19 @@
-import { useState } from 'react'
-import {
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  Text,
-  Textarea,
-  VStack,
-} from '@chakra-ui/react'
-import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
+/**
+ * Writing a comment, a reply, or an edit.
+ *
+ * `Field` owns the label, the validation message and the `aria-describedby`
+ * wiring; `Textarea` picks that wiring up from context and resizes vertically
+ * only, so nobody can drag a comment box wider than the reading column. The
+ * submit path is unchanged - `validateCommentContent` still decides what is
+ * acceptable and the same error text still reaches the reader.
+ *
+ * `AnimatedPrimaryButton` from `src/components/core/animations` is gone; the
+ * hover lift it carried lives in the Button recipe now.
+ */
+
+import { useId, useState } from 'react'
+
+import { Button, Field, Stack, Text, Textarea } from '../../../design-system'
 import { MAX_COMMENT_CONTENT_LENGTH } from '../comments.types'
 import { validateCommentContent } from '../comments.service'
 
@@ -29,6 +34,7 @@ const CommentComposer = ({
   onSubmit,
   onCancel,
 }: CommentComposerProps) => {
+  const fieldId = useId()
   const [content, setContent] = useState(initialContent)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -50,39 +56,41 @@ const CommentComposer = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <FormControl isInvalid={Boolean(error)}>
-        <FormLabel color="text.secondary">{label}</FormLabel>
-        <VStack align="stretch" spacing={3}>
+      <Stack gap={3}>
+        <Field id={fieldId} label={label} error={error ?? undefined}>
           <Textarea
             value={content}
             onChange={(event) => setContent(event.target.value)}
             maxLength={MAX_COMMENT_CONTENT_LENGTH}
-            minH="112px"
-            resize="vertical"
-            bg="bg.page"
-            borderColor="border.default"
-            color="text.primary"
+            rows={4}
             placeholder="Write a thoughtful response…"
             autoFocus={autoFocus}
           />
-          <HStack justify="space-between" align="center">
-            <Text fontSize="sm" color="text.tertiary" aria-live="polite">
-              {content.length}/{MAX_COMMENT_CONTENT_LENGTH}
-            </Text>
-            <HStack>
-              {onCancel ? (
-                <AnimatedPrimaryButton variant="ghost" onClick={onCancel} isDisabled={submitting}>
-                  Cancel
-                </AnimatedPrimaryButton>
-              ) : null}
-              <AnimatedPrimaryButton type="submit" isLoading={submitting}>
-                {submitLabel}
-              </AnimatedPrimaryButton>
-            </HStack>
-          </HStack>
-          {error ? <FormErrorMessage>{error}</FormErrorMessage> : null}
-        </VStack>
-      </FormControl>
+        </Field>
+
+        <Stack
+          direction="row"
+          collapseAt={undefined}
+          gap={3}
+          align="center"
+          justify="space-between"
+          wrap="wrap"
+        >
+          <Text as="p" recipe="metadata" aria-live="polite">
+            {content.length}/{MAX_COMMENT_CONTENT_LENGTH}
+          </Text>
+          <Stack direction="row" collapseAt={undefined} gap={2} align="center">
+            {onCancel ? (
+              <Button tone="quiet" onClick={onCancel} isDisabled={submitting}>
+                Cancel
+              </Button>
+            ) : null}
+            <Button type="submit" isLoading={submitting} loadingLabel="Saving your comment">
+              {submitLabel}
+            </Button>
+          </Stack>
+        </Stack>
+      </Stack>
     </form>
   )
 }

@@ -3,6 +3,14 @@
  *
  * Follows Single Responsibility Principle by managing editor content state,
  * validation, and change handling separate from UI logic.
+ *
+ * Release M6 removed the tag *input* state from this hook - `tagInput`,
+ * `setTagInput`, `addTag` and `handleAddTagByEnter`. The design system's
+ * `TagField` owns the text being typed, the Enter/comma commit and the
+ * duplicate check; what a caller needs back from it is the finished list, which
+ * is `tags` and `setTags`. The lower-casing those removed functions performed
+ * moved to `EditorTagField`, so `tag_names` still leaves this feature the same
+ * shape it always has.
  */
 
 import { useState, useCallback, useEffect } from 'react'
@@ -12,7 +20,6 @@ interface EditorContentState {
   contentMarkdown: string
   contentJSON: string
   tags: string[]
-  tagInput: string
 }
 
 interface EditorContentActions {
@@ -20,12 +27,9 @@ interface EditorContentActions {
   setContentMarkdown: (markdown: string) => void
   setContentJSON: (json: string) => void
   setTags: (tags: string[]) => void
-  setTagInput: (input: string) => void
 
   // Tag management
-  addTag: (tag: string) => void
   removeTag: (tagToRemove: string) => void
-  handleAddTagByEnter: (e: React.KeyboardEvent<HTMLInputElement>) => void
 
   // Content change handler for editor
   handleEditorChange: (markdown: string) => void
@@ -42,7 +46,6 @@ export function useEditorContent(initialValues: Partial<EditorContentState> = {}
     contentMarkdown: initialValues.contentMarkdown || '',
     contentJSON: initialValues.contentJSON || '',
     tags: initialValues.tags || [],
-    tagInput: initialValues.tagInput || '',
   })
 
   // Load initial values when they become available (e.g., when post loads asynchronously)
@@ -83,41 +86,12 @@ export function useEditorContent(initialValues: Partial<EditorContentState> = {}
     setState((prev) => ({ ...prev, tags }))
   }, [])
 
-  const setTagInput = useCallback((input: string) => {
-    setState((prev) => ({ ...prev, tagInput: input }))
-  }, [])
-
-  // Tag management functions
-  const addTag = useCallback(
-    (tag: string) => {
-      const trimmedTag = tag.trim().toLowerCase()
-      if (trimmedTag && !state.tags.includes(trimmedTag)) {
-        setState((prev) => ({
-          ...prev,
-          tags: [...prev.tags, trimmedTag],
-          tagInput: '',
-        }))
-      }
-    },
-    [state.tags],
-  )
-
   const removeTag = useCallback((tagToRemove: string) => {
     setState((prev) => ({
       ...prev,
       tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }))
   }, [])
-
-  const handleAddTagByEnter = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && state.tagInput.trim()) {
-        e.preventDefault()
-        addTag(state.tagInput)
-      }
-    },
-    [state.tagInput, addTag],
-  )
 
   // Markdown is canonical. Keep JSON as temporary compatibility payload for backend validation.
   const handleEditorChange = useCallback(
@@ -158,19 +132,15 @@ export function useEditorContent(initialValues: Partial<EditorContentState> = {}
     contentMarkdown: state.contentMarkdown,
     contentJSON: state.contentJSON,
     tags: state.tags,
-    tagInput: state.tagInput,
 
     // Setters
     setTitle,
     setContentMarkdown,
     setContentJSON,
     setTags,
-    setTagInput,
 
     // Tag management
-    addTag,
     removeTag,
-    handleAddTagByEnter,
 
     // Editor integration
     handleEditorChange,

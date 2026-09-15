@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { AuthProvider } from '../../../context/AuthContext'
-import theme from '../../../theme'
+import theme from '../../../theme/horizon'
 import HomePage from './HomePage'
 
 describe('HomePage Series placement', () => {

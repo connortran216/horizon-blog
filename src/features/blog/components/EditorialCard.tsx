@@ -1,109 +1,36 @@
-import { Avatar, Box, Flex, Heading, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiArrowRight, FiClock } from 'react-icons/fi'
-import { AnimatedCard, toPublicPostPath } from '../../../core'
+/**
+ * One blog in the archive grid.
+ *
+ * The design system's `PostCard` - the quiet workhorse, deliberately different
+ * from the archive feature above it. This component resolves the cover, which
+ * is a hook, and hands the pattern the section's own words so a label that
+ * would only echo the heading is dropped.
+ */
+
+import { PostCard, postCoverTransitionName } from '../../../design-system'
+import { toPostSummary } from '../postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
-import { formatArchiveDate } from '../blog.utils'
-import SeriesPostContext from '../../series/components/SeriesPostContext'
+
+const COVER_SIZES = '(min-width: 1001px) 50vw, 100vw'
 
 interface EditorialCardProps {
   post: BlogArchiveSummary
-  index: number
+  /** The enclosing section's eyebrow and heading, for label de-duplication. */
+  sectionLabels?: readonly string[]
 }
 
-const EditorialCard = ({ post, index }: EditorialCardProps) => {
+const EditorialCard = ({ post, sectionLabels = [] }: EditorialCardProps) => {
   const coverMedia = useResolvedCoverMedia(post.featuredImage)
-  const coverImage = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw')
-    : undefined
-  const authorName = post.author.username || 'Anonymous'
-  const authorAvatar = post.author.avatar
+  const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
   return (
-    <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
-      <AnimatedCard
-        maxW="100%"
-        overflow="hidden"
-        intensity="light"
-        staggerDelay={0.08}
-        index={index}
-        animation="fadeInUp"
-      >
-        <Box position="relative" h="240px" overflow="hidden" borderRadius="xl">
-          {coverImage ? (
-            <>
-              <Image
-                {...coverImage}
-                alt={post.title}
-                w="full"
-                h="full"
-                objectFit="cover"
-                transition="transform 0.35s ease"
-              />
-              <Box position="absolute" inset={0} bg="blackAlpha.300" />
-            </>
-          ) : (
-            <DefaultPostCover
-              title={post.title}
-              eyebrow=""
-              h="full"
-              borderBottom="1px solid"
-              borderColor="border.subtle"
-            />
-          )}
-        </Box>
-
-        <VStack align="stretch" spacing={5} p={6}>
-          <HStack spacing={3} color="text.tertiary" fontSize="sm" flexWrap="wrap">
-            <HStack spacing={2}>
-              <Avatar size="2xs" name={authorName} src={authorAvatar} />
-              <Text color="text.secondary">{authorName}</Text>
-            </HStack>
-            <Text>•</Text>
-            <Text>{formatArchiveDate(post.createdAt)}</Text>
-            <Text>•</Text>
-            <HStack spacing={1.5}>
-              <Icon as={FiClock} />
-              <Text>{post.readingTime || 1} min read</Text>
-            </HStack>
-          </HStack>
-
-          <SeriesPostContext series={post.series} />
-
-          <VStack align="stretch" spacing={3}>
-            <Heading
-              size="lg"
-              color="text.primary"
-              lineHeight="1.1"
-              letterSpacing="-0.03em"
-              noOfLines={2}
-            >
-              {post.title}
-            </Heading>
-            <Text color="text.secondary" lineHeight="tall" noOfLines={4}>
-              {post.excerpt || 'Fresh thoughts are on the way.'}
-            </Text>
-          </VStack>
-
-          <Flex
-            pt={4}
-            borderTop="1px solid"
-            borderColor="border.subtle"
-            align="center"
-            justify="space-between"
-          >
-            <Box />
-            <HStack spacing={2} color="action.primary" fontWeight="semibold">
-              <Text fontSize="sm">Read story</Text>
-              <Icon as={FiArrowRight} />
-            </HStack>
-          </Flex>
-        </VStack>
-      </AnimatedCard>
-    </Box>
+    <PostCard
+      post={summary}
+      sectionLabels={sectionLabels}
+      coverSizes={COVER_SIZES}
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
   )
 }
 

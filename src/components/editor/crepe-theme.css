@@ -1,8 +1,16 @@
 /**
- * Crepe Theme Overrides
+ * Crepe theme overrides.
  *
- * Custom CSS to match Crepe editor with the Chakra design system.
- * Uses semantic Chakra tokens for consistent light/dark behavior.
+ * Crepe and Milkdown draw the writing surface; this file only tells them which
+ * colours, radii and shadows to draw it in. Every value below resolves to a
+ * Horizon Design System v2 role through the theme's own CSS custom properties,
+ * so there is no colour, radius or shadow literal here for the two themes to
+ * disagree about.
+ *
+ * These used to point at the legacy alias roles - `bg.glass`, `bg.tertiary`,
+ * `border.default`, `text.tertiary`, `action.active`, `link.hover` - which
+ * `src/theme/horizon.ts` still bridges for pages that have not migrated. The
+ * editor no longer needs that bridge.
  */
 
 /* =========================================
@@ -12,36 +20,42 @@
 .crepe-editor-wrapper {
   --crepe-accent-primary: var(--chakra-colors-action-primary);
   --crepe-accent-hover: var(--chakra-colors-action-hover);
-  --crepe-accent-active: var(--chakra-colors-action-active);
-  --crepe-media-radius: 1.5rem;
+  /* v2 expresses press as travel, not a third colour step. */
+  --crepe-accent-active: var(--chakra-colors-action-hover);
+  --crepe-media-radius: var(--chakra-radii-card);
 
   --crepe-link: var(--chakra-colors-link-default);
-  --crepe-link-hover: var(--chakra-colors-link-hover);
+  /* v2 underlines a link on hover rather than recolouring it. */
+  --crepe-link-hover: var(--chakra-colors-link-default);
 
-  --crepe-code-bg: var(--chakra-colors-bg-tertiary);
+  --crepe-code-bg: var(--chakra-colors-bg-code);
   --crepe-code-fg: var(--chakra-colors-text-primary);
 
-  --crepe-bg-primary: var(--chakra-colors-bg-glass);
-  --crepe-bg-secondary: var(--chakra-colors-bg-tertiary);
-  --crepe-border: var(--chakra-colors-border-default);
+  --crepe-bg-primary: var(--chakra-colors-bg-elevated);
+  --crepe-bg-secondary: var(--chakra-colors-bg-subtle);
+  --crepe-border: var(--chakra-colors-border-subtle);
   --crepe-border-subtle: var(--chakra-colors-border-subtle);
   --crepe-text-primary: var(--chakra-colors-text-primary);
   --crepe-text-secondary: var(--chakra-colors-text-secondary);
-  --crepe-text-tertiary: var(--chakra-colors-text-tertiary);
+  --crepe-text-tertiary: var(--chakra-colors-text-muted);
   --crepe-popup-bg: var(--chakra-colors-bg-elevated);
-  --crepe-popup-border: var(--chakra-colors-border-default);
+  --crepe-popup-border: var(--chakra-colors-border-subtle);
   --crepe-popup-hover: var(--chakra-colors-action-subtle);
   --crepe-popup-selected: var(--chakra-colors-action-primary);
-  --crepe-popup-selected-text: #fff;
-  --crepe-popup-input-bg: var(--chakra-colors-bg-tertiary);
-  --crepe-popup-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+  --crepe-popup-selected-text: var(--chakra-colors-text-onAction);
+  --crepe-popup-input-bg: var(--chakra-colors-bg-subtle);
+  /*
+   * One shadow token, already paired light/dark by the theme, which is why the
+   * three per-colour-mode overrides this file used to carry are gone.
+   */
+  --crepe-popup-shadow: var(--chakra-shadows-card);
 
   /* Map Chakra theme variables to Milkdown/Crepe */
-  --milkdown-color-background: var(--chakra-colors-bg-glass);
-  --milkdown-color-surface: var(--chakra-colors-bg-tertiary);
+  --milkdown-color-background: var(--chakra-colors-bg-elevated);
+  --milkdown-color-surface: var(--chakra-colors-bg-subtle);
   --milkdown-color-text: var(--chakra-colors-text-primary);
   --milkdown-color-secondary: var(--chakra-colors-text-secondary);
-  --milkdown-color-border: var(--chakra-colors-border-default);
+  --milkdown-color-border: var(--chakra-colors-border-subtle);
 
   /* Crepe's expected CSS variables for menus */
   --crepe-color-surface: var(--crepe-bg-secondary);
@@ -55,18 +69,39 @@
   --crepe-color-primary: var(--crepe-accent-primary);
   --crepe-color-outline: var(--crepe-text-tertiary);
   --crepe-color-on-background: var(--crepe-text-primary);
-  --crepe-color-secondary: var(--crepe-accent-active);
-  --crepe-color-on-secondary: white;
+  /*
+   * The resting fill of a filled control, not its hover step. This used to be
+   * `--crepe-accent-active` (`action.hover`), which put the hover colour under
+   * the copy button at rest and left the hover with nowhere to go.
+   */
+  --crepe-color-secondary: var(--chakra-colors-action-primary);
+  --crepe-color-on-secondary: var(--chakra-colors-text-onAction);
   --crepe-color-inverse: var(--crepe-bg-primary);
   --crepe-color-on-inverse: var(--crepe-text-primary);
-}
 
-.chakra-ui-dark .crepe-editor-wrapper {
-  --crepe-popup-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-}
+  /*
+   * The variables Crepe's own stylesheet reads and this file never set.
+   *
+   * An unset custom property does not fall back - `color: var(--undefined)` is
+   * invalid at computed-value time, which for an inherited property means
+   * "inherit". So `--crepe-color-on-surface-variant` quietly resolved to
+   * `text.primary` everywhere, including on top of a filled button, and the
+   * inline-code rule in `theme/common/reset.css` lost its face, its colour and
+   * its background all at once: 64 inline spans in one article rendered in Be
+   * Vietnam Pro at the prose colour with nothing behind them.
+   *
+   * `on-surface-variant` is the secondary foreground on a surface, so it is
+   * `text.secondary`. A filled control needs `text.onAction` instead and says
+   * so for itself, below.
+   */
+  --crepe-color-background: var(--crepe-bg-primary);
+  --crepe-color-on-surface-variant: var(--chakra-colors-text-secondary);
+  --crepe-color-inline-code: var(--crepe-text-primary);
+  --crepe-color-inline-area: var(--crepe-code-bg);
 
-.chakra-ui-light .crepe-editor-wrapper {
-  --crepe-popup-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  --crepe-font-default: var(--chakra-fonts-body);
+  --crepe-font-title: var(--chakra-fonts-heading);
+  --crepe-font-code: var(--chakra-fonts-mono);
 }
 
 .chakra-ui-dark .crepe-editor-wrapper .milkdown {
@@ -195,8 +230,65 @@
 }
 
 /* =========================================
+   Inline Code
+   ========================================= */
+
+/*
+ * Crepe's own rule tints the inline-code plate with
+ * `color-mix(..., transparent 40%)`, which at `bg.code` leaves a wash a reader
+ * cannot see against the page. The variables above give the rule its face and
+ * its colour back; this gives it the plate at full strength, and the control
+ * radius, so inline code reads the way the design system's `Prose` specifies
+ * it - a monospace run on `bg.code` - rather than as prose two pixels smaller.
+ *
+ * "Two pixels smaller" was literal: Crepe's own reset sizes inline `code` at
+ * `87.5%` of its paragraph's `16px`, landing at 14px - below `codeTextStyle`'s
+ * 16px (`body` scale), which is what a bare `code` outside a live editor and a
+ * fenced block both read at. The same reader-facing role should not come out
+ * two different sizes depending on which renderer produced it, so this pulls
+ * the plate back up to that one size, restated as a literal for the reason
+ * `.cm-content` below states.
+ *
+ * Block code is excluded: a `pre > code` is the code block's, and `CodeBlock`
+ * owns that frame.
+ */
+.crepe-editor-wrapper .milkdown .ProseMirror :not(pre) > code {
+  background: var(--crepe-code-bg);
+  color: var(--crepe-code-fg);
+  font-family: var(--crepe-font-code);
+  font-size: 16px;
+  border-radius: var(--chakra-radii-control);
+  padding: 0 var(--chakra-space-1);
+}
+
+/* =========================================
    Code Block Styling
    ========================================= */
+
+/*
+ * The code block's filled controls - Copy, and the mermaid preview toggle.
+ *
+ * Crepe paints them with `--crepe-color-secondary` and labels them with
+ * `--crepe-color-on-surface-variant`, which this file never set, so the label
+ * inherited `text.primary`: near-white on light cobalt, 1.66:1 in dark against
+ * a 4.5 floor. A filled control takes the filled pair - `action.primary` with
+ * `text.onAction` - and steps to `action.hover` when the pointer is on it,
+ * which is the same contract `componentTokens.control` gives every button in
+ * the system.
+ */
+.crepe-editor-wrapper .milkdown .milkdown-code-block .tools .tools-button-group button {
+  background: var(--crepe-accent-primary);
+  color: var(--chakra-colors-text-onAction);
+}
+
+.crepe-editor-wrapper .milkdown .milkdown-code-block .tools .tools-button-group button svg {
+  fill: var(--chakra-colors-text-onAction);
+  color: var(--chakra-colors-text-onAction);
+}
+
+.crepe-editor-wrapper .milkdown .milkdown-code-block .tools .tools-button-group button:hover {
+  background: var(--crepe-accent-hover);
+}
 
 .crepe-editor-wrapper .code-block {
   background-color: var(--crepe-code-bg);
@@ -267,7 +359,7 @@
 
 .crepe-editor-wrapper .milkdown-code-block .search-box:has(input:focus) {
   outline: 1px solid var(--crepe-popup-selected);
-  box-shadow: 0 0 0 3px var(--chakra-colors-action-glow);
+  box-shadow: 0 0 0 3px var(--chakra-colors-action-subtle);
 }
 
 .crepe-editor-wrapper .milkdown-code-block .search-input,
@@ -375,7 +467,8 @@
   > ul
   > li[aria-selected='true']
   .cm-completionDetail {
-  color: rgba(255, 255, 255, 0.82);
+  /* Sits on --crepe-popup-selected, so it uses that pair's foreground. */
+  color: var(--crepe-popup-selected-text);
 }
 
 .crepe-editor-wrapper .milkdown-code-block .cm-tooltip.cm-completionInfo {
@@ -505,14 +598,49 @@
   background: color-mix(in srgb, var(--crepe-accent-primary) 10%, var(--crepe-bg-secondary));
 }
 
+/*
+ * A reading surface keeps the tools row, and keeps only the buttons.
+ *
+ * The row used to be hidden outright, which took the Copy button with it - so a
+ * reader could copy the source of a mermaid diagram, because the rule below
+ * brought the row back for those, but not a shell command or a Python snippet,
+ * which are the blocks people actually copy. Copy is a reading control: it
+ * takes the listing away with you and changes nothing in the document.
+ *
+ * What is hidden instead is the language picker, which is the authoring control
+ * in that row - a reader has no business restating what language a published
+ * listing is written in. `.tools` is `justify-content: space-between` with the
+ * picker on the left, so the buttons move to the right on their own once it is
+ * gone; no second rule is needed to place them.
+ */
 .crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block .tools {
-  display: none;
-}
-
-.crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block:has(.mermaid-preview) .tools {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.5rem;
+}
+
+/*
+ * The row's three children, read off the rendered DOM: `.language-button`, the
+ * `.language-picker` popup it opens, and `.tools-button-group` holding Copy.
+ * The first two restate and change what language a published listing is written
+ * in, which is the author's decision and already made. Only the buttons stay.
+ */
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block .tools > .language-button,
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-code-block .tools > .language-picker {
+  display: none;
+}
+
+/*
+ * The buttons are `opacity: 0` in Crepe's own stylesheet and revealed on hover
+ * over the block, which is right for a pointer and unreachable without one. A
+ * keyboard reader gets them on focus for the same reason.
+ */
+.crepe-editor-wrapper[data-readonly='true']
+  .milkdown-code-block
+  .tools
+  .tools-button-group
+  button:focus-visible {
+  opacity: 1;
 }
 
 .crepe-editor-wrapper[data-readonly='true']
@@ -563,13 +691,132 @@
   outline: none;
 }
 
+/*
+ * Crepe's table component keeps its drag handles, its add-row/add-column buttons
+ * and its drag preview in the DOM at `opacity: 0` when the view is not editable,
+ * rather than removing them. Invisible is not the same as absent: at zero opacity
+ * those buttons are still in the tab order and still take a pointer, so a reader
+ * could tab into fourteen "add a row" controls in a published article. A reading
+ * surface has no table tools, so they are not rendered at all.
+ */
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-table-block .handle,
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-table-block .drag-preview,
+.crepe-editor-wrapper[data-readonly='true'] .milkdown-table-block .button-group {
+  display: none;
+}
+
+/*
+ * CodeMirror's `basicSetup` always marks the line the (empty) selection sits on,
+ * whether or not the view is editable, so a read-only code block still paints a
+ * caret-line tint across its first line. There is no extension that removes the
+ * decoration; the class is the only handle. A reading surface has no caret, so
+ * it has no active line.
+ */
+.crepe-editor-wrapper[data-readonly='true'] .cm-activeLine,
+.crepe-editor-wrapper[data-readonly='true'] .cm-activeLineGutter {
+  background-color: transparent;
+}
+
+/* =========================================
+   Fenced block type, and its scroll affordances
+   ========================================= */
+
+/*
+ * CodeMirror's own base theme sets `.cm-content { font-family: monospace }`
+ * and no font-size at all, so a fenced block inherited whatever ambient size
+ * sat above it - `Prose`'s 18/19px reading size, the one thing code is
+ * supposed to read at or below rather than at. `codeTextStyle`
+ * (`src/design-system/patterns/reader/code.logic.ts`) is the design system's
+ * one answer to that everywhere else code appears - `body` scale, 16px at
+ * every breakpoint, and the design system's own mono stack. The `16px` here
+ * is that same value restated as a literal, because this is a plain
+ * stylesheet and cannot import the TypeScript module the way `Prose` and
+ * `CodeBlock` do; `--crepe-font-code` is the actual token, unchanged, and
+ * already resolves to the identical mono stack `codeTextStyle` does.
+ *
+ * Selector depth matches the rest of this file's reason for it: CodeMirror's
+ * own base theme rule for `.cm-content` is two classes deep, so anything
+ * shallower loses the specificity tie depending on injection order.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-content {
+  font-family: var(--crepe-font-code);
+  font-size: 16px;
+}
+
+/*
+ * The same visible-scroll signal `Prose` gives every bare `pre` and `table`
+ * it contains (see `scrollAffordanceStyle` in `code.logic.ts`), restated here
+ * because CodeMirror's own `.cm-scroller` - not a `pre` - is the element that
+ * actually overflows a wide fenced block, and no descendant selector reaches
+ * inside a CodeMirror instance's own DOM. `--chakra-colors-border-subtle` is
+ * the same `border.subtle` token the design system's version borrows.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller {
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--chakra-colors-border-subtle) transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-thumb {
+  background: var(--chakra-colors-border-subtle);
+  border-radius: 9999px;
+}
+
+/*
+ * The matching edge fade - see `scrollFadeStyle` in `code.logic.ts` for the
+ * full mechanism: a pseudo-element pair, lit by the `data-scroll-fade`
+ * attribute (`SCROLL_FADE_ATTRIBUTE`), that hides itself once there is
+ * nothing left to scroll toward. `useCrepeCodeScrollFade`, in
+ * `crepe.presentation.ts`, is what keeps that attribute current on this
+ * exact element - this only paints what it lights. `--crepe-code-bg` is the
+ * same `bg.code` token `CodeBlock`'s own fade fades toward.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before,
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before {
+  left: 0;
+  background: linear-gradient(to right, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  right: 0;
+  background: linear-gradient(to left, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='start']::before {
+  opacity: 1;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='end']::after {
+  opacity: 1;
+}
+
 .mermaid-zoom-modal__viewport {
   height: calc(100dvh - 8.5rem);
   min-height: 24rem;
   overflow: auto;
   border: 1px solid var(--chakra-colors-border-subtle);
-  border-radius: 1.25rem;
-  background: var(--chakra-colors-bg-glass);
+  border-radius: var(--chakra-radii-card);
+  background: var(--chakra-colors-bg-elevated);
 }
 
 .mermaid-zoom-modal__canvas {
@@ -698,7 +945,7 @@
 
 .crepe-editor-wrapper ::selection {
   background-color: var(--crepe-accent-primary);
-  color: white;
+  color: var(--chakra-colors-text-onAction);
 }
 
 /* =========================================
@@ -760,7 +1007,7 @@
 .crepe-editor-wrapper .milkdown-block-handle {
   z-index: 1100 !important; /* Above navbar */
   background-color: var(--crepe-accent-primary) !important;
-  color: white;
+  color: var(--chakra-colors-text-onAction);
   border-radius: 0.25rem;
   transition:
     opacity 0.2s ease,

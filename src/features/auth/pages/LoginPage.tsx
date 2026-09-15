@@ -1,25 +1,40 @@
+/**
+ * Sign in - migrated onto Horizon Design System v2 (release M5).
+ *
+ * Presentation only. `useAuth().login` is called with the same argument object,
+ * the Google handoff still goes through `buildGoogleSsoStartUrl`, the redirect
+ * target is still `location.state.from`, and every message below is the string
+ * this page already shipped. Login failure copy in particular is deliberately
+ * vague about which half of the credential pair was wrong; that is a security
+ * property and it is reproduced verbatim.
+ *
+ * Composed from `AuthPanel` (shell and live region), `AuthMethod` /
+ * `AuthMethodSeparator` (provider handoff), `Field` + `Input` (credentials),
+ * `AuthAlert` (outcome) and `Button`.
+ */
+
 import { useEffect, useState } from 'react'
+import { useToast } from '@chakra-ui/react'
+import { FcGoogle } from 'react-icons/fc'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  FormControl,
-  FormLabel,
+  ActionLink,
+  AuthAlert,
+  AuthMethod,
+  AuthMethodSeparator,
+  AuthPanel,
+  Button,
+  Field,
   Input,
   Stack,
   Text,
-  useToast,
-} from '@chakra-ui/react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { AnimatedPrimaryButton } from '../../../components/core/animations/AnimatedButton'
+  useMotionPolicy,
+} from '../../../design-system'
 import { useAuth } from '../../../context/AuthContext'
-import AuthMethodDivider from '../components/AuthMethodDivider'
-import AuthShell, { AuthInlineLink } from '../components/AuthShell'
-import GoogleAuthButton from '../components/GoogleAuthButton'
-import { getOAuthErrorMessage } from '../utils/googleSso'
 import { AuthError } from '../../../core/types/auth.types'
+import { playSuccessBurst } from '../successBurst'
+import { buildGoogleSsoStartUrl, getOAuthErrorMessage } from '../utils/googleSso'
 
 type LoginLocationState = {
   from?: string
@@ -28,38 +43,47 @@ type LoginLocationState = {
 }
 
 type AuthFeedback = {
-  status: 'success' | 'error'
+  tone: 'success' | 'error'
   title: string
-  description: string
+  detail: string
 }
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isRedirectingToProvider, setIsRedirectingToProvider] = useState(false)
   const toast = useToast()
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isLoading } = useAuth()
+  const policy = useMotionPolicy()
   const locationState = location.state as LoginLocationState | null
-  const [inlineFeedback] = useState<AuthFeedback | null>(() => {
+  const [arrivalFeedback] = useState<AuthFeedback | null>(() => {
     if (locationState?.resetPasswordSuccess) {
       return {
-        status: 'success',
+        tone: 'success',
         title: 'Password updated',
-        description: 'Sign in with your new password to continue.',
+        detail: 'Sign in with your new password to continue.',
       }
     }
 
     if (locationState?.oauthError) {
       return {
-        status: 'error',
+        tone: 'error',
         title: 'Google sign in failed',
-        description: getOAuthErrorMessage(locationState.oauthError),
+        detail: getOAuthErrorMessage(locationState.oauthError),
       }
     }
 
     return null
   })
+  /*
+   * The failure of the last attempt, kept on the page rather than in a toast
+   * that disappears after three seconds. The reader has to act on it - retype a
+   * password - so it stays until the next attempt replaces it. The sentence
+   * itself is unchanged.
+   */
+  const [submitFeedback, setSubmitFeedback] = useState<AuthFeedback | null>(null)
 
   useEffect(() => {
     if (!locationState?.resetPasswordSuccess && !locationState?.oauthError) {
@@ -70,6 +94,7 @@ const LoginPage = () => {
   }, [location.pathname, locationState, navigate])
 
   const redirectTo = locationState?.from || '/'
+  const siblingState = locationState?.from ? { from: locationState.from } : undefined
   const providerDescription =
     redirectTo !== '/'
       ? 'Faster sign in. You will return to the page you opened.'
@@ -78,11 +103,24 @@ const LoginPage = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
+    // A second submission while the first is in flight would race two sessions
+    // against each other. The button swallows its own clicks; this covers the
+    // Enter key, which never reaches the button at all.
+    if (isLoading) {
+      return
+    }
+
+    setSubmitFeedback(null)
+
     try {
       await login({ email, password })
 
-      const { particleSystem } = await import('../../../components/core/animations/ParticleSystem')
-      particleSystem.showSuccessParticles()
+      /*
+       * The celebration, and the only motion on this screen. `playSuccessBurst`
+       * is a no-op under reduced motion - it does not even fetch the animation
+       * - so the toast below carries the outcome on its own there.
+       */
+      await playSuccessBurst(policy)
 
       toast({
         title: 'Login successful',
@@ -111,95 +149,90 @@ const LoginPage = () => {
         })
         return
       }
-      toast({
+
+      setSubmitFeedback({
+        tone: 'error',
         title: 'Login failed',
-        description: 'Please check your credentials and try again.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
+        detail: 'Please check your credentials and try again.',
       })
     }
   }
 
+  const feedback = submitFeedback ?? arrivalFeedback
+
   return (
-    <AuthShell
+    <AuthPanel
       title="Log in to your account"
       description={
         <>
           Don&apos;t have an account?{' '}
-          <AuthInlineLink
-            to="/register"
-            state={locationState?.from ? { from: locationState.from } : undefined}
-          >
+          <ActionLink to="/register" state={siblingState}>
             Sign up
-          </AuthInlineLink>
+          </ActionLink>
         </>
+      }
+      isSubmitting={isLoading}
+      feedback={
+        feedback === null ? undefined : (
+          <AuthAlert tone={feedback.tone} title={feedback.title} detail={feedback.detail} />
+        )
       }
     >
       <form onSubmit={handleSubmit}>
-        <Stack spacing="6">
-          {inlineFeedback ? (
-            <Alert status={inlineFeedback.status} borderRadius="xl" alignItems="flex-start">
-              <AlertIcon mt="1" />
-              <Box>
-                <AlertTitle>{inlineFeedback.title}</AlertTitle>
-                <AlertDescription>{inlineFeedback.description}</AlertDescription>
-              </Box>
-            </Alert>
-          ) : null}
-
-          <Stack spacing="3">
-            <GoogleAuthButton redirectTo={redirectTo} isDisabled={isLoading} />
-            <Text color="text.tertiary" fontSize="sm" textAlign="center">
+        <Stack gap={6}>
+          <Stack gap={3}>
+            <AuthMethod
+              provider="Google"
+              startUrl={buildGoogleSsoStartUrl(redirectTo)}
+              onStart={() => setIsRedirectingToProvider(true)}
+              icon={<FcGoogle aria-hidden="true" />}
+              isDisabled={isLoading}
+              isRedirecting={isRedirectingToProvider}
+            />
+            <Text recipe="metadata" textAlign="center">
               {providerDescription}
             </Text>
           </Stack>
 
-          <AuthMethodDivider label="Or continue with email" />
+          <AuthMethodSeparator label="Or continue with email" />
 
-          <FormControl isRequired>
-            <FormLabel htmlFor="email">Email</FormLabel>
+          <Field label="Email" id="email" isRequired>
             <Input
-              id="email"
               type="email"
               autoComplete="email"
               inputMode="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
-          </FormControl>
+          </Field>
 
-          <FormControl isRequired>
-            <FormLabel htmlFor="password">Password</FormLabel>
+          <Field label="Password" id="password" isRequired>
             <Input
-              id="password"
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-          </FormControl>
-          <Box textAlign="right">
-            <AuthInlineLink
-              to="/forgot-password"
-              state={locationState?.from ? { from: locationState.from } : undefined}
-            >
-              Forgot password?
-            </AuthInlineLink>
-          </Box>
+          </Field>
 
-          <AnimatedPrimaryButton
+          <Stack direction="row" collapseAt={undefined} justifyContent="flex-end">
+            <ActionLink to="/forgot-password" state={siblingState} underline="hover" standalone>
+              Forgot password?
+            </ActionLink>
+          </Stack>
+
+          <Button
             type="submit"
-            size="lg"
-            fontSize="md"
+            tone="primary"
+            width="100%"
             isLoading={isLoading}
-            w="full"
+            loadingLabel="Signing in"
           >
             Sign in
-          </AnimatedPrimaryButton>
+          </Button>
         </Stack>
       </form>
-    </AuthShell>
+    </AuthPanel>
   )
 }
 

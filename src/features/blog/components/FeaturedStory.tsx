@@ -1,164 +1,44 @@
+/**
+ * The blog the archive lifts out of its own listing.
+ *
+ * The design system's `FeaturedStory`: the Signature's sibling rather than the
+ * card's - the same editorial family and feature radius, at a page-title ramp
+ * inside a bounded surface, because it sits in a results page rather than at
+ * the top of Home.
+ *
+ * The "Editor's pick" badge and the "Quiet writing. Sharp ideas." line are
+ * gone. Neither was editorial fact: nothing picks this post except its position
+ * in the sort order, and the tagline was copy the page wrote about itself.
+ */
+
 import {
-  Badge,
-  Box,
-  Heading,
-  HStack,
-  Icon,
-  Image,
-  SimpleGrid,
-  Stack,
-  Text,
-  Wrap,
-} from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { FiArrowRight, FiFileText } from 'react-icons/fi'
-import { MotionWrapper, toPublicPostPath } from '../../../core'
-import StatChip from '../../../components/ui/StatChip'
+  FeaturedStory as FeaturedStoryPattern,
+  postCoverTransitionName,
+} from '../../../design-system'
+import { toPostSummary } from '../postSummary.presentation'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { getResponsiveImageAttributes } from '../../media/media.presentation'
-import DefaultPostCover from '../../media/components/DefaultPostCover'
 import { BlogArchiveSummary } from '../blog.types'
-import { formatArchiveDate } from '../blog.utils'
-import SeriesPostContext from '../../series/components/SeriesPostContext'
+
+const COVER_SIZES = '(min-width: 801px) 50vw, 100vw'
 
 interface FeaturedStoryProps {
   post: BlogArchiveSummary
+  /** The enclosing section's eyebrow and heading, for label de-duplication. */
+  sectionLabels?: readonly string[]
 }
 
-const FeaturedStory = ({ post }: FeaturedStoryProps) => {
+const FeaturedStory = ({ post, sectionLabels = [] }: FeaturedStoryProps) => {
   const coverMedia = useResolvedCoverMedia(post.featuredImage)
-  const coverImage = coverMedia
-    ? getResponsiveImageAttributes(coverMedia, '(max-width: 991px) 100vw, 50vw', true)
-    : undefined
-  const authorName = post.author.username || 'Anonymous'
+  const summary = toPostSummary(post, coverMedia, { coverSizes: COVER_SIZES })
 
   return (
-    <MotionWrapper
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      duration={0.6}
-      delay={0.15}
-    >
-      <Box as={RouterLink} to={toPublicPostPath(post.id)} display="block">
-        <Box
-          position="relative"
-          border="1px solid"
-          borderColor="border.subtle"
-          borderRadius="3xl"
-          overflow="hidden"
-          bg="bg.glass"
-          backdropFilter="blur(18px)"
-          boxShadow="lg"
-        >
-          <Box
-            position="absolute"
-            insetX={{ base: '-15%', lg: '45%' }}
-            top="-25%"
-            h="260px"
-            bg="accent.glow"
-            filter="blur(90px)"
-            pointerEvents="none"
-          />
-
-          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={0} position="relative">
-            <Stack spacing={6} px={{ base: 6, md: 10 }} py={{ base: 8, md: 10 }} justify="center">
-              <HStack spacing={3} flexWrap="wrap">
-                <Badge
-                  px={3}
-                  py={1}
-                  borderRadius="full"
-                  bg="action.primary"
-                  color="white"
-                  textTransform="uppercase"
-                  letterSpacing="0.12em"
-                  fontSize="10px"
-                >
-                  Editor&apos;s pick
-                </Badge>
-                <Text
-                  fontSize="xs"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                  color="text.tertiary"
-                >
-                  {formatArchiveDate(post.createdAt)}
-                </Text>
-              </HStack>
-
-              <SeriesPostContext series={post.series} />
-
-              <Stack spacing={4}>
-                <Text
-                  fontSize="sm"
-                  color="text.secondary"
-                  textTransform="uppercase"
-                  letterSpacing="0.14em"
-                >
-                  Quiet writing. Sharp ideas.
-                </Text>
-                <Heading
-                  fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
-                  lineHeight={{ base: 1.1, md: 1 }}
-                  letterSpacing="-0.05em"
-                  color="text.primary"
-                >
-                  {post.title}
-                </Heading>
-                <Text
-                  maxW="2xl"
-                  color="text.secondary"
-                  fontSize={{ base: 'md', md: 'lg' }}
-                  lineHeight="tall"
-                >
-                  {post.excerpt || 'Fresh thoughts are on the way.'}
-                </Text>
-              </Stack>
-
-              <Wrap spacing={3}>
-                <StatChip label="Author" value={authorName} />
-                <StatChip label="Reading time" value={`${post.readingTime || 1} min`} />
-              </Wrap>
-
-              <HStack pt={2} spacing={4} flexWrap="wrap">
-                <HStack
-                  spacing={2}
-                  px={4}
-                  py={3}
-                  borderRadius="full"
-                  bg="action.primary"
-                  color="white"
-                  fontWeight="semibold"
-                >
-                  <Text fontSize="sm">Read featured story</Text>
-                  <Icon as={FiArrowRight} />
-                </HStack>
-                <HStack spacing={2} color="text.secondary">
-                  <Icon as={FiFileText} />
-                  <Text fontSize="sm">Long-form blog posts, essays, and technical writing</Text>
-                </HStack>
-              </HStack>
-            </Stack>
-
-            <Box
-              minH={{ base: '280px', lg: '100%' }}
-              borderLeft={{ base: 'none', lg: '1px solid' }}
-              borderColor="border.subtle"
-            >
-              {coverImage ? (
-                <Image {...coverImage} alt={post.title} w="full" h="full" objectFit="cover" />
-              ) : (
-                <DefaultPostCover
-                  title={post.title}
-                  eyebrow=""
-                  h="full"
-                  minH={{ base: '280px', lg: '100%' }}
-                />
-              )}
-            </Box>
-          </SimpleGrid>
-        </Box>
-      </Box>
-    </MotionWrapper>
+    <FeaturedStoryPattern
+      post={summary}
+      sectionLabels={sectionLabels}
+      titleAs="h3"
+      actionLabel="Read the featured blog"
+      coverTransitionName={postCoverTransitionName(summary.id) ?? undefined}
+    />
   )
 }
 
