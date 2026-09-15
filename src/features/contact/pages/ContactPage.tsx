@@ -1,29 +1,33 @@
 /**
- * Contact - migrated onto Horizon Design System v2 (release M2).
+ * Contact - the page is the email address.
  *
- * The page composes the design system's `ContactCard` and `ContactPrompt`
- * rather than owning cards of its own. Link semantics for a `mailto:`, a `tel:`
- * and a postal address are easy to get subtly wrong, and `contactHref` answers
- * that question once instead of at every call site.
+ * The previous version had three problems that compounded into one ugly page,
+ * and they are worth naming because each is easy to reintroduce:
  *
- * Each channel card carries its own action - "Call", "Email directly" - beside
- * the value it links. The page names the verb; the pattern decides whether the
- * channel can carry one at all, which is why the address has none.
+ * - **The same action appeared twice.** "Email directly" and "Call instead" sat
+ *   in the hero, and then the same two channels appeared again underneath as
+ *   cards with the same verbs. A reader had to work out whether the two sets
+ *   did different things. They did not.
+ * - **Three metaphors at once.** A two-column hero, one bare oversized value,
+ *   and two bordered cards, on one screen. Nothing said which of the three was
+ *   the page's shape.
+ * - **The hero was squeezed into half the width**, so a `display` headline set
+ *   at 64px wrapped across four short lines beside a column of cards.
  *
- * The real contact details - the address, the number and the email - are
- * unchanged.
+ * So: one column, one idea. The page states what it is for, gives the address
+ * at the size of a page title because that address is the whole point, and then
+ * lists the other two ways to reach the author quietly underneath. No cards.
+ *
+ * Every real detail - the address, the number, the location - is unchanged.
  */
 
-import { Icon } from '@chakra-ui/react'
-import { FaEnvelope, FaMapMarkerAlt, FaPhone } from 'react-icons/fa'
-import { FiArrowRight, FiClock, FiMessageSquare, FiPenTool } from 'react-icons/fi'
+import { FiClock, FiMessageSquare, FiPenTool } from 'react-icons/fi'
 
 import { space } from '../../../theme/tokens'
 import {
   ActionLink,
-  ContactCard,
-  ContactPrompt,
   ContentContainer,
+  Divider,
   Eyebrow,
   Grid,
   Heading,
@@ -33,39 +37,34 @@ import {
   Stagger,
   Text,
 } from '../../../design-system'
-import { ContactInfoItem, ContactPromptItem } from '../contact.types'
+import { ContactPromptItem } from '../contact.types'
 
 const EMAIL = 'canhtran210699@gmail.com'
 const PHONE = '+84 96 345 2909'
 
-const contactInfo: ContactInfoItem[] = [
+/**
+ * The two channels that are not the recommended one.
+ *
+ * The address deliberately has no action. A postal address is context for a
+ * conversation, not a thing to press, and inventing a button for it - a map
+ * link, a copy control - would be the page making up a job for itself.
+ */
+const otherChannels = [
   {
-    channel: 'location',
-    icon: FaMapMarkerAlt,
-    title: 'Location',
-    content: '10 Lam Van Ben, Tan Hung ward, HCM City, Vietnam',
-    description: 'Useful when a conversation needs timezone or local context.',
-    emphasis: 'secondary',
+    kind: 'Phone',
+    value: PHONE,
+    note: 'Best for time-sensitive conversations after a short heads-up.',
+    href: `tel:${PHONE.replace(/[^\d+]/g, '')}`,
+    action: 'Call',
   },
   {
-    channel: 'phone',
-    icon: FaPhone,
-    title: 'Phone',
-    content: PHONE,
-    description: 'Best for time-sensitive conversations after a short heads-up.',
-    actionLabel: 'Call',
-    emphasis: 'secondary',
+    kind: 'Location',
+    value: 'Ho Chi Minh City, Vietnam',
+    note: '10 Lam Van Ben, Tan Hung ward. Useful when a conversation needs timezone or local context.',
+    href: null,
+    action: null,
   },
-  {
-    channel: 'email',
-    icon: FaEnvelope,
-    title: 'Email',
-    content: EMAIL,
-    description: 'Best for blog feedback, frontend discussion, and thoughtful async context.',
-    actionLabel: 'Email directly',
-    emphasis: 'primary',
-  },
-]
+] as const
 
 const prompts: ContactPromptItem[] = [
   {
@@ -87,117 +86,136 @@ const prompts: ContactPromptItem[] = [
   },
 ]
 
-const ContactPage = () => {
-  const primaryContact = contactInfo.find((info) => info.emphasis === 'primary')
-  const secondaryContacts = contactInfo.filter((info) => info.emphasis !== 'primary')
+const ContactPage = () => (
+  <ContentContainer>
+    <Section density="comfortable">
+      {/*
+        One column at prose measure. The headline is a `display` recipe, which
+        is 64px on a wide screen - it needs the full frame to land in two lines
+        rather than four, and it had half of it.
+      */}
+      <Stack gap={6} maxW="4xl">
+        <Eyebrow as="p">Contact Horizon</Eyebrow>
 
-  return (
-    <ContentContainer>
-      <Section density="comfortable">
-        <Grid columns={2} gap={8} collapseAt="lg" alignItems="start">
-          <Stack gap={6}>
-            <Eyebrow as="p">Contact Horizon</Eyebrow>
+        <Heading recipe="display" as="h1">
+          Reach out directly, with no form in the middle.
+        </Heading>
 
-            <Heading recipe="display" as="h1">
-              Reach out directly, with no form in the middle.
-            </Heading>
+        <Text recipe="prose" maxW="prose">
+          Email is the best place for thoughtful notes about writing, frontend architecture, or the
+          direction of Horizon. A little context makes the reply more useful.
+        </Text>
+      </Stack>
+    </Section>
 
-            <Text recipe="prose">
-              Email is the best place for thoughtful notes about writing, frontend architecture, or
-              the direction of Horizon. A little context makes the reply more useful.
-            </Text>
+    <Section density="compact" aria-labelledby="contact-email">
+      {/*
+        The one emphasis on the page, and it is carried by scale rather than by
+        a fill. `pageTitle` and not `display`: at 64px the address runs past the
+        measure on a laptop and breaks mid-string on a phone, which is not
+        emphasis, it is damage.
+      */}
+      <Stack gap={4}>
+        <SectionLabel id="contact-email">Write to me</SectionLabel>
+        <Divider />
+        <ActionLink
+          href={`mailto:${EMAIL}`}
+          underline="hover"
+          /*
+           * Not a scale step on a phone. At 32px this address is 24 characters
+           * against 327px of room, so `pageTitle` broke it across two lines
+           * mid-string - "canhtran210699@gm | ail.com" - which reads as damage
+           * rather than emphasis. It is emphatic here because it is the largest
+           * thing on its screen, not because it hits a particular number, so
+           * the size is allowed to follow the width it actually has.
+           */
+          fontSize={{ base: '22px', sm: '28px', md: '44px' }}
+          lineHeight={{ base: '30px', sm: '38px', md: '54px' }}
+          fontWeight="semibold"
+          color="text.primary"
+          _hover={{ color: 'action.primary' }}
+        >
+          {EMAIL}
+        </ActionLink>
+        <Text recipe="body" color="text.secondary" maxW="prose">
+          Best for blog feedback, frontend discussion, and thoughtful async context. Replies are
+          slower than a chat app and more considered than one.
+        </Text>
+      </Stack>
+    </Section>
 
-            <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
-              <ActionLink
-                href={`mailto:${EMAIL}`}
-                underline="hover"
-                iconEnd={<FiArrowRight aria-hidden="true" />}
-                color="action.primary"
-                fontWeight="semibold"
-              >
-                Email directly
-              </ActionLink>
-              <ActionLink
-                href={`tel:${PHONE.replace(/[^\d+]/g, '')}`}
-                underline="hover"
-                color="action.primary"
-                fontWeight="semibold"
-              >
-                Call instead
-              </ActionLink>
+    <Section density="compact" aria-labelledby="contact-other">
+      <Stack gap={4}>
+        <SectionLabel id="contact-other">Other ways</SectionLabel>
+        <Divider />
+
+        {/*
+          Kind, value, action - one row each. A row does not need a border to
+          be read as a row; the rule between two of them is enough, and it
+          costs one device where a card spends four.
+        */}
+        <Stagger>
+          {otherChannels.map((channel) => (
+            <Stack key={channel.kind} gap={4} paddingBlock={space[4]}>
+              <Grid columns={3} gap={6} collapseAt="sm" alignItems="baseline">
+                <Eyebrow as="p">{channel.kind}</Eyebrow>
+
+                <Stack gap={2} minW={0}>
+                  <Text recipe="body" fontWeight="semibold" color="text.primary">
+                    {channel.value}
+                  </Text>
+                  <Text recipe="body" color="text.secondary">
+                    {channel.note}
+                  </Text>
+                </Stack>
+
+                {channel.href ? (
+                  <ActionLink href={channel.href} weight="secondary">
+                    {channel.action}
+                  </ActionLink>
+                ) : (
+                  <span />
+                )}
+              </Grid>
+              <Divider />
             </Stack>
-          </Stack>
+          ))}
+        </Stagger>
+      </Stack>
+    </Section>
 
-          {/*
-            Contact was the one page in the system with no entry motion at all -
-            Home, /blog and /about all use Stagger or Reveal, and this one was
-            simply missed, so its cards were suddenly just there. The contact
-            channels are a ranked list, primary first, so they arrive in that
-            order rather than together.
-          */}
-          <Stack gap={4}>
-            {/*
-              The channels had no name of any kind, so the three cards sat as
-              h3s directly under the page's h1 - the h1 -> h3 skip measured on
-              this page. A label was missing rather than mis-marked, so this one
-              is new text rather than a promoted kicker.
-            */}
-            <SectionLabel>Ways to reach me</SectionLabel>
-
-            <Stagger>
-              {primaryContact ? (
-                <ContactCard
-                  channel={primaryContact.channel}
-                  title={primaryContact.title}
-                  value={primaryContact.content}
-                  detail={primaryContact.description}
-                  actionLabel={primaryContact.actionLabel}
-                  emphasis="primary"
-                  icon={<Icon as={primaryContact.icon} boxSize={space[6]} />}
-                />
-              ) : null}
-
-              {secondaryContacts.map((info) => (
-                <ContactCard
-                  key={info.title}
-                  channel={info.channel}
-                  title={info.title}
-                  value={info.content}
-                  detail={info.description}
-                  actionLabel={info.actionLabel}
-                  icon={<Icon as={info.icon} boxSize={space[6]} />}
-                />
-              ))}
-            </Stagger>
-          </Stack>
-        </Grid>
-      </Section>
-
-      <Section density="compact">
-        <Stack gap={6}>
-          <Stack gap={2}>
-            <Eyebrow as="p">Good conversations start with clarity</Eyebrow>
-            <Heading recipe="sectionTitle" as="h2">
-              A few helpful reasons to reach out.
-            </Heading>
-          </Stack>
-
-          <Grid columns={3} gap={6}>
-            <Stagger>
-              {prompts.map((prompt) => (
-                <ContactPrompt
-                  key={prompt.title}
-                  title={prompt.title}
-                  description={prompt.description}
-                  icon={<Icon as={prompt.icon} boxSize={space[4]} />}
-                />
-              ))}
-            </Stagger>
-          </Grid>
+    <Section density="compact" aria-labelledby="contact-reasons">
+      <Stack gap={6}>
+        <Stack gap={2}>
+          <Eyebrow as="p">Good conversations start with clarity</Eyebrow>
+          <Heading recipe="sectionTitle" as="h2" id="contact-reasons">
+            A few helpful reasons to reach out
+          </Heading>
         </Stack>
-      </Section>
-    </ContentContainer>
-  )
-}
+
+        {/*
+          Three short pieces of guidance, each under its own rule. They were
+          cards, which gave three sentences the same weight as the address the
+          page exists to hand over.
+        */}
+        <Grid columns={3} gap={8}>
+          <Stagger>
+            {prompts.map((prompt) => (
+              <Stack key={prompt.title} as="article" gap={3}>
+                <Divider />
+                <Heading recipe="cardTitle" as="h3">
+                  {prompt.title}
+                </Heading>
+                <Text recipe="body" color="text.secondary">
+                  {prompt.description}
+                </Text>
+              </Stack>
+            ))}
+          </Stagger>
+        </Grid>
+      </Stack>
+    </Section>
+  </ContentContainer>
+)
 
 export default ContactPage

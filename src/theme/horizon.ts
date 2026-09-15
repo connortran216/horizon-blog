@@ -18,6 +18,7 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
 import './fonts.css'
+import './bitter.css'
 import {
   breakpoints,
   componentTokens,
@@ -167,7 +168,17 @@ const responsive = (scale: { fontSize: readonly string[]; lineHeight: readonly s
 })
 
 const textStyles = {
-  display: { ...responsive(typeScale.display), fontWeight: typeScale.display.fontWeight },
+  /*
+   * The one recipe that carries the display face. `display` is the page title
+   * and nothing else - Home, About, Contact and the CV - so binding the family
+   * here gives those four a voice without restyling every `Heading` in the app.
+   * `sectionTitle` and below stay on the body face deliberately.
+   */
+  display: {
+    ...responsive(typeScale.display),
+    fontWeight: typeScale.display.fontWeight,
+    fontFamily: fontFamilies.display,
+  },
   pageTitle: { ...responsive(typeScale.pageTitle), fontWeight: typeScale.pageTitle.fontWeight },
   sectionTitle: {
     ...responsive(typeScale.sectionTitle),

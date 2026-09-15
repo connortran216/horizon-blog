@@ -36,7 +36,6 @@ import {
   Text,
 } from '../../../design-system'
 import AboutHero from '../components/AboutHero'
-import AboutStatCard from '../components/AboutStatCard'
 import { AboutFocusThread, AboutPrinciple, AboutStatItem } from '../about.types'
 
 const PORTRAIT_SRC =
@@ -136,10 +135,29 @@ const AboutPage = () => (
           </Text>
         </Stack>
 
+        {/*
+          A band of figures, not four cards.
+
+          Each fact was a bordered, filled, rounded, shadowed box with an icon,
+          and four of them in a row gave the page a flat grid where nothing led.
+          A 2px rule is the only ornament now: it separates one figure from the
+          next and costs none of the four devices a card spends to say the same
+          thing. The icons are gone with them - a compass beside "Working lane"
+          told a reader nothing the words did not.
+        */}
         <Grid columns={4} gap={6}>
           <Stagger>
             {stats.map((stat) => (
-              <AboutStatCard key={stat.label} {...stat} />
+              <Stack key={stat.label} as="article" gap={3}>
+                <Box height="2px" bg="action.primary" borderRadius="2px" aria-hidden="true" />
+                <Heading recipe="sectionTitle" as="h3">
+                  {stat.value}
+                </Heading>
+                <Eyebrow as="p">{stat.label}</Eyebrow>
+                <Text recipe="body" color="text.secondary">
+                  {stat.description}
+                </Text>
+              </Stack>
             ))}
           </Stagger>
         </Grid>
@@ -157,25 +175,49 @@ const AboutPage = () => (
           </Stack>
 
           {/*
-            No `alignItems="start"` here, and the card fills its track: the two
-            columns hold one card against a stack of three, so starting them
-            left the long card 560px tall beside a 762px column and 202px of
-            nothing under it. Stretching is what makes the pair read as one
-            block rather than two lists that happen to be side by side.
+            Narrative on the left at prose measure, principles hanging in the
+            margin on the right.
+
+            This was one long card beside a stack of three, which is how the
+            page ended up with two columns of equal weight that disagreed on
+            height. Nothing here is a box: the writing is writing, the three
+            principles are marginalia, and the line the page is really about is
+            a pull-quote inside the text rather than the heading of a card
+            nobody read.
           */}
           <Grid columns={2} gap={6} collapseAt="lg">
-            <Surface depth="flat" height="100%" p={{ base: space[6], sm: space[8] }}>
+            <Box maxW="prose">
               <Stack gap={6}>
-                <Heading recipe="cardTitle" as="h3">
-                  The more I learn, the more I realize how much I still do not know.
-                </Heading>
-                <Text recipe="body">
+                <Text recipe="prose">
                   Horizon is a place to stay curious, follow ideas that keep pulling at me, and
                   write down the things that have helped me a lot. Some of them come from backend
                   systems, some from writing, and some from those small moments where a confusing
                   piece of work suddenly becomes a little clearer.
                 </Text>
-                <Text recipe="body">
+
+                {/*
+                  The one accent moment on the page. `accent.lime` is the rarest
+                  role in the system, so it is spent once, here, on the sentence
+                  the whole page is built around.
+                */}
+                <Box
+                  as="blockquote"
+                  borderInlineStart="2px solid"
+                  borderColor="accent.lime"
+                  paddingInlineStart={space[6]}
+                >
+                  {/*
+                    Deliberately not a `Heading`: it is the same size as one and
+                    means the opposite - a sentence being quoted, not a section
+                    being named. A heading here would put it in the outline
+                    twice over, under a section it does not head.
+                  */}
+                  <Box as="p" textStyle="sectionTitle" fontWeight="medium" margin={0}>
+                    The more I learn, the more I realize how much I still do not know.
+                  </Box>
+                </Box>
+
+                <Text recipe="prose">
                   Knowledge feels endless. The more we learn, the more aware we become of how much
                   is still missing, and Horizon should feel open enough to keep making room for
                   that. I do not want this page to sound final. I want it to feel like an honest
@@ -188,19 +230,19 @@ const AboutPage = () => (
                   ))}
                 </Stack>
               </Stack>
-            </Surface>
+            </Box>
 
             {/*
-              The principles arrive one after another, like the signal cards
-              above them. They used to ride the section's single `Reveal`, which
-              meant one page carried two different entry granularities with
-              nothing in the content to justify the difference: some cards
-              arrived in sequence, these three arrived as one block.
+              Marginalia, not cards. Each principle keeps its icon and its
+              title on one row and its sentence beneath, but the box around it
+              is gone: three short notes beside an argument are a margin, and a
+              margin does not need a border to be read as one. They still
+              arrive one after another rather than as a block.
             */}
             <Stack gap={6}>
               <Stagger>
                 {principles.map((principle) => (
-                  <Surface key={principle.title} as="article" depth="flat">
+                  <Box key={principle.title} as="article">
                     <Stack gap={4}>
                       {/*
                         The icon belongs beside the title, not above it. Stacked,
@@ -229,7 +271,7 @@ const AboutPage = () => (
                       </Flex>
                       <Text recipe="body">{principle.description}</Text>
                     </Stack>
-                  </Surface>
+                  </Box>
                 ))}
               </Stagger>
             </Stack>
@@ -241,13 +283,6 @@ const AboutPage = () => (
     <Section density="compact" aria-labelledby="about-founder">
       <Reveal>
         <Surface as="article" depth="feature" p={{ base: space[6], sm: space[8] }}>
-          {/*
-            The text column has to stretch for its own `justifyContent="center"`
-            to have a row to centre in. Started, it sat at its natural height
-            against a taller portrait and the leftover fell entirely below it -
-            33px above the writing and 82px under it, which is the bottom-heavy
-            card. Stretched, the same slack splits evenly.
-          */}
           <Grid columns={2} gap={8} collapseAt="lg">
             {/*
              * A real media frame rather than a bare `img`: the portrait is a

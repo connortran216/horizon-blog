@@ -126,6 +126,22 @@ export const fontFamilies = {
     '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   body: '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
   mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
+  /*
+   * The display face, and only the display face.
+   *
+   * `heading` and `body` above are deliberately the same family, and that is
+   * why nothing on a page could have a voice of its own - a heading was a
+   * larger size of the body, never a different character. `display` is the
+   * second voice, spent on the few places a page needs one: the page title and
+   * the one figure or value a page exists for.
+   *
+   * It does not replace `heading`. Every existing `Heading` keeps Be Vietnam
+   * Pro until that is a decision someone makes deliberately and can see.
+   *
+   * Vietnamese coverage is the hard condition a display face has to clear here,
+   * and Bitter clears it - see `src/theme/bitter.css` for the measurement.
+   */
+  display: '"Bitter", Georgia, "Times New Roman", serif',
 } as const
 
 export const fontWeights = {
