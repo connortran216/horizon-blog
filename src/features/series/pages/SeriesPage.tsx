@@ -53,13 +53,14 @@ const SeriesPage = () => {
             <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
               <RetryAction failedAction="load this Series" onRetry={retry} />
               <ActionLink
+                standalone
                 to="/series"
                 underline="hover"
                 iconStart={<FiArrowLeft aria-hidden="true" />}
               >
                 All series
               </ActionLink>
-              <ActionLink to="/blog" underline="hover">
+              <ActionLink standalone to="/blog" underline="hover">
                 Browse blogs
               </ActionLink>
             </Stack>
@@ -80,6 +81,7 @@ const SeriesPage = () => {
         <Stack gap={12}>
           <Box>
             <ActionLink
+              standalone
               to="/series"
               underline="hover"
               iconStart={<FiArrowLeft aria-hidden="true" />}

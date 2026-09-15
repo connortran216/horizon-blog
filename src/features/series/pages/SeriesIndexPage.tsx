@@ -90,7 +90,7 @@ const SeriesIndexPage = () => {
               <ErrorState failedAction="load the Series list" detail={error} align="start">
                 <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
                   <RetryAction failedAction="load the Series list" onRetry={retry} />
-                  <ActionLink to="/blog" underline="hover">
+                  <ActionLink to="/blog" underline="hover" standalone>
                     Browse blogs
                   </ActionLink>
                 </Stack>
@@ -102,6 +102,7 @@ const SeriesIndexPage = () => {
                 align="start"
               >
                 <ActionLink
+                  standalone
                   to="/blog"
                   underline="hover"
                   color="action.primary"
