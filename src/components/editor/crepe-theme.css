@@ -718,7 +718,7 @@
 }
 
 /* =========================================
-   Fenced block type
+   Fenced block type, and its scroll affordances
    ========================================= */
 
 /*
@@ -741,6 +741,73 @@
 .crepe-editor-wrapper .milkdown-code-block .cm-content {
   font-family: var(--crepe-font-code);
   font-size: 16px;
+}
+
+/*
+ * The same visible-scroll signal `Prose` gives every bare `pre` and `table`
+ * it contains (see `scrollAffordanceStyle` in `code.logic.ts`), restated here
+ * because CodeMirror's own `.cm-scroller` - not a `pre` - is the element that
+ * actually overflows a wide fenced block, and no descendant selector reaches
+ * inside a CodeMirror instance's own DOM. `--chakra-colors-border-subtle` is
+ * the same `border.subtle` token the design system's version borrows.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller {
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--chakra-colors-border-subtle) transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::-webkit-scrollbar-thumb {
+  background: var(--chakra-colors-border-subtle);
+  border-radius: 9999px;
+}
+
+/*
+ * The matching edge fade - see `scrollFadeStyle` in `code.logic.ts` for the
+ * full mechanism: a pseudo-element pair, lit by the `data-scroll-fade`
+ * attribute (`SCROLL_FADE_ATTRIBUTE`), that hides itself once there is
+ * nothing left to scroll toward. `useCrepeCodeScrollFade`, in
+ * `crepe.presentation.ts`, is what keeps that attribute current on this
+ * exact element - this only paints what it lights. `--crepe-code-bg` is the
+ * same `bg.code` token `CodeBlock`'s own fade fades toward.
+ */
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before,
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::before {
+  left: 0;
+  background: linear-gradient(to right, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller::after {
+  right: 0;
+  background: linear-gradient(to left, var(--crepe-code-bg), transparent);
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='start']::before {
+  opacity: 1;
+}
+
+.crepe-editor-wrapper .milkdown-code-block .cm-scroller[data-scroll-fade~='end']::after {
+  opacity: 1;
 }
 
 .mermaid-zoom-modal__viewport {
