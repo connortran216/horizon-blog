@@ -43,6 +43,29 @@ export function coverSourcesFrom(
 }
 
 /**
+ * The narrowest usable variant, when one exists.
+ *
+ * `src` is what a browser without `srcset` support fetches - and what a
+ * crawler or link-preview bot fetches too, since neither reads `srcset` at
+ * all. `media.url` is the resolved record's canonical URL, which can be the
+ * original, un-resized upload: correct as one of the picture's *sources*, but
+ * the wrong choice as the one URL a `srcset`-blind fetch is guaranteed to
+ * load. A 144px row thumbnail has no business shipping a multi-megabyte
+ * original to any client that cannot pick a smaller one for itself, so the
+ * smallest already-resized variant stands in as the fallback whenever one is
+ * available.
+ */
+function narrowestVariantSrc(sources: readonly ImageSource[] | undefined): string | undefined {
+  if (!sources || sources.length === 0) {
+    return undefined
+  }
+
+  return sources.reduce((narrowest, source) =>
+    source.width < narrowest.width ? source : narrowest,
+  ).src
+}
+
+/**
  * The cover, or `null` when the post has none.
  *
  * `null` rather than an object with an empty `src`: the design system draws a
@@ -59,13 +82,14 @@ export function postCoverFrom(
   alt: string,
   sizes?: string,
 ): PostCoverImage | null {
-  const src = media?.url?.trim() ?? ''
+  const rawUrl = media?.url?.trim() ?? ''
 
-  if (src.length === 0) {
+  if (rawUrl.length === 0) {
     return null
   }
 
   const sources = coverSourcesFrom(media)
+  const src = narrowestVariantSrc(sources) ?? rawUrl
 
   return {
     src,
