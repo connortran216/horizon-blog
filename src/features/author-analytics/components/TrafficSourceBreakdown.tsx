@@ -1,58 +1,40 @@
-import { Box, HStack, Text, VStack } from '@chakra-ui/react'
+/**
+ * Where a blog's readers came from, composed from the design system's
+ * `Breakdown` pattern.
+ */
+
+import { Breakdown, type DataPanelStateInput } from '../../../design-system'
 import { AnalyticsTrafficSourceMetric } from '../author-analytics.types'
-import {
-  formatAnalyticsDuration,
-  formatAnalyticsInteger,
-  formatAnalyticsPercent,
-} from '../author-analytics.format'
+import { formatAnalyticsDuration, formatAnalyticsPercent } from '../author-analytics.format'
 
-interface TrafficSourceBreakdownProps {
+interface TrafficSourceBreakdownProps extends DataPanelStateInput {
   sources: AnalyticsTrafficSourceMetric[]
+  deniedDetail?: string
 }
 
-const TrafficSourceBreakdown = ({ sources }: TrafficSourceBreakdownProps) => {
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
-      <VStack align="stretch" spacing={4}>
-        <Box>
-          <Text fontWeight="semibold" color="text.primary">
-            Traffic sources
-          </Text>
-          <Text fontSize="sm" color="text.secondary">
-            Where readers came from and how deeply they read.
-          </Text>
-        </Box>
-
-        {sources.length === 0 ? (
-          <Text color="text.muted" fontSize="sm">
-            No source data in this range.
-          </Text>
-        ) : (
-          sources.map((source) => (
-            <Box key={`${source.category}:${source.host}`} borderRadius="xl" bg="bg.subtle" p={4}>
-              <HStack justify="space-between" align="start">
-                <Box>
-                  <Text color="text.primary" fontWeight="medium">
-                    {source.category}
-                  </Text>
-                  <Text color="text.muted" fontSize="sm">
-                    {source.host || 'Direct or unknown'}
-                  </Text>
-                </Box>
-                <Text color="text.primary" fontWeight="semibold">
-                  {formatAnalyticsInteger(source.views)}
-                </Text>
-              </HStack>
-              <Text mt={2} color="text.muted" fontSize="sm">
-                {formatAnalyticsPercent(source.completionRate)} completion ·{' '}
-                {formatAnalyticsDuration(source.avgActiveReadSeconds)} active read
-              </Text>
-            </Box>
-          ))
-        )}
-      </VStack>
-    </Box>
-  )
-}
+const TrafficSourceBreakdown = ({
+  sources,
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: TrafficSourceBreakdownProps) => (
+  <Breakdown
+    title="Traffic sources"
+    detail="Where readers came from and how deeply they read."
+    unitLabel="views"
+    items={sources.map((source) => ({
+      label: source.category,
+      value: source.views,
+      detail: `${source.host || 'Direct or unknown'} · ${formatAnalyticsPercent(
+        source.completionRate,
+      )} completion · ${formatAnalyticsDuration(source.avgActiveReadSeconds)} active read`,
+    }))}
+    isLoading={isLoading}
+    deniedAction={deniedAction}
+    deniedDetail={deniedDetail}
+    failedAction={failedAction}
+  />
+)
 
 export default TrafficSourceBreakdown

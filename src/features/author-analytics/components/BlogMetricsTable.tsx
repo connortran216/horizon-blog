@@ -1,24 +1,32 @@
-import {
-  Badge,
-  Box,
-  Button,
-  HStack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react'
+/**
+ * The blog-comparison table, composed from the design system's `DataTable`
+ * pattern.
+ *
+ * Seven columns is exactly the shape `tableAdaptation`'s docstring names as
+ * the reason the stacked mobile layout exists - a scrolling 900px table would
+ * otherwise widen the whole document on a phone. Below 800px this becomes a
+ * stack of labelled cards instead, per `horizon-blog-dsv2.6.3` acceptance 2.
+ *
+ * "Hearts received" - the range-scoped column - and "active hearts" - the
+ * always-current count folded into the title cell's detail line - are kept
+ * visually distinct so a reader does not read one number for the other.
+ */
+
+import { Box, VisuallyHidden } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 
 import {
-  formatAnalyticsDuration,
+  DataTable,
+  metricValue,
+  Text,
+  type DataPanelStateInput,
+  type DataTableColumn,
+} from '../../../design-system'
+import { componentTokens } from '../../../theme/tokens'
+import {
   formatAnalyticsInteger,
   formatAnalyticsPercent,
-  formatApproximateReaders,
+  formatAnalyticsDuration,
 } from '../author-analytics.format'
 import { serializeAnalyticsRange } from '../author-analytics.range'
 import {
@@ -29,119 +37,142 @@ import {
 } from '../author-analytics.types'
 import { sortBlogMetrics } from '../author-analytics.visualization'
 
-interface BlogMetricsTableProps {
+interface BlogMetricsTableProps extends DataPanelStateInput {
   blogs: BlogMetricRow[]
   range: AnalyticsDateRange
   sort: AnalyticsPostSort
   order: AnalyticsSortOrder
-  onSortChange: (sort: AnalyticsPostSort) => void
+  onSortChange: (sort: AnalyticsPostSort, order: AnalyticsSortOrder) => void
+  deniedDetail?: string
 }
 
-const columns: Array<{ label: string; sort: AnalyticsPostSort }> = [
-  { label: 'Views', sort: 'views' },
-  { label: 'Readers', sort: 'unique_readers' },
-  { label: 'Completion', sort: 'completion_rate' },
-  { label: 'Active read', sort: 'avg_active_read_seconds' },
-  { label: 'Hearts received', sort: 'hearts_received' },
-]
+const ApproximateReaders = ({
+  value,
+  isApproximate,
+}: {
+  value: number
+  isApproximate: boolean
+}) => {
+  const resolved = metricValue({ value, isApproximate })
 
-const BlogMetricsTable = ({ blogs, range, sort, order, onSortChange }: BlogMetricsTableProps) => {
+  return (
+    <>
+      {resolved.display}
+      {resolved.spokenSuffix === null ? null : (
+        <VisuallyHidden> {resolved.spokenSuffix}</VisuallyHidden>
+      )}
+    </>
+  )
+}
+
+const BlogMetricsTable = ({
+  blogs,
+  range,
+  sort,
+  order,
+  onSortChange,
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: BlogMetricsTableProps) => {
   const sortedBlogs = sortBlogMetrics(blogs, sort, order)
   const rangeQuery = serializeAnalyticsRange(range).toString()
 
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
-      <HStack justify="space-between" align="start" mb={4} gap={4}>
-        <Box>
-          <Text color="text.primary" fontWeight="semibold">
-            Blog comparison
+  const columns: DataTableColumn<BlogMetricRow>[] = [
+    {
+      key: 'title',
+      label: 'Blog',
+      render: (blog) => (
+        <Box minW="0">
+          <Text recipe="body" as="span" lineClamp={2} fontWeight="medium" color="text.primary">
+            {blog.title}
           </Text>
-          <Text color="text.secondary" fontSize="sm">
-            Compare blogs by reach, completion, active reading, and reactions.
+          <Text recipe="metadata" as="span" color="text.muted">
+            {formatAnalyticsInteger(blog.linkClicks)} link clicks &middot;{' '}
+            {formatAnalyticsInteger(blog.shares)} shares &middot;{' '}
+            {formatAnalyticsInteger(blog.activeHeartCount)} active hearts
           </Text>
         </Box>
-        <Badge bg="bg.subtle" color="text.secondary" borderRadius="full">
-          {order === 'asc' ? 'Ascending' : 'Descending'}
-        </Badge>
-      </HStack>
+      ),
+    },
+    {
+      key: 'views',
+      label: 'Views',
+      isNumeric: true,
+      isSortable: true,
+      render: (blog) => formatAnalyticsInteger(blog.views),
+    },
+    {
+      key: 'unique_readers',
+      label: 'Readers',
+      isNumeric: true,
+      isSortable: true,
+      render: (blog) => (
+        <ApproximateReaders
+          value={blog.estimatedUniqueReaders}
+          isApproximate={blog.uniqueReadersApproximate}
+        />
+      ),
+    },
+    {
+      key: 'completion_rate',
+      label: 'Completion',
+      isNumeric: true,
+      isSortable: true,
+      render: (blog) => formatAnalyticsPercent(blog.completionRate),
+    },
+    {
+      key: 'avg_active_read_seconds',
+      label: 'Active read',
+      isNumeric: true,
+      isSortable: true,
+      render: (blog) => formatAnalyticsDuration(blog.avgActiveReadSeconds),
+    },
+    {
+      key: 'hearts_received',
+      label: 'Hearts received',
+      isNumeric: true,
+      isSortable: true,
+      render: (blog) => formatAnalyticsInteger(blog.heartsReceived),
+    },
+    {
+      key: 'details',
+      label: 'Details',
+      render: (blog) => (
+        <Box
+          as={RouterLink}
+          to={`/analytics/blog/${blog.postId}?${rangeQuery}`}
+          display="inline-flex"
+          alignItems="center"
+          minH={componentTokens.control.minTouchTarget}
+          color="action.primary"
+          fontWeight="semibold"
+        >
+          Open
+        </Box>
+      ),
+    },
+  ]
 
-      <TableContainer>
-        <Table size="sm">
-          <Thead>
-            <Tr>
-              <Th>Blog</Th>
-              {columns.map((column) => (
-                <Th key={column.sort} isNumeric>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    color={sort === column.sort ? 'action.primary' : 'text.secondary'}
-                    aria-label={
-                      sort === column.sort
-                        ? order === 'asc'
-                          ? `Sort by ${column.label}, currently ascending`
-                          : `Sort by ${column.label}, currently descending`
-                        : `Sort by ${column.label}`
-                    }
-                    onClick={() => onSortChange(column.sort)}
-                  >
-                    {column.label}
-                  </Button>
-                </Th>
-              ))}
-              <Th />
-            </Tr>
-          </Thead>
-          <Tbody>
-            {sortedBlogs.map((blog) => {
-              const readers = formatApproximateReaders(
-                blog.estimatedUniqueReaders,
-                blog.uniqueReadersApproximate,
-              )
-
-              return (
-                <Tr key={blog.postId}>
-                  <Td>
-                    <Text color="text.primary" fontWeight="medium" noOfLines={2}>
-                      {blog.title}
-                    </Text>
-                    <Text color="text.muted" fontSize="xs">
-                      {formatAnalyticsInteger(blog.linkClicks)} link clicks ·{' '}
-                      {formatAnalyticsInteger(blog.shares)} shares ·{' '}
-                      {formatAnalyticsInteger(blog.activeHeartCount)} active hearts
-                    </Text>
-                  </Td>
-                  <Td isNumeric>{formatAnalyticsInteger(blog.views)}</Td>
-                  <Td isNumeric>
-                    {readers.value}
-                    {readers.isApproximate ? (
-                      <Text as="span" srOnly>
-                        {' '}
-                        approximate
-                      </Text>
-                    ) : null}
-                  </Td>
-                  <Td isNumeric>{formatAnalyticsPercent(blog.completionRate)}</Td>
-                  <Td isNumeric>{formatAnalyticsDuration(blog.avgActiveReadSeconds)}</Td>
-                  <Td isNumeric>{formatAnalyticsInteger(blog.heartsReceived)}</Td>
-                  <Td isNumeric>
-                    <Button
-                      as={RouterLink}
-                      to={`/analytics/blog/${blog.postId}?${rangeQuery}`}
-                      size="xs"
-                      variant="ghost"
-                      color="action.primary"
-                    >
-                      Open
-                    </Button>
-                  </Td>
-                </Tr>
-              )
-            })}
-          </Tbody>
-        </Table>
-      </TableContainer>
-    </Box>
+  return (
+    <DataTable<BlogMetricRow>
+      caption="Blog comparison"
+      title="Blog comparison"
+      detail="Compare blogs by reach, completion, active reading, and reactions."
+      rows={sortedBlogs}
+      rowKey={(blog) => String(blog.postId)}
+      sortKey={sort}
+      sortOrder={order}
+      onSortChange={(key, nextOrder) => onSortChange(key as AnalyticsPostSort, nextOrder)}
+      isLoading={isLoading}
+      deniedAction={deniedAction}
+      deniedDetail={deniedDetail}
+      failedAction={failedAction}
+      emptySubject="posts with analytics"
+      emptyNextAction="Publish a blog, or widen the date range."
+      columns={columns}
+    />
   )
 }
 

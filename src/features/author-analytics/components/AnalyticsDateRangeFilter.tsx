@@ -1,79 +1,78 @@
-import { Button, ButtonGroup, HStack, Input, Stack, Text } from '@chakra-ui/react'
+/**
+ * The analytics date-range control - three presets plus a custom pair, composed
+ * from the design system's `DateRange` pattern.
+ *
+ * The preset a caller is on is derived from the range itself wherever possible,
+ * so a range restored from the URL on first load still highlights the right
+ * radio. `custom` is the one preset that cannot be derived - two different
+ * custom spans exist for every derivable preset - so it is remembered locally
+ * once a reader has explicitly chosen it or edited a date field by hand.
+ */
+
+import { useState } from 'react'
+
+import { DateRange, type DateRangeValue } from '../../../design-system'
 import { AnalyticsDateRange } from '../author-analytics.types'
 import { AnalyticsRangePreset, createAnalyticsRangePreset } from '../author-analytics.visualization'
 
 interface AnalyticsDateRangeFilterProps {
   range: AnalyticsDateRange
   onRangeChange: (range: AnalyticsDateRange) => void
+  isDisabled?: boolean
 }
 
-const presets: Array<{ label: string; value: AnalyticsRangePreset }> = [
-  { label: '7 days', value: '7d' },
-  { label: '30 days', value: '30d' },
-  { label: '90 days', value: '90d' },
+const presets: Array<{ key: AnalyticsRangePreset | 'custom'; label: string }> = [
+  { key: '7d', label: '7 days' },
+  { key: '30d', label: '30 days' },
+  { key: '90d', label: '90 days' },
+  { key: 'custom', label: 'Custom' },
 ]
 
-const AnalyticsDateRangeFilter = ({ range, onRangeChange }: AnalyticsDateRangeFilterProps) => {
-  return (
-    <Stack
-      direction={{ base: 'column', lg: 'row' }}
-      spacing={4}
-      align={{ base: 'stretch', lg: 'center' }}
-      justify="space-between"
-      border="1px solid"
-      borderColor="border.subtle"
-      bg="bg.surface"
-      borderRadius="2xl"
-      p={4}
-    >
-      <ButtonGroup size="sm" variant="ghost" isAttached={false} flexWrap="wrap" gap={2}>
-        {presets.map((preset) => (
-          <Button
-            key={preset.value}
-            color="text.secondary"
-            bg="bg.subtle"
-            _hover={{ bg: 'action.subtle', color: 'text.primary' }}
-            onClick={() => onRangeChange(createAnalyticsRangePreset(preset.value))}
-          >
-            {preset.label}
-          </Button>
-        ))}
-      </ButtonGroup>
+const derivePreset = (range: AnalyticsDateRange): AnalyticsRangePreset | 'custom' => {
+  const matches = (preset: AnalyticsRangePreset) => {
+    const candidate = createAnalyticsRangePreset(preset)
+    return candidate.from === range.from && candidate.to === range.to
+  }
 
-      <HStack spacing={3} align="center">
-        <Text fontSize="sm" color="text.muted">
-          UTC
-        </Text>
-        <Input
-          type="date"
-          value={range.from}
-          max={range.to}
-          size="sm"
-          borderRadius="lg"
-          aria-label="Analytics start date"
-          onChange={(event) =>
-            onRangeChange({
-              ...range,
-              from: event.target.value,
-            })
-          }
-        />
-        <Input
-          type="date"
-          value={range.to}
-          min={range.from}
-          size="sm"
-          borderRadius="lg"
-          aria-label="Analytics end date"
-          onChange={(event) =>
-            onRangeChange({
-              ...range,
-              to: event.target.value,
-            })
-          }
-        />
-      </HStack>
-    </Stack>
+  if (matches('7d')) return '7d'
+  if (matches('30d')) return '30d'
+  if (matches('90d')) return '90d'
+  return 'custom'
+}
+
+const AnalyticsDateRangeFilter = ({
+  range,
+  onRangeChange,
+  isDisabled = false,
+}: AnalyticsDateRangeFilterProps) => {
+  const [customChosen, setCustomChosen] = useState(false)
+  const activePreset = customChosen ? 'custom' : derivePreset(range)
+
+  const handlePresetChange = (key: string) => {
+    if (key === 'custom') {
+      setCustomChosen(true)
+      return
+    }
+
+    setCustomChosen(false)
+    onRangeChange(createAnalyticsRangePreset(key as AnalyticsRangePreset))
+  }
+
+  const handleValueChange = (value: DateRangeValue) => {
+    setCustomChosen(true)
+    onRangeChange({ from: value.from, to: value.to, timezone: 'UTC' })
+  }
+
+  return (
+    <DateRange
+      presets={presets}
+      activePreset={activePreset}
+      onPresetChange={handlePresetChange}
+      value={{ from: range.from, to: range.to }}
+      onValueChange={handleValueChange}
+      timeZoneLabel="UTC"
+      isDisabled={isDisabled}
+    />
   )
 }
 

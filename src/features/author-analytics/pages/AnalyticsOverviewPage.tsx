@@ -1,36 +1,33 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Heading,
-  SimpleGrid,
-  Stack,
-  Text,
-  VStack,
-} from '@chakra-ui/react'
+/**
+ * Author analytics overview - migrated onto Horizon Design System v2.
+ *
+ * The summary row, the trend, the insights and the blog table each carry
+ * their own loading, denied, error and empty state rather than one gate for
+ * the whole page: the trend can be ready while the paginated table below it
+ * is still loading its own page, and both remain independently true when one
+ * of the two requests is denied and the other is not.
+ */
+
 import { useSearchParams } from 'react-router-dom'
 
+import { ContentContainer, Eyebrow, Heading, Section, Stack, Text } from '../../../design-system'
 import PaginationControls from '../../../components/PaginationControls'
-import { LoadingPanel } from '../../../core'
-import {
-  formatAnalyticsDuration,
-  formatAnalyticsInteger,
-  formatAnalyticsPercent,
-  formatApproximateReaders,
-} from '../author-analytics.format'
+import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
-import { AnalyticsPostSort, AnalyticsSortOrder } from '../author-analytics.types'
-import { getAnalyticsErrorCopy } from '../author-analytics.visualization'
+import {
+  AnalyticsDateRange,
+  AnalyticsPostSort,
+  AnalyticsSortOrder,
+} from '../author-analytics.types'
 import { useAnalyticsOverview } from '../useAnalyticsOverview'
 import { useBlogMetrics } from '../useBlogMetrics'
 import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
 import AnalyticsInsightList from '../components/AnalyticsInsightList'
-import AnalyticsMetricCard from '../components/AnalyticsMetricCard'
 import AnalyticsTrendChart from '../components/AnalyticsTrendChart'
+import { AnalyticsSummaryMetrics } from '../components/AnalyticsSummaryMetrics'
 import BlogMetricsTable from '../components/BlogMetricsTable'
 
-const pageSize = 10
+const PAGE_SIZE = 10
 
 const AnalyticsOverviewPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -39,9 +36,9 @@ const AnalyticsOverviewPage = () => {
   const sort = parseSort(searchParams.get('sort'))
   const order = parseOrder(searchParams.get('order'))
   const overview = useAnalyticsOverview({ range })
-  const metrics = useBlogMetrics({ range, sort, order, page, limit: pageSize })
+  const metrics = useBlogMetrics({ range, sort, order, page, limit: PAGE_SIZE })
 
-  const updateRange = (nextRange: typeof range) => {
+  const updateRange = (nextRange: AnalyticsDateRange) => {
     const next = serializeAnalyticsRange(nextRange)
     next.set('sort', sort)
     next.set('order', order)
@@ -49,10 +46,10 @@ const AnalyticsOverviewPage = () => {
     setSearchParams(next)
   }
 
-  const updateSort = (nextSort: AnalyticsPostSort) => {
+  const updateSort = (nextSort: AnalyticsPostSort, nextOrder: AnalyticsSortOrder) => {
     const next = serializeAnalyticsRange(range)
     next.set('sort', nextSort)
-    next.set('order', nextSort === sort && order === 'desc' ? 'asc' : 'desc')
+    next.set('order', nextOrder)
     next.set('page', '1')
     setSearchParams(next)
   }
@@ -65,156 +62,88 @@ const AnalyticsOverviewPage = () => {
     setSearchParams(next)
   }
 
-  const readers = overview.data
-    ? formatApproximateReaders(
-        overview.data.summary.estimatedUniqueReaders,
-        overview.data.summary.uniqueReadersApproximate,
-      )
-    : null
+  const overviewAccess = analyticsPanelAccess(overview.error, 'view your analytics')
+  const metricsAccess = analyticsPanelAccess(metrics.error, 'view your blog comparison')
   const totalPages = metrics.data ? Math.ceil(metrics.data.total / metrics.data.limit) : 1
+  const freshThrough = overview.dataFreshThrough ?? metrics.dataFreshThrough
 
   return (
-    <Box position="relative" pb={12} overflowX="hidden">
-      <Box
-        position="absolute"
-        top={0}
-        left="50%"
-        transform="translateX(-50%)"
-        w={{ base: '92%', md: '76%' }}
-        h="280px"
-        bg="action.subtle"
-        filter="blur(130px)"
-        opacity={0.6}
-        pointerEvents="none"
-      />
-
-      <Container maxW="container.xl" py={{ base: 8, md: 12 }} position="relative">
-        <VStack align="stretch" spacing={{ base: 7, md: 9 }}>
-          <Stack direction={{ base: 'column', md: 'row' }} justify="space-between" spacing={5}>
-            <Box>
-              <Badge bg="bg.subtle" color="text.secondary" borderRadius="full" mb={3}>
-                Owner analytics
-              </Badge>
-              <Heading color="text.primary" letterSpacing="-0.04em">
-                Understand how your writing is read.
-              </Heading>
-              <Text color="text.secondary" mt={3} maxW="3xl" lineHeight="tall">
-                Track reach, engagement, completion, and freshness without turning your writing
-                workspace into a heavy dashboard.
-              </Text>
-            </Box>
-            <Text color="text.muted" fontSize="sm">
-              Fresh through {overview.dataFreshThrough || metrics.dataFreshThrough || 'loading'}
+    <ContentContainer>
+      <Section as="header">
+        <Stack direction="row" gap={6} collapseAt="md" justifyContent="space-between">
+          <Stack gap={4} maxW="3xl">
+            <Eyebrow as="p">Owner analytics</Eyebrow>
+            <Heading as="h1" recipe="pageTitle">
+              Understand how your writing is read.
+            </Heading>
+            <Text recipe="body" color="text.secondary">
+              Track reach, engagement, completion, and freshness without turning your writing
+              workspace into a heavy dashboard.
             </Text>
           </Stack>
+          <Text recipe="metadata" color="text.muted">
+            {freshThrough ? `Fresh through ${freshThrough}` : 'Freshness loading'}
+          </Text>
+        </Stack>
+      </Section>
 
+      <Section density="compact">
+        <Stack gap={8}>
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
-          {overview.isLoading ? (
-            <LoadingPanel label="Loading analytics" description="Preparing your overview." />
-          ) : overview.error ? (
-            <AnalyticsErrorPanel error={overview.error} onRetry={overview.refresh} />
-          ) : overview.data && readers ? (
-            <>
-              <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4}>
-                <AnalyticsMetricCard
-                  label="Views"
-                  value={formatAnalyticsInteger(overview.data.summary.views)}
-                  helper="Total blog opens"
-                />
-                <AnalyticsMetricCard
-                  label={readers.label}
-                  value={readers.value}
-                  helper="Backend HyperLogLog estimate"
-                  approximate={readers.isApproximate}
-                />
-                <AnalyticsMetricCard
-                  label="Completion"
-                  value={formatAnalyticsPercent(overview.data.summary.completionRate)}
-                  helper="Readers reaching the end"
-                />
-                <AnalyticsMetricCard
-                  label="Active read"
-                  value={formatAnalyticsDuration(overview.data.summary.avgActiveReadSeconds)}
-                  helper="Average active reading time"
-                />
-                <AnalyticsMetricCard
-                  label="Hearts received"
-                  value={formatAnalyticsInteger(overview.data.summary.heartsReceived)}
-                  helper="Added during the selected range"
-                />
-                <AnalyticsMetricCard
-                  label="Active hearts"
-                  value={formatAnalyticsInteger(overview.data.summary.activeHeartCount ?? 0)}
-                  helper="Current hearts across published blogs"
-                />
-              </SimpleGrid>
+          <AnalyticsSummaryMetrics
+            summary={overview.data?.summary ?? null}
+            isLoading={overview.isLoading}
+            deniedAction={overviewAccess.deniedAction}
+            failedAction={overviewAccess.failedAction}
+            onRetry={overview.refresh}
+          />
 
-              <AnalyticsTrendChart title="Views trend" points={overview.data.trend} />
-              <AnalyticsInsightList insights={overview.data.insights} title="Overview insights" />
-            </>
+          <AnalyticsTrendChart
+            title="Views trend"
+            points={overview.data?.trend ?? []}
+            dataFreshThrough={overview.data?.dataFreshThrough}
+            rangeEnd={range.to}
+            isLoading={overview.isLoading}
+            deniedAction={overviewAccess.deniedAction}
+            failedAction={overviewAccess.failedAction}
+          />
+
+          <AnalyticsInsightList
+            title="Overview insights"
+            insights={overview.data?.insights ?? []}
+            isLoading={overview.isLoading}
+            deniedAction={overviewAccess.deniedAction}
+            failedAction={overviewAccess.failedAction}
+          />
+        </Stack>
+      </Section>
+
+      <Section density="compact">
+        <Stack gap={4}>
+          <BlogMetricsTable
+            blogs={metrics.data?.posts ?? []}
+            range={range}
+            sort={sort}
+            order={order}
+            onSortChange={updateSort}
+            isLoading={metrics.isLoading}
+            deniedAction={metricsAccess.deniedAction}
+            failedAction={metricsAccess.failedAction}
+          />
+          {metrics.data && metrics.data.posts.length > 0 ? (
+            <PaginationControls
+              currentPage={page}
+              totalPages={Math.max(1, totalPages)}
+              totalCount={metrics.data.total}
+              pageSize={metrics.data.limit}
+              onPageChange={updatePage}
+              showOnlyWhenMultiple
+            />
           ) : null}
-
-          {metrics.isLoading ? (
-            <LoadingPanel label="Loading blog metrics" size="sm" minH="220px" />
-          ) : metrics.error ? (
-            <AnalyticsErrorPanel error={metrics.error} onRetry={metrics.refresh} />
-          ) : metrics.data && metrics.data.posts.length > 0 ? (
-            <VStack align="stretch" spacing={3}>
-              <BlogMetricsTable
-                blogs={metrics.data.posts}
-                range={range}
-                sort={sort}
-                order={order}
-                onSortChange={updateSort}
-              />
-              <PaginationControls
-                currentPage={page}
-                totalPages={Math.max(1, totalPages)}
-                totalCount={metrics.data.total}
-                pageSize={metrics.data.limit}
-                onPageChange={updatePage}
-                showOnlyWhenMultiple
-              />
-            </VStack>
-          ) : (
-            <Box
-              border="1px solid"
-              borderColor="border.subtle"
-              bg="bg.surface"
-              borderRadius="2xl"
-              p={5}
-            >
-              <Text color="text.muted">No analytics data for this range yet.</Text>
-            </Box>
-          )}
-        </VStack>
-      </Container>
-    </Box>
-  )
-}
-
-const AnalyticsErrorPanel = ({
-  error,
-  onRetry,
-}: {
-  error: NonNullable<ReturnType<typeof useAnalyticsOverview>['error']>
-  onRetry: () => void
-}) => {
-  const copy = getAnalyticsErrorCopy(error)
-
-  return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={6}>
-      <Heading size="sm" color="text.primary">
-        {copy.title}
-      </Heading>
-      <Text color="text.secondary" mt={2}>
-        {copy.description}
-      </Text>
-      <Button mt={4} size="sm" variant="ghost" color="action.primary" onClick={onRetry}>
-        Retry
-      </Button>
-    </Box>
+        </Stack>
+      </Section>
+    </ContentContainer>
   )
 }
 

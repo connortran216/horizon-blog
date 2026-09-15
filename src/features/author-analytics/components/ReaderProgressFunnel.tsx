@@ -1,53 +1,44 @@
-import { Box, HStack, Text, VStack } from '@chakra-ui/react'
-import { AnalyticsFunnelStage } from '../author-analytics.types'
-import { formatAnalyticsInteger, formatAnalyticsPercent } from '../author-analytics.format'
-import { normalizeFunnelStages } from '../author-analytics.visualization'
+/**
+ * The reading-progress funnel for a single blog, composed from the design
+ * system's `Funnel` pattern.
+ *
+ * `assessSample` covers `horizon-blog-dsv2.6.3` acceptance 4's zero-sample case
+ * here: with nobody reading in the range, `Funnel` renders its own empty state
+ * rather than five zero-width bars that would read as "everyone dropped off"
+ * instead of "nothing has been measured yet".
+ */
 
-interface ReaderProgressFunnelProps {
+import { assessSample, Funnel, type DataPanelStateInput } from '../../../design-system'
+import { AnalyticsFunnelStage } from '../author-analytics.types'
+import { formatStageLabel } from '../author-analytics.visualization'
+
+interface ReaderProgressFunnelProps extends DataPanelStateInput {
   stages: AnalyticsFunnelStage[]
+  deniedDetail?: string
 }
 
-const ReaderProgressFunnel = ({ stages }: ReaderProgressFunnelProps) => {
-  const normalizedStages = normalizeFunnelStages(stages)
+const ReaderProgressFunnel = ({
+  stages,
+  deniedDetail,
+  isLoading,
+  deniedAction,
+  failedAction,
+}: ReaderProgressFunnelProps) => {
+  const sample = assessSample({ sampleSize: stages[0]?.sessions ?? 0 })
 
   return (
-    <Box border="1px solid" borderColor="border.subtle" bg="bg.surface" borderRadius="2xl" p={5}>
-      <VStack align="stretch" spacing={4}>
-        <Box>
-          <Text fontWeight="semibold" color="text.primary">
-            Reading progress
-          </Text>
-          <Text fontSize="sm" color="text.secondary">
-            Where readers tend to continue or drop off.
-          </Text>
-        </Box>
-
-        <VStack align="stretch" spacing={3}>
-          {normalizedStages.map((stage) => (
-            <Box key={stage.label}>
-              <HStack justify="space-between" mb={2}>
-                <Text fontSize="sm" color="text.secondary">
-                  {stage.label}
-                </Text>
-                <Text fontSize="sm" color="text.muted">
-                  {formatAnalyticsInteger(stage.sessions)} sessions ·{' '}
-                  {formatAnalyticsPercent(stage.rate)}
-                </Text>
-              </HStack>
-              <Box h="10px" borderRadius="full" bg="bg.subtle" overflow="hidden">
-                <Box
-                  h="100%"
-                  w={`${stage.widthPercent}%`}
-                  minW={stage.sessions > 0 ? '8px' : 0}
-                  bg="action.primary"
-                  borderRadius="full"
-                />
-              </Box>
-            </Box>
-          ))}
-        </VStack>
-      </VStack>
-    </Box>
+    <Funnel
+      stages={stages.map((stage) => ({
+        label: formatStageLabel(stage.stage),
+        sessions: stage.sessions,
+        rate: stage.rate,
+      }))}
+      caveat={sample.quality === 'thin' ? (sample.caveat ?? undefined) : undefined}
+      isLoading={isLoading}
+      deniedAction={deniedAction}
+      deniedDetail={deniedDetail}
+      failedAction={failedAction}
+    />
   )
 }
 
