@@ -55,4 +55,37 @@ describe('SeriesPartList', () => {
     expect(markup).not.toContain('Opened')
     expect(markup).not.toContain('Progress')
   })
+
+  /*
+   * A part's title sits beside its ordinal marker in a CSS grid column that
+   * the marker's fixed width and the arrow icon's column both eat into. A
+   * long Vietnamese title - real content on this blog, not a placeholder -
+   * is the case that column actually has to hold.
+   */
+  it('renders a long Vietnamese part title in full', () => {
+    const longTitle =
+      'Thiết kế chỉ mục cho hệ cơ sở dữ liệu quan hệ ở quy mô hàng trăm triệu bản ghi'
+
+    const markup = renderToStaticMarkup(
+      <ChakraProvider theme={theme}>
+        <MemoryRouter>
+          <SeriesPartList
+            parts={[
+              {
+                postId: 42,
+                title: longTitle,
+                excerpt: 'Start with the read path.',
+                readingTime: 6,
+                tags: ['database'],
+                position: 1,
+                publishedAt: null,
+              },
+            ]}
+          />
+        </MemoryRouter>
+      </ChakraProvider>,
+    )
+
+    expect(markup).toContain(longTitle)
+  })
 })

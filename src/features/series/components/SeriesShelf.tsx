@@ -78,7 +78,13 @@ const SeriesShelf = ({ compact = false }: SeriesShelfProps) => {
               {heading}
             </Heading>
           </Stack>
-          <ActionLink to="/series" underline="hover" color="action.primary" fontWeight="semibold">
+          <ActionLink
+            standalone
+            to="/series"
+            underline="hover"
+            color="action.primary"
+            fontWeight="semibold"
+          >
             View all series
           </ActionLink>
         </Box>
