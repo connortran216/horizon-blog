@@ -5,6 +5,7 @@ import {
   RegisterData,
   ResetPasswordData,
 } from '../types/auth.types'
+import { createRequestDeadline, isDeadlineTimeout } from './request-deadline'
 
 export interface MessageResponse {
   message: string
@@ -75,13 +76,30 @@ export class AuthTransport {
   }
 
   private async request<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await this.fetcher.call(globalThis, `${this.baseUrl}${endpoint}`, {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: data === undefined ? undefined : JSON.stringify(data),
-    })
+    const deadline = createRequestDeadline()
+    let response: Response
+
+    try {
+      response = await this.fetcher.call(globalThis, `${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: data === undefined ? undefined : JSON.stringify(data),
+        signal: deadline.signal,
+      })
+    } catch (error) {
+      if (isDeadlineTimeout(error)) {
+        throw new AuthTransportError(
+          `Request timed out after ${deadline.timeoutMs}ms`,
+          0,
+          'TIMEOUT',
+        )
+      }
+      throw error
+    } finally {
+      deadline.release()
+    }
 
     if (!response.ok) {
       throw await this.toError(response)

@@ -2,6 +2,7 @@ import { getRuntimeConfig } from '../../config/runtime'
 import { ApiRequestOptions, RequestAuthMode } from '../types/auth.types'
 import { authInterceptor, AuthInterceptor } from './auth.interceptor'
 import { authSessionService } from './auth-session.service'
+import { createRequestDeadline, isDeadlineTimeout } from './request-deadline'
 
 export class ApiError extends Error {
   constructor(
@@ -10,6 +11,22 @@ export class ApiError extends Error {
   ) {
     super(message)
     this.name = 'ApiError'
+  }
+}
+
+/**
+ * Raised when a request never received a response within its deadline (see
+ * `request-deadline.ts`) - e.g. a backend that drops packets instead of
+ * refusing the connection. Extends `ApiError` (status `0`, meaning "no HTTP
+ * response was ever received") so existing `error instanceof ApiError`
+ * handling - error states, retry affordances - keeps working unchanged; a
+ * caller can additionally check `instanceof ApiTimeoutError` if it wants to
+ * say something more specific than a generic failure.
+ */
+export class ApiTimeoutError extends ApiError {
+  constructor(public readonly timeoutMs: number) {
+    super(`Request timed out after ${timeoutMs}ms`, 0)
+    this.name = 'ApiTimeoutError'
   }
 }
 
@@ -86,19 +103,34 @@ export class ApiService {
     }
   }
 
-  private send(
+  private async send(
     request: InternalRequest,
     authMode: RequestAuthMode,
     accessToken: string | null,
   ): Promise<Response> {
     const isFormData = request.data instanceof FormData
-    return this.fetcher.call(globalThis, this.buildUrl(request.endpoint, request.params), {
-      method: request.method,
-      credentials: 'include',
-      headers: this.interceptor.getHeaders(isFormData, authMode, accessToken),
-      body: this.buildBody(request.data),
-      keepalive: request.options?.keepalive,
+    const deadline = createRequestDeadline({
+      timeoutMs: request.options?.timeoutMs,
+      signal: request.options?.signal,
     })
+
+    try {
+      return await this.fetcher.call(globalThis, this.buildUrl(request.endpoint, request.params), {
+        method: request.method,
+        credentials: 'include',
+        headers: this.interceptor.getHeaders(isFormData, authMode, accessToken),
+        body: this.buildBody(request.data),
+        keepalive: request.options?.keepalive,
+        signal: deadline.signal,
+      })
+    } catch (error) {
+      if (isDeadlineTimeout(error)) {
+        throw new ApiTimeoutError(deadline.timeoutMs)
+      }
+      throw error
+    } finally {
+      deadline.release()
+    }
   }
 
   private buildUrl(endpoint: string, params?: Record<string, unknown>): string {

@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AuthTransport } from './auth.transport'
+import { AuthTransport, AuthTransportError } from './auth.transport'
+import { DEFAULT_REQUEST_TIMEOUT_MS } from './request-deadline'
 
 const accessResponse = {
   access_token: 'access-token',
@@ -161,5 +162,33 @@ describe('AuthTransport', () => {
     const transport = new AuthTransport('https://api.example.com', fetcher)
 
     await expect(transport.logout()).resolves.toBeUndefined()
+  })
+
+  describe('request deadline', () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it('rejects /auth/refresh once a host that drops packets never answers within the budget', async () => {
+      // This is one of the three requests the reported bug left pending
+      // forever (GET /series, GET /posts/summaries, POST /auth/refresh):
+      // AuthTransport has its own fetch call, separate from ApiService, so
+      // it needs the same deadline rather than relying on the other client.
+      const fetcher = vi.fn<typeof fetch>(
+        (_input, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+          }),
+      )
+      const transport = new AuthTransport('https://api.example.com', fetcher)
+
+      const pending = transport.refresh()
+      const assertion = expect(pending).rejects.toBeInstanceOf(AuthTransportError)
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS)
+      await assertion
+      await pending.catch((error: unknown) => {
+        expect(error).toMatchObject({ status: 0, code: 'TIMEOUT' })
+      })
+    })
   })
 })
