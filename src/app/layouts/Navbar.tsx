@@ -203,11 +203,27 @@ const Navbar = () => {
                 aria-label="Horizon home"
                 display="inline-flex"
                 alignItems="center"
+                justifyContent="center"
                 lineHeight="0"
                 flexShrink={0}
                 // The wordmark is 38px tall on its own; the link around it is a
                 // target like any other and takes the system's 44px floor.
                 minH={componentTokens.control.minTouchTarget}
+                /*
+                 * B-2 (specs/021-contact-editorial-letter): below `sm` the icon
+                 * variant is a 32px square (`BrandLogo`'s own `icon` dimensions),
+                 * short of the 44px width the control contract asks for (RR-006;
+                 * measured 32x44 before this fix). `minW` gives the link a real
+                 * 44px hit area; the matching `-6px` margin (half of the 12px
+                 * gap between 32 and 44) keeps that hit area from also widening
+                 * the header's flex layout, so it does not eat into the room B-1
+                 * needs for "Sign in" - the icon renders at the same visual spot,
+                 * just with its click target bleeding into the surrounding gaps.
+                 * `sm` and up show the full wordmark, already well past 44px, so
+                 * neither override applies there.
+                 */
+                minW={{ base: componentTokens.control.minTouchTarget, sm: 'auto' }}
+                mx={{ base: '-6px', sm: 0 }}
               >
                 <BrandLogo variant="icon" display={{ base: 'block', sm: 'none' }} />
                 <BrandLogo variant="full" display={{ base: 'none', sm: 'block' }} />
