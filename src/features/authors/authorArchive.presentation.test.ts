@@ -31,6 +31,19 @@ describe('authorPostExcerpt', () => {
     expect(authorPostExcerpt({ content_markdown: '' })).toBeNull()
     expect(authorPostExcerpt({ content_markdown: '   ' })).toBeNull()
   })
+
+  it('clamps a long Vietnamese body without mangling diacritics', () => {
+    const vietnameseParagraph =
+      'Việc tối ưu hóa cơ sở dữ liệu quan hệ đòi hỏi người kỹ sư phải hiểu rõ cách chỉ mục ' +
+      'hoạt động, cách trình lập kế hoạch truy vấn lựa chọn đường dẫn đọc, và cách từng ràng ' +
+      'buộc khóa ngoại ảnh hưởng đến hiệu năng ghi trong một hệ thống sản xuất có lưu lượng lớn.'
+    const excerpt = authorPostExcerpt({ content_markdown: vietnameseParagraph })
+
+    expect(excerpt).not.toBeNull()
+    expect(excerpt).toMatch(/^Việc tối ưu hóa/)
+    expect(excerpt).not.toContain('�')
+    expect(excerpt?.length).toBeLessThanOrEqual(184)
+  })
 })
 
 describe('toAuthorPostSummary', () => {
@@ -53,6 +66,15 @@ describe('toAuthorPostSummary', () => {
 
     expect(summary.metadata.publishedAt).toBeNull()
     expect(summary.metadata.updatedAt).toBe('2026-06-02T00:00:00Z')
+  })
+
+  it('carries a long Vietnamese title through untruncated', () => {
+    const longTitle =
+      'Kiến trúc microservices và những cạm bẫy thường gặp khi mở rộng hệ thống xử lý ' +
+      'hàng triệu bưu kiện mỗi ngày trong môi trường logistics đa quốc gia'
+    const summary = toAuthorPostSummary({ ...post, title: longTitle })
+
+    expect(summary.title).toBe(longTitle)
   })
 })
 
