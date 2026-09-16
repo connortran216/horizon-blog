@@ -242,6 +242,56 @@ describe('BlogReaderFrame', () => {
     expect(markup).not.toContain('role="progressbar"')
   })
 
+  /**
+   * `w11.3`. Promoting the cover out of the article body used to leave its
+   * caption behind as the article's own opening paragraph, rendered a whole
+   * identity-and-metadata block away from the picture it described. The
+   * caption now renders as a `figcaption` grouped with the image itself, in
+   * the same `cover` slot, before the prose starts.
+   */
+  it('groups the cover caption with the cover image, ahead of the prose', () => {
+    const markup = render(
+      <BlogReaderFrame
+        post={post}
+        loading={false}
+        resolvedContent="Body content"
+        onBack={() => undefined}
+        backLabel="View archive"
+        coverImage={{ src: 'https://example.com/cover.jpg', alt: 'Cover' }}
+        coverCaption="Photo credit: someone"
+      />,
+    )
+
+    const figureOpen = markup.indexOf('<figure')
+    const figureClose = markup.indexOf('</figure>')
+    const captionPosition = markup.indexOf('Photo credit: someone')
+    // The cover image's own loading placeholder reads "Loading the article
+    // cover" - a superstring of the prose's Suspense fallback, "Loading the
+    // article" - so the closing tag is what tells the two apart.
+    const contentPosition = markup.indexOf('Loading the article<')
+
+    expect(figureOpen).toBeGreaterThan(-1)
+    expect(markup).toContain('<figcaption')
+    expect(captionPosition).toBeGreaterThan(figureOpen)
+    expect(captionPosition).toBeLessThan(figureClose)
+    expect(figureClose).toBeLessThan(contentPosition)
+  })
+
+  it('renders the cover with no caption when none was found', () => {
+    const markup = render(
+      <BlogReaderFrame
+        post={post}
+        loading={false}
+        resolvedContent="Body content"
+        onBack={() => undefined}
+        backLabel="View archive"
+        coverImage={{ src: 'https://example.com/cover.jpg', alt: 'Cover' }}
+      />,
+    )
+
+    expect(markup).not.toContain('<figcaption')
+  })
+
   it('tells a missing blog apart from a failed request', () => {
     const missing = render(
       <BlogReaderFrame

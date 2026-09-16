@@ -206,6 +206,38 @@ export const layout = {
   prose: '68ch',
   /** Outer content frame; the compact header is capped to it. */
   content: '1120px',
+  /**
+   * The reader page's own, wider frame - `ReaderFrame`'s symmetric
+   * `200px` TOC column and its mirrored margin on the article's other side
+   * (`w11.1`) cost 2 * (200px rail + 64px gap) = 528px, plus the 48px side
+   * gutter, before the article column even starts. Against the shared
+   * `content` frame (1120px) that left only 808px for the article at every
+   * desktop width from 1120px up to 2560px and beyond - never enough to reach
+   * the 68ch prose measure (~873px at the desktop 19px prose size), so the
+   * reading column read as cramped no matter how wide the screen actually was
+   * (`w11.2`). `content` itself is untouched - it is the frame every other
+   * page still measures against - so this is a second, reader-only frame:
+   * 528px of margin + 48px of gutter + roughly 873px for the article to
+   * finally reach its own measure, rounded up for a small buffer.
+   */
+  readingFrame: '1456px',
+  /**
+   * The reader's own article column below the TOC rail's breakpoint
+   * (`w11.5`) - the pixel width matching the 68ch prose measure at the
+   * desktop 19px prose size (measured at 873.39px - see `readingFrame`'s own
+   * derivation), for the one place that needs that width in a context `ch`
+   * cannot resolve it from: the wrapper this caps holds the title, the
+   * metadata and the cover alongside `Prose`, and none of them render at the
+   * prose type size for a `ch` unit on this wrapper to mean the same thing
+   * `Prose` means by it.
+   *
+   * Without this, raising `readingFrame` (`w11.2`) gave the wrapper the
+   * frame's full, much wider column while `Prose` still stopped itself at
+   * 68ch inside it - the title and the cover spanning the whole column while
+   * the actual text sat flush left in a fraction of it. That read as the
+   * same off-centre column `w11.1` had already fixed, one layer further in.
+   */
+  articleMeasure: '873px',
   header: {
     mobile: '64px',
     desktop: '72px',
@@ -232,6 +264,29 @@ export const breakpoints = {
   md: '801px',
   lg: '1001px',
   xl: '1169px',
+  /**
+   * Reader-only, and not from the approved prototype - the prototype has no
+   * TOC rail to switch on. `ReaderFrame` first showed the rail at `lg`
+   * (1001px), which is where every other "full desktop composition" decision
+   * switches - but the rail is not free: at `lg` it costs the article a
+   * `200px` column, that column's `64px` gap, and (`w11.1`'s centering) an
+   * equal, empty margin mirrored on the article's other side - 2 * (200px +
+   * 64px) = 528px, plus the 48px side gutter, 576px total, before the
+   * article gets anything. Below roughly 64ch of article width (824px,
+   * against the 68ch prose measure's own ~873px), the rail was costing more
+   * width than a sticky nav is worth (`w11.2`) - solving 576px + 824px for
+   * the viewport that still leaves the article that much room lands at
+   * 1400px. `xl` (1169px) is 231px short of that and was rejected for the
+   * same reason `lg` was: it would still hand the rail a viewport too narrow
+   * for the article to recover on.
+   *
+   * Below this width `ReaderFrame` shows the disclosure it already renders
+   * for narrow screens instead - see `layoutBreakpoints.readerRail`. Every
+   * responsive value gated on this breakpoint defines only `base` and this
+   * key, never an intermediate one, so there is no width at which neither or
+   * both TOC forms render.
+   */
+  xxl: '1400px',
 } as const
 
 /**

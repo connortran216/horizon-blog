@@ -23,6 +23,18 @@
  * matched block, rejoin - specifically so it cannot leave an empty paragraph
  * or eat into a neighbouring block.
  *
+ * The same removal now also looks one block further, for a caption written
+ * directly under the image (`w11.3`): promoting the picture into its own
+ * `cover` slot, beside the prose rather than inside it, used to leave the
+ * caption behind as an ordinary paragraph - so the two read as unrelated,
+ * separated by the article's own identity and metadata. `parseCaptionBlock`
+ * claims only the narrow, unambiguous case markdown actually gives this
+ * module to work with: a block that is nothing but one run of emphasis,
+ * directly after the image and before anything else. An opening paragraph
+ * that happens to come right after a lead image is not touched by this - it
+ * is not wrapped in emphasis, so the pattern does not match, and it stays
+ * exactly where it always rendered.
+ *
  * Only the markdown source is handled, one level up from `Prose`; this module
  * never touches the DOM.
  */
@@ -39,7 +51,15 @@ export interface ArticleCoverImage {
 
 export interface ExtractedArticleCover {
   readonly cover: ArticleCoverImage
-  /** The markdown with the cover's own block removed. */
+  /**
+   * The caption directly under the cover, when the author wrote one - see
+   * `parseCaptionBlock` for exactly what qualifies. Absent, not empty, when
+   * there is none: a cover promoted with no caption is the common case, and
+   * an absent key is what lets a caller write `cover.caption ? ... : null`
+   * without a second check for an empty string.
+   */
+  readonly caption?: string
+  /** The markdown with the cover's own block, and its caption, removed. */
   readonly content: string
 }
 
@@ -54,6 +74,10 @@ const MARKDOWN_IMAGE_BLOCK = /^!\[([^\]]*)\]\(\s*(?:<([^>]+)>|(\S+?))(?:\s+"[^"]
 const HTML_IMAGE_BLOCK = /^<img\b[^>]*?\/?>$/i
 const HTML_SRC_ATTR = /\bsrc=["']([^"']+)["']/i
 const HTML_ALT_ATTR = /\balt=["']([^"']*)["']/i
+// A whole block of nothing but one run of emphasis - `*like this*` or
+// `_like this_` - anchored the same way `MARKDOWN_IMAGE_BLOCK` is: the block
+// has to be *only* the emphasis, start to end, for this to match at all.
+const CAPTION_BLOCK = /^(?:\*([^*]+)\*|_([^_]+)_)$/
 
 /**
  * CommonMark-ish blocks - paragraphs, headings, list items, blockquotes -
@@ -91,10 +115,32 @@ function parseImageBlock(block: string): ArticleCoverImage | null {
 }
 
 /**
- * The article's own cover, and the body with that block removed - or `null`
- * when the article does not open with a standalone image, in which case
- * `markdown` is returned completely untouched by the caller (this function
- * itself returns nothing to touch it with).
+ * A block that is nothing but emphasis, start to end - the same anchored,
+ * whole-block test `parseImageBlock` runs for the picture itself. A block
+ * that mixes emphasis with plain prose, or buries it inside a list item or a
+ * blockquote, is an ordinary paragraph and this returns `null` for it, same
+ * as `parseImageBlock` does for an image that is not standing alone.
+ */
+function parseCaptionBlock(block: string): string | null {
+  const trimmed = block.trim()
+  const match = trimmed.match(CAPTION_BLOCK)
+
+  if (!match) {
+    return null
+  }
+
+  const [, starred, underscored] = match
+  const text = (starred ?? underscored ?? '').trim()
+
+  return text.length > 0 ? text : null
+}
+
+/**
+ * The article's own cover, and the body with that block - and its caption,
+ * when it has one - removed. `null` when the article does not open with a
+ * standalone image, in which case `markdown` is returned completely
+ * untouched by the caller (this function itself returns nothing to touch it
+ * with).
  */
 export function extractArticleCoverImage(markdown: string): ExtractedArticleCover | null {
   const blocks = splitIntoBlocks(markdown)
@@ -110,7 +156,27 @@ export function extractArticleCoverImage(markdown: string): ExtractedArticleCove
     return null
   }
 
-  const remaining = [...blocks.slice(0, firstContentIndex), ...blocks.slice(firstContentIndex + 1)]
+  const afterCover = [...blocks.slice(0, firstContentIndex), ...blocks.slice(firstContentIndex + 1)]
 
-  return { cover, content: remaining.join('\n\n').trim() }
+  /*
+   * The caption sits directly under the image, before anything else - the
+   * next content block after the one just removed. Markdown itself does not
+   * mark a line as a caption, so this only claims the narrow case the emphasis
+   * pattern above already anchors: anything less deliberate is left as the
+   * article's own opening prose, exactly as it rendered before this function
+   * ever looked for a caption.
+   */
+  const nextContentIndex = afterCover.findIndex((block) => block.trim().length > 0)
+  const caption = nextContentIndex === -1 ? null : parseCaptionBlock(afterCover[nextContentIndex])
+
+  const remaining =
+    caption === null
+      ? afterCover
+      : [...afterCover.slice(0, nextContentIndex), ...afterCover.slice(nextContentIndex + 1)]
+
+  return {
+    cover,
+    ...(caption === null ? {} : { caption }),
+    content: remaining.join('\n\n').trim(),
+  }
 }

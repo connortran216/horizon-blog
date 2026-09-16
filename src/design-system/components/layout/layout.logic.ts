@@ -10,16 +10,20 @@
 import { layout, sectionSpace, space, type SpaceToken } from '../../../theme/tokens'
 
 /**
- * The four transitions the system actually has, named by what changes rather
- * than by their pixel value. `src/theme/tokens/primitives.ts` owns the numbers
- * (sm 681, md 801, lg 1001, xl 1169) and this maps each layout decision onto
- * one of them, so no component picks a breakpoint on its own.
+ * The transitions the system actually has, named by what changes rather than
+ * by their pixel value. `src/theme/tokens/primitives.ts` owns the numbers
+ * (sm 681, md 801, lg 1001, xl 1169, xxl 1400) and this maps each layout
+ * decision onto one of them, so no component picks a breakpoint on its own.
  *
  *   typeRamp     681px  headings and prose reach their desktop sizes
  *   sectionRhythm 681px  section padding goes 48px -> 80px, with the type
  *   columns      801px  multi-column content grids appear
  *   composition 1001px  the full desktop composition (tall header, widest type)
  *   frame       1169px  the content frame stops tightening against the viewport
+ *   readerRail  1400px  `ReaderFrame` shows the TOC as a rail instead of its
+ *                       disclosure - see `breakpoints.xxl` for the derivation.
+ *                       Reader-only: the first four come from the approved
+ *                       prototype, this one from the rail's own cost.
  */
 export const layoutBreakpoints = {
   typeRamp: 'sm',
@@ -27,6 +31,7 @@ export const layoutBreakpoints = {
   columns: 'md',
   composition: 'lg',
   frame: 'xl',
+  readerRail: 'xxl',
 } as const
 
 export type LayoutBreakpoint = (typeof layoutBreakpoints)[keyof typeof layoutBreakpoints]
@@ -34,17 +39,19 @@ export type LayoutBreakpoint = (typeof layoutBreakpoints)[keyof typeof layoutBre
 /** Responsive value: a base plus one override at a named breakpoint. */
 export type ResponsiveValue<T> = { base: T } & Partial<Record<LayoutBreakpoint, T>>
 
-export type ContainerWidth = 'content' | 'prose' | 'full'
+export type ContainerWidth = 'content' | 'prose' | 'reading' | 'full'
 
 /**
  * Container widths resolve to Chakra `sizes` entries rather than raw lengths -
- * `horizonTheme` registers `content` (1120px) and `prose` (68ch) from the same
- * primitives this module imports.
+ * `horizonTheme` registers `content` (1120px), `prose` (68ch) and `reading`
+ * (see `layout.readingFrame`) from the same primitives this module imports.
  */
 export function containerMaxWidth(width: ContainerWidth): string {
   switch (width) {
     case 'prose':
       return 'prose'
+    case 'reading':
+      return 'reading'
     case 'full':
       return '100%'
     case 'content':
@@ -58,6 +65,8 @@ export function containerMaxWidthValue(width: ContainerWidth): string {
   switch (width) {
     case 'prose':
       return layout.prose
+    case 'reading':
+      return layout.readingFrame
     case 'full':
       return '100%'
     case 'content':
