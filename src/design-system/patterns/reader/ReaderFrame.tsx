@@ -24,7 +24,7 @@
 import { forwardRef, type ForwardedRef, type ReactNode, type RefObject } from 'react'
 import { Box } from '@chakra-ui/react'
 
-import { space } from '../../../theme/tokens'
+import { layout, space } from '../../../theme/tokens'
 import {
   ContentContainer,
   layoutBreakpoints,
@@ -208,22 +208,47 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
         </Box>
 
         <Box as="article" minW={0} display="flex" flexDirection="column" gap={space[6]}>
-          {identity ? <Box as="header">{identity}</Box> : null}
-          {metadata}
+          {/*
+           * Below the rail, this wrapper is the one place that decides how
+           * wide the title, the metadata, the disclosure and the cover are -
+           * `layout.articleMeasure` (`w11.5`), the pixel width of the 68ch
+           * prose measure at the desktop prose size, centred with `mx=auto`.
+           * Without it, this content filled the whole (`w11.2`-widened)
+           * `reading` frame while `Prose` still stopped itself at 68ch inside
+           * it: the title and the cover spanning the full column, the actual
+           * text sitting flush left in a fraction of it - the same
+           * off-centre reading `w11.1` fixed one column further out.
+           *
+           * At and above the rail, this is switched off (`maxW: 'none'`,
+           * `mx: '0'`): the grid track above already sizes and centres the
+           * article by itself (`w11.1`), and capping this wrapper there too
+           * would just shrink it a second time.
+           */}
+          <Box
+            width="100%"
+            maxW={{ base: layout.articleMeasure, [layoutBreakpoints.readerRail]: 'none' }}
+            mx={{ base: 'auto', [layoutBreakpoints.readerRail]: '0' }}
+            display="flex"
+            flexDirection="column"
+            gap={space[6]}
+          >
+            {identity ? <Box as="header">{identity}</Box> : null}
+            {metadata}
 
-          <Box display={{ base: 'block', [layoutBreakpoints.readerRail]: 'none' }}>
-            <TOC
-              headings={headings}
-              activeId={activeHeadingId}
-              variant="disclosure"
-              onNavigate={onNavigateHeading}
-            />
-          </Box>
+            <Box display={{ base: 'block', [layoutBreakpoints.readerRail]: 'none' }}>
+              <TOC
+                headings={headings}
+                activeId={activeHeadingId}
+                variant="disclosure"
+                onNavigate={onNavigateHeading}
+              />
+            </Box>
 
-          {cover}
+            {cover}
 
-          <Box ref={contentRef} minW={0}>
-            {children}
+            <Box ref={contentRef} minW={0}>
+              {children}
+            </Box>
           </Box>
 
           {seriesContext}

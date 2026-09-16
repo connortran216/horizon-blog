@@ -221,6 +221,23 @@ export const layout = {
    * finally reach its own measure, rounded up for a small buffer.
    */
   readingFrame: '1456px',
+  /**
+   * The reader's own article column below the TOC rail's breakpoint
+   * (`w11.5`) - the pixel width matching the 68ch prose measure at the
+   * desktop 19px prose size (measured at 873.39px - see `readingFrame`'s own
+   * derivation), for the one place that needs that width in a context `ch`
+   * cannot resolve it from: the wrapper this caps holds the title, the
+   * metadata and the cover alongside `Prose`, and none of them render at the
+   * prose type size for a `ch` unit on this wrapper to mean the same thing
+   * `Prose` means by it.
+   *
+   * Without this, raising `readingFrame` (`w11.2`) gave the wrapper the
+   * frame's full, much wider column while `Prose` still stopped itself at
+   * 68ch inside it - the title and the cover spanning the whole column while
+   * the actual text sat flush left in a fraction of it. That read as the
+   * same off-centre column `w11.1` had already fixed, one layer further in.
+   */
+  articleMeasure: '873px',
   header: {
     mobile: '64px',
     desktop: '72px',
