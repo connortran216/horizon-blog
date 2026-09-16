@@ -247,6 +247,29 @@ export const breakpoints = {
   md: '801px',
   lg: '1001px',
   xl: '1169px',
+  /**
+   * Reader-only, and not from the approved prototype - the prototype has no
+   * TOC rail to switch on. `ReaderFrame` first showed the rail at `lg`
+   * (1001px), which is where every other "full desktop composition" decision
+   * switches - but the rail is not free: at `lg` it costs the article a
+   * `200px` column, that column's `64px` gap, and (`w11.1`'s centering) an
+   * equal, empty margin mirrored on the article's other side - 2 * (200px +
+   * 64px) = 528px, plus the 48px side gutter, 576px total, before the
+   * article gets anything. Below roughly 64ch of article width (824px,
+   * against the 68ch prose measure's own ~873px), the rail was costing more
+   * width than a sticky nav is worth (`w11.2`) - solving 576px + 824px for
+   * the viewport that still leaves the article that much room lands at
+   * 1400px. `xl` (1169px) is 231px short of that and was rejected for the
+   * same reason `lg` was: it would still hand the rail a viewport too narrow
+   * for the article to recover on.
+   *
+   * Below this width `ReaderFrame` shows the disclosure it already renders
+   * for narrow screens instead - see `layoutBreakpoints.readerRail`. Every
+   * responsive value gated on this breakpoint defines only `base` and this
+   * key, never an intermediate one, so there is no width at which neither or
+   * both TOC forms render.
+   */
+  xxl: '1400px',
 } as const
 
 /**

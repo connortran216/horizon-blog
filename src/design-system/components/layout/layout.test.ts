@@ -47,6 +47,19 @@ describe('layout breakpoints', () => {
 
     expect([...used].every((name) => name in breakpoints)).toBe(true)
   })
+
+  /**
+   * `w11.4`: the reader's TOC rail switches on well past `lg` (1001px) -
+   * showing it any earlier cost the article more width than the rail was
+   * worth. `1400px` is not from the approved prototype; it is where
+   * `200 + 64 + 64 + 200` (the rail, its gap, and both mirrored for
+   * `w11.1`'s centering) plus the `48px` gutter still leaves the article
+   * ~64ch (824px) - close to the 68ch prose measure - rather than a lot less.
+   */
+  it("puts the reader's TOC rail on its own, later transition", () => {
+    expect(breakpoints[layoutBreakpoints.readerRail]).toBe('1400px')
+    expect(layoutBreakpoints.readerRail).not.toBe(layoutBreakpoints.composition)
+  })
 })
 
 describe('containerMaxWidth', () => {

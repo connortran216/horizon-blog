@@ -25,7 +25,11 @@ import { forwardRef, type ForwardedRef, type ReactNode, type RefObject } from 'r
 import { Box } from '@chakra-ui/react'
 
 import { space } from '../../../theme/tokens'
-import { ContentContainer, type ContentContainerProps } from '../../components/layout'
+import {
+  ContentContainer,
+  layoutBreakpoints,
+  type ContentContainerProps,
+} from '../../components/layout'
 import { ErrorState, MissingState, PageLoading, RetryAction } from '../../components/feedback'
 import { Heading } from '../../components/typography'
 import { TOC } from './TOC'
@@ -177,14 +181,24 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
          * by construction, at every width and whether or not the rail still
          * has more to scroll - see `containerMaxWidth('reading')` for where
          * the room for this comes from.
+         *
+         * Only switches on at `layoutBreakpoints.readerRail` (1400px, `w11.4`),
+         * not `lg` (1001px): below 1400px the rail's 528px of overhead (its
+         * own column, its gap, and both mirrored) left the article narrower
+         * than the disclosure-only single column already gives it for free -
+         * see `breakpoints.xxl` for the arithmetic.
          */
-        gridTemplateColumns={{ base: '1fr', lg: '200px minmax(0, 1fr) 200px' }}
-        gap={{ base: space[6], lg: space[16] }}
+        gridTemplateColumns={{
+          base: '1fr',
+          [layoutBreakpoints.readerRail]: '200px minmax(0, 1fr) 200px',
+        }}
+        gap={{ base: space[6], [layoutBreakpoints.readerRail]: space[16] }}
         alignItems="start"
       >
-        {/* The rail is hidden rather than unmounted below `lg` so the disclosure
-            and the rail never both exist and duplicate the nav landmark. */}
-        <Box display={{ base: 'none', lg: 'block' }}>
+        {/* The rail is hidden rather than unmounted below `readerRail` so the
+            disclosure and the rail never both exist and duplicate the nav
+            landmark. */}
+        <Box display={{ base: 'none', [layoutBreakpoints.readerRail]: 'block' }}>
           <TOC
             headings={headings}
             activeId={activeHeadingId}
@@ -197,7 +211,7 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
           {identity ? <Box as="header">{identity}</Box> : null}
           {metadata}
 
-          <Box display={{ base: 'block', lg: 'none' }}>
+          <Box display={{ base: 'block', [layoutBreakpoints.readerRail]: 'none' }}>
             <TOC
               headings={headings}
               activeId={activeHeadingId}

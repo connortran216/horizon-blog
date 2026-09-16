@@ -10,16 +10,20 @@
 import { layout, sectionSpace, space, type SpaceToken } from '../../../theme/tokens'
 
 /**
- * The four transitions the system actually has, named by what changes rather
- * than by their pixel value. `src/theme/tokens/primitives.ts` owns the numbers
- * (sm 681, md 801, lg 1001, xl 1169) and this maps each layout decision onto
- * one of them, so no component picks a breakpoint on its own.
+ * The transitions the system actually has, named by what changes rather than
+ * by their pixel value. `src/theme/tokens/primitives.ts` owns the numbers
+ * (sm 681, md 801, lg 1001, xl 1169, xxl 1400) and this maps each layout
+ * decision onto one of them, so no component picks a breakpoint on its own.
  *
  *   typeRamp     681px  headings and prose reach their desktop sizes
  *   sectionRhythm 681px  section padding goes 48px -> 80px, with the type
  *   columns      801px  multi-column content grids appear
  *   composition 1001px  the full desktop composition (tall header, widest type)
  *   frame       1169px  the content frame stops tightening against the viewport
+ *   readerRail  1400px  `ReaderFrame` shows the TOC as a rail instead of its
+ *                       disclosure - see `breakpoints.xxl` for the derivation.
+ *                       Reader-only: the first four come from the approved
+ *                       prototype, this one from the rail's own cost.
  */
 export const layoutBreakpoints = {
   typeRamp: 'sm',
@@ -27,6 +31,7 @@ export const layoutBreakpoints = {
   columns: 'md',
   composition: 'lg',
   frame: 'xl',
+  readerRail: 'xxl',
 } as const
 
 export type LayoutBreakpoint = (typeof layoutBreakpoints)[keyof typeof layoutBreakpoints]
