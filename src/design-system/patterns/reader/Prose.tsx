@@ -291,6 +291,23 @@ export const Prose = forwardRef<HTMLElement, ProseProps>(function Prose(
         ...headingRamp,
         'ul, ol': { paddingInlineStart: space[6] },
         li: { marginBlock: space[2] },
+        /*
+         * Crepe does not render a bare `li`. Its list-item node view splits the
+         * row into a `label-wrapper` holding the marker and a `children` slot
+         * holding the content, and ProseMirror always wraps that content in a
+         * paragraph - so every list item contains a `p`. Crepe zeroes that
+         * paragraph's margin in its own reset (`.milkdown * { margin: 0 }`,
+         * specificity 0,1,0), but the prose rule above is 0,1,1 and wins the
+         * tie, putting 24px back. The two flex items stay aligned; it is the
+         * text inside that drops, which is why a list read as a number alone
+         * on one line and its content on the next. Restoring the zero here at
+         * 0,1,2 puts the marker and its text back on one line.
+         *
+         * The cost: an item written as several paragraphs loses the gap
+         * between them. That is rarer than a list, and the gap is recoverable;
+         * the stacking was not.
+         */
+        'li p': { marginBlock: 0 },
         a: {
           color: componentTokens.reader.link,
           textDecoration: 'underline',

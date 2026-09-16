@@ -1254,3 +1254,26 @@
   padding: 8px 12px 4px;
   margin: 0;
 }
+
+/*
+ * An ordered-list marker must never wrap.
+ *
+ * Crepe fixes the label box at 24px, which fits one digit: "1." measures
+ * 12.75px in Be Vietnam Pro at 19px, but "10." needs 25.59px and "14." needs
+ * 26.24px. The global `* { overflow-wrap: anywhere }` guard in the theme then
+ * does exactly what it was asked to - it lets the string break anywhere - so
+ * a two-digit marker split, leaving "10" on the row and "." on the line below.
+ * The flex items stayed aligned the whole time, which is why measuring their
+ * boxes showed nothing wrong; the break was inside the label.
+ *
+ * The marker opts out of that guard instead of the box growing, because the
+ * label and the content are separated by a 10px gap and the widest marker here
+ * overruns its box by 2.24px - it has room to sit in without touching the text,
+ * and every row keeps the same content indent. A list long enough to reach
+ * three digits would need the box itself widened.
+ */
+.crepe-editor-wrapper .milkdown-list-item-block .label {
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+}
