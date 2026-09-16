@@ -73,6 +73,14 @@ const BlogDetailPage = () => {
     post && articleCover
       ? { src: articleCover.cover.src, alt: articleCover.cover.alt || post.title }
       : null
+  /**
+   * The caption the author wrote directly under the cover, when there is one
+   * - see `extractArticleCoverImage` for exactly what qualifies. Rendered
+   * beside the image in the `cover` slot rather than left in `articleContent`
+   * as the article's first paragraph, so the two stay visually together
+   * instead of separating across the identity and metadata between them.
+   */
+  const coverCaption = articleCover?.caption ?? null
   const coverTransitionName = post ? postCoverTransitionName(String(post.id)) : null
   const authorArchivePath = post ? getPostAuthorArchivePath(post) : null
   const shareUrl = typeof window === 'undefined' ? undefined : window.location.href
@@ -130,6 +138,7 @@ const BlogDetailPage = () => {
       resolvedContent={articleContent}
       resolvedMedia={resolvedMedia.sources}
       coverImage={coverImage}
+      coverCaption={coverCaption}
       coverTransitionName={coverTransitionName}
       onBack={() => navigate('/blog')}
       backLabel="Back to Blog"
