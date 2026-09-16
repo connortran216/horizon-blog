@@ -5,6 +5,10 @@
  * as a disclosure above the article, on a narrow one. The reading column is a
  * `ProseMeasure`, so the measure is the same 68ch whatever is around it.
  *
+ * The wide grid is `200px rail / article / 200px` - a mirrored, empty column
+ * the same width as the rail, so the article's own margins come out equal by
+ * construction rather than by whatever the rail happened to leave over.
+ *
  * The slots are named after the regions in `reader.logic.ts`, and they are in
  * that order in the markup. That is what makes `dsv2.5.3` acceptance 3
  * structural rather than a matter of discipline: there is no slot between
@@ -157,7 +161,19 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
     <ContentContainer ref={ref} as="div" {...rest}>
       <Box
         display="grid"
-        gridTemplateColumns={{ base: '1fr', lg: '200px minmax(0, 1fr)' }}
+        /*
+         * Symmetric on purpose: a mirrored, empty `200px` column on the
+         * article's far side (`w11.1`). The rail's own column and its gap are
+         * the reason the article used to sit off-centre - `minmax(0, 1fr)`
+         * gave every leftover pixel to the article alone, so the rail's
+         * 200px + the gap next to it read as a lopsided left margin with
+         * nothing to balance it on the right. Mirroring that same width as a
+         * third, unoccupied track costs the article that much space back,
+         * but it is what makes the article's own left and right margins equal
+         * by construction, at every width and whether or not the rail still
+         * has more to scroll.
+         */
+        gridTemplateColumns={{ base: '1fr', lg: '200px minmax(0, 1fr) 200px' }}
         gap={{ base: space[6], lg: space[16] }}
         alignItems="start"
       >
