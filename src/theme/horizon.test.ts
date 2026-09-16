@@ -33,6 +33,7 @@ describe('v2 Chakra adapter', () => {
     expect(horizonTheme.radii.feature).toBe('28px')
     expect(horizonTheme.sizes.prose).toBe('68ch')
     expect(horizonTheme.sizes.content).toBe('1120px')
+    expect(horizonTheme.sizes.reading).toBe('1456px')
   })
 
   it('uses the prototype layout transitions as breakpoints', () => {

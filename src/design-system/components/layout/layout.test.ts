@@ -47,6 +47,19 @@ describe('layout breakpoints', () => {
 
     expect([...used].every((name) => name in breakpoints)).toBe(true)
   })
+
+  /**
+   * `w11.4`: the reader's TOC rail switches on well past `lg` (1001px) -
+   * showing it any earlier cost the article more width than the rail was
+   * worth. `1400px` is not from the approved prototype; it is where
+   * `200 + 64 + 64 + 200` (the rail, its gap, and both mirrored for
+   * `w11.1`'s centering) plus the `48px` gutter still leaves the article
+   * ~64ch (824px) - close to the 68ch prose measure - rather than a lot less.
+   */
+  it("puts the reader's TOC rail on its own, later transition", () => {
+    expect(breakpoints[layoutBreakpoints.readerRail]).toBe('1400px')
+    expect(layoutBreakpoints.readerRail).not.toBe(layoutBreakpoints.composition)
+  })
 })
 
 describe('containerMaxWidth', () => {
@@ -62,6 +75,16 @@ describe('containerMaxWidth', () => {
 
   it('lets a full-bleed container opt out of the frame', () => {
     expect(containerMaxWidth('full')).toBe('100%')
+  })
+
+  /**
+   * `w11.2`: the reader page's own frame, wider than the shared `content`
+   * frame on purpose - see `layout.readingFrame` for why 808px of article
+   * never reached the 68ch prose measure at any desktop width under it.
+   */
+  it("resolves the reader's own frame to the registered size token", () => {
+    expect(containerMaxWidth('reading')).toBe('reading')
+    expect(containerMaxWidthValue('reading')).toBe(layout.readingFrame)
   })
 })
 

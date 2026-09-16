@@ -5,6 +5,14 @@
  * as a disclosure above the article, on a narrow one. The reading column is a
  * `ProseMeasure`, so the measure is the same 68ch whatever is around it.
  *
+ * The wide grid is `200px rail / article / 200px` - a mirrored, empty column
+ * the same width as the rail, so the article's own margins come out equal by
+ * construction rather than by whatever the rail happened to leave over. That
+ * mirroring has to come from somewhere: the frame renders at `width="reading"`
+ * rather than the shared `content` frame, which is what gives the article
+ * enough room either side of it to still reach the 68ch prose measure - see
+ * `layout.readingFrame`.
+ *
  * The slots are named after the regions in `reader.logic.ts`, and they are in
  * that order in the markup. That is what makes `dsv2.5.3` acceptance 3
  * structural rather than a matter of discipline: there is no slot between
@@ -16,8 +24,12 @@
 import { forwardRef, type ForwardedRef, type ReactNode, type RefObject } from 'react'
 import { Box } from '@chakra-ui/react'
 
-import { space } from '../../../theme/tokens'
-import { ContentContainer, type ContentContainerProps } from '../../components/layout'
+import { layout, space } from '../../../theme/tokens'
+import {
+  ContentContainer,
+  layoutBreakpoints,
+  type ContentContainerProps,
+} from '../../components/layout'
 import { ErrorState, MissingState, PageLoading, RetryAction } from '../../components/feedback'
 import { Heading } from '../../components/typography'
 import { TOC } from './TOC'
@@ -154,16 +166,39 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
   }
 
   return (
-    <ContentContainer ref={ref} as="div" {...rest}>
+    <ContentContainer ref={ref} as="div" width="reading" {...rest}>
       <Box
         display="grid"
-        gridTemplateColumns={{ base: '1fr', lg: '200px minmax(0, 1fr)' }}
-        gap={{ base: space[6], lg: space[16] }}
+        /*
+         * Symmetric on purpose: a mirrored, empty `200px` column on the
+         * article's far side (`w11.1`). The rail's own column and its gap are
+         * the reason the article used to sit off-centre - `minmax(0, 1fr)`
+         * gave every leftover pixel to the article alone, so the rail's
+         * 200px + the gap next to it read as a lopsided left margin with
+         * nothing to balance it on the right. Mirroring that same width as a
+         * third, unoccupied track costs the article that much space back,
+         * but it is what makes the article's own left and right margins equal
+         * by construction, at every width and whether or not the rail still
+         * has more to scroll - see `containerMaxWidth('reading')` for where
+         * the room for this comes from.
+         *
+         * Only switches on at `layoutBreakpoints.readerRail` (1400px, `w11.4`),
+         * not `lg` (1001px): below 1400px the rail's 528px of overhead (its
+         * own column, its gap, and both mirrored) left the article narrower
+         * than the disclosure-only single column already gives it for free -
+         * see `breakpoints.xxl` for the arithmetic.
+         */
+        gridTemplateColumns={{
+          base: '1fr',
+          [layoutBreakpoints.readerRail]: '200px minmax(0, 1fr) 200px',
+        }}
+        gap={{ base: space[6], [layoutBreakpoints.readerRail]: space[16] }}
         alignItems="start"
       >
-        {/* The rail is hidden rather than unmounted below `lg` so the disclosure
-            and the rail never both exist and duplicate the nav landmark. */}
-        <Box display={{ base: 'none', lg: 'block' }}>
+        {/* The rail is hidden rather than unmounted below `readerRail` so the
+            disclosure and the rail never both exist and duplicate the nav
+            landmark. */}
+        <Box display={{ base: 'none', [layoutBreakpoints.readerRail]: 'block' }}>
           <TOC
             headings={headings}
             activeId={activeHeadingId}
@@ -173,22 +208,47 @@ export const ReaderFrame = forwardRef<HTMLDivElement, ReaderFrameProps>(function
         </Box>
 
         <Box as="article" minW={0} display="flex" flexDirection="column" gap={space[6]}>
-          {identity ? <Box as="header">{identity}</Box> : null}
-          {metadata}
+          {/*
+           * Below the rail, this wrapper is the one place that decides how
+           * wide the title, the metadata, the disclosure and the cover are -
+           * `layout.articleMeasure` (`w11.5`), the pixel width of the 68ch
+           * prose measure at the desktop prose size, centred with `mx=auto`.
+           * Without it, this content filled the whole (`w11.2`-widened)
+           * `reading` frame while `Prose` still stopped itself at 68ch inside
+           * it: the title and the cover spanning the full column, the actual
+           * text sitting flush left in a fraction of it - the same
+           * off-centre reading `w11.1` fixed one column further out.
+           *
+           * At and above the rail, this is switched off (`maxW: 'none'`,
+           * `mx: '0'`): the grid track above already sizes and centres the
+           * article by itself (`w11.1`), and capping this wrapper there too
+           * would just shrink it a second time.
+           */}
+          <Box
+            width="100%"
+            maxW={{ base: layout.articleMeasure, [layoutBreakpoints.readerRail]: 'none' }}
+            mx={{ base: 'auto', [layoutBreakpoints.readerRail]: '0' }}
+            display="flex"
+            flexDirection="column"
+            gap={space[6]}
+          >
+            {identity ? <Box as="header">{identity}</Box> : null}
+            {metadata}
 
-          <Box display={{ base: 'block', lg: 'none' }}>
-            <TOC
-              headings={headings}
-              activeId={activeHeadingId}
-              variant="disclosure"
-              onNavigate={onNavigateHeading}
-            />
-          </Box>
+            <Box display={{ base: 'block', [layoutBreakpoints.readerRail]: 'none' }}>
+              <TOC
+                headings={headings}
+                activeId={activeHeadingId}
+                variant="disclosure"
+                onNavigate={onNavigateHeading}
+              />
+            </Box>
 
-          {cover}
+            {cover}
 
-          <Box ref={contentRef} minW={0}>
-            {children}
+            <Box ref={contentRef} minW={0}>
+              {children}
+            </Box>
           </Box>
 
           {seriesContext}

@@ -110,4 +110,80 @@ describe('extractArticleCoverImage', () => {
     expect(extractArticleCoverImage('')).toBeNull()
     expect(extractArticleCoverImage('   \n\n  ')).toBeNull()
   })
+
+  describe('caption', () => {
+    it('lifts a whole-block italic line directly under the cover out as its caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\n*Photo credit: someone*\n\nBody text.',
+      )
+
+      expect(result?.caption).toBe('Photo credit: someone')
+      expect(result?.content).toBe('Body text.')
+    })
+
+    it('also reads an underscore-emphasis caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\n_Photo credit: someone_\n\nBody text.',
+      )
+
+      expect(result?.caption).toBe('Photo credit: someone')
+      expect(result?.content).toBe('Body text.')
+    })
+
+    it('leaves caption undefined - not an empty string - when there is none', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\nBody text.',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect('caption' in (result ?? {})).toBe(false)
+    })
+
+    it('does not treat the article opening with an ordinary paragraph as a caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\nThis is the real opening paragraph.\n\nMore.',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect(result?.content).toBe('This is the real opening paragraph.\n\nMore.')
+    })
+
+    it('does not treat a heading right after the cover as a caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\n# Heading\n\nBody.',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect(result?.content).toBe('# Heading\n\nBody.')
+    })
+
+    it('does not treat a block only partly in emphasis as a caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\n*Photo credit:* someone, cropped.\n\nBody.',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect(result?.content).toBe('*Photo credit:* someone, cropped.\n\nBody.')
+    })
+
+    it('does not treat an italic line nested inside a blockquote as a caption', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\n> *Photo credit: someone*\n\nBody.',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect(result?.content).toBe('> *Photo credit: someone*\n\nBody.')
+    })
+
+    it('only claims the block right after the cover, never a later one', () => {
+      const result = extractArticleCoverImage(
+        '![Cover](https://example.com/cover.jpg)\n\nOpening paragraph.\n\n*Not a caption, just emphasis further down.*',
+      )
+
+      expect(result?.caption).toBeUndefined()
+      expect(result?.content).toBe(
+        'Opening paragraph.\n\n*Not a caption, just emphasis further down.*',
+      )
+    })
+  })
 })

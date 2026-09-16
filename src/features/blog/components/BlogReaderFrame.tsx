@@ -48,6 +48,7 @@ import {
   ResponsiveImage,
   Section,
   Stack,
+  Text,
   formatPostDate,
   localScrollStyle,
   postPresentation,
@@ -121,6 +122,14 @@ interface BlogReaderFrameProps {
    */
   coverImage?: { src: string; alt: string } | null
   /**
+   * The caption the author wrote directly under the cover, when there is
+   * one - see `extractArticleCoverImage`. Rendered beside the image in the
+   * `cover` slot, not inside the prose, so the two stay adjacent rather than
+   * separating across the identity and metadata between the cover and the
+   * article body. Meaningless without `coverImage`.
+   */
+  coverCaption?: string | null
+  /**
    * Shared with the departing list or Home cover so the two can morph into
    * each other under the View Transitions API - see
    * `postCoverTransitionName`. Meaningless without `coverImage`.
@@ -152,6 +161,7 @@ const BlogReaderFrame = ({
   isMissing = false,
   authorArchivePath,
   coverImage = null,
+  coverCaption = null,
   coverTransitionName = null,
   showReadingProgress = false,
   headings = NO_HEADINGS,
@@ -368,16 +378,36 @@ const BlogReaderFrame = ({
           }
           cover={
             coverImage ? (
-              <ResponsiveImage
-                aspectRatio={READER_COVER_PRESENTATION.coverAspectRatio}
-                radius={READER_COVER_PRESENTATION.coverRadius}
-                src={coverImage.src}
-                alt={coverImage.alt}
-                sizes="(min-width: 1001px) 800px, 100vw"
-                task="the article cover"
-                loading="eager"
-                viewTransitionName={coverTransitionName ?? undefined}
-              />
+              /*
+               * A `figure`, not a bare image: the caption belongs with the
+               * picture, not with the prose. Before `w11.3`, promoting the
+               * cover out of the article body left its caption behind as an
+               * ordinary paragraph - the two were adjacent in the markdown but
+               * rendered a whole identity-and-metadata block apart. Grouping
+               * them here keeps that adjacency without moving the image back
+               * into `Prose`, which would have taken `coverTransitionName`
+               * out of this frame's control - `ResponsiveImage`'s
+               * `viewTransitionName` prop is what lets `/blog` and this page
+               * morph the same element into each other, and Crepe's rendered
+               * markup has no hook for that name to attach to.
+               */
+              <Box as="figure" margin={0} display="flex" flexDirection="column" gap={space[2]}>
+                <ResponsiveImage
+                  aspectRatio={READER_COVER_PRESENTATION.coverAspectRatio}
+                  radius={READER_COVER_PRESENTATION.coverRadius}
+                  src={coverImage.src}
+                  alt={coverImage.alt}
+                  sizes="(min-width: 1001px) 800px, 100vw"
+                  task="the article cover"
+                  loading="eager"
+                  viewTransitionName={coverTransitionName ?? undefined}
+                />
+                {coverCaption ? (
+                  <Text as="figcaption" recipe="metadata">
+                    {coverCaption}
+                  </Text>
+                ) : null}
+              </Box>
             ) : null
           }
           seriesContext={seriesSection}

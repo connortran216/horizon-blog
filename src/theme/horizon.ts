@@ -168,6 +168,7 @@ export const horizonTheme = extendTheme({
   sizes: {
     prose: layout.prose,
     content: layout.content,
+    reading: layout.readingFrame,
     headerMobile: layout.header.mobile,
     headerDesktop: layout.header.desktop,
     sectionMobile: sectionSpace.mobile,
