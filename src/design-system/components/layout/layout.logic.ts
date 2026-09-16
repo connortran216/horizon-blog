@@ -34,17 +34,19 @@ export type LayoutBreakpoint = (typeof layoutBreakpoints)[keyof typeof layoutBre
 /** Responsive value: a base plus one override at a named breakpoint. */
 export type ResponsiveValue<T> = { base: T } & Partial<Record<LayoutBreakpoint, T>>
 
-export type ContainerWidth = 'content' | 'prose' | 'full'
+export type ContainerWidth = 'content' | 'prose' | 'reading' | 'full'
 
 /**
  * Container widths resolve to Chakra `sizes` entries rather than raw lengths -
- * `horizonTheme` registers `content` (1120px) and `prose` (68ch) from the same
- * primitives this module imports.
+ * `horizonTheme` registers `content` (1120px), `prose` (68ch) and `reading`
+ * (see `layout.readingFrame`) from the same primitives this module imports.
  */
 export function containerMaxWidth(width: ContainerWidth): string {
   switch (width) {
     case 'prose':
       return 'prose'
+    case 'reading':
+      return 'reading'
     case 'full':
       return '100%'
     case 'content':
@@ -58,6 +60,8 @@ export function containerMaxWidthValue(width: ContainerWidth): string {
   switch (width) {
     case 'prose':
       return layout.prose
+    case 'reading':
+      return layout.readingFrame
     case 'full':
       return '100%'
     case 'content':

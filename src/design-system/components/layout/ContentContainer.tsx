@@ -7,7 +7,10 @@ import type { RegionElement } from './semanticElements'
 export interface ContentContainerProps extends Omit<BoxProps, 'as'> {
   /** Semantic element. `main` and `header` are the common overrides. */
   as?: RegionElement
-  /** `content` is the 1120px frame, `prose` the reading measure. */
+  /**
+   * `content` is the 1120px frame, `prose` the reading measure, `reading`
+   * the reader page's own wider frame - see `layout.readingFrame`.
+   */
   width?: ContainerWidth
   /** Drop the side gutters when an ancestor already provides them. */
   gutter?: boolean

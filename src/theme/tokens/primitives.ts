@@ -206,6 +206,21 @@ export const layout = {
   prose: '68ch',
   /** Outer content frame; the compact header is capped to it. */
   content: '1120px',
+  /**
+   * The reader page's own, wider frame - `ReaderFrame`'s symmetric
+   * `200px` TOC column and its mirrored margin on the article's other side
+   * (`w11.1`) cost 2 * (200px rail + 64px gap) = 528px, plus the 48px side
+   * gutter, before the article column even starts. Against the shared
+   * `content` frame (1120px) that left only 808px for the article at every
+   * desktop width from 1120px up to 2560px and beyond - never enough to reach
+   * the 68ch prose measure (~873px at the desktop 19px prose size), so the
+   * reading column read as cramped no matter how wide the screen actually was
+   * (`w11.2`). `content` itself is untouched - it is the frame every other
+   * page still measures against - so this is a second, reader-only frame:
+   * 528px of margin + 48px of gutter + roughly 873px for the article to
+   * finally reach its own measure, rounded up for a small buffer.
+   */
+  readingFrame: '1456px',
   header: {
     mobile: '64px',
     desktop: '72px',
