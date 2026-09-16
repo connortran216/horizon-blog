@@ -127,12 +127,21 @@ export function WorkspaceShell({
 
       {metadata}
 
+      {/*
+       * No `overflow: hidden` on the panel. The writing surface parks two
+       * floating layers outside its own text flow - Crepe's block handle, in
+       * the gutter to the left of the hovered block, and the insert menu that
+       * handle opens - and a clipping panel cut both of them off: the handle
+       * lost its `+` against the left border, and the menu was sliced at the
+       * bottom edge whenever the block sat low in the panel. The rounded
+       * corner it was clipping for is drawn instead by the one child that
+       * paints its own background, the toolbar strip.
+       */}
       <Box
         borderWidth="1px"
         borderStyle="solid"
         borderColor={componentTokens.workspace.border}
         borderRadius={radii.card}
-        overflow="hidden"
         bg={componentTokens.workspace.panelBg}
       >
         {toolbar === undefined ? null : (
@@ -140,6 +149,7 @@ export function WorkspaceShell({
             borderBottomWidth="1px"
             borderBottomStyle="solid"
             borderBottomColor={componentTokens.workspace.border}
+            borderTopRadius={radii.card}
             bg={componentTokens.workspace.toolbarBg}
           >
             {toolbar}

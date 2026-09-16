@@ -1277,3 +1277,64 @@
   word-break: normal;
   white-space: nowrap;
 }
+
+/* =========================================
+   Block handle gutter - the hover insert tool
+   ========================================= */
+
+/*
+ * Crepe ships `.milkdown .ProseMirror { padding: 60px 120px }` and that 120px
+ * is structural, not decoration. The block handle is a 66px pill that
+ * floating-ui parks 16px to the *left* of the hovered block, so a writing
+ * surface needs 82px of gutter before the first character or the handle has
+ * nowhere to sit. `padding: 32px !important` above - added to line the editor
+ * up with the preview - left 32px of it, and `WorkspaceShell` clips the panel
+ * to its rounded corner with `overflow: hidden`. Measured at 1440: the panel's
+ * inner edge is x 0, the text starts at 49, and the handle sat at -33..33. The
+ * `+` half, -33..-1, was outside the panel and cut off completely; only the
+ * drag half survived, as a 32px sliver against the border. That is the
+ * "insert tool has disappeared" report - `CrepeFeature.BlockEdit` was enabled
+ * the whole time and the element was in the DOM with `data-show="true"`.
+ *
+ * 96px of side padding puts the gutter at 112px from the panel edge (16px of
+ * pane padding plus this), which clears the handle by 30px. It is restored on
+ * the writing surface only: a published article and the preview carry no
+ * handle, so `data-readonly='true'` keeps the 32px that aligns them.
+ */
+@media (min-width: 801px) {
+  .crepe-editor-wrapper[data-readonly='false'] .milkdown .ProseMirror {
+    padding: 32px 96px !important;
+  }
+}
+
+/*
+ * Below `md` the gutter would cost more than the handle is worth - at 375 it
+ * would leave under 200px of writing width. The handle is a hover affordance
+ * and a narrow viewport is usually a touch one that cannot hover, so it is
+ * hidden rather than clipped; typing `/` opens the same insert menu.
+ */
+@media (max-width: 800px) {
+  .crepe-editor-wrapper .milkdown .milkdown-block-handle {
+    display: none;
+  }
+}
+
+/*
+ * The handle is painted with the accent above. Crepe leaves its icons at
+ * `var(--crepe-color-outline)`, which is the tertiary text grey - measured
+ * rgb(93, 107, 130) on rgb(49, 88, 212), close enough to read as an empty
+ * block. `color: text-onAction` was already set on the container for exactly
+ * this, but Crepe's icons are `fill`, not `currentColor`, so it never reached
+ * them.
+ */
+.crepe-editor-wrapper .milkdown .milkdown-block-handle .operation-item svg {
+  fill: var(--chakra-colors-text-onAction);
+}
+
+.crepe-editor-wrapper .milkdown .milkdown-block-handle .operation-item:hover {
+  background: color-mix(in srgb, var(--chakra-colors-text-onAction) 24%, transparent);
+}
+
+.crepe-editor-wrapper .milkdown .milkdown-block-handle .operation-item.active {
+  background: color-mix(in srgb, var(--chakra-colors-text-onAction) 32%, transparent);
+}
