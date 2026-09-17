@@ -3,6 +3,7 @@
  */
 
 import { Box } from '@chakra-ui/react'
+import { FiArrowRight, FiEdit3, FiMaximize2 } from 'react-icons/fi'
 
 import {
   AuthAlert,
@@ -10,6 +11,7 @@ import {
   AuthMethod,
   AuthMethodSeparator,
   AuthPanel,
+  ActionLink,
   Avatar,
   AvatarEditor,
   Button,
@@ -19,6 +21,7 @@ import {
   Field,
   Input,
   ProfileHeader,
+  Stack,
   VerificationFeedback,
   type VerificationStatus,
 } from '../../index'
@@ -139,6 +142,67 @@ function ProfileHeaderEntry({ state }: { readonly state: string }) {
       ? sampleProfileWithoutBio
       : { ...sampleProfile, avatarUrl: gallery.image }
 
+  if (state === 'workspace') {
+    return (
+      <ProfileHeader
+        layout="workspace"
+        profile={{
+          name: 'Connor Tran',
+          avatarUrl: gallery.image,
+          bio: 'I’m Connor Tran, a backend engineer and indie developer in Ho Chi Minh City. I build and experiment with products, then write about what I learn, from software architecture and engineering tradeoffs to personal growth and life along the way.',
+          email: 'sample.author@example.com',
+          location: 'Vietnam',
+          website: 'https://example.com/sample-author',
+        }}
+        eyebrow="Author workspace"
+        stats={[
+          { label: 'Blogs', value: '48', detail: 'Blogs currently live on the site.' },
+          { label: 'Drafts', value: '4', detail: 'Blogs still being refined before publishing.' },
+        ]}
+        avatarSlot={
+          <Stack gap={2} alignItems="stretch">
+            <AvatarEditor
+              presentation="workspace"
+              name="Connor Tran"
+              src={gallery.image}
+              hasSource={gallery.image !== null}
+              acceptedTypes={sampleAvatarLimits.allowedTypes}
+              onSelectFile={noop}
+            />
+            <Button
+              tone="quiet"
+              size="md"
+              iconStart={<FiMaximize2 aria-hidden="true" />}
+              alignSelf="flex-start"
+            >
+              View full size
+            </Button>
+          </Stack>
+        }
+        identityAction={
+          <Button
+            tone="link"
+            size="md"
+            iconStart={<FiEdit3 aria-hidden="true" />}
+            alignSelf="flex-start"
+          >
+            Edit profile
+          </Button>
+        }
+        actions={
+          <ActionLink
+            href="#gallery-write"
+            weight="primary"
+            iconStart={<FiEdit3 aria-hidden="true" />}
+            iconEnd={<FiArrowRight aria-hidden="true" />}
+          >
+            Write a blog
+          </ActionLink>
+        }
+      />
+    )
+  }
+
   return (
     <ProfileHeader
       profile={state === 'missing' ? null : profile}
@@ -172,6 +236,7 @@ function AvatarEditorEntry({ state }: { readonly state: string }) {
 
   return (
     <AvatarEditor
+      presentation={state === 'workspace' ? 'workspace' : 'standard'}
       name={sampleProfile.name}
       src={gallery.image}
       hasSource={gallery.image !== null}

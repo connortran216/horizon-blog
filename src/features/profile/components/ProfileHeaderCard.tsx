@@ -21,7 +21,7 @@
  * slot; it is not told the permission and cannot infer one.
  */
 
-import { FiArrowRight, FiEdit3 } from 'react-icons/fi'
+import { FiArrowRight, FiEdit3, FiMaximize2 } from 'react-icons/fi'
 
 import {
   ActionLink,
@@ -82,6 +82,7 @@ const ProfileHeaderCard = ({
 
   return (
     <ProfileHeader
+      layout="workspace"
       eyebrow="Author workspace"
       isLoading={profileLoading}
       profile={{
@@ -94,8 +95,9 @@ const ProfileHeaderCard = ({
       }}
       stats={stats}
       avatarSlot={
-        <Stack gap={2} alignItems="center">
+        <Stack gap={2} alignItems="stretch">
           <AvatarEditor
+            presentation="workspace"
             name={profileName}
             src={avatarSrc ?? null}
             acceptedTypes={ACCEPTED_AVATAR_TYPES}
@@ -109,31 +111,42 @@ const ProfileHeaderCard = ({
             because it is one action, and disabled when there is no picture to
             open - which is what the menu item did too.
           */}
-          <Button tone="quiet" size="md" isDisabled={!avatarSrc} onClick={onOpenAvatarPreview}>
+          <Button
+            tone="quiet"
+            size="md"
+            iconStart={<FiMaximize2 aria-hidden="true" />}
+            isDisabled={!avatarSrc}
+            onClick={onOpenAvatarPreview}
+            alignSelf="flex-start"
+          >
             View full size
           </Button>
         </Stack>
       }
+      identityAction={
+        <Button
+          tone="link"
+          size="md"
+          iconStart={<FiEdit3 aria-hidden="true" />}
+          isDisabled={profileLoading}
+          onClick={onOpenProfileEditor}
+          alignSelf="flex-start"
+          data-profile-action="edit"
+        >
+          Edit profile
+        </Button>
+      }
       actions={
-        <>
-          {canWrite ? (
-            <ActionLink
-              to="/blog-editor"
-              weight="primary"
-              iconEnd={<FiArrowRight aria-hidden="true" />}
-            >
-              Write a blog
-            </ActionLink>
-          ) : null}
-          <Button
-            tone="secondary"
+        canWrite ? (
+          <ActionLink
+            to="/blog-editor"
+            weight="primary"
             iconStart={<FiEdit3 aria-hidden="true" />}
-            isDisabled={profileLoading}
-            onClick={onOpenProfileEditor}
+            iconEnd={<FiArrowRight aria-hidden="true" />}
           >
-            Edit profile
-          </Button>
-        </>
+            Write a blog
+          </ActionLink>
+        ) : null
       }
     />
   )
