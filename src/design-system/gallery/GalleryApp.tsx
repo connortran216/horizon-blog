@@ -219,34 +219,38 @@ function EntrySection({
         </Box>
       ) : (
         <Box display="flex" flexWrap="wrap" gap={space[6]} alignItems="flex-start">
-          {visible.map((item) => (
-            <Box
-              key={item.name}
-              as="figure"
-              m={0}
-              flex="1 1 320px"
-              minW="0"
-              display="flex"
-              flexDirection="column"
-              gap={space[2]}
-            >
-              <Box as="figcaption" textStyle="meta" color="text.muted">
-                {item.name}
-                {item.kind === undefined ? '' : ` (${item.kind})`}
-              </Box>
+          {visible.map((item) => {
+            const isWideWorkspace = entry.name === 'ProfileHeader' && item.name === 'workspace'
+
+            return (
               <Box
-                border="1px solid"
-                borderColor="border.subtle"
-                borderRadius={radii.card}
-                p={space[4]}
-                bg="bg.page"
+                key={item.name}
+                as="figure"
+                m={0}
+                flex={isWideWorkspace ? '0 0 100%' : '1 1 320px'}
                 minW="0"
-                overflowX="auto"
+                display="flex"
+                flexDirection="column"
+                gap={space[2]}
               >
-                <Renderer state={item.name} />
+                <Box as="figcaption" textStyle="meta" color="text.muted">
+                  {item.name}
+                  {item.kind === undefined ? '' : ` (${item.kind})`}
+                </Box>
+                <Box
+                  border="1px solid"
+                  borderColor="border.subtle"
+                  borderRadius={radii.card}
+                  p={space[4]}
+                  bg="bg.page"
+                  minW="0"
+                  overflowX="auto"
+                >
+                  <Renderer state={item.name} />
+                </Box>
               </Box>
-            </Box>
-          ))}
+            )
+          })}
         </Box>
       )}
     </Box>

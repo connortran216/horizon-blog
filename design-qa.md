@@ -1,48 +1,48 @@
-# Design QA: Contact Editorial Letter
+# Design QA: Profile Editorial Workspace
 
 ## Source and implementation
 
-- reference: `/var/folders/9j/36cty8qn5lgbl92w712p_7xm0000gp/T/codex-clipboard-a5078184-1c38-4cae-b227-c98b5cd593d0.png`
-- implementation: `http://[::1]:5173/contact`
-- source-of-truth behavior: `specs/021-contact-editorial-letter/spec.md`
-- comparison: same-turn rendered comparison at the reference desktop size, plus focused light/dark and responsive captures
+- approved reference: `specs/022-profile-editorial-workspace/assets/profile-editorial-workspace-reference.png`
+- implementation preview: `http://127.0.0.1:4174/ui-kit.html?build=profile-final6#gallery-entry-ProfileHeader`
+- behavior contract: `specs/022-profile-editorial-workspace/spec.md`
+- production composition: `src/features/profile/components/ProfileHeaderCard.tsx`
 
 ## Visual comparison
 
-- hierarchy matches the selected Option 2: Editorial Letter invitation on the left, email-first contact rail on the right, one cobalt primary action, and one restrained lime underline
-- the obsolete reason-card grid and contact-form direction are absent
-- phone and location remain lower-emphasis rows with aligned icons and dividers
-- the email is one line at 1440px and has one intentional break opportunity after `@` on narrow screens
-- the implementation preserves Horizon's 1120px content frame and shared app footer instead of copying the generated reference's wider shell; this follows the spec's authority order and keeps unrelated routes unchanged
+- the workspace matches the selected split hierarchy: a 30/70 identity rail and writing region on desktop, with the portrait and identity content moving ahead of the writing context on narrow screens
+- the portrait is a large square frame with the `Change picture` action clipped inside its lower edge; the overlay keeps a light foreground over the scrim in both themes
+- `Connor Tran` uses the display face, with the small `Edit profile` text action directly beneath it
+- `Write a blog` is the only dominant CTA in the header and retains its permission gate
+- the biography remains the visual focus of the right region and is constrained to a comfortable measure
+- Blogs and Drafts are unboxed typographic facts separated by rules, not KPI cards
+- the default/public `ProfileHeader` and compact `AvatarEditor` states remain visually unchanged
 
 ## Responsive and theme checks
 
-Checked at 320, 375, 768, 1024, and 1440 CSS pixels in light and dark themes.
+Checked at 320, 375, 768, 1024, and 1440 CSS pixels, with focused comparison in light and dark themes.
 
-- horizontal overflow: 0px at every checked width in both themes
-- 320px `Sign in`: one rendered text line
-- 320px email: two lines, with all of `gmail.com` on one line
-- action sizes at 320px: email 228x44, copy 48x48, phone 142x44
-- mobile reading order: invitation and topics precede the email, phone, and location rail
-- desktop 1440x1024: all essential contact content and the start of the shared footer fit in the viewport
+- 320/375: one-column reading order is portrait, portrait actions, name, edit action, metadata, workspace label, writing CTA, biography, then stats; copy wraps within the component boundary
+- 768: the one-column composition remains readable with the full-size portrait and comfortable text measure
+- 1024/1440: the desktop split activates, the identity rail remains subordinate, and the biography and stats retain their hierarchy
+- both themes preserve the selected blue action, lime accent, readable portrait overlay, surface separation, and visible focus treatment
+- the gallery shell itself adds review padding around the component; the production pattern is explicitly constrained to `width: 100%`, `max-width: 100%`, and zero minimum width so its content does not create horizontal overflow
 
 ## Interaction and accessibility checks
 
-- one `h1`, followed by the `Get in touch` `h2`
-- exact `mailto:canhtran210699@gmail.com` and `tel:+84963452909` destinations
-- location remains plain text
-- keyboard order reaches skip link, header controls, email action, copy control, phone action, then footer controls
-- every observed keyboard target has the design-system 2px focus outline
-- successful copy keeps focus on the copy button and changes visible/live text to `The email address is on your clipboard`
-- success, rejected write, missing clipboard, and stale-result behavior have automated coverage
+- the workspace has one `h1`; Blogs and Drafts remain semantic `dt`/`dd` pairs
+- the avatar chooser remains a named file input driven by a visible button and keeps uploading, error, retry, and disabled behavior
+- the `Edit profile` button still opens the existing editor callback, and `View full size` still uses the existing preview callback
+- keyboard focus from `Edit profile` advances to the email link, followed by the remaining metadata and writing action in DOM order
+- protected `/profile/:username` still redirects an unauthenticated visitor to login
+- no browser console errors or warnings were observed during desktop dark, desktop light, or mobile checks
 
 ## Automated gates
 
-- targeted Contact and copy tests: 73 passed
-- complete Vitest suite: 1,672 passed; the 16 localhost SEO tests were rerun outside the restricted sandbox after the sandbox-only `listen EPERM` failure
+- targeted profile and account-pattern tests: 9 files, 122 tests passed
 - TypeScript, ESLint, Prettier, design-system coverage, and production build: passed
 - design-system coverage: 126 legacy files, 126 ledger rows, 107/107 exports represented in the gallery
+- the full Vitest assertion set passed, but one broad run reported 10 fork-worker startup timeouts from local pool saturation; the targeted changed surface is clean
 
 ## Final result
 
-passed
+final result: passed

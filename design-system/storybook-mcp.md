@@ -44,3 +44,20 @@ The `/contact` Option 2 implementation ran the discovery gate on 2026-09-15:
 - `ActionLink`, `IconButton`, `Divider`, and a Contact rail pattern are not exposed by the pilot catalog, so there was no matching `docs-show-story` state to reuse.
 
 This is a catalog capability gap, not a reason to invent a global component. The implementation composes existing primitives in the feature-owned `ContactRail` and reuses the shared action copy-state logic. Add a Contact rail story only if the pattern becomes reusable outside this route.
+
+## Profile Editorial Workspace discovery outcome
+
+The profile workspace redesign ran the discovery gate on 2026-09-16:
+
+- the six-component pilot has no `ProfileHeader` or `AvatarEditor` entry, so no
+  account-pattern story can describe the selected split workspace
+- current source and the complete `ui-kit.html` gallery confirm that both
+  patterns already own the required identity, upload, failure, and semantic
+  count behavior
+- the implementation therefore adds opt-in `workspace` presentations to those
+  patterns instead of creating a parallel profile component
+- the gallery's `ProfileHeader / workspace` state is the visual acceptance
+  surface until account patterns join the Storybook MCP catalog
+
+This is a catalog coverage gap only. The public/default presentations remain
+the compatibility contract for existing consumers.

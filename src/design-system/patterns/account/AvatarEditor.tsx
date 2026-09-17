@@ -17,7 +17,7 @@ import { useRef, type ChangeEvent } from 'react'
 import { Box, Flex, VisuallyHidden } from '@chakra-ui/react'
 import { FiCamera, FiUser } from 'react-icons/fi'
 
-import { componentTokens, radii, space, transitionFor } from '../../../theme/tokens'
+import { componentTokens, palette, radii, space, transitionFor } from '../../../theme/tokens'
 import { Button } from '../../components/actions'
 import { Stack } from '../../components/layout'
 import { Text } from '../../components/typography'
@@ -123,6 +123,8 @@ export interface AvatarEditorProps extends AvatarEditorStateInput {
   onReloadImage?: () => void
   /** The caption under the portrait. "Profile image" on the production screen. */
   caption?: string
+  /** The workspace uses a full-bleed square portrait; other contexts stay compact. */
+  presentation?: 'standard' | 'workspace'
 }
 
 /**
@@ -142,6 +144,7 @@ export function AvatarEditor({
   onSelectFile,
   onReloadImage,
   caption = 'Profile image',
+  presentation = 'standard',
   isUploading,
   uploadError,
   imageFailed,
@@ -168,6 +171,121 @@ export function AvatarEditor({
     event.target.value = ''
   }
 
+  const fileInput = (
+    <VisuallyHidden>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={acceptedTypes?.join(',')}
+        onChange={handleChange}
+        disabled={!state.canChoose}
+        aria-label={`Choose a new profile picture for ${name}`}
+      />
+    </VisuallyHidden>
+  )
+
+  if (presentation === 'workspace') {
+    return (
+      <Stack gap={3} alignItems="stretch">
+        <Box
+          position="relative"
+          width="100%"
+          aspectRatio="1 / 1"
+          borderRadius={radii.card}
+          overflow="hidden"
+          bg={componentTokens.media.placeholderBg}
+          borderWidth="1px"
+          borderStyle="solid"
+          borderColor={componentTokens.card.border}
+        >
+          {src && !state.showsFallback ? (
+            <ResponsiveImage
+              aspectRatio="1 / 1"
+              radius="container"
+              src={src}
+              alt={`${name}'s profile picture`}
+              task="the profile picture"
+              loading="lazy"
+            />
+          ) : (
+            <Flex
+              position="absolute"
+              inset={0}
+              align="center"
+              justify="center"
+              color="text.secondary"
+            >
+              {avatarInitials(name) ? (
+                <Text recipe="display" as="span" aria-hidden="true">
+                  {avatarInitials(name)}
+                </Text>
+              ) : (
+                <Box as={FiUser} aria-hidden="true" />
+              )}
+              <VisuallyHidden>{name}</VisuallyHidden>
+            </Flex>
+          )}
+
+          {state.status === 'uploading' ? (
+            <Flex
+              position="absolute"
+              inset={0}
+              align="center"
+              justify="center"
+              bg={componentTokens.overlay.scrim}
+              color="text.onInverse"
+              transition={transitionFor('opacity')}
+            >
+              <InlineLoading task="your new profile picture" hideLabel />
+            </Flex>
+          ) : null}
+
+          {fileInput}
+
+          <Button
+            tone="quiet"
+            size="md"
+            iconStart={<Box as={FiCamera} aria-hidden="true" />}
+            isDisabled={!state.canChoose}
+            isLoading={state.status === 'uploading'}
+            loadingLabel="Uploading your new profile picture"
+            onClick={() => inputRef.current?.click()}
+            position="absolute"
+            insetInlineEnd={space[3]}
+            insetBlockEnd={space[3]}
+            bg={componentTokens.overlay.scrim}
+            color={palette.white}
+          >
+            Change picture
+          </Button>
+        </Box>
+
+        {state.canRetry && onReloadImage !== undefined ? (
+          <Button tone="quiet" size="md" onClick={onReloadImage} alignSelf="flex-start">
+            Try to load the picture again
+          </Button>
+        ) : null}
+
+        {uploadError === undefined ? null : (
+          <Text
+            recipe="metadata"
+            role="alert"
+            aria-live="assertive"
+            color={componentTokens.field.invalidText}
+          >
+            {uploadError}
+          </Text>
+        )}
+
+        {state.status === 'imageFailed' ? (
+          <Text recipe="metadata" role="status" aria-live="polite">
+            We could not load the current picture. Your initials are shown instead.
+          </Text>
+        ) : null}
+      </Stack>
+    )
+  }
+
   return (
     <Stack gap={3} alignItems="center">
       <Box position="relative">
@@ -190,16 +308,7 @@ export function AvatarEditor({
 
       <Text recipe="metadata">{caption}</Text>
 
-      <VisuallyHidden>
-        <input
-          ref={inputRef}
-          type="file"
-          accept={acceptedTypes?.join(',')}
-          onChange={handleChange}
-          disabled={!state.canChoose}
-          aria-label={`Choose a new profile picture for ${name}`}
-        />
-      </VisuallyHidden>
+      {fileInput}
 
       <Stack direction="row" gap={2} collapseAt={undefined} justifyContent="center" flexWrap="wrap">
         <Button

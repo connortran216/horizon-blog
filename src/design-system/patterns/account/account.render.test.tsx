@@ -15,7 +15,11 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import horizonTheme from '../../../theme/horizon'
+import { componentTokens } from '../../../theme/tokens'
+import { Button } from '../../components/actions'
+import { AvatarEditor } from './AvatarEditor'
 import { ContactCard } from './ContactCard'
+import { ProfileHeader } from './ProfileHeader'
 import { AuthAlert } from './VerificationFeedback'
 
 /** The solid Button fill, as the theme resolves it. */
@@ -155,5 +159,51 @@ describe('an informational auth banner', () => {
 
     expect(failure).toContain('role="alert"')
     expect(failure).toContain('aria-live="assertive"')
+  })
+})
+
+describe('the editorial profile workspace', () => {
+  const markup = render(
+    <ProfileHeader
+      layout="workspace"
+      profile={{
+        name: 'Sample Author',
+        bio: 'A realistic sample biography for the workspace composition.',
+        email: 'sample.author@example.com',
+      }}
+      avatarSlot={
+        <AvatarEditor presentation="workspace" name="Sample Author" src="/sample-avatar.jpg" />
+      }
+      identityAction={
+        <Button tone="link" data-profile-action="edit">
+          Edit profile
+        </Button>
+      }
+      actions={<Button>Write a blog</Button>}
+      stats={[
+        { label: 'Blogs', value: '48', detail: 'Published on the sample site.' },
+        { label: 'Drafts', value: '4', detail: 'Still being refined.' },
+      ]}
+    />,
+  )
+
+  it('keeps the identity action between the name and contact metadata', () => {
+    expect(markup.indexOf('Sample Author')).toBeLessThan(markup.indexOf('Edit profile'))
+    expect(markup.indexOf('Edit profile')).toBeLessThan(markup.indexOf('sample.author@example.com'))
+  })
+
+  it('uses one square media frame and typographic facts instead of stat cards', () => {
+    expect(markup).toMatch(/aspect-ratio:1\s*\/\s*1/)
+
+    const stats = markup.match(/<dl[^>]*>(.*?)<\/dl>/)?.[1]
+
+    expect(stats).toBeDefined()
+    expect(stats).not.toContain(`border-radius:${componentTokens.control.radius}`)
+  })
+
+  it('preserves a labelled file input in the overlaid picture control', () => {
+    expect(markup).toContain('type="file"')
+    expect(markup).toContain('aria-label="Choose a new profile picture for Sample Author"')
+    expect(markup).toContain('Change picture')
   })
 })

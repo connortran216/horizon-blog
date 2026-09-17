@@ -683,6 +683,7 @@ export const galleryRegistry = [
     area: 'account',
     states: [
       { name: 'ready', kind: 'ready' },
+      { name: 'workspace' },
       { name: 'no biography', kind: 'empty' },
       { name: 'loading', kind: 'loading' },
       { name: 'missing', kind: 'error' },
@@ -704,6 +705,7 @@ export const galleryRegistry = [
     area: 'account',
     states: [
       { name: 'ready', kind: 'ready' },
+      { name: 'workspace' },
       { name: 'uploading', kind: 'loading' },
       { name: 'upload failed', kind: 'error' },
       { name: 'image failed' },

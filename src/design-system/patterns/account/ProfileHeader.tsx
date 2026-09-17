@@ -16,14 +16,14 @@
  */
 
 import type { ReactNode } from 'react'
-import { Box, Flex } from '@chakra-ui/react'
+import { Box, Flex, Grid as ChakraGrid } from '@chakra-ui/react'
 import { FiGlobe, FiMail, FiMapPin } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
 
-import { componentTokens, space } from '../../../theme/tokens'
+import { componentTokens, fontFamilies, space } from '../../../theme/tokens'
 import { ActionLink } from '../../components/actions'
 import { Grid, Stack } from '../../components/layout'
-import { Surface } from '../../components/surface'
+import { Divider, Surface } from '../../components/surface'
 import { Eyebrow, Heading, Metadata, Text } from '../../components/typography'
 import { MissingState, PanelLoading, PermissionState } from '../../components/feedback'
 import { Avatar } from './AvatarEditor'
@@ -56,15 +56,21 @@ export interface ProfileHeaderProps extends Omit<ProfileHeaderStateInput, 'hasPr
   stats?: readonly ProfileStat[]
   /** The portrait's editor, when the viewer owns this profile. */
   avatarSlot?: ReactNode
+  /** A small identity-level action, such as editing your own profile. */
+  identityAction?: ReactNode
+  /** The owner workspace gets an editorial split; public profiles stay standard. */
+  layout?: 'standard' | 'workspace'
   /** Why the profile was refused, when it was. */
   deniedDetail?: string
 }
 
 function MetaItem({ icon, children }: { icon: IconType; children: ReactNode }) {
   return (
-    <Box as="li" display="inline-flex" alignItems="center" gap={space[2]}>
+    <Box as="li" display="inline-flex" alignItems="center" gap={space[2]} minW="0" maxW="100%">
       <Box as={icon} aria-hidden="true" flexShrink={0} />
-      {children}
+      <Box minW="0" maxW="100%" overflowWrap="anywhere">
+        {children}
+      </Box>
     </Box>
   )
 }
@@ -75,6 +81,8 @@ export function ProfileHeader({
   actions,
   stats,
   avatarSlot,
+  identityAction,
+  layout = 'standard',
   deniedDetail,
   isLoading,
   deniedAction,
@@ -107,6 +115,151 @@ export function ProfileHeader({
     return <PanelLoading task="the profile" />
   }
 
+  const metadata = (
+    <>
+      {profile.email ? (
+        <MetaItem icon={FiMail}>
+          <ActionLink href={`mailto:${profile.email}`} underline="hover">
+            {profile.email}
+          </ActionLink>
+        </MetaItem>
+      ) : null}
+      {profile.location ? <MetaItem icon={FiMapPin}>{profile.location}</MetaItem> : null}
+      {profile.website ? (
+        <MetaItem icon={FiGlobe}>
+          <ActionLink href={profile.website}>Personal site</ActionLink>
+        </MetaItem>
+      ) : null}
+    </>
+  )
+
+  if (layout === 'workspace') {
+    return (
+      <Surface as="header" depth="raised" padded={false} width="100%" maxW="100%" minW="0">
+        <ChakraGrid
+          templateColumns={{ base: 'minmax(0, 1fr)', lg: 'minmax(0, 3fr) minmax(0, 7fr)' }}
+        >
+          <Stack gap={6} bg="bg.subtle" p={{ base: space[6], sm: space[8] }} minW="0">
+            {avatarSlot ?? <Avatar name={profile.name} src={profile.avatarUrl} size="lg" />}
+
+            <Divider />
+
+            <Stack gap={2} minW="0">
+              <Heading recipe="pageTitle" as="h1" fontFamily={fontFamilies.display}>
+                {profile.name}
+              </Heading>
+              {identityAction}
+            </Stack>
+
+            <Metadata as="ul" flexDirection="column" alignItems="flex-start" gap={space[3]}>
+              {metadata}
+            </Metadata>
+          </Stack>
+
+          <Stack
+            gap={8}
+            bg="bg.page"
+            p={{ base: space[6], sm: space[8], lg: space[12] }}
+            minW="0"
+            width="100%"
+            maxW="100%"
+          >
+            <Flex
+              direction={{ base: 'column', sm: 'row' }}
+              align={{ base: 'flex-start', sm: 'center' }}
+              justify="space-between"
+              gap={space[4]}
+            >
+              <Stack gap={2}>
+                <Divider
+                  width={space[12]}
+                  borderTopColor={componentTokens.feature.accent}
+                  borderTopWidth="2px"
+                />
+                <Eyebrow as="p">{eyebrow}</Eyebrow>
+              </Stack>
+
+              {actions === undefined ? null : (
+                <Stack
+                  direction="row"
+                  gap={3}
+                  collapseAt={undefined}
+                  flexWrap="wrap"
+                  justifyContent={{ base: 'flex-start', sm: 'flex-end' }}
+                >
+                  {actions}
+                </Stack>
+              )}
+            </Flex>
+
+            <Text
+              recipe="sectionTitle"
+              as="p"
+              color={state.usesBioPlaceholder ? 'text.muted' : 'text.primary'}
+              fontWeight="regular"
+              width="100%"
+              maxW="48ch"
+              overflowWrap="anywhere"
+            >
+              {state.usesBioPlaceholder ? bioPlaceholder() : profile.bio}
+            </Text>
+
+            {stats === undefined || stats.length === 0 ? null : (
+              <Stack gap={6} marginBlockStart={{ base: space[4], lg: space[8] }}>
+                <Divider />
+                <ChakraGrid
+                  as="dl"
+                  templateColumns={{ base: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))' }}
+                >
+                  {stats.map((stat, index) => (
+                    <Flex
+                      key={stat.label}
+                      align="flex-start"
+                      gap={space[6]}
+                      paddingInlineStart={{ base: 0, sm: index === 0 ? 0 : space[8] }}
+                      paddingInlineEnd={{ base: 0, sm: index === 0 ? space[8] : 0 }}
+                      paddingBlock={{ base: space[4], sm: space[2] }}
+                      borderTopWidth={{ base: index === 0 ? 0 : '1px', sm: 0 }}
+                      borderInlineStartWidth={{ base: 0, sm: index === 0 ? 0 : '1px' }}
+                      borderColor={componentTokens.workspace.border}
+                    >
+                      <Box
+                        as="dt"
+                        display="flex"
+                        flexDirection="column"
+                        gap={space[1]}
+                        paddingBlockStart={space[2]}
+                        order={2}
+                        minW="0"
+                      >
+                        <Text recipe="cardTitle" as="span">
+                          {stat.label}
+                        </Text>
+                        {stat.detail === undefined ? null : (
+                          <Text recipe="metadata">{stat.detail}</Text>
+                        )}
+                      </Box>
+                      <Box as="dd" marginInlineStart="0" order={1} flexShrink={0}>
+                        <Text
+                          recipe="display"
+                          as="span"
+                          display="block"
+                          color={componentTokens.feature.accent}
+                        >
+                          {stat.value}
+                        </Text>
+                      </Box>
+                    </Flex>
+                  ))}
+                </ChakraGrid>
+              </Stack>
+            )}
+          </Stack>
+        </ChakraGrid>
+      </Surface>
+    )
+  }
+
   return (
     <Surface as="header" depth="raised" p={{ base: space[6], sm: space[8] }}>
       <Stack gap={6}>
@@ -125,30 +278,14 @@ export function ProfileHeader({
               {profile.name}
             </Heading>
 
+            {identityAction}
+
             <Text recipe="body" color={state.usesBioPlaceholder ? 'text.muted' : undefined}>
               {state.usesBioPlaceholder ? bioPlaceholder() : profile.bio}
             </Text>
 
             <Metadata as="ul" justifyContent={{ base: 'center', md: 'flex-start' }} gap={space[4]}>
-              {profile.email ? (
-                <MetaItem icon={FiMail}>
-                  <ActionLink href={`mailto:${profile.email}`} underline="hover">
-                    {profile.email}
-                  </ActionLink>
-                </MetaItem>
-              ) : null}
-              {profile.location ? <MetaItem icon={FiMapPin}>{profile.location}</MetaItem> : null}
-              {profile.website ? (
-                <MetaItem icon={FiGlobe}>
-                  {/*
-                   * `ActionLink` resolves an absolute href to `target="_blank"`
-                   * plus `rel="noopener noreferrer"` and adds the spoken
-                   * "opens in a new tab". A personal site is somebody else's
-                   * document; it does not get a handle on this one.
-                   */}
-                  <ActionLink href={profile.website}>Personal site</ActionLink>
-                </MetaItem>
-              ) : null}
+              {metadata}
             </Metadata>
           </Stack>
 

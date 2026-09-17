@@ -20,21 +20,29 @@ It should feel like an editorial author page with management affordances, not a 
 
 ## Layout
 
-- one dominant profile header shell
+- one dominant profile header shell with an editorial split at desktop widths
+- a quieter identity rail holds the square portrait editor, full-size action,
+  name, inline edit action, and contact metadata
+- the writing region holds the workspace eyebrow, biography, the single
+  dominant `Write a blog` action, and unboxed Blogs/Drafts facts
+- the split collapses to one logical reading order on smaller viewports
 - owned writing section below
 - keep management UI integrated into the editorial tone
 
 ## Hierarchy
 
-- profile identity
-- primary owner actions
-- high-level counts
+- portrait and profile identity
+- quiet `Edit profile` action immediately after the name
+- biography and permission-gated `Write a blog` action
+- high-level counts expressed as typography and dividers, not KPI cards
 - blogs and drafts sections
 - published, scheduled, and unscheduled draft views use independent server-backed counts
 
 ## Core Components
 
 - `ProfileHeaderCard`
+- `ProfileHeader` with `layout="workspace"`
+- `AvatarEditor` with `presentation="workspace"`
 - `ProfilePostsSection`
 - `ProfileBlogGrid`
 - `ProfileScheduledList`
@@ -50,7 +58,11 @@ It should feel like an editorial author page with management affordances, not a 
 
 ## Accessibility Notes
 
-- avatar hover and menus must remain clipped and keyboard accessible
+- the square avatar frame clips its overlay control while the labelled file
+  input remains reachable through a native button
+- upload progress and persistent upload failure remain announced in the page
+- the public/default `ProfileHeader` and compact `AvatarEditor` presentations
+  are unaffected by the workspace option
 - poppers and menus must not introduce horizontal scrolling
 - draft/live distinctions must not rely on color alone
 - scheduled rows use text labels for `Scheduled`, `Publishing`, and `Needs attention`
