@@ -41,6 +41,7 @@
 
 - [x] T017 Activate the interaction-bar comment anchor in `src/features/reader-interactions/components/ReaderInteractionBar.tsx`
 - [x] T018 Extend article failure-isolation regression coverage in `src/features/blog/pages/BlogDetailPage.performance.test.tsx`
+  - Audit 2026-09-20: `BlogDetailPage.performance.test.tsx` only asserted that the discussion rendered beside the article; a comments render crash was never simulated because `renderToStaticMarkup` never invokes an error boundary. `BlogDetailPage.isolation.test.tsx` now mounts the page under jsdom with `react-dom/client`, a `CommentSection` that throws while rendering, and asserts the article stays on screen with no error copy leaking.
 - [x] T019 Run focused tests, `yarn tsc --noEmit`, `yarn lint`, and `yarn build`, then record results in `specs/010-blog-comments/quickstart.md`
 
 ## Dependencies
