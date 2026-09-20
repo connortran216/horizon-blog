@@ -53,6 +53,7 @@ import {
   localScrollStyle,
   postPresentation,
   useMotionPolicy,
+  type ImageSource,
   type ReaderHeading,
 } from '../../../design-system'
 import { componentTokens, space, transitionFor } from '../../../theme/tokens'
@@ -120,7 +121,12 @@ interface BlogReaderFrameProps {
    * this from the same markdown the article renders, one level up, and hands
    * it down already resolved; this frame only draws it.
    */
-  coverImage?: { src: string; alt: string } | null
+  /**
+   * The lifted cover. `sources` are its resized variants when the feature
+   * layer resolved them - see `articleCoverFrom`; without them the frame can
+   * only fetch `src`, which for a media record is the original upload.
+   */
+  coverImage?: { src: string; alt: string; sources?: readonly ImageSource[] } | null
   /**
    * The caption the author wrote directly under the cover, when there is
    * one - see `extractArticleCoverImage`. Rendered beside the image in the
@@ -396,6 +402,7 @@ const BlogReaderFrame = ({
                   aspectRatio={READER_COVER_PRESENTATION.coverAspectRatio}
                   radius={READER_COVER_PRESENTATION.coverRadius}
                   src={coverImage.src}
+                  sources={coverImage.sources}
                   alt={coverImage.alt}
                   sizes="(min-width: 1001px) 800px, 100vw"
                   task="the article cover"

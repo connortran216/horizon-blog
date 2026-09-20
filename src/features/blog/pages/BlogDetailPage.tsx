@@ -25,6 +25,7 @@ import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
 import { extractMarkdownHeadings, getBlogService } from '../../../core'
 import { extractArticleCoverImage } from '../articleCoverImage.logic'
+import { articleCoverFrom } from '../articleCover.presentation'
 import { useAuth } from '../../../context/AuthContext'
 import CommentSection from '../../comments/components/CommentSection'
 import SeriesContextCard from '../../series/components/SeriesContextCard'
@@ -69,9 +70,14 @@ const BlogDetailPage = () => {
     [resolvedMedia.content],
   )
   const articleContent = articleCover ? articleCover.content : resolvedMedia.content
+  /*
+   * Shaped with its resized variants, not just the URL the markdown carries -
+   * that URL is the original upload, and rendering it bare fetched a 1 MB PNG
+   * into an 873px frame. See `articleCoverFrom`.
+   */
   const coverImage =
     post && articleCover
-      ? { src: articleCover.cover.src, alt: articleCover.cover.alt || post.title }
+      ? articleCoverFrom(articleCover.cover, post.title, resolvedMedia.sources)
       : null
   /**
    * The caption the author wrote directly under the cover, when there is one
