@@ -48,6 +48,26 @@ export const mergeSiblingPage = (
   }
 }
 
+/**
+ * The reply page a freshly posted reply lands in.
+ *
+ * A reply can be written without ever expanding the parent's replies, and the
+ * page that reply creates then becomes the only page that parent has. Treating
+ * it as a complete page strands every older reply: the "View N replies" control
+ * disappears the moment a page exists, and a page built from nothing has no
+ * cursor to walk. So when the parent is known to have replies the reader has
+ * not loaded, the seeded page starts with `hasMore`, and the first "Load more
+ * replies" fetches them and merges them in behind the new one.
+ */
+export const seedReplyPage = (
+  existing: SiblingPageState | undefined,
+  parentReplyCount: number,
+): SiblingPageState =>
+  existing ?? {
+    ...createSiblingPageState(),
+    hasMore: parentReplyCount > 0,
+  }
+
 export const upsertSiblingComment = (
   state: SiblingPageState,
   comment: Comment,

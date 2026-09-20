@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { Box } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import BlogReaderFrame from '../components/BlogReaderFrame'
 import { useBlogPostDetail } from '../useBlogPostDetail'
@@ -23,7 +24,7 @@ import { useReaderInteractions } from '../../reader-interactions/useReaderIntera
 import { useReaderSession } from '../../reader-interactions/useReaderSession'
 import RelatedPosts from '../components/RelatedPosts'
 import { BlogPostSummary } from '../../../core/types/blog.types'
-import { extractMarkdownHeadings, getBlogService } from '../../../core'
+import { ErrorBoundary, extractMarkdownHeadings, getBlogService } from '../../../core'
 import { extractArticleCoverImage } from '../articleCoverImage.logic'
 import { articleCoverFrom } from '../articleCover.presentation'
 import { useAuth } from '../../../context/AuthContext'
@@ -163,7 +164,24 @@ const BlogDetailPage = () => {
           onShare={readerInteractions.share}
         />
       }
-      discussionSection={post?.id ? <CommentSection postId={post.id} /> : undefined}
+      discussionSection={
+        post?.id ? (
+          /*
+           * The discussion is the one section built from reader-written data,
+           * and it is the only one whose failure has no business reaching the
+           * article. `useBlogComments` already contains every transport
+           * failure, but a throw while rendering a comment is not a transport
+           * failure - unhandled, it unmounts this whole page and takes the
+           * article with it. The boundary keeps that blast radius to the
+           * section, the same way the article body's own boundary does. The
+           * fallback is silent on purpose: a reader who never asked about
+           * comments should not be handed an error about them.
+           */
+          <ErrorBoundary fallback={<Box aria-hidden="true" />}>
+            <CommentSection postId={post.id} />
+          </ErrorBoundary>
+        ) : undefined
+      }
       seriesSection={seriesContext ? <SeriesContextCard context={seriesContext} /> : undefined}
       relatedSection={relatedPosts.length > 0 ? <RelatedPosts posts={relatedPosts} /> : undefined}
     />

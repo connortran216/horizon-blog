@@ -50,6 +50,73 @@ describe('CommentThread', () => {
     expect(markup).toContain('Reply')
   })
 
+  it('refuses a third reply level even when the API still says canReply', () => {
+    const markup = renderToStaticMarkup(
+      <ChakraProvider theme={theme}>
+        <CommentThread
+          comments={[comment({ depth: 2, content: 'Deepest reply', canReply: true })]}
+          replies={{}}
+          mutatingCommentId={null}
+          onLoadReplies={vi.fn()}
+          onLoadMoreReplies={vi.fn()}
+          onReply={vi.fn()}
+          onEdit={vi.fn()}
+          onRemove={vi.fn()}
+        />
+      </ChakraProvider>,
+    )
+
+    expect(markup).toContain('Deepest reply')
+    expect(markup).not.toContain('>Reply<')
+  })
+
+  it('offers a reply control one level above the cap', () => {
+    const markup = renderToStaticMarkup(
+      <ChakraProvider theme={theme}>
+        <CommentThread
+          comments={[comment({ depth: 1, content: 'Middle reply', canReply: true })]}
+          replies={{}}
+          mutatingCommentId={null}
+          onLoadReplies={vi.fn()}
+          onLoadMoreReplies={vi.fn()}
+          onReply={vi.fn()}
+          onEdit={vi.fn()}
+          onRemove={vi.fn()}
+        />
+      </ChakraProvider>,
+    )
+
+    expect(markup).toContain('>Reply<')
+  })
+
+  it('keeps unloaded older replies reachable beside a freshly posted one', () => {
+    const markup = renderToStaticMarkup(
+      <ChakraProvider theme={theme}>
+        <CommentThread
+          comments={[comment({ id: 1, content: 'Parent', replyCount: 4 })]}
+          replies={{
+            1: {
+              items: [comment({ id: 2, parentId: 1, depth: 1, content: 'Just posted' })],
+              nextCursor: null,
+              hasMore: true,
+              loading: false,
+              error: null,
+            },
+          }}
+          mutatingCommentId={null}
+          onLoadReplies={vi.fn()}
+          onLoadMoreReplies={vi.fn()}
+          onReply={vi.fn()}
+          onEdit={vi.fn()}
+          onRemove={vi.fn()}
+        />
+      </ChakraProvider>,
+    )
+
+    expect(markup).toContain('Just posted')
+    expect(markup).toContain('Load more replies')
+  })
+
   it('shows a content-free tombstone with no actions', () => {
     const markup = renderToStaticMarkup(
       <ChakraProvider theme={theme}>

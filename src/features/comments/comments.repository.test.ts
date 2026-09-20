@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '../../core/services/api.service'
+import { ApiRequestOptions } from '../../core/types/auth.types'
 import {
   ApiCommentsRepository,
   CommentsHttpClient,
@@ -14,6 +15,8 @@ type HttpCall = {
 
 class FakeHttpClient implements CommentsHttpClient {
   calls: HttpCall[] = []
+  /** Kept beside `calls` so the contract assertions stay exact objects. */
+  getOptions: unknown[] = []
   error: Error | null = null
 
   private respond<T>(call: HttpCall): Promise<T> {
@@ -22,7 +25,12 @@ class FakeHttpClient implements CommentsHttpClient {
     return Promise.resolve({ data: [] } as T)
   }
 
-  get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
+  get<T>(
+    endpoint: string,
+    params?: Record<string, unknown>,
+    options?: ApiRequestOptions,
+  ): Promise<T> {
+    this.getOptions.push(options)
     return this.respond({ method: 'GET', endpoint, data: params })
   }
 
@@ -65,6 +73,16 @@ describe('comments repository', () => {
         },
       },
     ])
+  })
+
+  it('reads the discussion without requiring a signed-in reader', async () => {
+    const http = new FakeHttpClient()
+    const repository: CommentsRepositoryPort = new ApiCommentsRepository(http)
+
+    await repository.listComments(76)
+
+    expect(http.calls).toEqual([{ method: 'GET', endpoint: '/posts/76/comments', data: {} }])
+    expect(http.getOptions).toEqual([{ authMode: 'optional', allowGuestFallback: true }])
   })
 
   it('sends the exact create, edit, remove, and settings contracts', async () => {
