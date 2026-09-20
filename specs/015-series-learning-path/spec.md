@@ -125,6 +125,7 @@ encode the new behaviour, and the text here had not followed.
 - **Series context placement (ui-ux Screen 5)** — `SeriesContextCard` renders
   after the article prose, per `DESIGN.md`, not between the metadata and the
   body (`BlogReaderFrame.test.tsx`).
-- **Loading state (ui-ux Screen 4)** — `SeriesPage` still renders `PageLoading`
-  rather than header and ordered-list skeletons. This is a real deviation, kept
-  open as follow-up work rather than amended away.
+- **Loading state (ui-ux Screen 4)** — `SeriesPage` rendered `PageLoading`
+  rather than header and ordered-list skeletons until 2026-09-20; it now
+  renders content-shaped skeletons in the places the header and the `ol` land
+  (`SeriesPage.test.tsx`).

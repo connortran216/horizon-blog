@@ -109,5 +109,6 @@ export type {
   PagedRegionMove,
   PaginationEntry,
   PaginationInput,
+  PaginationItemNoun,
   PaginationModel,
 } from './discovery.logic'

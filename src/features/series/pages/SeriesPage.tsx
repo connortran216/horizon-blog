@@ -19,9 +19,9 @@ import {
   Heading,
   Metadata,
   MissingState,
-  PageLoading,
   RetryAction,
   Section,
+  Skeleton,
   Stack,
   Text,
   seriesFacts,
@@ -31,6 +31,9 @@ import { space } from '../../../theme/tokens'
 import SeriesPartList from '../components/SeriesPartList'
 import { seriesTopics, toSeriesDetailSummary, toSeriesParts } from '../series.presentation'
 import { usePublicSeries } from '../usePublicSeries'
+
+/** Enough rows to read as a list, few enough that a two-part Series does not jump. */
+const LOADING_PART_ROWS = 3
 
 const SeriesPage = () => {
   const { slug } = useParams()
@@ -53,10 +56,38 @@ const SeriesPage = () => {
   )
 
   if (loading) {
+    /*
+     * Content-shaped, as ui-ux Screen 4 asks: a header and an ordered list,
+     * in the places the real ones will land, so the page does not jump when
+     * the Series arrives. The list is a real `ol` so the outline a screen
+     * reader hears while waiting already has the shape of the one it will
+     * read.
+     */
     return (
       <ContentContainer>
         <Section>
-          <PageLoading task="this Series" />
+          <Stack gap={12} aria-busy="true">
+            <Stack gap={6} maxW="4xl">
+              <Skeleton
+                shape={{ shape: 'text', textStyle: 'meta', lines: 1, lastLineWidth: '6rem' }}
+              />
+              <Skeleton
+                shape={{ shape: 'text', textStyle: 'pageTitle', lines: 1, lastLineWidth: '70%' }}
+                label="this Series"
+              />
+              <Skeleton shape={{ shape: 'text', textStyle: 'body', lines: 2 }} />
+              <Skeleton
+                shape={{ shape: 'text', textStyle: 'meta', lines: 1, lastLineWidth: '18rem' }}
+              />
+            </Stack>
+            <Stack as="ol" gap={4} listStyleType="none" margin={0} padding={0}>
+              {Array.from({ length: LOADING_PART_ROWS }, (_unused, index) => (
+                <Box as="li" key={`series-part-skeleton-${index}`}>
+                  <Skeleton shape={{ shape: 'block', height: 16 }} />
+                </Box>
+              ))}
+            </Stack>
+          </Stack>
         </Section>
       </ContentContainer>
     )

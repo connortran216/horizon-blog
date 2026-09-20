@@ -30,6 +30,8 @@ import { usePublicSeriesList } from '../usePublicSeriesList'
 
 const PAGE_SIZE = 9
 const SKELETON_COUNT = 3
+/** `Series` is its own plural; the summary used to say `of 20 blogs` here. */
+const SERIES_NOUN = { one: 'Series', many: 'Series' } as const
 
 const parsePage = (value: string | null) => {
   const parsed = Number(value)
@@ -143,6 +145,7 @@ const SeriesIndexPage = () => {
                     onPageChange={setPage}
                     regionRef={resultsRef}
                     label="Series pagination"
+                    itemNoun={SERIES_NOUN}
                   />
                 ) : null}
               </Stack>

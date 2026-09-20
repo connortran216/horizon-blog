@@ -97,6 +97,21 @@ describe('SeriesPage', () => {
     expect(render()).toContain(longTitle)
   })
 
+  /*
+   * ui-ux Screen 4: header and ordered-list skeletons while loading, so the
+   * page keeps its shape when the Series arrives. It used to render the
+   * generic page spinner here.
+   */
+  it('renders content-shaped skeletons while the Series loads', () => {
+    state.result = { series: null, loading: true, error: null, notFound: false, retry }
+    const markup = render()
+
+    expect(markup).toContain('aria-busy="true"')
+    expect(markup).toContain('aria-label="this Series"')
+    expect(markup).toContain('<ol')
+    expect(markup).not.toContain('We could not')
+  })
+
   it('offers links rather than a retry when the Series is not there', () => {
     state.result = { series: null, loading: false, error: null, notFound: true, retry }
     const markup = render()
