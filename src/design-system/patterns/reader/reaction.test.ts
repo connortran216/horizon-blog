@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   idleShareState,
-  nextReactionCount,
   reactionButtonState,
   reactionUnavailableNotice,
   shareAnnouncement,
@@ -49,18 +48,6 @@ describe('reactionButtonState', () => {
   it('fills the glyph only when the reader has reacted', () => {
     expect(reactionButtonState(base).isFilled).toBe(false)
     expect(reactionButtonState({ ...base, viewerHasReacted: true }).isFilled).toBe(true)
-  })
-})
-
-describe('nextReactionCount', () => {
-  it('adds one when reacting and takes one away when un-reacting', () => {
-    expect(nextReactionCount(24, false)).toBe(25)
-    expect(nextReactionCount(24, true)).toBe(23)
-  })
-
-  it('never goes negative from a stale count', () => {
-    expect(nextReactionCount(0, true)).toBe(0)
-    expect(nextReactionCount(-5, true)).toBe(0)
   })
 })
 

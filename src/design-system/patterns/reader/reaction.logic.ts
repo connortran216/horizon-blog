@@ -64,18 +64,6 @@ export function reactionButtonState({
   }
 }
 
-/**
- * The count after a toggle, applied locally before the request settles.
- *
- * Floored at zero: a stale count from a page that was open while someone else
- * un-reacted must not produce "-1 reactions" the moment this reader presses.
- */
-export function nextReactionCount(count: number, viewerHasReacted: boolean): number {
-  const safeCount = Math.max(0, Math.floor(Number.isFinite(count) ? count : 0))
-
-  return viewerHasReacted ? Math.max(0, safeCount - 1) : safeCount + 1
-}
-
 /** Why the control is dead, for a reader who can see it but not press it. */
 export function reactionUnavailableNotice(isAuthenticated: boolean): string {
   return isAuthenticated
