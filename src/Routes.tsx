@@ -83,10 +83,17 @@ const Routes = () => {
             </ProtectedRoute>
           }
         />
+        {/*
+          Profile is self-service: every signed-in person, member included, has
+          a profile to manage, so the gate here is authentication and nothing
+          more. The authoring controls inside it are gated one by one on
+          `content:manage:own` (see `ProfileHeaderCard`), which is where a
+          member's missing permission is supposed to show.
+        */}
         <Route
           path="/profile/:username"
           element={
-            <ProtectedRoute requiredPermission="analytics:read:own">
+            <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
           }
@@ -94,7 +101,7 @@ const Routes = () => {
         <Route
           path="/profile/:username/blog/:id"
           element={
-            <ProtectedRoute requiredPermission="analytics:read:own">
+            <ProtectedRoute>
               <ProfileBlogDetail />
             </ProtectedRoute>
           }
@@ -102,7 +109,7 @@ const Routes = () => {
         <Route
           path="/analytics"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="analytics:read:own">
               <Analytics />
             </ProtectedRoute>
           }
@@ -110,7 +117,7 @@ const Routes = () => {
         <Route
           path="/analytics/blog/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission="analytics:read:own">
               <BlogAnalytics />
             </ProtectedRoute>
           }

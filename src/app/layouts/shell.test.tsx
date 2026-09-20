@@ -217,6 +217,42 @@ describe('the site header (Navbar)', () => {
       authState.user = null
     }
   })
+
+  /**
+   * US1 acceptance 1: a member is offered none of the actions the API would
+   * refuse. Every row below carries the same `role` string and differs only in
+   * the permission list, which is the point - the header reads the backend's
+   * effective permissions and never the role name, so a forged or stale role
+   * cannot conjure a control.
+   */
+  it.each([
+    ['nothing', [] as string[], { write: false, analytics: false, access: false }],
+    ['writing', ['content:manage:own'], { write: true, analytics: false, access: false }],
+    ['analytics', ['analytics:read:own'], { write: false, analytics: true, access: false }],
+    [
+      'everything',
+      ['content:manage:own', 'analytics:read:own', 'roles:assign'],
+      { write: true, analytics: true, access: true },
+    ],
+  ])('offers the actions the backend grants, given %s', (_granted, permissions, expected) => {
+    authState.user = {
+      id: 1,
+      username: 'reader',
+      authorization: { role: 'member', permissions },
+    } as unknown as User
+
+    try {
+      const html = render(<Navbar />)
+
+      expect(html.includes('href="/blog-editor">Write')).toBe(expected.write)
+      expect(html.includes('href="/analytics"')).toBe(expected.analytics)
+      expect(html.includes('Access management')).toBe(expected.access)
+      // The one account control that is nobody's privilege.
+      expect(html).toContain(`href="/profile/reader"`)
+    } finally {
+      authState.user = null
+    }
+  })
 })
 
 describe('mobile menu Escape handling (navbar.logic)', () => {
