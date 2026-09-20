@@ -18,6 +18,7 @@ import {
   Eyebrow,
   Heading,
   Metadata,
+  MissingState,
   PageLoading,
   RetryAction,
   Section,
@@ -33,7 +34,23 @@ import { usePublicSeries } from '../usePublicSeries'
 
 const SeriesPage = () => {
   const { slug } = useParams()
-  const { series, loading, error, retry } = usePublicSeries(slug)
+  const { series, loading, error, notFound, retry } = usePublicSeries(slug)
+
+  const waysOnward = (
+    <>
+      <ActionLink
+        standalone
+        to="/series"
+        underline="hover"
+        iconStart={<FiArrowLeft aria-hidden="true" />}
+      >
+        All series
+      </ActionLink>
+      <ActionLink standalone to="/blog" underline="hover">
+        Browse blogs
+      </ActionLink>
+    </>
+  )
 
   if (loading) {
     return (
@@ -45,26 +62,43 @@ const SeriesPage = () => {
     )
   }
 
-  if (!series) {
+  /*
+   * A transient failure keeps its retry: the next request may well succeed.
+   * Checked before the missing branch, which also has no `series` to show.
+   */
+  if (error) {
     return (
       <ContentContainer width="prose">
         <Section>
-          <ErrorState failedAction="load this Series" detail={error ?? undefined} align="start">
+          <ErrorState failedAction="load this Series" detail={error} align="start">
             <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
               <RetryAction failedAction="load this Series" onRetry={retry} />
-              <ActionLink
-                standalone
-                to="/series"
-                underline="hover"
-                iconStart={<FiArrowLeft aria-hidden="true" />}
-              >
-                All series
-              </ActionLink>
-              <ActionLink standalone to="/blog" underline="hover">
-                Browse blogs
-              </ActionLink>
+              {waysOnward}
             </Stack>
           </ErrorState>
+        </Section>
+      </ContentContainer>
+    )
+  }
+
+  /*
+   * Missing, private, or emptied of its published blogs. No retry: the second
+   * request answers exactly as the first one did, and a button that cannot
+   * work is worse than the two links that can.
+   */
+  if (notFound || !series) {
+    return (
+      <ContentContainer width="prose">
+        <Section>
+          <MissingState
+            subject="this Series"
+            detail="It may have been unpublished, or the link may be out of date."
+            align="start"
+          >
+            <Stack direction="row" gap={3} collapseAt="sm" alignItems="center">
+              {waysOnward}
+            </Stack>
+          </MissingState>
         </Section>
       </ContentContainer>
     )
@@ -109,10 +143,26 @@ const SeriesPage = () => {
                 </Box>
               ))}
             </Metadata>
+            {/*
+              A real list, because `aria-label` on a bare `div` lands on the
+              generic role and is dropped: the group was named for assistive
+              technology that never heard the name.
+            */}
             {topics.length > 0 ? (
-              <Box display="flex" flexWrap="wrap" gap={space[2]} aria-label="Series topics">
+              <Box
+                as="ul"
+                display="flex"
+                flexWrap="wrap"
+                gap={space[2]}
+                listStyleType="none"
+                margin={0}
+                padding={0}
+                aria-label="Series topics"
+              >
                 {topics.map((topic) => (
-                  <Chip key={topic}>{topic}</Chip>
+                  <Box as="li" key={topic} display="inline-flex">
+                    <Chip>{topic}</Chip>
+                  </Box>
                 ))}
               </Box>
             ) : null}

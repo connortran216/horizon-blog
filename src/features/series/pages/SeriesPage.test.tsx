@@ -4,38 +4,45 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import theme from '../../../theme/horizon'
 
+const loaded = {
+  id: 9,
+  slug: 'database-engineering',
+  title: 'Database Engineering',
+  description: 'Connected blogs about practical database design.',
+  author: { id: 1, name: 'Connor Tran' },
+  updatedAt: '2026-08-16T00:00:00Z',
+  parts: [
+    {
+      postId: 42,
+      title: 'Indexes first',
+      excerpt: 'Start with the read path.',
+      readingTime: 6,
+      tags: ['database'],
+      position: 1,
+      publishedAt: null,
+    },
+  ],
+}
+
 const state = vi.hoisted(() => ({
-  series: {
-    id: 9,
-    slug: 'database-engineering',
-    title: 'Database Engineering',
-    description: 'Connected blogs about practical database design.',
-    author: { id: 1, name: 'Connor Tran' },
-    updatedAt: '2026-08-16T00:00:00Z',
-    parts: [
-      {
-        postId: 42,
-        title: 'Indexes first',
-        excerpt: 'Start with the read path.',
-        readingTime: 6,
-        tags: ['database'],
-        position: 1,
-        publishedAt: null,
-      },
-    ],
-  } as unknown,
+  result: null as unknown,
 }))
 
 vi.mock('../usePublicSeries', () => ({
-  usePublicSeries: () => ({
-    series: state.series,
-    loading: false,
-    error: null,
-    retry: vi.fn(),
-  }),
+  usePublicSeries: () => state.result,
 }))
 
 import SeriesPage from './SeriesPage'
+
+const retry = vi.fn()
+
+const loadedState = (series: unknown) => ({
+  series,
+  loading: false,
+  error: null,
+  notFound: false,
+  retry,
+})
 
 const render = () =>
   renderToStaticMarkup(
@@ -50,6 +57,7 @@ const render = () =>
 
 describe('SeriesPage', () => {
   it('renders approved metadata and ordered blogs without progress language', () => {
+    state.result = loadedState(loaded)
     const markup = render()
 
     expect(markup).toContain('Database Engineering')
@@ -63,6 +71,19 @@ describe('SeriesPage', () => {
   })
 
   /*
+   * The topic group is named for assistive technology, and a name only reaches
+   * assistive technology from an element that may carry one. On a bare `div`
+   * the role is generic and the name is dropped.
+   */
+  it('names the topic group on a real list rather than on a generic element', () => {
+    state.result = loadedState(loaded)
+    const markup = render()
+
+    expect(markup).toContain('<ul aria-label="Series topics"')
+    expect(markup).toContain('database')
+  })
+
+  /*
    * The header title is a plain `Heading`, not an `ActionLink` - it has no
    * `overflow-wrap` of its own to fall back on. A long Vietnamese title, real
    * content on this blog, is the header's actual worst case, and it must
@@ -71,8 +92,47 @@ describe('SeriesPage', () => {
   it('renders a long Vietnamese Series title in full on the detail header', () => {
     const longTitle =
       'Kiến trúc hệ thống phân tán: từ nguyên lý điều phối dữ liệu đến vận hành thực tế trong môi trường sản xuất quy mô lớn'
-    state.series = { ...(state.series as Record<string, unknown>), title: longTitle }
+    state.result = loadedState({ ...loaded, title: longTitle })
 
     expect(render()).toContain(longTitle)
+  })
+
+  it('offers links rather than a retry when the Series is not there', () => {
+    state.result = { series: null, loading: false, error: null, notFound: true, retry }
+    const markup = render()
+
+    expect(markup).toContain('We could not find this Series.')
+    expect(markup).toContain('href="/series"')
+    expect(markup).toContain('href="/blog"')
+    expect(markup).not.toContain('Try to load this Series again')
+  })
+
+  /*
+   * A Series whose published blogs have all been withdrawn is as absent as a
+   * deleted one. It used to render a header claiming "0 blogs" over an empty
+   * ordered list.
+   */
+  it('treats a Series with no published blogs as absent', () => {
+    state.result = { ...loadedState({ ...loaded, parts: [] }), notFound: true }
+    const markup = render()
+
+    expect(markup).toContain('We could not find this Series.')
+    expect(markup).not.toContain('0 blogs')
+  })
+
+  it('keeps the retry for a transient failure', () => {
+    state.result = {
+      series: null,
+      loading: false,
+      error: 'This series could not load right now.',
+      notFound: false,
+      retry,
+    }
+    const markup = render()
+
+    expect(markup).toContain('We could not load this Series.')
+    expect(markup).toContain('This series could not load right now.')
+    expect(markup).toContain('Try to load this Series again')
+    expect(markup).toContain('href="/series"')
   })
 })
