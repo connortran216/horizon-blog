@@ -100,6 +100,9 @@ describe('SeriesIndexPage', () => {
     expect(markup).toContain('aria-label="Series pagination"')
     expect(markup).toContain('aria-current="page"')
     expect(markup).toContain('Page 1 of 3')
+    // The summary names Series, not the blogs the shared control paged first.
+    expect(markup).toContain('Showing 1 to 9 of 20 Series')
+    expect(markup).not.toContain('20 blogs')
   })
 
   it('reserves the shape of the results while they load', () => {

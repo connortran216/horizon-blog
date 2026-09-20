@@ -184,7 +184,21 @@ export interface PaginationInput {
   readonly totalItems: number
   /** Numbered buttons drawn before gaps appear. Minimum 5. */
   readonly maxPageButtons?: number
+  /**
+   * What is being paged, for the accessible summary - `Showing 1 to 9 of 20
+   * Series`. Both forms are given because the default's plural is regular and
+   * the first other caller's (`Series`) is not. Defaults to blogs, which is
+   * what every list this control paged before `/series` existed.
+   */
+  readonly itemNoun?: PaginationItemNoun
 }
+
+export interface PaginationItemNoun {
+  readonly one: string
+  readonly many: string
+}
+
+export const DEFAULT_PAGINATION_ITEM_NOUN: PaginationItemNoun = { one: 'blog', many: 'blogs' }
 
 export type PaginationEntry =
   | { readonly kind: 'page'; readonly page: number; readonly isCurrent: boolean }
@@ -224,6 +238,7 @@ export function paginationModel({
   pageSize,
   totalItems,
   maxPageButtons = 7,
+  itemNoun = DEFAULT_PAGINATION_ITEM_NOUN,
 }: PaginationInput): PaginationModel {
   const size = Math.max(1, Math.floor(pageSize))
   const total = Math.max(0, Math.floor(totalItems))
@@ -246,8 +261,8 @@ export function paginationModel({
     rangeLabel: `Page ${current} of ${totalPages}`,
     srSummary:
       total === 0
-        ? 'No blogs to page through'
-        : `Showing ${firstItem} to ${lastItem} of ${pluralise(total, 'blog')}`,
+        ? `No ${itemNoun.many} to page through`
+        : `Showing ${firstItem} to ${lastItem} of ${pluralise(total, itemNoun.one, itemNoun.many)}`,
     isEmpty: total === 0,
   }
 }

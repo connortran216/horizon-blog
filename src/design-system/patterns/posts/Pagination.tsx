@@ -73,6 +73,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
     pageSize,
     totalItems,
     maxPageButtons,
+    itemNoun,
     onPageChange,
     regionRef,
     label = 'Blog pagination',
@@ -82,7 +83,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
   ref,
 ) {
   const policy = useMotionPolicy()
-  const model = paginationModel({ page, pageSize, totalItems, maxPageButtons })
+  const model = paginationModel({ page, pageSize, totalItems, maxPageButtons, itemNoun })
 
   /*
    * The move is made from the press, synchronously, rather than from an effect

@@ -177,6 +177,20 @@ describe('paginationModel', () => {
       'Showing 61 to 61 of 61 blogs',
     )
   })
+
+  it('names what is being paged when the list is not blogs', () => {
+    const noun = { one: 'Series', many: 'Series' }
+
+    expect(
+      paginationModel({ page: 1, pageSize: 9, totalItems: 20, itemNoun: noun }).srSummary,
+    ).toBe('Showing 1 to 9 of 20 Series')
+    expect(paginationModel({ page: 1, pageSize: 9, totalItems: 1, itemNoun: noun }).srSummary).toBe(
+      'Showing 1 to 1 of 1 Series',
+    )
+    expect(paginationModel({ page: 1, pageSize: 9, totalItems: 0, itemNoun: noun }).srSummary).toBe(
+      'No Series to page through',
+    )
+  })
 })
 
 describe('pageButtonLabel', () => {
