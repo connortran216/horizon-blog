@@ -6,6 +6,7 @@ import {
   clearSessionHint,
   createSessionHint,
   hasSessionHint,
+  isOAuthCallbackPath,
   markSessionPresent,
   readSessionHint,
 } from './session-hint'
@@ -112,5 +113,18 @@ describe('session hint', () => {
         })
       }
     }
+  })
+})
+
+describe('isOAuthCallbackPath', () => {
+  it('recognises the Google callback route, with or without a trailing slash', () => {
+    expect(isOAuthCallbackPath('/login/callback')).toBe(true)
+    expect(isOAuthCallbackPath('/login/callback/')).toBe(true)
+  })
+
+  it('does not match the login page, the home page or a prefix', () => {
+    expect(isOAuthCallbackPath('/login')).toBe(false)
+    expect(isOAuthCallbackPath('/')).toBe(false)
+    expect(isOAuthCallbackPath('/login/callback/extra')).toBe(false)
   })
 })

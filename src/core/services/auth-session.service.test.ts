@@ -174,6 +174,31 @@ describe('AuthSessionService session hint', () => {
     expect(store.getSnapshot().token).toBeNull()
   })
 
+  /*
+   * The Google callback: the backend set the refresh cookie and redirected
+   * here, and this browser has never installed a token, so there is no hint.
+   * Skipping the refresh here reported `oauth_finalize_failed` for every
+   * first-time Google sign-in on the day the hint shipped.
+   */
+  it('attempts the refresh on the OAuth callback even with no hint', async () => {
+    const store = new AccessTokenStore()
+    const storage = createHintStorage()
+    const transport = createTransport()
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(storage),
+    )
+
+    await expect(service.bootstrap({ expectSession: true })).resolves.toBe(true)
+    expect(transport.refresh).toHaveBeenCalledTimes(1)
+    expect(store.getSnapshot().token).not.toBeNull()
+    // And from here on this browser carries the hint like any other login.
+    expect(hintOf(storage)).toBe('1')
+  })
+
   it('still attempts the refresh when the hint is present', async () => {
     const store = new AccessTokenStore()
     const transport = createTransport()

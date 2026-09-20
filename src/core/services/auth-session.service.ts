@@ -14,6 +14,15 @@ export interface AuthSessionTransport {
   logout(): Promise<void>
 }
 
+export interface BootstrapOptions {
+  /**
+   * The caller knows a session was just established outside this tab's
+   * knowledge - the OAuth callback, where the backend set the refresh cookie
+   * and redirected here - so the hint's absence must not skip the refresh.
+   */
+  expectSession?: boolean
+}
+
 export type AuthSessionEvent =
   | { type: 'access-installed' }
   | { type: 'signed-out'; reason: 'logout' | 'session-invalid' }
@@ -53,7 +62,7 @@ export class AuthSessionService {
     return this.installResponse(response, true)
   }
 
-  async bootstrap(): Promise<boolean> {
+  async bootstrap({ expectSession = false }: BootstrapOptions = {}): Promise<boolean> {
     /*
      * A visitor who has never signed in on this browser is the common case on
      * a public blog, and for them `/auth/refresh` is a guaranteed 401 that
@@ -65,7 +74,7 @@ export class AuthSessionService {
      * That costs one login to one returning reader; the call it removes cost
      * every guest a round-trip on every page load.
      */
-    if (!this.hint.hasSessionHint()) {
+    if (!expectSession && !this.hint.hasSessionHint()) {
       return false
     }
 

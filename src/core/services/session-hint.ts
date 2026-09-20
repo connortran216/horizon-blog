@@ -109,3 +109,19 @@ export const createSessionHint = (storage?: SessionHintStorage): SessionHint => 
 })
 
 export const sessionHint = createSessionHint()
+
+/**
+ * The Google sign-in callback. The backend finishes the OAuth exchange, sets
+ * the refresh cookie and redirects here; the page then has a session in the
+ * cookie jar and no token anywhere in the document - `/auth/refresh` is how it
+ * gets one. So this is the one location where the absence of a hint says
+ * nothing: a first Google sign-in on this browser has, by definition, never
+ * installed a token here. Bootstrap must attempt the refresh on this path
+ * regardless of the hint, or the callback reports `oauth_finalize_failed` for
+ * every first-time Google user - which is exactly what happened on the day
+ * the hint shipped. `Routes.tsx` owns the literal route; this mirrors it.
+ */
+export const OAUTH_CALLBACK_PATH = '/login/callback'
+
+export const isOAuthCallbackPath = (pathname: string): boolean =>
+  pathname.replace(/\/+$/, '') === OAUTH_CALLBACK_PATH
