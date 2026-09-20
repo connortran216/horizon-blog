@@ -1319,12 +1319,27 @@
  * at x 236. `Prose` owns the column on both surfaces and every other child of
  * it lines up; the body was the one thing sitting 32px inside its own title.
  *
- * The vertical 32px stays. It is the space between the frame and the first
- * paragraph, which nothing else supplies.
+ * The vertical 32px goes too: it was the inset of a frame the reader no
+ * longer draws (see below), and `ReaderFrame`'s own rhythm already separates
+ * the cover and metadata from the first paragraph.
  */
 .crepe-editor-wrapper[data-readonly='true'] .milkdown .ProseMirror {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  padding: 0 !important;
+}
+
+/*
+ * The reading surface is not a panel. `CrepeEditor` says so - "Prose owns the
+ * frame in the reader" - but the `.milkdown` rules above paint `bg.elevated`
+ * on every surface, and in the reader that drew a second, slightly lighter
+ * box behind the article body with the text sitting on its edge: the title,
+ * metadata and cover on the page ground, the prose in a box of its own. With
+ * the side padding gone the box had nothing left to justify it. The body now
+ * sits on the same ground as the title above it; the writing surface keeps
+ * its panel, which `WorkspaceShell` draws.
+ */
+.chakra-ui-dark .crepe-editor-wrapper[data-readonly='true'] .milkdown,
+.chakra-ui-light .crepe-editor-wrapper[data-readonly='true'] .milkdown {
+  background-color: transparent;
 }
 
 /*
