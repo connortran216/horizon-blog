@@ -11,6 +11,16 @@
  * down to the one below; the run has a visible beginning and end; and when the
  * reader is inside the Series, everything up to their position is drawn in the
  * active colour. `partConnector` owns those decisions.
+ *
+ * Pointing at a part, or tabbing to its title, lights that part's ordinal
+ * marker and the connector leaving it for the next one - `y2e.3.2` asks for
+ * both, and the outgoing segment is what makes the emphasis read as a position
+ * in an order rather than as a row highlight. `data-group` on the `li` is the
+ * scope: `_groupHover` and `_groupFocusWithin` reach the two pieces from
+ * inside, so the row keeps its list semantics and the keyboard gets the same
+ * emphasis the pointer does. It is colour only, on `transitionFor` - reduced
+ * motion removes travel and keeps immediate state feedback, so there is
+ * nothing here for it to take away.
  */
 
 import { Box, type BoxProps } from '@chakra-ui/react'
@@ -66,6 +76,9 @@ export function PartList({
           <Box
             as="li"
             key={part.id}
+            data-group
+            data-part-state={connector.state}
+            data-active={isCurrent ? 'true' : undefined}
             position="relative"
             display="grid"
             gridTemplateColumns={`${presentation.ordinalSize} minmax(0, 1fr) auto`}
@@ -97,6 +110,8 @@ export function PartList({
                 width="2px"
                 bg={lineColor}
                 transition={transitionFor('background-color')}
+                _groupHover={{ bg: presentation.connectorActive }}
+                _groupFocusWithin={{ bg: presentation.connectorActive }}
               />
             ) : null}
 
@@ -111,6 +126,8 @@ export function PartList({
               color={isCurrent ? 'text.onAction' : presentation.partRest}
               textStyle="meta"
               transition={`${transitionFor('background-color')}, ${transitionFor('color')}`}
+              _groupHover={{ bg: presentation.connectorActive, color: 'text.onAction' }}
+              _groupFocusWithin={{ bg: presentation.connectorActive, color: 'text.onAction' }}
             >
               {partOrdinal(part.position)}
             </Box>

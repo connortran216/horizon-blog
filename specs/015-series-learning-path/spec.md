@@ -107,3 +107,24 @@ Reading a blog remains fully usable when series data is absent or temporarily un
 - Search or tag filters dedicated to Series in this iteration.
 - A permanent Series item in the global navbar.
 - A new visual paradigm for the reader or editor.
+
+## Amendments
+
+Recorded on 2026-09-20, when the acceptance criteria were audited against the
+shipped code. In each case the code was changed deliberately, with tests that
+encode the new behaviour, and the text here had not followed.
+
+- **FR-008** — the Home and Blog shelves show up to twelve recently updated
+  public Series in a scrollable rail, not two; a rail of two has dead arrows
+  (`SeriesShelf.request.test.ts`). When the list is unavailable the shelf shows
+  a retryable error in place rather than disappearing (`SeriesShelf.states.test.ts`);
+  it still renders nothing when the list is empty.
+- **`Start here` (ui-ux Screen 4, T028)** — every part is labelled `Part X of Y`,
+  including the first; `series.logic.ts` `partLabel` is the single source and
+  `SeriesPartList.tsx` records the decision.
+- **Series context placement (ui-ux Screen 5)** — `SeriesContextCard` renders
+  after the article prose, per `DESIGN.md`, not between the metadata and the
+  body (`BlogReaderFrame.test.tsx`).
+- **Loading state (ui-ux Screen 4)** — `SeriesPage` still renders `PageLoading`
+  rather than header and ordered-list skeletons. This is a real deviation, kept
+  open as follow-up work rather than amended away.

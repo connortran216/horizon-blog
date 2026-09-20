@@ -26,7 +26,7 @@ import {
 } from '../../../design-system'
 import { componentTokens, space } from '../../../theme/tokens'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
-import { coverSourcesFrom } from '../../blog/postSummary.presentation'
+import { postCoverFrom } from '../../blog/postSummary.presentation'
 import { ProfileBlogPost } from '../profile.types'
 import { scheduleStatusPresentation } from '../profile.presentation'
 import {
@@ -59,6 +59,13 @@ const ProfileScheduledRow = ({
   const scheduledAt = blog.scheduledPublishAt || ''
   const status = scheduleStatusPresentation(getScheduleDisplayState(scheduledAt, now))
   const coverMedia = useResolvedCoverMedia(blog.featuredImage)
+  // The row itself is decorative below - see `decorative` on `ResponsiveImage`
+  // - so `alt` is never read. `postCoverFrom` still needs one to build the
+  // rest of the cover, which is the point of calling it here: `src` becomes
+  // the narrowest resized variant rather than `coverMedia.url`, which can be
+  // the original, un-resized upload - see `articleCover.presentation.ts` for
+  // the measured cost of shipping that upload to a 180px frame.
+  const cover = postCoverFrom(coverMedia, blog.title)
 
   return (
     <Surface as="article" depth="raised">
@@ -70,8 +77,8 @@ const ProfileScheduledRow = ({
       >
         <ResponsiveImage
           aspectRatio="16 / 9"
-          src={coverMedia?.url}
-          sources={coverSourcesFrom(coverMedia)}
+          src={cover?.src}
+          sources={cover?.sources}
           sizes="(max-width: 768px) 100vw, 180px"
           /*
            * Decorative. The heading beside it names the same post, and this row

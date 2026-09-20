@@ -143,6 +143,35 @@ describe('CommentSection reader states', () => {
     expect(markup).not.toContain('No comments on this blog yet.')
   })
 
+  it('gives the blog owner the control that closes the discussion', () => {
+    state.user = { id: 1, username: 'author' }
+    state.discussion.canManageComments = true
+
+    const markup = render()
+
+    expect(markup).toContain('Close comments')
+  })
+
+  it('offers the reopen control once the owner has closed it', () => {
+    state.user = { id: 1, username: 'author' }
+    state.discussion.canManageComments = true
+    state.discussion.commentsOpen = false
+
+    const markup = render()
+
+    expect(markup).toContain('Open comments')
+    expect(markup).not.toContain('Close comments')
+  })
+
+  it('keeps moderation out of a reader’s reach', () => {
+    state.user = { id: 2, username: 'reader' }
+
+    const markup = render()
+
+    expect(markup).not.toContain('Close comments')
+    expect(markup).not.toContain('Open comments')
+  })
+
   it('pluralises the comment count rather than printing "1 comments"', () => {
     state.discussion.commentCount = 1
 

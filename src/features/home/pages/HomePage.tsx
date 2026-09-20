@@ -39,7 +39,6 @@ import StoryCard from '../components/StoryCard'
 import SeriesShelf from '../../series/components/SeriesShelf'
 
 const POST_LIMIT = 9
-const SETTLE_MS = 250
 const LATEST_EYEBROW = 'Recent blogs'
 const LATEST_HEADING = 'Keep reading beyond the latest post'
 
@@ -54,18 +53,6 @@ const HomePage = () => {
 
   useEffect(() => {
     let cancelled = false
-    let settleTimer = 0
-
-    const settle = () => {
-      // The short settle keeps the skeletons from flashing on a warm cache.
-      // It is a timer, so it is cancelled on unmount rather than left to call
-      // `setState` on a component that is no longer mounted.
-      settleTimer = window.setTimeout(() => {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }, SETTLE_MS)
-    }
 
     const loadBlogPosts = async () => {
       setIsLoading(true)
@@ -84,8 +71,10 @@ const HomePage = () => {
           setLoadError('The latest writing could not load right now.')
         }
       } finally {
+        // The guard is what keeps this off an unmounted component; the request
+        // settling is the only thing the skeletons were ever waiting for.
         if (!cancelled) {
-          settle()
+          setIsLoading(false)
         }
       }
     }
@@ -94,7 +83,6 @@ const HomePage = () => {
 
     return () => {
       cancelled = true
-      window.clearTimeout(settleTimer)
     }
   }, [location.pathname, reloadVersion])
 

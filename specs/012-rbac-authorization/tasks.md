@@ -16,6 +16,7 @@
 - [X] T006 [P] [US1] Add member/author/admin/absent-context route and visibility tests
 - [X] T007 [US1] Add optional `requiredPermission` and access-denied rendering to `src/components/ProtectedRoute.tsx`
 - [X] T008 [US2] Require author permissions on editor/analytics routes and gate navigation/home/profile author controls
+  - Audit 2026-09-20: `/analytics` and `/analytics/blog/:id` carried no `requiredPermission`; the `analytics:read:own` gate sat on the two `/profile` routes instead, refusing a member their own self-service profile while letting them into the analytics workspace by address. Corrected in `967e5f3`, with `src/Routes.test.tsx` holding the permission-to-address matrix in both directions so T017's pass cannot miss it again.
 - [X] T009 [US5] Preserve public routes and backend-projected comment capability behavior
 
 ## Phase 4: Permission-loss recovery (US3)

@@ -52,6 +52,27 @@ const MIME_TYPES = new Map([
   ['.woff2', 'font/woff2'],
 ]);
 
+// `scripts/compress-assets.mjs` writes a `.br` and `.gz` sibling for each of
+// these at build time. The origin's uplink is the bottleneck, so the encoded
+// copy is what should cross it - see `serveAsset`.
+const COMPRESSIBLE_EXTENSIONS = new Set([
+  '.css',
+  '.html',
+  '.js',
+  '.json',
+  '.map',
+  '.mjs',
+  '.svg',
+  '.txt',
+  '.webmanifest',
+  '.xml',
+]);
+
+// Those siblings are an encoding of another asset, never an asset of their own:
+// serving `/assets/x.js.br` directly would hand the client a brotli stream with
+// no `content-encoding`, so it is a 404 like any other unknown path.
+const ENCODED_EXTENSIONS = new Set(['.br', '.gz']);
+
 const ALLOWED_PROXY_IMAGE_TYPES = new Set([
   'image/avif',
   'image/gif',
@@ -94,6 +115,27 @@ const isFile = async (path) => {
   } catch {
     return false;
   }
+};
+
+// `br;q=0` is a client saying "not this one", so a zero quality is a rejection
+// rather than a preference.
+const parseAcceptedEncodings = (value) => {
+  const raw = Array.isArray(value) ? value.join(',') : String(value || '');
+  const accepted = new Set();
+
+  for (const part of raw.split(',')) {
+    const [token, ...parameters] = part.split(';').map((piece) => piece.trim());
+    if (!token) continue;
+
+    const quality = parameters
+      .map((parameter) => parameter.match(/^q=(.*)$/i))
+      .find(Boolean)?.[1];
+    if (quality !== undefined && Number(quality) === 0) continue;
+
+    accepted.add(token.toLowerCase());
+  }
+
+  return accepted;
 };
 
 const writeResponse = (request, response, status, headers, body = '') => {
@@ -406,23 +448,45 @@ export const createSeoServer = ({
     );
   };
 
+  // Precompressed at build time, never on the fly: the origin uploads the
+  // encoded bytes, which is the only part of the transfer it pays for.
+  const negotiateEncoding = async (request, assetPath) => {
+    const accepted = parseAcceptedEncodings(request.headers['accept-encoding']);
+
+    if (accepted.has('br') && (await isFile(`${assetPath}.br`))) {
+      return { encoding: 'br', filePath: `${assetPath}.br` };
+    }
+    if (accepted.has('gzip') && (await isFile(`${assetPath}.gz`))) {
+      return { encoding: 'gzip', filePath: `${assetPath}.gz` };
+    }
+    return { encoding: undefined, filePath: assetPath };
+  };
+
   const serveAsset = async (request, response, assetPath, pathname) => {
-    const fileStat = await stat(assetPath);
+    const extension = extname(assetPath).toLowerCase();
+    const compressible = COMPRESSIBLE_EXTENSIONS.has(extension);
+    const { encoding, filePath } = compressible
+      ? await negotiateEncoding(request, assetPath)
+      : { encoding: undefined, filePath: assetPath };
+    const fileStat = await stat(filePath);
     const headers = {
       ...securityHeaders(config),
-      'content-type':
-        MIME_TYPES.get(extname(assetPath).toLowerCase()) || 'application/octet-stream',
+      'content-type': MIME_TYPES.get(extension) || 'application/octet-stream',
       'content-length': String(fileStat.size),
       'cache-control': /^\/assets\/.+-[a-zA-Z0-9_-]{6,}\./.test(pathname)
         ? 'public, max-age=31536000, immutable'
         : 'public, max-age=3600',
+      // Emitted even when the raw copy wins, so Cloudflare keys its cache on the
+      // encoding instead of serving one client's variant to everyone.
+      ...(compressible ? { vary: 'accept-encoding' } : {}),
+      ...(encoding ? { 'content-encoding': encoding } : {}),
     };
     response.writeHead(200, headers);
     if (request.method === 'HEAD') {
       response.end();
       return;
     }
-    createReadStream(assetPath).pipe(response);
+    createReadStream(filePath).pipe(response);
   };
 
   const servePostImage = async (request, response, policy) => {
@@ -540,7 +604,8 @@ export const createSeoServer = ({
         return;
       }
       const assetPath = getSafeAssetPath(distDir, url.pathname);
-      if (assetPath && (await isFile(assetPath))) {
+      const encodedSibling = assetPath && ENCODED_EXTENSIONS.has(extname(assetPath).toLowerCase());
+      if (assetPath && !encodedSibling && (await isFile(assetPath))) {
         await serveAsset(request, response, assetPath, url.pathname);
         return;
       }

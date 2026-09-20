@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { AccessTokenStore } from './access-token.store'
-import { AuthSessionCoordinator } from './auth-session-coordinator'
+import { AuthSessionCoordinator, AuthSessionMessage } from './auth-session-coordinator'
 import { AuthSessionService, AuthSessionTransport } from './auth-session.service'
+import { SESSION_HINT_STORAGE_KEY, SessionHintStorage, createSessionHint } from './session-hint'
 
 const response = (token: string) => ({
   access_token: token,
@@ -29,6 +30,25 @@ const createTransport = (): AuthSessionTransport => ({
   logout: vi.fn().mockResolvedValue(undefined),
 })
 
+const createHintStorage = (seeded = false): SessionHintStorage => {
+  const values = new Map<string, string>()
+  if (seeded) {
+    values.set(SESSION_HINT_STORAGE_KEY, '1')
+  }
+
+  return {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => {
+      values.set(key, value)
+    },
+    removeItem: (key) => {
+      values.delete(key)
+    },
+  }
+}
+
+const hintOf = (storage: SessionHintStorage) => storage.getItem(SESSION_HINT_STORAGE_KEY)
+
 describe('AuthSessionService', () => {
   it('installs login access only in the memory store', async () => {
     const store = new AccessTokenStore()
@@ -50,7 +70,13 @@ describe('AuthSessionService', () => {
       access_token: undefined,
       token: 'compatibility-token',
     })
-    const service = new AuthSessionService(store, transport, createCoordinator())
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(createHintStorage(true)),
+    )
 
     await expect(service.bootstrap()).resolves.toBe(true)
     expect(store.getSnapshot().token).toBe('compatibility-token')
@@ -128,5 +154,146 @@ describe('AuthSessionService', () => {
     await expect(service.logout()).resolves.toEqual({ serverRevoked: true })
     expect(transport.logout).toHaveBeenCalledTimes(1)
     expect(store.getSnapshot().token).toBeNull()
+  })
+})
+
+describe('AuthSessionService session hint', () => {
+  it('skips the refresh round-trip for a visitor with no hint', async () => {
+    const store = new AccessTokenStore()
+    const transport = createTransport()
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(createHintStorage()),
+    )
+
+    await expect(service.bootstrap()).resolves.toBe(false)
+    expect(transport.refresh).not.toHaveBeenCalled()
+    expect(store.getSnapshot().token).toBeNull()
+  })
+
+  it('still attempts the refresh when the hint is present', async () => {
+    const store = new AccessTokenStore()
+    const transport = createTransport()
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(createHintStorage(true)),
+    )
+
+    await expect(service.bootstrap()).resolves.toBe(true)
+    expect(transport.refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('attempts the refresh when storage cannot be read', async () => {
+    const store = new AccessTokenStore()
+    const transport = createTransport()
+    const throwing: SessionHintStorage = {
+      getItem: () => {
+        throw new Error('storage is blocked')
+      },
+      setItem: () => {
+        throw new Error('storage is blocked')
+      },
+      removeItem: () => {
+        throw new Error('storage is blocked')
+      },
+    }
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(throwing),
+    )
+
+    await expect(service.bootstrap()).resolves.toBe(true)
+    expect(transport.refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('records the hint whenever an access token is installed', async () => {
+    const storage = createHintStorage()
+    const store = new AccessTokenStore()
+    const transport = createTransport()
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      undefined,
+      createSessionHint(storage),
+    )
+
+    await service.login({ email: 'user@example.com', password: 'password' })
+    expect(hintOf(storage)).toBe('1')
+
+    storage.removeItem(SESSION_HINT_STORAGE_KEY)
+    service.installLegacyRegistrationResponse(response('register-token'))
+    expect(hintOf(storage)).toBe('1')
+  })
+
+  it('clears the hint on logout', async () => {
+    const storage = createHintStorage(true)
+    const store = new AccessTokenStore()
+    store.install('access-token', 900)
+    const service = new AuthSessionService(
+      store,
+      createTransport(),
+      createCoordinator(),
+      undefined,
+      createSessionHint(storage),
+    )
+
+    await service.logout()
+    expect(hintOf(storage)).toBeNull()
+  })
+
+  it('clears the hint when a refresh proves the session invalid', async () => {
+    const storage = createHintStorage(true)
+    const store = new AccessTokenStore()
+    store.install('expired-token', 1)
+    const transport = createTransport()
+    vi.mocked(transport.refresh).mockRejectedValue(new Error('refresh failed'))
+    const service = new AuthSessionService(
+      store,
+      transport,
+      createCoordinator(),
+      vi.fn(),
+      createSessionHint(storage),
+    )
+
+    await expect(service.refreshAccessToken()).rejects.toThrow('refresh failed')
+    expect(hintOf(storage)).toBeNull()
+  })
+
+  it('follows a sibling tab in both directions', () => {
+    const storage = createHintStorage()
+    let deliver: (message: AuthSessionMessage) => void = () => undefined
+    const coordinator = {
+      runWithRefreshLock: vi.fn(),
+      subscribe: vi.fn((listener: (message: AuthSessionMessage) => void) => {
+        deliver = listener
+        return () => undefined
+      }),
+      broadcastAccess: vi.fn(),
+      broadcastSignedOut: vi.fn(),
+    } as unknown as AuthSessionCoordinator
+    const store = new AccessTokenStore()
+    new AuthSessionService(
+      store,
+      createTransport(),
+      coordinator,
+      vi.fn(),
+      createSessionHint(storage),
+    )
+
+    deliver({ type: 'access', sourceId: 'other-tab', token: 'shared-token', expiresAt: null })
+    expect(hintOf(storage)).toBe('1')
+
+    deliver({ type: 'signed-out', sourceId: 'other-tab', reason: 'logout' })
+    expect(hintOf(storage)).toBeNull()
   })
 })

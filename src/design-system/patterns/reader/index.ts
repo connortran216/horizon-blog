@@ -153,7 +153,6 @@ export type {
 
 export {
   idleShareState,
-  nextReactionCount,
   reactionButtonState,
   reactionUnavailableNotice,
   shareAnnouncement,

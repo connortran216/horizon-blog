@@ -23,13 +23,21 @@ import { Stack } from '../../components/layout'
 import { Surface } from '../../components/surface'
 import { Chip } from '../../components/status'
 import { Eyebrow, Heading, Metadata, Text } from '../../components/typography'
-import { ResponsiveImage } from '../../components/media'
+import { ResponsiveImage, type ImageSource } from '../../components/media'
 import { Avatar } from '../account/AvatarEditor'
 
 export interface PreviewCardProps {
   title: string
   excerpt?: string
   coverUrl?: string | null
+  /**
+   * Width-descriptor candidates for the cover, when the caller has resolved
+   * media variants. Paired with `coverSizes`; see `ResponsiveImage`'s own
+   * `sources`/`sizes`.
+   */
+  coverSources?: readonly ImageSource[]
+  /** The `sizes` attribute for the cover. Pair it with `coverSources`. */
+  coverSizes?: string
   /** Describes the cover. Required whenever `coverUrl` is set. */
   coverAlt?: string
   tags?: readonly string[]
@@ -47,6 +55,8 @@ export function PreviewCard({
   title,
   excerpt,
   coverUrl,
+  coverSources,
+  coverSizes,
   coverAlt,
   tags,
   author,
@@ -68,6 +78,8 @@ export function PreviewCard({
         aspectRatio="16 / 9"
         radius="card"
         src={coverUrl}
+        sources={coverSources}
+        sizes={coverSizes}
         {...(coverUrl && coverAlt ? { alt: coverAlt } : { decorative: true as const })}
         task="the cover image"
         absentCaption={title || 'Untitled draft'}
