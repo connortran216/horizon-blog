@@ -6,6 +6,7 @@ import {
   authSessionCoordinator,
 } from './auth-session-coordinator'
 import { AuthTransport, authTransport } from './auth.transport'
+import { SessionHint, sessionHint } from './session-hint'
 
 export interface AuthSessionTransport {
   login(credentials: LoginCredentials): Promise<AuthAccessResponse>
@@ -35,6 +36,7 @@ export class AuthSessionService {
     private readonly transport: AuthSessionTransport = authTransport,
     private readonly coordinator: AuthSessionCoordinator = authSessionCoordinator,
     private readonly dispatchUnauthorized: () => void = defaultUnauthorizedDispatch,
+    private readonly hint: SessionHint = sessionHint,
   ) {
     this.coordinator.subscribe((message) => this.handleCoordinatorMessage(message))
   }
@@ -52,6 +54,21 @@ export class AuthSessionService {
   }
 
   async bootstrap(): Promise<boolean> {
+    /*
+     * A visitor who has never signed in on this browser is the common case on
+     * a public blog, and for them `/auth/refresh` is a guaranteed 401 that
+     * still costs a full round-trip - measured at ~1.9s through Cloudflare and
+     * the tunnel - in front of the first render.
+     *
+     * The trade-off: someone who clears localStorage while their refresh
+     * cookie is still valid is treated as signed out until they sign in again.
+     * That costs one login to one returning reader; the call it removes cost
+     * every guest a round-trip on every page load.
+     */
+    if (!this.hint.hasSessionHint()) {
+      return false
+    }
+
     try {
       await this.refreshAccessToken()
       return true
@@ -96,6 +113,7 @@ export class AuthSessionService {
       serverRevoked = false
     } finally {
       this.tokens.clear()
+      this.hint.clearSessionHint()
       this.invalidTransitionEmitted = false
       this.coordinator.broadcastSignedOut('logout')
       this.notify({ type: 'signed-out', reason: 'logout' })
@@ -121,6 +139,8 @@ export class AuthSessionService {
         throw error
       }
     }
+
+    this.hint.markSessionPresent()
     return response
   }
 
@@ -135,12 +155,16 @@ export class AuthSessionService {
   private handleCoordinatorMessage(message: AuthSessionMessage): void {
     if (message.type === 'access') {
       this.tokens.installAbsolute(message.token, message.expiresAt)
+      // A tab that learns about a session from a sibling needs the hint too,
+      // or its next cold load would skip the refresh it is entitled to.
+      this.hint.markSessionPresent()
       this.invalidTransitionEmitted = false
       this.notify({ type: 'access-installed' })
       return
     }
 
     this.tokens.clear()
+    this.hint.clearSessionHint()
     if (message.reason === 'session-invalid') {
       this.emitUnauthorizedOnce()
     }
@@ -149,6 +173,7 @@ export class AuthSessionService {
 
   private invalidateSession(broadcast: boolean): void {
     this.tokens.clear()
+    this.hint.clearSessionHint()
     if (broadcast) {
       this.coordinator.broadcastSignedOut('session-invalid')
     }
