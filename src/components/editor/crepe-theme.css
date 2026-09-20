@@ -1299,12 +1299,32 @@
  * 96px of side padding puts the gutter at 112px from the panel edge (16px of
  * pane padding plus this), which clears the handle by 30px. It is restored on
  * the writing surface only: a published article and the preview carry no
- * handle, so `data-readonly='true'` keeps the 32px that aligns them.
+ * handle, and the reading surface below takes its side padding to zero.
  */
 @media (min-width: 801px) {
   .crepe-editor-wrapper[data-readonly='false'] .milkdown .ProseMirror {
     padding: 32px 96px !important;
   }
+}
+
+/* =========================================
+   Reading surface - the article, not a canvas
+   ========================================= */
+
+/*
+ * The published article and the preview are the same ProseMirror surface as
+ * the editor, so `padding: 32px` above reached them too - and on a reading
+ * surface that is an indent, not a gutter. Measured on `/blog/:id` at 1280:
+ * the `h1`, the metadata row and the cover start at x 204, the article text
+ * at x 236. `Prose` owns the column on both surfaces and every other child of
+ * it lines up; the body was the one thing sitting 32px inside its own title.
+ *
+ * The vertical 32px stays. It is the space between the frame and the first
+ * paragraph, which nothing else supplies.
+ */
+.crepe-editor-wrapper[data-readonly='true'] .milkdown .ProseMirror {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 /*
