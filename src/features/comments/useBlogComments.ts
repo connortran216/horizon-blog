@@ -4,6 +4,7 @@ import {
   createSiblingPageState,
   failSiblingPageLoad,
   mergeSiblingPage,
+  seedReplyPage,
   startSiblingPageLoad,
   upsertSiblingComment,
 } from './comments.reducer'
@@ -49,6 +50,15 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
   const [mutatingCommentId, setMutatingCommentId] = useState<number | null>(null)
   const [settingsLoading, setSettingsLoading] = useState(false)
   const pendingSubmissionIds = useRef(new Map<string, string>())
+
+  const findLoadedComment = useCallback(
+    (commentId: number): Comment | undefined =>
+      topLevel.items.find((item) => item.id === commentId) ??
+      Object.values(replies)
+        .flatMap((page) => page.items)
+        .find((item) => item.id === commentId),
+    [replies, topLevel.items],
+  )
 
   const updateCommentEverywhere = useCallback((comment: Comment) => {
     setTopLevel((state) =>
@@ -155,9 +165,13 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         if (parentId === null) {
           setTopLevel((state) => upsertSiblingComment(state, comment))
         } else {
+          const parentReplyCount = findLoadedComment(parentId)?.replyCount ?? 0
           setReplies((state) => ({
             ...state,
-            [parentId]: upsertSiblingComment(state[parentId] ?? createSiblingPageState(), comment),
+            [parentId]: upsertSiblingComment(
+              seedReplyPage(state[parentId], parentReplyCount),
+              comment,
+            ),
           }))
           setTopLevel((state) => ({
             ...state,
@@ -188,7 +202,7 @@ export const useBlogComments = ({ postId, enabled = true }: UseBlogCommentsOptio
         throw error
       }
     },
-    [postId, service],
+    [findLoadedComment, postId, service],
   )
 
   const updateComment = useCallback(

@@ -4,6 +4,7 @@ import {
   createSiblingPageState,
   failSiblingPageLoad,
   mergeSiblingPage,
+  seedReplyPage,
   startSiblingPageLoad,
   upsertSiblingComment,
 } from './comments.reducer'
@@ -81,6 +82,27 @@ describe('comments sibling-page reducer helpers', () => {
       editedAt: '2026-07-27T10:30:00Z',
     })
     expect(initial.items[0].content).toBe('Comment 1')
+  })
+
+  it('keeps a parent’s unloaded replies reachable after a reply is posted', () => {
+    const seeded = upsertSiblingComment(seedReplyPage(undefined, 3), makeComment(9))
+    const firstReplyEver = upsertSiblingComment(seedReplyPage(undefined, 0), makeComment(9))
+
+    expect(seeded.items.map((comment) => comment.id)).toEqual([9])
+    expect(seeded.hasMore).toBe(true)
+    expect(seeded.nextCursor).toBeNull()
+    expect(firstReplyEver.hasMore).toBe(false)
+  })
+
+  it('leaves an already loaded reply page and its cursor alone', () => {
+    const loaded = {
+      ...createSiblingPageState(),
+      items: [makeComment(1)],
+      nextCursor: 'opaque-cursor',
+      hasMore: true,
+    }
+
+    expect(seedReplyPage(loaded, 7)).toBe(loaded)
   })
 
   it('removes a leaf or converts a retained item to a safe tombstone', () => {
