@@ -1,6 +1,8 @@
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { request as httpRequest } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackendError } from './backend.mjs';
 import { createSeoConfig } from './config.mjs';
@@ -55,6 +57,27 @@ const crawlerHeaders = {
   'user-agent':
     'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
 };
+
+// `fetch` transparently decodes `content-encoding`, which is exactly what these
+// assertions need to see, so the precompression tests go through `node:http`
+// and compare the bytes actually put on the wire.
+const rawRequest = (url, { method = 'GET', headers = {} } = {}) =>
+  new Promise((settle, fail) => {
+    const clientRequest = httpRequest(url, { method, headers }, (response) => {
+      const chunks = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () =>
+        settle({
+          status: response.statusCode,
+          headers: response.headers,
+          body: Buffer.concat(chunks),
+        }),
+      );
+      response.on('error', fail);
+    });
+    clientRequest.on('error', fail);
+    clientRequest.end();
+  });
 
 const createBackend = () => ({
   getPublishedPost: vi.fn().mockResolvedValue(post),
@@ -434,5 +457,104 @@ describe('SEO HTTP gateway', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe('/branding/horizon-app-icon-512.png');
+  });
+
+  describe('precompressed asset delivery', () => {
+    const scriptSource = 'console.log("horizon");\n'.repeat(80);
+    const scriptPath = '/assets/horizon-XYZ789.js';
+    let brotliBody;
+    let gzipBody;
+
+    beforeEach(async () => {
+      brotliBody = brotliCompressSync(Buffer.from(scriptSource));
+      gzipBody = gzipSync(Buffer.from(scriptSource), { level: 9 });
+      await writeFile(join(distDir, 'assets', 'horizon-XYZ789.js'), scriptSource);
+      await writeFile(join(distDir, 'assets', 'horizon-XYZ789.js.br'), brotliBody);
+      await writeFile(join(distDir, 'assets', 'horizon-XYZ789.js.gz'), gzipBody);
+    });
+
+    it('prefers the brotli sibling and sends its exact bytes', async () => {
+      const response = await rawRequest(`${baseUrl}${scriptPath}`, {
+        headers: { 'accept-encoding': 'br, gzip' },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-encoding']).toBe('br');
+      expect(response.headers['vary']).toBe('accept-encoding');
+      expect(response.headers['content-type']).toBe('text/javascript; charset=utf-8');
+      expect(response.headers['content-length']).toBe(String(brotliBody.byteLength));
+      expect(response.headers['cache-control']).toBe('public, max-age=31536000, immutable');
+      expect(response.body.equals(brotliBody)).toBe(true);
+      expect(response.body.byteLength).toBeLessThan(Buffer.byteLength(scriptSource));
+    });
+
+    it('falls back to the gzip sibling when brotli is not accepted', async () => {
+      const response = await rawRequest(`${baseUrl}${scriptPath}`, {
+        headers: { 'accept-encoding': 'gzip, deflate' },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-encoding']).toBe('gzip');
+      expect(response.headers['vary']).toBe('accept-encoding');
+      expect(response.headers['content-length']).toBe(String(gzipBody.byteLength));
+      expect(response.body.equals(gzipBody)).toBe(true);
+    });
+
+    it('honours an explicit q=0 rejection of brotli', async () => {
+      const response = await rawRequest(`${baseUrl}${scriptPath}`, {
+        headers: { 'accept-encoding': 'br;q=0, gzip;q=1.0' },
+      });
+
+      expect(response.headers['content-encoding']).toBe('gzip');
+      expect(response.body.equals(gzipBody)).toBe(true);
+    });
+
+    it('serves the raw asset but still varies when no encoding is accepted', async () => {
+      const response = await rawRequest(`${baseUrl}${scriptPath}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-encoding']).toBeUndefined();
+      // Cloudflare must key its cache on the encoding even for this variant,
+      // or one client's raw copy is replayed to clients that asked for brotli.
+      expect(response.headers['vary']).toBe('accept-encoding');
+      expect(response.headers['content-length']).toBe(String(Buffer.byteLength(scriptSource)));
+      expect(response.body.toString()).toBe(scriptSource);
+    });
+
+    it('varies compressible assets that have no precompressed sibling', async () => {
+      const response = await rawRequest(`${baseUrl}/assets/app-ABC123.js`, {
+        headers: { 'accept-encoding': 'br, gzip' },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-encoding']).toBeUndefined();
+      expect(response.headers['vary']).toBe('accept-encoding');
+      expect(response.body.toString()).toBe('console.log("app")');
+    });
+
+    it('keeps HEAD requests consistent with the negotiated encoding', async () => {
+      const response = await rawRequest(`${baseUrl}${scriptPath}`, {
+        method: 'HEAD',
+        headers: { 'accept-encoding': 'br' },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-encoding']).toBe('br');
+      expect(response.headers['content-length']).toBe(String(brotliBody.byteLength));
+      expect(response.body.byteLength).toBe(0);
+    });
+
+    it('never serves the encoded siblings as assets of their own', async () => {
+      for (const pathname of [`${scriptPath}.br`, `${scriptPath}.gz`]) {
+        const response = await rawRequest(`${baseUrl}${pathname}`, {
+          headers: { 'accept-encoding': 'br, gzip' },
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.headers['content-type']).toBe('text/plain; charset=utf-8');
+        expect(response.headers['content-encoding']).toBeUndefined();
+        expect(response.body.toString()).toBe('Asset not found');
+      }
+    });
   });
 });
