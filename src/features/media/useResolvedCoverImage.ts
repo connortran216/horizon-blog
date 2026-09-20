@@ -55,7 +55,3 @@ export const useResolvedCoverMedia = (rawValue?: string): ResolvedMediaSource | 
 
   return coverMedia
 }
-
-export const useResolvedCoverImage = (rawValue?: string): string | undefined => {
-  return useResolvedCoverMedia(rawValue)?.url
-}

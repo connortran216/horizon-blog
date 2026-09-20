@@ -22,6 +22,7 @@
 import { PreviewCard } from '../../../design-system'
 import { BlogPostSummary } from '../../../core'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
+import { postCoverFrom } from '../../blog/postSummary.presentation'
 
 interface PublishBlogPreviewCardProps {
   blog: BlogPostSummary
@@ -37,12 +38,21 @@ const PublishBlogPreviewCard = ({
   publicationDateLabel,
 }: PublishBlogPreviewCardProps) => {
   const coverMedia = useResolvedCoverMedia(blog.featuredImage)
+  // The cover here is decorative - `PreviewCard` falls back to `title` as its
+  // caption whenever no `coverAlt` is given - so `postCoverFrom`'s alt is
+  // never rendered. What matters is `src`: the narrowest resized variant
+  // rather than `coverMedia.url`, which can be the original, un-resized
+  // upload - the same fix already made for the reading page's own cover, see
+  // `articleCover.presentation.ts`.
+  const cover = postCoverFrom(coverMedia, blog.title)
 
   return (
     <PreviewCard
       title={blog.title}
       excerpt={blog.excerpt}
-      coverUrl={coverMedia?.url ?? null}
+      coverUrl={cover?.src ?? null}
+      coverSources={cover?.sources}
+      coverSizes={cover?.sizes}
       tags={blog.tags}
       author={{ name: blog.author.username, avatarUrl: blog.author.avatar }}
       publicationDate={publicationDate}
