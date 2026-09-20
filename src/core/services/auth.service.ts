@@ -11,6 +11,7 @@ import {
   RegistrationResult,
   ResetPasswordData,
   UserAlreadyExistsError,
+  RestoreSessionOptions,
 } from '../types/auth.types'
 import { AuthSessionService, authSessionService } from './auth-session.service'
 import { AuthTransport, AuthTransportError, authTransport } from './auth.transport'
@@ -123,8 +124,8 @@ export class AuthService implements IAuthService {
     }
   }
 
-  restoreSession(): Promise<boolean> {
-    return this.sessions.bootstrap()
+  restoreSession(options?: RestoreSessionOptions): Promise<boolean> {
+    return this.sessions.bootstrap(options)
   }
 
   logout(): Promise<LogoutResult> {

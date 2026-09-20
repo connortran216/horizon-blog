@@ -101,6 +101,11 @@ export interface AuthActions {
 }
 
 // Complete authentication context
+export interface RestoreSessionOptions {
+  /** A session is known to exist (the OAuth callback); attempt the refresh even with no hint. */
+  expectSession?: boolean
+}
+
 export interface AuthContextValue extends AuthState, AuthActions {}
 
 // Authentication service interface
@@ -111,7 +116,7 @@ export interface IAuthService {
   resendVerification(email: string): Promise<string>
   requestPasswordReset(email: string): Promise<string>
   resetPassword(data: ResetPasswordData): Promise<string>
-  restoreSession(): Promise<boolean>
+  restoreSession(options?: RestoreSessionOptions): Promise<boolean>
   logout(): Promise<LogoutResult>
   getCurrentUser(): Promise<User | null>
   refreshToken(): Promise<boolean>

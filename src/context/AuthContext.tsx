@@ -20,6 +20,7 @@ import {
 import { getProfileService } from '../core/di/container'
 import { ApiError } from '../core/services/api.service'
 import { authSessionService } from '../core/services/auth-session.service'
+import { isOAuthCallbackPath } from '../core/services/session-hint'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
@@ -118,7 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'loading' })
 
       try {
-        const restored = await authService.restoreSession()
+        const restored = await authService.restoreSession({
+          expectSession: isOAuthCallbackPath(window.location.pathname),
+        })
         if (!restored) {
           dispatch({ type: 'unauthenticated' })
           return
