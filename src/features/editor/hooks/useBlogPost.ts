@@ -24,6 +24,28 @@ interface UseBlogPostState {
   postId: number | null
 }
 
+/**
+ * Whether the first render is already waiting on the network.
+ *
+ * `loadPost` runs from an effect, so it cannot set `isLoading` until after the
+ * first paint. Starting at `false` meant `/blog-editor?id=76` rendered the
+ * whole workspace over an empty draft for one frame - title blank, surface
+ * blank - and then replaced it with the loading panel once the request it had
+ * not made yet began. The only way to get that frame right is to know before
+ * rendering whether a request is coming, which is exactly what the URL and the
+ * router state already say: a post id with no post handed over is a fetch.
+ *
+ * A new draft, or one the profile page passed through `location.state`, has
+ * nothing to wait for and must not flash a loader on its way to an editor that
+ * is ready immediately.
+ */
+export function loadsPostOnMount(
+  postIdParam: string | null,
+  routerPost: PublicPostRecord | undefined,
+): boolean {
+  return Boolean(postIdParam) && !routerPost
+}
+
 export function useBlogPost(options: UseBlogPostOptions = {}) {
   const { redirectOnError = true } = options
   const { user } = useAuth()
@@ -38,12 +60,12 @@ export function useBlogPost(options: UseBlogPostOptions = {}) {
   const authorizedEdit = location.state?.authorizedEdit || false
 
   // State management
-  const [state, setState] = useState<UseBlogPostState>({
+  const [state, setState] = useState<UseBlogPostState>(() => ({
     post: null,
-    isLoading: false,
+    isLoading: loadsPostOnMount(postIdParam, routerPost),
     error: null,
     postId: null,
-  })
+  }))
 
   // Authorization and ownership check
   const checkAuthorization = useCallback(
