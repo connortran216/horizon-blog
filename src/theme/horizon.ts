@@ -42,6 +42,7 @@ import {
   sectionSpace,
   semanticColors,
   space,
+  themeSweepAttribute,
   transform,
   transitionFor,
   typeScale,
@@ -245,6 +246,27 @@ export const horizonTheme = extendTheme({
           transitionDuration: '0.01ms !important',
           scrollBehavior: 'auto !important',
         },
+      },
+      /*
+       * The theme sweep. `runThemeSweep` puts this attribute on the root for the
+       * life of one view transition, and only then does the new theme open
+       * from a horizon across the middle of the viewport instead of
+       * crossfading. Navigation's cover morph is also a view transition and
+       * never carries the attribute, so it keeps the browser's default root
+       * crossfade. The old snapshot does not animate: the new one is opaque
+       * and simply reveals over it.
+       */
+      '@keyframes horizon-theme-sweep': {
+        from: { clipPath: 'inset(50% 0 50% 0)' },
+        to: { clipPath: 'inset(0 0 0 0)' },
+      },
+      [`html[${themeSweepAttribute}]::view-transition-old(root)`]: {
+        animation: 'none',
+        mixBlendMode: 'normal',
+      },
+      [`html[${themeSweepAttribute}]::view-transition-new(root)`]: {
+        animation: `horizon-theme-sweep ${duration.reveal} ${easing.standard} both`,
+        mixBlendMode: 'normal',
       },
     },
   },

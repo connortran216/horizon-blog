@@ -8,6 +8,7 @@
 This folder is the canonical source of truth for Horizon Blog UI rules.
 
 Use this documentation before changing:
+
 - `src/theme/index.ts`
 - `src/app/layouts/`
 - `src/components/`
@@ -36,15 +37,18 @@ Implementation lives in code. This folder defines the intent, language, and cons
 Horizon is a personal blog.
 
 It is not:
+
 - an archive product
 - a notebook product
 - a dashboard-heavy publishing SaaS
 
 The UI should support two things above all else:
+
 - reading blogs comfortably
 - publishing blogs confidently
 
 The visual system should feel:
+
 - thoughtful
 - calm
 - modern
@@ -90,6 +94,7 @@ Design docs must follow the feature-first implementation shape. Do not document 
 ### Content Language
 
 User-facing copy should prefer:
+
 - `blog`
 - `blogs`
 - `writing`
@@ -97,12 +102,14 @@ User-facing copy should prefer:
 - `write`
 
 Avoid on public-facing surfaces:
+
 - `post`
 - `posts`
 - `archive product`
 - `notebook product`
 
 Status language:
+
 - public routes should not label every visible blog as `published`
 - draft status only matters in owner/profile/editor contexts
 
@@ -160,6 +167,7 @@ Current implemented semantic tokens in `src/theme/index.ts`:
 - `bg.glass`
 
 Usage:
+
 - `bg.page`: root page canvas
 - `bg.secondary`: standard panels and cards
 - `bg.tertiary`: muted chips, hover states, inset contrast
@@ -172,6 +180,7 @@ Usage:
 - `border.subtle`
 
 Usage:
+
 - `border.default`: standard card and input border
 - `border.subtle`: quiet separators and low-emphasis framing
 
@@ -182,6 +191,7 @@ Usage:
 - `text.tertiary`
 
 Usage:
+
 - `text.primary`: headlines, body, key labels
 - `text.secondary`: supporting copy
 - `text.tertiary`: metadata, helper text, placeholders
@@ -193,10 +203,12 @@ Usage:
 - `accent.glow`
 
 Rule:
+
 - `accent.*` is decorative or occasional emphasis
 - do not use `accent.primary` as the default solid button fill
 
 Typical uses:
+
 - decorative halos
 - selected cosmetic accents
 - rare emphasis chips when intentional
@@ -211,10 +223,12 @@ Typical uses:
 - `action.glow`
 
 Rule:
+
 - `action.*` is the interactive system
 - buttons, action links, focus-adjacent UI, and CTA emphasis should use action tokens first
 
 Typical uses:
+
 - primary buttons
 - outline buttons
 - CTA links
@@ -227,6 +241,7 @@ Typical uses:
 - `link.hover`
 
 Rule:
+
 - inline text links use link tokens
 - CTA-style links may use `action.primary` when they are acting like actions rather than prose links
 
@@ -239,6 +254,7 @@ Rule:
 - `loading.glow`
 
 Rule:
+
 - `loading.*` is reserved for skeletons and shared loading surfaces
 - use `ShimmerLoader` for layout-preserving placeholders and `LoadingState` for blocked page or panel loads
 
@@ -254,16 +270,19 @@ If a purple control appears, it should be intentional and rare. Standard control
 ### Typography
 
 Current theme implementation:
+
 - heading: `Inter`
 - body: `Inter`
 - mono: `Monaco`, `Menlo`, `Ubuntu Mono`
 
 System rules:
+
 - keep UI typography neutral and highly readable
 - let scale, weight, spacing, and layout provide personality before changing fonts
 - do not introduce one-off page font families without an explicit system decision
 
 Recommended hierarchy:
+
 - hero display: `5xl` to `7xl`
 - page title: `3xl` to `5xl`
 - section title: `xl` to `2xl`
@@ -272,6 +291,7 @@ Recommended hierarchy:
 - metadata: `xs` to `sm`
 
 Typography behavior:
+
 - use tight tracking on major hero headlines
 - use uppercased metadata labels sparingly
 - prefer readable line breaks over maximum headline density
@@ -286,6 +306,7 @@ Use a deliberate editorial rhythm:
 - large section separation: `16` to `24`
 
 Rules:
+
 - keep one spacing language across public pages
 - avoid random `7`, `11`, `13` spacing unless truly required
 - cards with similar roles should share padding values
@@ -293,12 +314,14 @@ Rules:
 ### Radius
 
 Default guidance:
+
 - pills and chips: `full`
 - standard cards: `xl`
 - premium hero shells: `2xl` or `3xl`
 - menus and overlays: `xl`
 
 Rules:
+
 - avoid mixing sharp geometry with very soft geometry on the same screen
 - roundness should feel deliberate, not arbitrary
 
@@ -307,11 +330,13 @@ Rules:
 Use depth sparingly.
 
 Default behavior:
+
 - resting card: subtle border plus soft shadow
 - hover card: slightly stronger shadow, not dramatic lift
 - premium shell: one soft halo, not multiple competing glows
 
 Rules:
+
 - halos should fade into the outer surface cleanly
 - never mount a glow in a smaller inner wrapper if the border lives on the outer card
 - avoid strong top-edge chrome lines unless intentional
@@ -319,17 +344,39 @@ Rules:
 ### Motion
 
 Motion exists for:
+
 - page entry
 - hover feedback
 - async state change
 - decorative atmosphere when it is subtle and optional
 
 Rules:
+
 - default duration: 150ms to 300ms for interaction
 - use opacity and transform before layout-changing animation
 - no important information should rely on continuous motion
 - fallback covers and decorative particles must respect reduced motion
 - reading surfaces should be almost static once loaded
+
+#### Dawn (Home)
+
+Home's expressive motion is one language, _Dawn_: light arriving. The primitives live in
+`src/design-system/motion/` and the contract in `DESIGN.md`'s Motion section.
+
+- `SynapseField`: the hero's artwork and shell - a living network of wandering nodes, short curved
+  links and travelling signals, painted on a canvas from the system's colour variables; it writes
+  the copy laid on it, stirs under the pointer, rests in a hidden tab, is one still frame under
+  reduced motion, and never keeps the copy waiting past a fallback
+- `Typeset`: the display headline sets word by word; on a field each word appears when the field's
+  signal lands and glows for a pulse; `emphasis` names the run of words that gets a drawn hairline
+- `SignalTarget`: any other block the field should write - the eyebrow
+- `PointerLight`: the approved Signature light, as a horizon glare that follows the pointer's
+  height; fine pointers only
+- theme sweep: the new theme opens from a horizon across the viewport, as a view transition scoped
+  by `data-theme-sweep`
+- `ActionLink` icons travel 2px towards the destination on hover
+
+Anything new on Home should be another sentence in this language or nothing at all.
 
 ## Surface Model
 
@@ -462,6 +509,7 @@ At the system level, the key families are:
 ### When To Add A Token
 
 Add or expand semantic tokens when:
+
 - the same visual role appears in multiple places
 - a page is reaching for repeated one-off RGBA values
 - interaction and decorative color roles are getting mixed
@@ -471,6 +519,7 @@ Do not add tokens for single-use visual experiments.
 ### When To Extract A Component
 
 Extract a component when:
+
 - the same structure appears twice
 - a page file is becoming layout plus design plus behavior
 - the same copy and metadata structure is repeated
@@ -478,6 +527,7 @@ Extract a component when:
 ### When To Update Docs
 
 Update `design-system/` whenever:
+
 - a new semantic token is added
 - a reusable component family is introduced
 - a route family changes its information architecture
@@ -497,6 +547,7 @@ Update `design-system/` whenever:
 ## Definition Of Done For UI Work
 
 A UI change is not done until:
+
 - the code uses the right semantic tokens
 - the route matches the feature-first structure
 - the design-system docs reflect the new reusable rules

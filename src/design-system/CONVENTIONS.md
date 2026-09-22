@@ -123,4 +123,15 @@ Every interactive component:
   following stop; colour, opacity and focus feedback stay.
 - Every timer, observer and animation frame is cleaned up on unmount. A test should be able to prove
   it, which means the subscription belongs in a pure helper or an explicit effect, not inline in JSX.
-- Continuous animation is reserved for loading.
+- Continuous animation is reserved for loading, and for the two sanctioned artworks
+  (`SynapseField` on Home, the About scene). Both stop under reduced motion - `synapseScene` is the
+  shape of that decision. Decoration never gates content: an anchor the field has not written by
+  `fallbackMs` appears on its own.
+- A canvas is allowed only for artwork the DOM cannot carry at sixty frames a second, and it paints
+  with the resolved values of the system's colour variables (`parseColorChannels`), never a literal.
+- A motion primitive paints only motion. `PointerLight`, `Typeset` and `SignalTarget` own no
+  border, radius, shadow or clip; they sit _inside_ the `Surface` or heading that does.
+  `SynapseField` is the one exception because it is artwork and shell at once, and it delegates
+  those four things to a `Surface` of its own.
+- Selectors (`& > *`, `&:hover [data-x]`, `@media`) travel in `sx`. Written as plain props they are
+  not style props to Chakra and reach the DOM as attribute names React refuses.

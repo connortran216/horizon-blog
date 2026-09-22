@@ -13,10 +13,14 @@
  * line doing double duty. Three of those four are asserted in
  * `presentation.test.ts`.
  *
- * The prototype's pointer-tracking light is deliberately absent. Its own final
- * stylesheet disables it (`.signature-light:after { display: none }`), the
- * gradient it used is not a token, and `DESIGN.md` puts "random glow" under
- * Avoid. Entry motion is a `Reveal`, which respects the motion policy.
+ * The desktop Signature pointer light `DESIGN.md` approves is here as
+ * `PointerLight`. An earlier version left it out because the prototype's
+ * gradient was not a token; the `ambient.*` roles now exist for exactly this,
+ * and the light is a horizon glare across the artwork rather than a spotlight
+ * under the cursor. `Surface` at `feature` depth is the one owner of the
+ * plate's border, radius, shadow and clipping; the image hands it its corners
+ * and the light paints inside it. Entry motion is a `Reveal`, which respects
+ * the motion policy, as does the light.
  */
 
 import { forwardRef } from 'react'
@@ -28,8 +32,9 @@ import { ActionLink } from '../../components/actions'
 import type { HeadingElement } from '../../components/layout'
 import { ResponsiveImage } from '../../components/media'
 import { Chip } from '../../components/status'
+import { Surface } from '../../components/surface'
 import { Eyebrow, Heading, Text } from '../../components/typography'
-import { Reveal } from '../../motion'
+import { PointerLight, Reveal } from '../../motion'
 import { PostMetadata } from './PostMetadata'
 import { excerptOrNull, visibleTags, type PostSummary } from './content.logic'
 import { resolveHierarchyLabel } from './hierarchy.logic'
@@ -85,20 +90,23 @@ export const SignatureStory = forwardRef<HTMLElement, SignatureStoryProps>(funct
       {...rest}
     >
       <Reveal duration="reveal">
-        <ResponsiveImage
-          aspectRatio={presentation.coverAspectRatio}
-          radius={presentation.coverRadius}
-          src={post.cover?.src}
-          sources={post.cover?.sources}
-          sizes={post.cover?.sizes ?? '(min-width: 1001px) 55vw, 100vw'}
-          alt={post.cover?.alt ?? post.title}
-          task="the Signature artwork"
-          absentCaption={post.title}
-          /* The one place the system draws editorial depth on media. */
-          frameProps={{ boxShadow: 'card' }}
-          loading="eager"
-          viewTransitionName={coverTransitionName}
-        />
+        {/* The one place the system draws editorial depth on media. */}
+        <Surface depth="feature" padded={false}>
+          <PointerLight>
+            <ResponsiveImage
+              aspectRatio={presentation.coverAspectRatio}
+              radius="container"
+              src={post.cover?.src}
+              sources={post.cover?.sources}
+              sizes={post.cover?.sizes ?? '(min-width: 1001px) 55vw, 100vw'}
+              alt={post.cover?.alt ?? post.title}
+              task="the Signature artwork"
+              absentCaption={post.title}
+              loading="eager"
+              viewTransitionName={coverTransitionName}
+            />
+          </PointerLight>
+        </Surface>
       </Reveal>
 
       <Reveal duration="reveal" delay={0.08}>

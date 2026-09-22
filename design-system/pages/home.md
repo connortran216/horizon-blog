@@ -18,8 +18,8 @@ It should introduce Horizon as a personal blog, establish tone quickly, and move
 
 ## Layout
 
-- one premium hero shell near the top
-- hero split is acceptable when one side is message and the other side is a real blog preview
+- one premium hero shell near the top: the synapse field, with the message on it
+- the Signature below it is the real blog preview; the hero itself carries no post
 - place the compact Series shelf after the unchanged hero and before Recent Blogs
 - hide the entire Series shelf when the discovery request is empty or unavailable
 - below the hero, blog previews should tighten into a cleaner reading rhythm
@@ -42,7 +42,14 @@ It should introduce Horizon as a personal blog, establish tone quickly, and move
 
 ## Motion
 
-- restrained hero reveal
+Home speaks the *Dawn* language (`MASTER.md` > Motion > Dawn):
+
+- the hero is one `SynapseField` with the copy laid on it; the field is faint under the copy and
+  full to the right
+- the field writes the copy: the eyebrow (`SignalTarget`) and each headline word (`Typeset`) appear
+  as a signal lands on them, "curious readers." carries the drawn rule, and the lede and calls to
+  action follow a beat apart (`Stagger`)
+- the Signature cover carries the `PointerLight`
 - ambient fallback-cover motion is allowed
 - avoid feature-card stacks and novelty effects competing with content
 

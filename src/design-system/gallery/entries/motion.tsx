@@ -10,17 +10,24 @@ import { useRef, useState } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import {
+  Eyebrow,
+  Heading,
   HoverLift,
   InteractionTrace,
   LayoutTransition,
   MarginalNote,
+  NO_VEIL,
+  PointerLight,
   PressFeedback,
   Reveal,
+  SignalTarget,
   Stagger,
   StateHandoff,
   Surface,
+  SynapseField,
   Text,
   TimelineEntry,
+  Typeset,
   useMotionPolicy,
   useReducedMotionPreference,
   useRevealInView,
@@ -52,6 +59,113 @@ function HarnessButton({
       textStyle="meta"
     >
       {children}
+    </Box>
+  )
+}
+
+const fieldDensity: Record<string, number> = { bare: 40, sparse: 18, dense: 64 }
+
+/** The hero's own composition, small: an eyebrow and a headline the field writes. */
+function FieldCopy() {
+  return (
+    <Box p={space[8]} maxW="60%">
+      <SignalTarget>
+        <Eyebrow as="p">Horizon blog</Eyebrow>
+      </SignalTarget>
+      <Heading as="h2" recipe="sectionTitle">
+        <Typeset emphasis="curious readers.">
+          Human stories, blogs, and thoughtful writing for curious readers.
+        </Typeset>
+      </Heading>
+    </Box>
+  )
+}
+
+function SynapseFieldEntry({ state }: { readonly state: string }) {
+  if (state === 'with copy') {
+    return (
+      <SynapseField key={state} maxW="720px" minH="320px" display="flex" alignItems="center">
+        <FieldCopy />
+      </SynapseField>
+    )
+  }
+
+  return (
+    <SynapseField
+      key={state}
+      maxW="720px"
+      minH="300px"
+      density={fieldDensity[state] ?? 40}
+      veil={NO_VEIL}
+    />
+  )
+}
+
+function SignalTargetEntry({ state }: { readonly state: string }) {
+  const target = (
+    <SignalTarget>
+      <Text recipe="body">Copy that waits for its signal.</Text>
+    </SignalTarget>
+  )
+
+  if (state === 'outside a field') {
+    return <Filler>{target}</Filler>
+  }
+
+  return (
+    <SynapseField key={state} maxW="560px" minH="220px" display="flex" alignItems="center">
+      <Box p={space[8]}>{target}</Box>
+    </SynapseField>
+  )
+}
+
+function PointerLightEntry({ state }: { readonly state: string }) {
+  return (
+    <Box maxW="560px">
+      <Surface depth="feature" padded={false}>
+        <PointerLight disabled={state === 'disabled'}>
+          {/* Sample artwork with no image dependency: a quiet ambient wash. */}
+          <Box
+            sx={{ aspectRatio: '16 / 10' }}
+            bgGradient="linear(to-br, ambient.glow, bg.subtle 55%, ambient.sweep)"
+          />
+        </PointerLight>
+      </Surface>
+    </Box>
+  )
+}
+
+function TypesetEntry({ state }: { readonly state: string }) {
+  const [nonce, setNonce] = useState(0)
+
+  if (state === 'in a field') {
+    return (
+      <SynapseField maxW="720px" minH="300px" display="flex" alignItems="center">
+        <Box p={space[8]} maxW="70%">
+          <Heading as="h2" recipe="sectionTitle">
+            <Typeset emphasis="curious readers.">
+              Human stories, blogs, and thoughtful writing for curious readers.
+            </Typeset>
+          </Heading>
+        </Box>
+      </SynapseField>
+    )
+  }
+
+  return (
+    <Box display="flex" flexDirection="column" gap={space[3]}>
+      <HarnessButton onClick={() => setNonce((current) => current + 1)}>
+        Set the headline again
+      </HarnessButton>
+      <Heading as="h2" recipe="display">
+        <Typeset
+          key={nonce}
+          trigger={state === 'in view' ? 'inView' : 'mount'}
+          emphasis={state === 'with emphasis' ? 'curious readers.' : undefined}
+        >
+          Human stories, blogs, and thoughtful writing for curious readers.
+        </Typeset>
+      </Heading>
     </Box>
   )
 }
@@ -240,11 +354,15 @@ export const motionEntries = {
   InteractionTrace: InteractionTraceEntry,
   LayoutTransition: LayoutTransitionEntry,
   MarginalNote: MarginalNoteEntry,
+  PointerLight: PointerLightEntry,
   PressFeedback: PressFeedbackEntry,
   Reveal: RevealEntry,
+  SignalTarget: SignalTargetEntry,
   Stagger: StaggerEntry,
   StateHandoff: StateHandoffEntry,
+  SynapseField: SynapseFieldEntry,
   TimelineEntry: TimelineEntryEntry,
+  Typeset: TypesetEntry,
   useMotionPolicy: UseMotionPolicyEntry,
   useReducedMotionPreference: UseReducedMotionPreferenceEntry,
   useRevealInView: UseRevealInViewEntry,
