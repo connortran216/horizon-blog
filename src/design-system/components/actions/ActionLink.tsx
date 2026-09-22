@@ -1,5 +1,6 @@
 import { forwardRef, type ReactElement, type ReactNode } from 'react'
 import {
+  Box,
   Link as ChakraLink,
   VisuallyHidden,
   useStyleConfig,
@@ -7,7 +8,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 
-import { space } from '../../../theme/tokens'
+import { reducedMotionQuery, space, transform, transitionFor } from '../../../theme/tokens'
 import { controlSizing } from './control.logic'
 import {
   linkPresentation,
@@ -157,14 +158,47 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
   const sizing = controlSizing('md')
   const touchSized = needsTouchSizing(presentation.kind, standalone)
 
+  /*
+   * Directional icon travel, one of the approved motion behaviours: on hover
+   * the icon moves a little way towards where the link goes - an arrow at the
+   * end goes forward, one at the start goes back. The wrapper spans exist so
+   * the transform lands on the icon alone and the text never shifts; the
+   * distance is the hover lift's magnitude on the other axis. Reduced motion
+   * takes the travel to zero below rather than to a faster snap.
+   */
   const content = (
     <>
-      {iconStart}
+      {iconStart ? (
+        <Box as="span" display="inline-flex" data-icon-travel="start" aria-hidden="true">
+          {iconStart}
+        </Box>
+      ) : null}
       {children}
-      {iconEnd}
+      {iconEnd ? (
+        <Box as="span" display="inline-flex" data-icon-travel="end" aria-hidden="true">
+          {iconEnd}
+        </Box>
+      ) : null}
       {target.opensInNewTab ? <VisuallyHidden> ({newTabLabel})</VisuallyHidden> : null}
     </>
   )
+
+  /*
+   * Selectors have to travel in `sx`. A key such as `& > *` written as a plain
+   * prop is not a style prop to Chakra, so it reaches the DOM as an attribute
+   * name React refuses - which is what the `min-width` rule below used to do
+   * silently, and why the long-URL fix it carries only started working when it
+   * moved here. The icon travel needs the same route.
+   */
+  const nestedRules = {
+    '& > *': { minWidth: 0 },
+    '& [data-icon-travel]': { transition: transitionFor('transform', 'fast') },
+    '&:hover [data-icon-travel="end"]': { transform: `translateX(${transform.iconTravel})` },
+    '&:hover [data-icon-travel="start"]': { transform: `translateX(-${transform.iconTravel})` },
+    [`@media ${reducedMotionQuery}`]: {
+      '&:hover [data-icon-travel]': { transform: 'none' },
+    },
+  }
 
   const shared = {
     ref,
@@ -185,7 +219,6 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
      */
     minWidth: 0,
     overflowWrap: 'anywhere' as const,
-    '& > *': { minWidth: 0 },
     ...presentation.decoration,
     ...(presentation.kind === 'button'
       ? {
@@ -199,6 +232,7 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
            */
           sx: {
             ...buttonRecipe,
+            ...nestedRules,
             minHeight: sizing.minH,
             paddingInline: sizing.px,
             gap: sizing.gap,
@@ -219,8 +253,9 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
           {
             minHeight: sizing.minH,
             minWidth: sizing.minW,
+            sx: nestedRules,
           }
-        : {}),
+        : { sx: nestedRules }),
     ...rest,
   }
 

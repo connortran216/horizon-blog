@@ -121,10 +121,17 @@ Action tokens communicate interaction. Accent tokens communicate atmosphere or r
 
 ### Motion
 
-- Fast 120ms; normal 200ms; navigation/layout 260–300ms; prominent entry 320ms; editorial reveal up to 480ms.
-- Ease `cubic-bezier(0.22, 1, 0.36, 1)`; lift at most 2px; reveal distance at most 8px.
+- Fast 120ms; normal 200ms; navigation/layout 260–300ms; prominent entry 320ms; editorial reveal up to 480ms. One typesetting tick is 40ms.
+- Ease `cubic-bezier(0.22, 1, 0.36, 1)`; lift at most 2px; reveal distance 14px; a typeset word rises half a line.
 - Approved behaviors include sliding nav indication, directional icon travel, filter reordering, theme feedback, reaction pop, copy confirmation, reading progress, active TOC, Series connectors, and desktop Signature pointer light.
-- Ambient movement is limited to suitable Home/About artwork, pauses on interaction, and stops under reduced motion. Continuous animation is otherwise reserved for loading.
+- Ambient movement is limited to suitable Home/About artwork and stops under reduced motion; Home's field answers the pointer by stirring, About's scene by pausing. Continuous animation is otherwise reserved for loading.
+
+The Home motion language is *Dawn*: light arriving. Its four behaviors are the only expressive motion on the page, and each answers a rule above. The hero's opening is one choreography: the field sends a signal to the eyebrow and to each word of the headline in turn, and each appears as its signal lands; the rule draws under the last two words; the lede and the calls to action come in a beat apart as the sentence finishes. Every beat is a duration token or a multiple of one.
+
+- **Synapse field.** Home's artwork and the hero's shell: a living network. Soft nodes wander the plate on slow curving paths, hairline links form between near neighbours and dissolve as they drift apart, and signals - small warm particles - travel a link, light the node they reach and sometimes carry on. The copy sits on it, faint field beneath the words and full field to the right, and is written by it. The pointer stirs it: nearby nodes light, more signals leave from there. It is a canvas painted with the system's own colour variables; the browser rests it in a hidden tab, under reduced motion it is one still frame with every word simply present, and the copy never waits on it for more than a moment - decoration is not allowed to keep content off the page. Nothing on it is text.
+- **Typeset.** The display headline sets one word at a time, each rising through its own baseline behind a clip at the line box - on a field, when its signal lands; elsewhere, a tick apart. Words, never letters; assistive technology hears the sentence once, whole. A word that has just been hit glows for one pulse in the action colour. A named run of words gets a hairline in the action colour that draws itself beneath the phrase: a horizon under the words the page most wants read.
+- **Pointer light.** The approved Signature light, as a horizon glare: a horizontal band at the pointer's height and a pool beneath it, in `ambient.*` colour, blended as light. Fine pointers only; never under reduced motion.
+- **Theme sweep.** Changing theme opens the new theme from a horizon across the middle of the viewport, upward and downward, as a view transition scoped by `data-theme-sweep` so navigation's cover morph keeps its own crossfade. Without view transitions or under reduced motion the theme simply changes.
 
 ### Imagery and iconography
 

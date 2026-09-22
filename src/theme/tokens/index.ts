@@ -52,7 +52,15 @@ export type {
 
 export { contrastRatio, relativeLuminance, textContrastFloor } from './contrast'
 
-export { duration, easing, motion, reducedMotionQuery, transform, transitionFor } from './motion'
+export {
+  duration,
+  easing,
+  motion,
+  reducedMotionQuery,
+  themeSweepAttribute,
+  transform,
+  transitionFor,
+} from './motion'
 export type { DurationToken, EasingToken, TransformToken } from './motion'
 
 export { componentTokens } from './components'

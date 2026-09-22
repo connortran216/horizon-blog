@@ -275,6 +275,12 @@ export const galleryRegistry = [
     note: 'Driven by a gallery harness that shuffles its children on demand.',
   },
   {
+    name: 'PointerLight',
+    area: 'motion',
+    states: [{ name: 'ready', kind: 'ready' }, { name: 'disabled' }],
+    note: 'Inside a feature Surface over sample artwork. Needs a fine pointer: on a touch viewport it renders the artwork alone.',
+  },
+  {
     name: 'PressFeedback',
     area: 'motion',
     states: [{ name: 'ready', kind: 'ready' }, { name: 'disabled' }],
@@ -285,9 +291,37 @@ export const galleryRegistry = [
     states: [{ name: 'on mount', kind: 'ready' }, { name: 'in view' }],
   },
   {
+    name: 'SignalTarget',
+    area: 'motion',
+    states: [{ name: 'in a field', kind: 'ready' }, { name: 'outside a field' }],
+    note: 'Inside a SynapseField it waits for its signal; outside one it is simply visible.',
+  },
+  {
     name: 'Stagger',
     area: 'motion',
     states: [{ name: 'on mount', kind: 'ready' }],
+  },
+  {
+    name: 'SynapseField',
+    area: 'motion',
+    states: [
+      { name: 'bare', kind: 'ready' },
+      { name: 'sparse' },
+      { name: 'dense' },
+      { name: 'with copy' },
+    ],
+    note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on it so the writing can be reviewed; hover to stir the field.',
+  },
+  {
+    name: 'Typeset',
+    area: 'motion',
+    states: [
+      { name: 'on mount', kind: 'ready' },
+      { name: 'in view' },
+      { name: 'with emphasis' },
+      { name: 'in a field' },
+    ],
+    note: 'Inside a display Heading, which is the only place it belongs. `in a field` sits on a SynapseField and is written by it.',
   },
   {
     name: 'useMotionPolicy',

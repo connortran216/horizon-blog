@@ -13,14 +13,26 @@ export type { HoverLiftProps } from './HoverLift'
 export { LayoutTransition } from './LayoutTransition'
 export type { LayoutTransitionProps } from './LayoutTransition'
 
+export { PointerLight } from './PointerLight'
+export type { PointerLightProps } from './PointerLight'
+
 export { PressFeedback } from './PressFeedback'
 export type { PressFeedbackProps } from './PressFeedback'
 
 export { Reveal } from './Reveal'
 export type { RevealProps } from './Reveal'
 
+export { SignalTarget } from './SignalTarget'
+export type { SignalTargetProps } from './SignalTarget'
+
 export { Stagger } from './Stagger'
 export type { StaggerProps } from './Stagger'
+
+export { SynapseField } from './SynapseField'
+export type { SynapseFieldProps } from './SynapseField'
+
+export { Typeset } from './Typeset'
+export type { TypesetProps } from './Typeset'
 
 export { useMotionPolicy, useReducedMotionPreference } from './useMotionPolicy'
 export { useRevealInView } from './useRevealInView'
@@ -81,6 +93,74 @@ export type {
 } from './lifecycle.logic'
 
 export { loadingPulse, loadingPulseAnimation } from './loadingPulse'
+
+export {
+  DEFAULT_VEIL,
+  NO_VEIL,
+  SYNAPSE,
+  anchorHitRate,
+  bezierPoint,
+  chooseLink,
+  createNodes,
+  createRng,
+  curveControl,
+  decayExcitation,
+  easeInOut,
+  exciteNear,
+  linkNodes,
+  nearestNodeTo,
+  parseColorChannels,
+  rgba,
+  sentenceWrittenAt,
+  signalRate,
+  smoothstep,
+  stepNodes,
+  synapseScene,
+  synapseTiming,
+  veilAt,
+} from './synapse.logic'
+export type {
+  ChooseLinkOptions,
+  RgbChannels,
+  Rng,
+  SignalRoute,
+  SynapseLink,
+  SynapseNode,
+  SynapseScene,
+  SynapseTiming,
+  UnitPoint,
+  Veil,
+} from './synapse.logic'
+
+export {
+  LIGHT_REST,
+  LIGHT_SPRING,
+  finePointerQuery,
+  lightPositionIn,
+  pointerLightState,
+  readFinePointer,
+  subscribeFinePointer,
+} from './pointerLight.logic'
+export type {
+  LightPosition,
+  PointerBox,
+  PointerLightState,
+  PointerLightStateInput,
+} from './pointerLight.logic'
+
+export { runThemeSweep, themeSweepKeyframes } from './themeSweep.logic'
+export type { RunThemeSweepInput, SweepDocumentLike, SweepRootLike } from './themeSweep.logic'
+
+export {
+  typesetClip,
+  typesetDelays,
+  typesetEmphasis,
+  typesetRule,
+  typesetRuleDelays,
+  typesetVariants,
+  typesetWords,
+} from './typeset.logic'
+export type { TypesetTarget, TypesetVariants, TypesetWord } from './typeset.logic'
 
 export { isPlainRouterClick, startViewTransition } from './viewTransition.logic'
 export type {

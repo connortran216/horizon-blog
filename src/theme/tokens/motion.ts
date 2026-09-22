@@ -23,6 +23,12 @@ export const duration = {
   enter: '320ms',
   /** Editorial reveal on discovery surfaces. Longest permitted. */
   reveal: '480ms',
+  /**
+   * One typesetting beat: the gap between two neighbouring words arriving in a
+   * `Typeset` headline. Shorter than `fast` on purpose - a ten-word display
+   * line is fully set 360ms after the first word, well inside one `reveal`.
+   */
+  tick: '40ms',
 } as const
 
 export const easing = {
@@ -43,7 +49,27 @@ export const transform = {
    * does most of the work, and reduced motion still takes the travel to zero.
    */
   revealDistance: '14px',
+  /**
+   * How far a `Typeset` word rises through its own baseline, in em so it scales
+   * with the display ramp. Half a line is enough to start fully hidden below the
+   * line box's clip and read as arrival rather than as a jitter.
+   */
+  typesetRise: '0.5em',
+  /**
+   * Directional icon travel on hover: the arrow at the end of a call to action
+   * moves this far towards where the link goes. Same magnitude as the hover
+   * lift, on the other axis, and gone under reduced motion.
+   */
+  iconTravel: '2px',
 } as const
+
+/**
+ * The attribute the root element carries while a theme change runs inside a
+ * view transition. The theme's global stylesheet scopes the horizon sweep to
+ * it, so the cover morph that navigation uses keeps the browser's default
+ * root crossfade and the two never apply to one another.
+ */
+export const themeSweepAttribute = 'data-theme-sweep'
 
 /** Media query the whole system honours. */
 export const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
@@ -53,6 +79,7 @@ export const motion = {
   easing,
   transform,
   reducedMotionQuery,
+  themeSweepAttribute,
 } as const
 
 export type DurationToken = keyof typeof duration

@@ -1,7 +1,10 @@
+import { flushSync } from 'react-dom'
 import { Box, useColorMode } from '@chakra-ui/react'
 import { FiMoon, FiSun } from 'react-icons/fi'
 
 import { componentTokens, radii, space, transitionFor } from '../../../theme/tokens'
+import { runThemeSweep } from '../../motion/themeSweep.logic'
+import { useViewTransition } from '../../motion/useViewTransition'
 import { themeToggleOptions, type ThemeMode } from './navigation.logic'
 
 export interface ThemeToggleProps {
@@ -24,19 +27,27 @@ const icons = { light: FiSun, dark: FiMoon } as const
  *
  * The buttons stay 44px targets and the group never changes size when the
  * choice changes, so the header does not reflow on theme switch.
+ *
+ * The change itself runs as a theme sweep (`runThemeSweep`): where the browser
+ * has view transitions and the reader has not asked for less motion, the new
+ * theme opens from a horizon across the middle of the viewport. `flushSync` is
+ * what makes the React state change land in the DOM inside the transition's
+ * update callback rather than a frame later, which is the difference between
+ * the browser snapshotting the new theme and snapshotting the old one twice.
  */
 export function ThemeToggle({ mode, onModeChange, label = 'Colour theme' }: ThemeToggleProps) {
   const { colorMode, setColorMode } = useColorMode()
+  const runTransition = useViewTransition()
   const activeMode: ThemeMode = mode ?? (colorMode === 'dark' ? 'dark' : 'light')
 
   const select = (next: ThemeMode) => {
-    if (onModeChange === undefined) {
-      setColorMode(next)
+    const apply = onModeChange === undefined ? () => setColorMode(next) : () => onModeChange(next)
 
-      return
-    }
-
-    onModeChange(next)
+    runThemeSweep({
+      document: typeof document === 'undefined' ? null : document,
+      runTransition,
+      update: () => flushSync(apply),
+    })
   }
 
   return (

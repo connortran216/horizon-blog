@@ -25,11 +25,17 @@ import {
   Heading,
   RetryAction,
   Section,
+  SignalTarget,
   Skeleton,
   Stack,
   Stagger,
+  SynapseField,
   Text,
+  Typeset,
   hierarchyContext,
+  sentenceWrittenAt,
+  synapseTiming,
+  useMotionPolicy,
 } from '../../../design-system'
 import { BlogPostSummary, getBlogService } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
@@ -39,6 +45,11 @@ import StoryCard from '../components/StoryCard'
 import SeriesShelf from '../../series/components/SeriesShelf'
 
 const POST_LIMIT = 9
+const HERO_HEADLINE = 'Human stories, blogs, and thoughtful writing for curious readers.'
+/** The words the page most wants read; they get the drawn rule. */
+const HERO_EMPHASIS = 'curious readers.'
+/** The eyebrow plus every word of the headline: what the field has to write. */
+const HERO_ANCHOR_COUNT = 1 + HERO_HEADLINE.trim().split(/\s+/u).length
 const LATEST_EYEBROW = 'Recent blogs'
 const LATEST_HEADING = 'Keep reading beyond the latest post'
 
@@ -50,6 +61,14 @@ const HomePage = () => {
   const [reloadVersion, setReloadVersion] = useState(0)
   const { user } = useAuth()
   const canWrite = can(user?.authorization, 'content:manage:own')
+  const policy = useMotionPolicy()
+  /*
+   * The rest of the hero waits for the sentence. Not for the last word to land
+   * - that would leave the call to action a full second behind the headline -
+   * but for the writing to be most of the way through, so the lede arrives as
+   * the last words do.
+   */
+  const afterHeadline = sentenceWrittenAt(HERO_ANCHOR_COUNT, synapseTiming(policy)) * 0.7
 
   useEffect(() => {
     let cancelled = false
@@ -108,37 +127,62 @@ const HomePage = () => {
   return (
     <ContentContainer>
       <Section as="header">
-        <Stack gap={6} maxW="4xl">
-          <Eyebrow as="p">Horizon blog</Eyebrow>
+        {/*
+          The hero is one synapse field with the copy laid on it. The network
+          writes the copy: the eyebrow and every word of the headline are
+          anchors it sends a signal to, in order, and each appears when its
+          signal lands; the two words the page most wants read get the rule.
+          The lede, the calls to action and the sign-off come in a beat apart
+          once the sentence is nearly written. The field is weather, not
+          content: hidden from assistive technology, never carrying text of its
+          own, faint under the copy and full on the right.
+        */}
+        <SynapseField minH={{ base: '600px', lg: '560px' }} display="flex" alignItems="center">
+          <Stack
+            gap={6}
+            maxW={{ base: 'none', lg: '58%' }}
+            px={{ base: 6, md: 10, lg: 12 }}
+            py={{ base: 10, md: 12 }}
+          >
+            <SignalTarget>
+              <Eyebrow as="p">Horizon blog</Eyebrow>
+            </SignalTarget>
 
-          <Heading as="h1" recipe="display">
-            Human stories, blogs, and thoughtful writing for curious readers.
-          </Heading>
+            <Heading as="h1" recipe="display">
+              <Typeset emphasis={HERO_EMPHASIS}>{HERO_HEADLINE}</Typeset>
+            </Heading>
 
-          <Text recipe="prose">
-            Horizon is a quiet place to slow down, read something thoughtful, and publish work that
-            feels intentional. Less noise, more clarity.
-          </Text>
+            <Stagger trigger="mount" initialDelay={afterHeadline} maxDelay={afterHeadline + 0.6}>
+              <Text recipe="prose">
+                Horizon is a quiet place to slow down, read something thoughtful, and publish work
+                that feels intentional. Less noise, more clarity.
+              </Text>
 
-          <Stack direction="row" gap={6} collapseAt="sm" alignItems="center" flexWrap="wrap">
-            {/*
-              The page's one primary call to action, at button weight. It is
-              still a link - a destination, copyable, openable in a new tab -
-              and the fill, hover and focus come from the `primary` Button tone
-              rather than from colour and weight written on here.
-            */}
-            <ActionLink to="/blog" weight="primary" iconEnd={<FiArrowRight aria-hidden="true" />}>
-              Explore the blog
-            </ActionLink>
-            <ActionLink to={writeHref} underline="hover" standalone color="text.secondary">
-              {writeLabel}
-            </ActionLink>
+              <Stack direction="row" gap={6} collapseAt="sm" alignItems="center" flexWrap="wrap">
+                {/*
+                  The page's one primary call to action, at button weight. It is
+                  still a link - a destination, copyable, openable in a new tab -
+                  and the fill, hover and focus come from the `primary` Button tone
+                  rather than from colour and weight written on here.
+                */}
+                <ActionLink
+                  to="/blog"
+                  weight="primary"
+                  iconEnd={<FiArrowRight aria-hidden="true" />}
+                >
+                  Explore the blog
+                </ActionLink>
+                <ActionLink to={writeHref} underline="hover" standalone color="text.secondary">
+                  {writeLabel}
+                </ActionLink>
+              </Stack>
+
+              <Text recipe="metadata" textTransform="uppercase" letterSpacing="wider">
+                Read with focus. Publish with intent. Keep the blog human.
+              </Text>
+            </Stagger>
           </Stack>
-
-          <Text recipe="metadata" textTransform="uppercase" letterSpacing="wider">
-            Read with focus. Publish with intent. Keep the blog human.
-          </Text>
-        </Stack>
+        </SynapseField>
       </Section>
 
       <Section>
