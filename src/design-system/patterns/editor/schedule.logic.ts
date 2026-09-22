@@ -346,6 +346,40 @@ export interface PublishGateOutput {
   readonly blockedReason: string | null
 }
 
+export interface PublicationCheck {
+  readonly id: 'title' | 'content' | 'timing' | 'series'
+  readonly label: string
+  readonly ready: boolean
+}
+
+export interface PublicationChecksInput {
+  readonly mode: PublishMode
+  readonly hasTitle?: boolean
+  readonly hasContent?: boolean
+  readonly schedule?: ScheduleValidity
+  readonly isSeriesReady?: boolean
+}
+
+/** Supplemental press-check copy. The publish gate remains authoritative. */
+export function publicationChecks({
+  mode,
+  hasTitle = false,
+  hasContent = false,
+  schedule,
+  isSeriesReady = true,
+}: PublicationChecksInput): readonly PublicationCheck[] {
+  return [
+    { id: 'title', label: 'Title', ready: hasTitle },
+    { id: 'content', label: 'Writing', ready: hasContent },
+    {
+      id: 'timing',
+      label: mode === 'now' ? 'Publish now' : 'Publication time',
+      ready: mode === 'now' || schedule?.isValid === true,
+    },
+    { id: 'series', label: 'Series options', ready: isSeriesReady },
+  ]
+}
+
 /**
  * Whether the publish action may fire.
  *

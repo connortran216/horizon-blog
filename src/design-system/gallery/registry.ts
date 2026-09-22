@@ -269,10 +269,20 @@ export const galleryRegistry = [
     states: [{ name: 'ready', kind: 'ready' }, { name: 'disabled' }],
   },
   {
+    name: 'InteractionTrace',
+    area: 'motion',
+    states: [{ name: 'interactive', kind: 'ready' }, { name: 'confirmed' }],
+  },
+  {
     name: 'LayoutTransition',
     area: 'motion',
     states: [{ name: 'reorderable', kind: 'ready' }],
     note: 'Driven by a gallery harness that shuffles its children on demand.',
+  },
+  {
+    name: 'MarginalNote',
+    area: 'motion',
+    states: [{ name: 'in view', kind: 'ready' }],
   },
   {
     name: 'PressFeedback',
@@ -288,6 +298,17 @@ export const galleryRegistry = [
     name: 'Stagger',
     area: 'motion',
     states: [{ name: 'on mount', kind: 'ready' }],
+  },
+  {
+    name: 'StateHandoff',
+    area: 'motion',
+    states: [{ name: 'explicit state', kind: 'ready' }],
+    note: 'The content swaps immediately; only the acknowledgement trace animates.',
+  },
+  {
+    name: 'TimelineEntry',
+    area: 'motion',
+    states: [{ name: 'screen and print', kind: 'ready' }],
   },
   {
     name: 'useMotionPolicy',

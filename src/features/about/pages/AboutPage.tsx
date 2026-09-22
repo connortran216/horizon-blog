@@ -27,6 +27,7 @@ import {
   Eyebrow,
   Grid,
   Heading,
+  MarginalNote,
   ResponsiveImage,
   Reveal,
   Section,
@@ -242,9 +243,10 @@ const AboutPage = () => (
             <Stack gap={6}>
               <Stagger>
                 {principles.map((principle) => (
-                  <Box key={principle.title} as="article">
-                    <Stack gap={4}>
-                      {/*
+                  <MarginalNote key={principle.title}>
+                    <Box as="article">
+                      <Stack gap={4}>
+                        {/*
                         The icon belongs beside the title, not above it. Stacked,
                         it cost a 48px row plus a gap before the card said what
                         it was about - the heading is what a reader scans for,
@@ -252,26 +254,27 @@ const AboutPage = () => (
                         own right. `minWidth: 0` so a long title wraps inside the
                         row instead of pushing the icon out of the card.
                       */}
-                      <Flex align="center" gap={space[4]}>
-                        <Flex
-                          align="center"
-                          justify="center"
-                          boxSize={space[12]}
-                          borderRadius={radii.control}
-                          bg={componentTokens.control.quietHoverBg}
-                          color={componentTokens.control.solidBg}
-                          flexShrink={0}
-                          aria-hidden="true"
-                        >
-                          <Box as={principle.icon} boxSize={space[4]} />
+                        <Flex align="center" gap={space[4]}>
+                          <Flex
+                            align="center"
+                            justify="center"
+                            boxSize={space[12]}
+                            borderRadius={radii.control}
+                            bg={componentTokens.control.quietHoverBg}
+                            color={componentTokens.control.solidBg}
+                            flexShrink={0}
+                            aria-hidden="true"
+                          >
+                            <Box as={principle.icon} boxSize={space[4]} />
+                          </Flex>
+                          <Heading recipe="cardTitle" as="h3" minW={0}>
+                            {principle.title}
+                          </Heading>
                         </Flex>
-                        <Heading recipe="cardTitle" as="h3" minW={0}>
-                          {principle.title}
-                        </Heading>
-                      </Flex>
-                      <Text recipe="body">{principle.description}</Text>
-                    </Stack>
-                  </Box>
+                        <Text recipe="body">{principle.description}</Text>
+                      </Stack>
+                    </Box>
+                  </MarginalNote>
                 ))}
               </Stagger>
             </Stack>

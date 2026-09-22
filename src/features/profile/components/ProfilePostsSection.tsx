@@ -13,7 +13,9 @@
  * and nowhere else, which is what the backend means by the three views.
  */
 
+import { useState } from 'react'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
+import { motion } from 'framer-motion'
 
 import {
   EmptyState,
@@ -25,6 +27,7 @@ import {
   Surface,
 } from '../../../design-system'
 import { componentTokens, radii, space } from '../../../theme/tokens'
+import { transitionFor, useMotionPolicy } from '../../../design-system/motion'
 import { ProfileBlogPost, ProfilePaginationState } from '../profile.types'
 import ProfileBlogGrid from './ProfileBlogGrid'
 import ProfileScheduledList from './ProfileScheduledList'
@@ -69,6 +72,31 @@ const tabStyle = {
   },
 } as const
 
+function EditorialTray({
+  active,
+  lane,
+  children,
+}: React.PropsWithChildren<{ active: boolean; lane: string }>) {
+  const policy = useMotionPolicy()
+
+  return (
+    <motion.div
+      data-profile-tray={lane}
+      data-active={active ? 'true' : 'false'}
+      initial={false}
+      animate={{
+        opacity: active ? 1 : 0.72,
+        x: active || !policy.translation ? 0 : 18,
+        rotate: active || !policy.translation ? 0 : 0.35,
+      }}
+      transition={transitionFor('navigation', policy)}
+      style={{ transformOrigin: 'top left' }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 const ProfilePostsSection = ({
   postsLoading,
   profileUsername,
@@ -88,6 +116,7 @@ const ProfilePostsSection = ({
   onCancelSchedule,
   onDelete,
 }: ProfilePostsSectionProps) => {
+  const [activeTab, setActiveTab] = useState(0)
   const totalBlogs = publishedPagination.total + scheduledPagination.total + draftPagination.total
 
   return (
@@ -113,7 +142,7 @@ const ProfilePostsSection = ({
         {postsLoading ? (
           <PanelLoading task="your blogs" />
         ) : (
-          <Tabs variant="unstyled">
+          <Tabs variant="unstyled" index={activeTab} onChange={setActiveTab}>
             <TabList gap={space[3]} flexWrap="wrap">
               <Tab {...tabStyle}>Published ({publishedPagination.total})</Tab>
               <Tab {...tabStyle}>Scheduled ({scheduledPagination.total})</Tab>
@@ -121,64 +150,70 @@ const ProfilePostsSection = ({
             </TabList>
             <TabPanels>
               <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
-                {publishedBlogs.length === 0 ? (
-                  <EmptyState
-                    subject="published blogs"
-                    nextAction="Publish a draft, and it will appear here."
-                  />
-                ) : (
-                  <ProfileBlogGrid
-                    blogs={publishedBlogs}
-                    totalCount={publishedPagination.total}
-                    currentPage={publishedPagination.page}
-                    pageSize={publishedPagination.limit}
-                    label="Published blogs pagination"
-                    onPageChange={onPublishedPageChange}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    profileUsername={profileUsername}
-                  />
-                )}
+                <EditorialTray active={activeTab === 0} lane="published">
+                  {publishedBlogs.length === 0 ? (
+                    <EmptyState
+                      subject="published blogs"
+                      nextAction="Publish a draft, and it will appear here."
+                    />
+                  ) : (
+                    <ProfileBlogGrid
+                      blogs={publishedBlogs}
+                      totalCount={publishedPagination.total}
+                      currentPage={publishedPagination.page}
+                      pageSize={publishedPagination.limit}
+                      label="Published blogs pagination"
+                      onPageChange={onPublishedPageChange}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      profileUsername={profileUsername}
+                    />
+                  )}
+                </EditorialTray>
               </TabPanel>
               <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
-                {scheduledBlogs.length === 0 ? (
-                  <EmptyState
-                    subject="scheduled publications"
-                    nextAction="Schedule a draft from the editor, and it will wait here until its time."
-                  />
-                ) : (
-                  <ProfileScheduledList
-                    blogs={scheduledBlogs}
-                    pagination={scheduledPagination}
-                    now={scheduleClock}
-                    onPageChange={onScheduledPageChange}
-                    onEdit={onEdit}
-                    onReschedule={onReschedule}
-                    onPublishNow={onPublishNow}
-                    onCancelSchedule={onCancelSchedule}
-                    onDelete={onDelete}
-                  />
-                )}
+                <EditorialTray active={activeTab === 1} lane="scheduled">
+                  {scheduledBlogs.length === 0 ? (
+                    <EmptyState
+                      subject="scheduled publications"
+                      nextAction="Schedule a draft from the editor, and it will wait here until its time."
+                    />
+                  ) : (
+                    <ProfileScheduledList
+                      blogs={scheduledBlogs}
+                      pagination={scheduledPagination}
+                      now={scheduleClock}
+                      onPageChange={onScheduledPageChange}
+                      onEdit={onEdit}
+                      onReschedule={onReschedule}
+                      onPublishNow={onPublishNow}
+                      onCancelSchedule={onCancelSchedule}
+                      onDelete={onDelete}
+                    />
+                  )}
+                </EditorialTray>
               </TabPanel>
               <TabPanel paddingInline={0} paddingBlockStart={space[6]}>
-                {draftBlogs.length === 0 ? (
-                  <EmptyState
-                    subject="drafts"
-                    nextAction="Start a blog in the editor, and it will be saved here."
-                  />
-                ) : (
-                  <ProfileBlogGrid
-                    blogs={draftBlogs}
-                    totalCount={draftPagination.total}
-                    currentPage={draftPagination.page}
-                    pageSize={draftPagination.limit}
-                    label="Draft blogs pagination"
-                    onPageChange={onDraftPageChange}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    profileUsername={profileUsername}
-                  />
-                )}
+                <EditorialTray active={activeTab === 2} lane="drafts">
+                  {draftBlogs.length === 0 ? (
+                    <EmptyState
+                      subject="drafts"
+                      nextAction="Start a blog in the editor, and it will be saved here."
+                    />
+                  ) : (
+                    <ProfileBlogGrid
+                      blogs={draftBlogs}
+                      totalCount={draftPagination.total}
+                      currentPage={draftPagination.page}
+                      pageSize={draftPagination.limit}
+                      label="Draft blogs pagination"
+                      onPageChange={onDraftPageChange}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      profileUsername={profileUsername}
+                    />
+                  )}
+                </EditorialTray>
               </TabPanel>
             </TabPanels>
           </Tabs>

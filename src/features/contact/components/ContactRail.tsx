@@ -19,6 +19,7 @@ import {
   Divider,
   Eyebrow,
   IconButton,
+  InteractionTrace,
   idleCopyState,
   SectionLabel,
   Stack,
@@ -129,29 +130,31 @@ export const ContactRail = ({ writeToClipboard = writeToBrowserClipboard }: Cont
           </Text>
         </ContactDetailRow>
 
-        <Flex gap={space[3]} alignItems="stretch">
-          <ActionLink
-            href={`mailto:${CONTACT_EMAIL}`}
-            aria-label={`Write an email to ${CONTACT_EMAIL}`}
-            weight="primary"
-            minH={space[12]}
-            flex="1"
-            justifyContent="center"
-            iconEnd={<FiArrowRight aria-hidden="true" />}
-          >
-            Write an email
-          </ActionLink>
-          <IconButton
-            label={copyLabel}
-            icon={copyIcon}
-            tone="secondary"
-            size="lg"
-            isLoading={copy.status === 'copying'}
-            onClick={handleCopy}
-            onBlur={() => dispatch({ type: 'reset' })}
-            borderColor={componentTokens.control.quietFg}
-          />
-        </Flex>
+        <InteractionTrace active={copy.status === 'copied' || copy.status === 'failed'}>
+          <Flex gap={space[3]} alignItems="stretch">
+            <ActionLink
+              href={`mailto:${CONTACT_EMAIL}`}
+              aria-label={`Write an email to ${CONTACT_EMAIL}`}
+              weight="primary"
+              minH={space[12]}
+              flex="1"
+              justifyContent="center"
+              iconEnd={<FiArrowRight aria-hidden="true" />}
+            >
+              Write an email
+            </ActionLink>
+            <IconButton
+              label={copyLabel}
+              icon={copyIcon}
+              tone="secondary"
+              size="lg"
+              isLoading={copy.status === 'copying'}
+              onClick={handleCopy}
+              onBlur={() => dispatch({ type: 'reset' })}
+              borderColor={componentTokens.control.quietFg}
+            />
+          </Flex>
+        </InteractionTrace>
 
         <Text
           as="p"
@@ -168,16 +171,18 @@ export const ContactRail = ({ writeToClipboard = writeToBrowserClipboard }: Cont
       <Divider />
 
       <ContactDetailRow icon={<FiPhone />} label="Phone (secondary)">
-        <ActionLink
-          href={CONTACT_PHONE_HREF}
-          standalone
-          underline="hover"
-          color="text.primary"
-          fontWeight="semibold"
-          width="fit-content"
-        >
-          {CONTACT_PHONE}
-        </ActionLink>
+        <InteractionTrace width="fit-content">
+          <ActionLink
+            href={CONTACT_PHONE_HREF}
+            standalone
+            underline="hover"
+            color="text.primary"
+            fontWeight="semibold"
+            width="fit-content"
+          >
+            {CONTACT_PHONE}
+          </ActionLink>
+        </InteractionTrace>
       </ContactDetailRow>
 
       <Divider />

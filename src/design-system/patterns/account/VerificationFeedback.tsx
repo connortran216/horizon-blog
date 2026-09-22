@@ -25,6 +25,7 @@ import {
   type FeedbackTone,
   type LiveRegionAttributes,
 } from '../../components/feedback'
+import { StateHandoff } from '../../motion'
 import {
   authAlertPresentation,
   authCallbackCopy,
@@ -45,6 +46,7 @@ const icons: Record<Exclude<FeedbackTone, 'loading'>, IconType> = {
 }
 
 interface FeedbackBodyProps {
+  stateKey: string
   tone: FeedbackTone
   headline: string
   detail: string
@@ -54,6 +56,7 @@ interface FeedbackBodyProps {
 }
 
 function FeedbackBody({
+  stateKey,
   tone,
   headline,
   detail,
@@ -65,30 +68,32 @@ function FeedbackBody({
   const Icon = tone === 'loading' ? undefined : icons[tone]
 
   return (
-    <Stack gap={4} alignItems="center" textAlign="center" {...liveRegion}>
-      <Flex
-        align="center"
-        justify="center"
-        boxSize={space[12]}
-        borderRadius={radii.tag}
-        bg={bg}
-        color={fg}
-      >
-        {Icon === undefined ? (
-          // The spinner is the icon for the pending state, and it carries the
-          // same announcement the other states carry as an icon plus a word.
-          <InlineLoading task={loadingTask} hideLabel />
-        ) : (
-          <Box as={Icon} aria-hidden="true" boxSize={space[6]} />
-        )}
-      </Flex>
+    <StateHandoff stateKey={stateKey}>
+      <Stack gap={4} alignItems="center" textAlign="center" {...liveRegion}>
+        <Flex
+          align="center"
+          justify="center"
+          boxSize={space[12]}
+          borderRadius={radii.tag}
+          bg={bg}
+          color={fg}
+        >
+          {Icon === undefined ? (
+            // The spinner is the icon for the pending state, and it carries the
+            // same announcement the other states carry as an icon plus a word.
+            <InlineLoading task={loadingTask} hideLabel />
+          ) : (
+            <Box as={Icon} aria-hidden="true" boxSize={space[6]} />
+          )}
+        </Flex>
 
-      <Heading recipe="cardTitle" as="h2">
-        {headline}
-      </Heading>
-      <Text recipe="body">{detail}</Text>
-      {children}
-    </Stack>
+        <Heading recipe="cardTitle" as="h2">
+          {headline}
+        </Heading>
+        <Text recipe="body">{detail}</Text>
+        {children}
+      </Stack>
+    </StateHandoff>
   )
 }
 
@@ -111,6 +116,7 @@ export function VerificationFeedback({ status, children }: VerificationFeedbackP
 
   return (
     <FeedbackBody
+      stateKey={status}
       tone={copy.tone}
       headline={copy.headline}
       detail={copy.detail}
@@ -142,6 +148,7 @@ export function AuthCallbackFeedback({ status, provider, children }: AuthCallbac
 
   return (
     <FeedbackBody
+      stateKey={status}
       tone={copy.tone}
       headline={copy.headline}
       detail={copy.detail}

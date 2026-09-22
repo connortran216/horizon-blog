@@ -229,6 +229,33 @@ export function connectorColor(connector: PartConnector): string {
   return connector.activeBelow ? presentation.connectorActive : presentation.connector
 }
 
+export interface SeriesSpineSegments {
+  /** The trace entering this part from the previous part. */
+  readonly above: boolean
+  /** The trace leaving this part toward the next part. */
+  readonly below: boolean
+}
+
+/**
+ * Which connector segments belong to the active book-spine trace.
+ *
+ * The target can be the part the reader is currently on or a temporary
+ * pointer/keyboard preview. Invalid targets produce no trace rather than
+ * painting progress beyond the real list.
+ */
+export function seriesSpineSegments(
+  index: number,
+  count: number,
+  activeIndex: number | null,
+): SeriesSpineSegments {
+  const target = activeIndex != null && activeIndex >= 0 && activeIndex < count ? activeIndex : null
+
+  return {
+    above: target != null && index > 0 && index <= target,
+    below: target != null && index < target && index < count - 1,
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /* Reading context                                                            */
 /* -------------------------------------------------------------------------- */

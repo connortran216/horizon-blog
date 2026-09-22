@@ -4,11 +4,10 @@
  * Inline SVG from tokens. No charting library: this bundle adds no
  * dependencies, and a line, an area fill and a baseline are the whole shape.
  *
- * Readable before any animation runs, per `horizon-blog-dsv2.6.3`. The geometry
- * comes from `trendGeometry`, which takes no motion policy and no progress
- * value, so the line is complete at the first paint. `chartMotion` confirms
- * `geometryAnimated: false` under every policy; the only transition on the
- * drawing is a stroke colour change.
+ * The geometry comes from confirmed points only. On a later successful range
+ * change the SVG crossfades from its previous confirmed shape, while the accessible
+ * summary and table expose the final dataset immediately. The first paint and
+ * reduced-motion path both land directly on final geometry.
  *
  * Readable without sight, too. The `figure` carries a text summary as its
  * accessible name, and the full series is in a real table inside a `details`
@@ -16,9 +15,11 @@
  * path.
  */
 
+import { useEffect, useRef, useState } from 'react'
 import { Box, Flex } from '@chakra-ui/react'
+import { keyframes } from '@emotion/react'
 
-import { componentTokens, radii, space } from '../../../theme/tokens'
+import { componentTokens, duration, easing, radii, space } from '../../../theme/tokens'
 import { Stack } from '../../components/layout'
 import { Surface } from '../../components/surface'
 import { Heading, Text } from '../../components/typography'
@@ -33,6 +34,13 @@ import { dataPanelState, metricValue, type DataPanelStateInput } from './metric.
  * the token source.
  */
 const VIEWBOX = { width: 320, height: 120 }
+const leaveGeometry = keyframes({ from: { opacity: 1 }, to: { opacity: 0 } })
+
+const pointsToPath = (points: string, close = false) => {
+  const coordinates = points.split(' ').map((point) => point.replace(',', ' '))
+
+  return `M ${coordinates.join(' L ')}${close ? ' Z' : ''}`
+}
 
 export interface TrendProps extends DataPanelStateInput {
   /** The metric being plotted: "Reading sessions". */
@@ -58,12 +66,26 @@ export function Trend({
   const policy = useMotionPolicy()
   const motion = chartMotion(policy)
   const geometry = trendGeometry(points, VIEWBOX)
+  const lastGeometry = useRef(geometry)
+  const [previousGeometry, setPreviousGeometry] = useState<typeof geometry | null>(null)
   const status = dataPanelState({
     isLoading,
     deniedAction,
     failedAction,
     rowCount: points.length,
   })
+
+  useEffect(() => {
+    const previous = lastGeometry.current
+    const changed = previous.polyline !== geometry.polyline || previous.area !== geometry.area
+
+    if (changed) {
+      setPreviousGeometry(motion.geometryAnimated && previous.hasData ? previous : null)
+      lastGeometry.current = geometry
+    }
+  }, [geometry, motion.geometryAnimated])
+
+  const leaveAnimation = `${leaveGeometry} ${duration.layout} ${easing.standard} forwards`
 
   return (
     <Surface as="section" depth="flat">
@@ -118,9 +140,21 @@ export function Trend({
               >
                 {geometry.area === null ? null : (
                   <Box
-                    as="polygon"
-                    points={geometry.area}
+                    as="path"
+                    data-trend-geometry="area"
+                    d={pointsToPath(geometry.area, true)}
                     fill={componentTokens.reader.progressTrack}
+                  />
+                )}
+                {previousGeometry?.area === null || previousGeometry === null ? null : (
+                  <Box
+                    as="path"
+                    aria-hidden="true"
+                    data-trend-geometry="previous-area"
+                    d={pointsToPath(previousGeometry.area, true)}
+                    fill={componentTokens.reader.progressTrack}
+                    animation={leaveAnimation}
+                    onAnimationEnd={() => setPreviousGeometry(null)}
                   />
                 )}
                 <Box
@@ -134,8 +168,9 @@ export function Trend({
                 />
                 {geometry.polyline === null ? null : (
                   <Box
-                    as="polyline"
-                    points={geometry.polyline}
+                    as="path"
+                    data-trend-geometry="line"
+                    d={pointsToPath(geometry.polyline)}
                     fill="none"
                     stroke={componentTokens.reader.progressIndicator}
                     strokeWidth="3"
@@ -145,7 +180,23 @@ export function Trend({
                     // which would stretch the stroke with it. This keeps the
                     // line an even weight at every container width.
                     vectorEffect="non-scaling-stroke"
-                    transition={motion.transition}
+                    style={{ transition: motion.colourTransition }}
+                  />
+                )}
+                {previousGeometry?.polyline === null || previousGeometry === null ? null : (
+                  <Box
+                    as="path"
+                    aria-hidden="true"
+                    data-trend-geometry="previous-line"
+                    d={pointsToPath(previousGeometry.polyline)}
+                    fill="none"
+                    stroke={componentTokens.reader.progressIndicator}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                    animation={leaveAnimation}
+                    onAnimationEnd={() => setPreviousGeometry(null)}
                   />
                 )}
               </Box>

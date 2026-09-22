@@ -240,6 +240,7 @@ const PublishBlogPage = () => {
               isSubmitting={isSubmitting}
               submitError={error || undefined}
               existingScheduledAt={existingSchedule ?? undefined}
+              isSeriesReady={seriesLoaded}
             >
               <Field
                 label="Series"

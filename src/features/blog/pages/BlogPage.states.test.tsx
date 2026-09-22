@@ -3,13 +3,27 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { BlogPostSummary } from '../../../core'
 import theme from '../../../theme/horizon'
+
+const post = (id: string, title: string): BlogPostSummary => ({
+  id,
+  title,
+  excerpt: `${title} excerpt`,
+  author: { id: 7, username: 'Sample Author' },
+  createdAt: '2026-09-01T00:00:00Z',
+  updatedAt: '2026-09-01T00:00:00Z',
+  readingTime: 5,
+  tags: ['sample'],
+  status: 'published',
+  slug: id,
+})
 
 const archive = {
   searchInput: '',
   setSearchInput: vi.fn(),
   query: '',
-  posts: [],
+  posts: [] as BlogPostSummary[],
   popularTags: [],
   loading: false,
   tagsLoading: false,
@@ -93,5 +107,21 @@ describe('BlogPage async states', () => {
     const markup = render()
 
     expect(markup).not.toContain('13 blogs')
+  })
+
+  it('gives every committed result one stable reflow identity', () => {
+    state.current = {
+      ...archive,
+      posts: [post('41', 'Featured sample'), post('42', 'Grid sample')],
+      total: 2,
+    }
+
+    const markup = render()
+
+    expect(markup.match(/data-blog-result=/g)).toHaveLength(2)
+    expect(markup).toContain('data-blog-result="41"')
+    expect(markup).toContain('data-blog-result-kind="featured"')
+    expect(markup).toContain('data-blog-result="42"')
+    expect(markup).toContain('data-blog-result-kind="card"')
   })
 })
