@@ -23,12 +23,15 @@
  * nothing here for it to take away.
  */
 
+import { useState, type FocusEvent } from 'react'
 import { Box, type BoxProps } from '@chakra-ui/react'
+import { motion } from 'framer-motion'
 import { FiArrowRight } from 'react-icons/fi'
 
-import { space, transitionFor } from '../../../theme/tokens'
+import { space, transitionFor as cssTransitionFor } from '../../../theme/tokens'
 import { ActionLink } from '../../components/actions'
 import type { HeadingElement } from '../../components/layout'
+import { transitionFor, useMotionPolicy } from '../../motion'
 import { Chip } from '../../components/status'
 import { Eyebrow, Heading, Metadata, Text } from '../../components/typography'
 import { cardLinkOverlayStyle, readingTimeLabel, visibleTags } from '../posts'
@@ -38,6 +41,7 @@ import {
   partLabel,
   partOrdinal,
   seriesPresentation,
+  seriesSpineSegments,
   type SeriesPartSummary,
 } from './series.logic'
 
@@ -60,8 +64,17 @@ export function PartList({
   tagLimit = 3,
   ...rest
 }: PartListProps) {
+  const policy = useMotionPolicy()
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const presentation = seriesPresentation()
   const total = parts.length
+  const spineIndex = previewIndex ?? currentIndex
+
+  const leaveFocusedPart = (event: FocusEvent<HTMLElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setPreviewIndex(null)
+    }
+  }
 
   return (
     <Box as="ol" aria-label={label} listStyleType="none" margin={0} padding={0} {...rest}>
@@ -71,6 +84,8 @@ export function PartList({
         const reading = readingTimeLabel(part.readingMinutes)
         const tags = visibleTags(part.tags, tagLimit)
         const isCurrent = connector.state === 'current'
+        const isSpineTarget = spineIndex === index
+        const spine = seriesSpineSegments(index, total, spineIndex)
 
         return (
           <Box
@@ -79,6 +94,11 @@ export function PartList({
             data-group
             data-part-state={connector.state}
             data-active={isCurrent ? 'true' : undefined}
+            data-spine-target={isSpineTarget ? 'true' : undefined}
+            onMouseEnter={() => setPreviewIndex(index)}
+            onMouseLeave={() => setPreviewIndex(null)}
+            onFocusCapture={() => setPreviewIndex(index)}
+            onBlurCapture={leaveFocusedPart}
             position="relative"
             display="grid"
             gridTemplateColumns={`${presentation.ordinalSize} minmax(0, 1fr) auto`}
@@ -97,8 +117,23 @@ export function PartList({
                 width="2px"
                 height={space[6]}
                 bg={lineColor}
-                transition={transitionFor('background-color')}
-              />
+                transition={cssTransitionFor('background-color')}
+                overflow="hidden"
+              >
+                <motion.span
+                  aria-hidden="true"
+                  data-series-spine-trace="above"
+                  initial={false}
+                  animate={{ scaleY: spine.above ? 1 : 0 }}
+                  transition={transitionFor('layout', policy)}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: presentation.connectorActive,
+                    transformOrigin: 'bottom',
+                  }}
+                />
+              </Box>
             ) : null}
             {connector.below ? (
               <Box
@@ -109,10 +144,25 @@ export function PartList({
                 insetInlineStart={`calc(${presentation.ordinalSize} / 2)`}
                 width="2px"
                 bg={lineColor}
-                transition={transitionFor('background-color')}
+                transition={cssTransitionFor('background-color')}
                 _groupHover={{ bg: presentation.connectorActive }}
                 _groupFocusWithin={{ bg: presentation.connectorActive }}
-              />
+                overflow="hidden"
+              >
+                <motion.span
+                  aria-hidden="true"
+                  data-series-spine-trace="below"
+                  initial={false}
+                  animate={{ scaleY: spine.below ? 1 : 0 }}
+                  transition={transitionFor('layout', policy)}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: presentation.connectorActive,
+                    transformOrigin: 'top',
+                  }}
+                />
+              </Box>
             ) : null}
 
             <Box
@@ -122,10 +172,10 @@ export function PartList({
               width={presentation.ordinalSize}
               height={presentation.ordinalSize}
               borderRadius={presentation.cardRadius}
-              bg={isCurrent ? presentation.connectorActive : 'bg.subtle'}
-              color={isCurrent ? 'text.onAction' : presentation.partRest}
+              bg={isCurrent || isSpineTarget ? presentation.connectorActive : 'bg.subtle'}
+              color={isCurrent || isSpineTarget ? 'text.onAction' : presentation.partRest}
               textStyle="meta"
-              transition={`${transitionFor('background-color')}, ${transitionFor('color')}`}
+              transition={`${cssTransitionFor('background-color')}, ${cssTransitionFor('color')}`}
               _groupHover={{ bg: presentation.connectorActive, color: 'text.onAction' }}
               _groupFocusWithin={{ bg: presentation.connectorActive, color: 'text.onAction' }}
             >

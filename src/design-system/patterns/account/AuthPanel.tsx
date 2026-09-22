@@ -21,6 +21,7 @@ import { ContentContainer, Stack } from '../../components/layout'
 import { Surface } from '../../components/surface'
 import { Eyebrow, Heading, Text } from '../../components/typography'
 import { PermissionState } from '../../components/feedback'
+import { StateHandoff } from '../../motion'
 import { authPanelState, type AuthPanelStateInput } from './auth.logic'
 
 export interface AuthPanelProps extends AuthPanelStateInput {
@@ -79,17 +80,21 @@ export function AuthPanel({
           aria-busy={state['aria-busy']}
         >
           <Stack gap={6}>
-            {feedback}
+            <StateHandoff stateKey={state.status}>
+              <Stack gap={6}>
+                {feedback}
 
-            {state.showsForm ? (
-              children
-            ) : (
-              <PermissionState
-                deniedAction={deniedAction ?? 'use this account'}
-                detail={deniedDetail}
-                align="start"
-              />
-            )}
+                {state.showsForm ? (
+                  children
+                ) : (
+                  <PermissionState
+                    deniedAction={deniedAction ?? 'use this account'}
+                    detail={deniedDetail}
+                    align="start"
+                  />
+                )}
+              </Stack>
+            </StateHandoff>
 
             {/*
              * The visible spinner lives on the caller's submit button. This is

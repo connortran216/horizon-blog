@@ -13,6 +13,7 @@
 
 import { useRef } from 'react'
 import { Box } from '@chakra-ui/react'
+import { AnimatePresence, LayoutGroup } from 'framer-motion'
 
 import {
   Button,
@@ -22,16 +23,19 @@ import {
   Eyebrow,
   Grid,
   Heading,
+  LayoutTransition,
   Pagination,
   RetryAction,
   Section,
   Skeleton,
   Stack,
-  Stagger,
   Text,
+  durationSeconds,
   filterResultSummary,
   hierarchyContext,
   noResultsNextAction,
+  standardEase,
+  useMotionPolicy,
 } from '../../../design-system'
 import BlogArchiveHero from '../components/BlogArchiveHero'
 import BlogFilterToolbar from '../components/BlogFilterToolbar'
@@ -44,6 +48,7 @@ const PAGE_SIZE = 9
 const RESULTS_EYEBROW = 'Latest blogs'
 
 const BlogPage = () => {
+  const motionPolicy = useMotionPolicy()
   const {
     searchInput,
     setSearchInput,
@@ -89,6 +94,11 @@ const BlogPage = () => {
   const resultsHeading = hasActiveFilters ? 'Search results' : 'Blogs worth reading next'
   const sectionLabels = hierarchyContext(RESULTS_EYEBROW, resultsHeading)
   const resultSummary = filterResultSummary(filterState, total, loading)
+  const reflowTransition = {
+    duration: durationSeconds('layout', motionPolicy),
+    ease: standardEase,
+  }
+  const reflowScale = motionPolicy.translation ? 0.97 : 1
 
   return (
     <ContentContainer>
@@ -147,28 +157,55 @@ const BlogPage = () => {
                 ) : null}
               </EmptyState>
             ) : (
-              <Stack as="section" gap={8} aria-labelledby="blog-results-heading">
-                <Stack gap={2}>
-                  <Eyebrow as="p">{RESULTS_EYEBROW}</Eyebrow>
-                  <Heading id="blog-results-heading" as="h2" recipe="sectionTitle">
-                    {resultsHeading}
-                  </Heading>
+              <LayoutGroup id="blog-editorial-reflow">
+                <Stack as="section" gap={8} aria-labelledby="blog-results-heading">
+                  <Stack gap={2}>
+                    <Eyebrow as="p">{RESULTS_EYEBROW}</Eyebrow>
+                    <Heading id="blog-results-heading" as="h2" recipe="sectionTitle">
+                      {resultsHeading}
+                    </Heading>
+                  </Stack>
+
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {featuredPost ? (
+                      <LayoutTransition
+                        key={featuredPost.id}
+                        layoutGroupId={`blog-result-${featuredPost.id}`}
+                        data-blog-result={featuredPost.id}
+                        data-blog-result-kind="featured"
+                        initial={{ opacity: 0, scale: reflowScale }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: reflowScale }}
+                        transition={reflowTransition}
+                      >
+                        <FeaturedStory post={featuredPost} sectionLabels={sectionLabels} />
+                      </LayoutTransition>
+                    ) : null}
+                  </AnimatePresence>
+
+                  {remainingPosts.length > 0 ? (
+                    <Grid columns={2} gap={8}>
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        {remainingPosts.map((post) => (
+                          <LayoutTransition
+                            key={post.id}
+                            layoutGroupId={`blog-result-${post.id}`}
+                            data-blog-result={post.id}
+                            data-blog-result-kind="card"
+                            initial={{ opacity: 0, scale: reflowScale }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: reflowScale }}
+                            transition={reflowTransition}
+                            style={{ height: '100%' }}
+                          >
+                            <EditorialCard post={post} sectionLabels={sectionLabels} />
+                          </LayoutTransition>
+                        ))}
+                      </AnimatePresence>
+                    </Grid>
+                  ) : null}
                 </Stack>
-
-                {featuredPost ? (
-                  <FeaturedStory post={featuredPost} sectionLabels={sectionLabels} />
-                ) : null}
-
-                {remainingPosts.length > 0 ? (
-                  <Grid columns={2} gap={8}>
-                    <Stagger>
-                      {remainingPosts.map((post) => (
-                        <EditorialCard key={post.id} post={post} sectionLabels={sectionLabels} />
-                      ))}
-                    </Stagger>
-                  </Grid>
-                ) : null}
-              </Stack>
+              </LayoutGroup>
             )}
           </Box>
 

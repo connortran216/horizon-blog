@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   SCHEDULE_GRACE_MS,
   publicationCopy,
+  publicationChecks,
   publishGate,
   scheduleState,
   scheduleSummary,
@@ -248,5 +249,32 @@ describe('publish gate', () => {
 
     expect(gate.canSubmit).toBe(false)
     expect(gate.blockedReason).toBeNull()
+  })
+})
+
+describe('publication checks', () => {
+  it('derives readiness from the same content, timing and Series facts as the page', () => {
+    const checks = publicationChecks({
+      mode: 'schedule',
+      hasTitle: true,
+      hasContent: false,
+      schedule: scheduleValidity({ date: '2026-03-12', time: '09:00', now }),
+      isSeriesReady: false,
+    })
+
+    expect(checks).toEqual([
+      { id: 'title', label: 'Title', ready: true },
+      { id: 'content', label: 'Writing', ready: false },
+      { id: 'timing', label: 'Publication time', ready: true },
+      { id: 'series', label: 'Series options', ready: false },
+    ])
+  })
+
+  it('does not require schedule fields for publishing now', () => {
+    expect(publicationChecks({ mode: 'now' }).find((check) => check.id === 'timing')).toEqual({
+      id: 'timing',
+      label: 'Publish now',
+      ready: true,
+    })
   })
 })

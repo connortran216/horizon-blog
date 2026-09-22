@@ -14,7 +14,8 @@
  */
 
 import { Box, Flex, VisuallyHidden } from '@chakra-ui/react'
-import { FiCalendar, FiSend } from 'react-icons/fi'
+import { motion } from 'framer-motion'
+import { FiCalendar, FiCheck, FiCircle, FiSend } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
 
 import { componentTokens, radii, space, transitionFor } from '../../../theme/tokens'
@@ -22,7 +23,14 @@ import { Button } from '../../components/actions'
 import { Field, Input } from '../../components/forms'
 import { Grid, Stack } from '../../components/layout'
 import { Heading, Text } from '../../components/typography'
-import { publishGate, scheduleSummary, scheduleValidity, type PublishMode } from './schedule.logic'
+import { transitionFor as motionTransition, useMotionPolicy } from '../../motion'
+import {
+  publicationChecks,
+  publishGate,
+  scheduleSummary,
+  scheduleValidity,
+  type PublishMode,
+} from './schedule.logic'
 
 const modes: ReadonlyArray<{
   value: PublishMode
@@ -70,6 +78,8 @@ export interface PublishPanelProps {
   existingScheduledAt?: string
   /** Series selection and anything else the feature adds to this column. */
   children?: React.ReactNode
+  /** Whether the optional Series control has finished loading. */
+  isSeriesReady?: boolean
 }
 
 export function PublishPanel({
@@ -90,7 +100,9 @@ export function PublishPanel({
   timeZone,
   existingScheduledAt,
   children,
+  isSeriesReady = true,
 }: PublishPanelProps) {
+  const policy = useMotionPolicy()
   const schedule = scheduleValidity({ date, time, now })
   const gate = publishGate({
     mode,
@@ -104,6 +116,7 @@ export function PublishPanel({
     mode === 'schedule' && schedule.value
       ? scheduleSummary({ scheduledAt: schedule.value.toISOString(), now, locale, timeZone })
       : null
+  const checks = publicationChecks({ mode, hasTitle, hasContent, schedule, isSeriesReady })
 
   return (
     <Stack as="section" gap={6}>
@@ -119,6 +132,42 @@ export function PublishPanel({
       )}
 
       {children}
+
+      <Stack gap={2} aria-label="Publication checks">
+        <Text recipe="metadata" color="text.secondary" fontWeight="semibold">
+          Press check
+        </Text>
+        <Grid columns={2} gap={2} collapseAt="sm">
+          {checks.map((check) => {
+            const CheckIcon = check.ready ? FiCheck : FiCircle
+
+            return (
+              <Flex key={check.id} align="center" gap={space[2]} data-publish-check={check.id}>
+                <motion.span
+                  key={`${check.id}-${check.ready ? 'ready' : 'pending'}`}
+                  initial={{ opacity: 0, scale: policy.translation ? 0.72 : 1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={motionTransition('fast', policy)}
+                  style={{ display: 'inline-flex' }}
+                >
+                  <Box
+                    as={CheckIcon}
+                    aria-hidden="true"
+                    color={check.ready ? componentTokens.feedback.successFg : 'text.muted'}
+                  />
+                </motion.span>
+                <Text
+                  as="span"
+                  recipe="metadata"
+                  color={check.ready ? 'text.primary' : 'text.muted'}
+                >
+                  {check.label}: {check.ready ? 'ready' : 'check needed'}
+                </Text>
+              </Flex>
+            )
+          })}
+        </Grid>
+      </Stack>
 
       <Stack as="fieldset" gap={3} role="radiogroup" aria-label="Publication timing">
         <VisuallyHidden as="legend">Publication timing</VisuallyHidden>

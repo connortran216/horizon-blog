@@ -27,10 +27,11 @@ import {
   FiWifiOff,
 } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
+import { AnimatePresence, motion } from 'framer-motion'
 
-import { space } from '../../../theme/tokens'
+import { radii, space } from '../../../theme/tokens'
 import { Text } from '../../components/typography'
-import { loadingPulseAnimation, useMotionPolicy } from '../../motion'
+import { loadingPulseAnimation, transitionFor, useMotionPolicy } from '../../motion'
 import { autosaveState, type AutosaveIcon, type AutosaveStateInput } from './workspace.logic'
 
 const icons: Record<AutosaveIcon, IconType> = {
@@ -86,6 +87,33 @@ export function AutosaveState({ compact = false, ...input }: AutosaveStateProps)
           {state.detail}
         </Text>
       )}
+
+      <Box
+        aria-hidden="true"
+        data-autosave-trace={state.status}
+        marginBlockStart={space[2]}
+        height="2px"
+        maxWidth="12rem"
+        overflow="hidden"
+        borderRadius={radii.tag}
+        bg="border.subtle"
+      >
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={state.status}
+            initial={{ opacity: 0, scaleX: policy.translation ? 0.2 : 1 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            exit={{ opacity: 0 }}
+            transition={transitionFor('normal', policy)}
+            style={{
+              width: '100%',
+              height: '100%',
+              background: state.color,
+              transformOrigin: 'left center',
+            }}
+          />
+        </AnimatePresence>
+      </Box>
     </Box>
   )
 }

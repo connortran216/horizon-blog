@@ -11,12 +11,16 @@ import { Box } from '@chakra-ui/react'
 
 import {
   HoverLift,
+  InteractionTrace,
   LayoutTransition,
+  MarginalNote,
   PressFeedback,
   Reveal,
   Stagger,
+  StateHandoff,
   Surface,
   Text,
+  TimelineEntry,
   useMotionPolicy,
   useReducedMotionPreference,
   useRevealInView,
@@ -126,6 +130,49 @@ function StaggerEntry() {
   )
 }
 
+function MarginalNoteEntry() {
+  return (
+    <MarginalNote>
+      <Text recipe="body">A supporting note arrives beside its own editorial rule.</Text>
+    </MarginalNote>
+  )
+}
+
+function InteractionTraceEntry({ state }: { readonly state: string }) {
+  return (
+    <InteractionTrace active={state === 'confirmed'}>
+      <HarnessButton onClick={() => undefined}>
+        Focus or hover this communication action
+      </HarnessButton>
+    </InteractionTrace>
+  )
+}
+
+function TimelineEntryEntry() {
+  return (
+    <TimelineEntry>
+      <Text recipe="body">A focusable timeline entry with screen-only emphasis.</Text>
+    </TimelineEntry>
+  )
+}
+
+function StateHandoffEntry() {
+  const [state, setState] = useState('ready')
+
+  return (
+    <Box display="flex" flexDirection="column" gap={space[3]}>
+      <HarnessButton
+        onClick={() => setState((current) => (current === 'ready' ? 'done' : 'ready'))}
+      >
+        Swap the sample state
+      </HarnessButton>
+      <StateHandoff stateKey={state}>
+        <Filler>Current state: {state}</Filler>
+      </StateHandoff>
+    </Box>
+  )
+}
+
 function UseMotionPolicyEntry() {
   const policy = useMotionPolicy()
 
@@ -190,10 +237,14 @@ function UseViewTransitionEntry() {
 
 export const motionEntries = {
   HoverLift: HoverLiftEntry,
+  InteractionTrace: InteractionTraceEntry,
   LayoutTransition: LayoutTransitionEntry,
+  MarginalNote: MarginalNoteEntry,
   PressFeedback: PressFeedbackEntry,
   Reveal: RevealEntry,
   Stagger: StaggerEntry,
+  StateHandoff: StateHandoffEntry,
+  TimelineEntry: TimelineEntryEntry,
   useMotionPolicy: UseMotionPolicyEntry,
   useReducedMotionPreference: UseReducedMotionPreferenceEntry,
   useRevealInView: UseRevealInViewEntry,

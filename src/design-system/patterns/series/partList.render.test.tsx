@@ -70,6 +70,22 @@ describe('hover and keyboard emphasis', () => {
   })
 })
 
+describe('book-spine motion contract', () => {
+  it('renders a presentation-only trace on connector segments', () => {
+    const markup = list(2)
+
+    expect(markup).toContain('data-series-spine-trace="above"')
+    expect(markup).toContain('data-series-spine-trace="below"')
+  })
+
+  it('keeps the real current part distinct from a temporary preview target', () => {
+    const markup = list(2)
+
+    expect(markup.match(/data-active="true"/g)).toHaveLength(1)
+    expect(markup.match(/data-spine-target="true"/g)).toHaveLength(1)
+  })
+})
+
 function literal(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

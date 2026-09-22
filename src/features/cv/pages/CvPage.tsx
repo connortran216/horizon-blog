@@ -16,6 +16,7 @@ import {
   ActionLink,
   Button,
   CVEntry,
+  TimelineEntry,
   ContentContainer,
   Grid,
   Heading,
@@ -241,7 +242,7 @@ const CvPage = () => {
                 <SectionLabel className="cv-section-label">Experience</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.experience.map((experience) => (
-                    <Box
+                    <TimelineEntry
                       key={`${experience.company}-${experience.role}`}
                       className="cv-entry cv-avoid-break"
                     >
@@ -253,7 +254,7 @@ const CvPage = () => {
                         stack={experience.stack}
                         headingLevel="h3"
                       />
-                    </Box>
+                    </TimelineEntry>
                   ))}
                 </Box>
               </Stack>
@@ -262,7 +263,7 @@ const CvPage = () => {
                 <SectionLabel className="cv-section-label">Personal Projects</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.projects.map((project) => (
-                    <Box
+                    <TimelineEntry
                       key={`${project.title}-${project.period}`}
                       className="cv-entry cv-avoid-break"
                     >
@@ -274,7 +275,7 @@ const CvPage = () => {
                         stack={project.stack}
                         headingLevel="h3"
                       />
-                    </Box>
+                    </TimelineEntry>
                   ))}
                 </Box>
               </Stack>
@@ -283,7 +284,10 @@ const CvPage = () => {
                 <SectionLabel className="cv-section-label">Education</SectionLabel>
                 <Box className="cv-section-body">
                   {cvProfile.education.map((item) => (
-                    <Box key={`${item.school}-${item.degree}`} className="cv-entry cv-avoid-break">
+                    <TimelineEntry
+                      key={`${item.school}-${item.degree}`}
+                      className="cv-entry cv-avoid-break"
+                    >
                       <CVEntry
                         title={item.degree}
                         organisation={item.school}
@@ -291,7 +295,7 @@ const CvPage = () => {
                         highlights={item.details}
                         headingLevel="h3"
                       />
-                    </Box>
+                    </TimelineEntry>
                   ))}
                 </Box>
               </Stack>

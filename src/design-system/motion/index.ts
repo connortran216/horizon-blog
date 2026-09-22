@@ -13,6 +13,12 @@ export type { HoverLiftProps } from './HoverLift'
 export { LayoutTransition } from './LayoutTransition'
 export type { LayoutTransitionProps } from './LayoutTransition'
 
+export { MarginalNote } from './MarginalNote'
+export type { MarginalNoteProps } from './MarginalNote'
+
+export { InteractionTrace } from './InteractionTrace'
+export type { InteractionTraceProps } from './InteractionTrace'
+
 export { PressFeedback } from './PressFeedback'
 export type { PressFeedbackProps } from './PressFeedback'
 
@@ -21,6 +27,12 @@ export type { RevealProps } from './Reveal'
 
 export { Stagger } from './Stagger'
 export type { StaggerProps } from './Stagger'
+
+export { StateHandoff } from './StateHandoff'
+export type { StateHandoffProps } from './StateHandoff'
+
+export { TimelineEntry } from './TimelineEntry'
+export type { TimelineEntryProps } from './TimelineEntry'
 
 export { useMotionPolicy, useReducedMotionPreference } from './useMotionPolicy'
 export { useRevealInView } from './useRevealInView'

@@ -6,12 +6,10 @@
  * tokens, which is enough for the three shapes the product actually has: a
  * trend line, a funnel, and a share breakdown.
  *
- * `horizon-blog-dsv2.6.3` also asks that charts be readable before any
- * animation runs. That is enforced by what is missing here: no function in this
- * module takes a `MotionPolicy`, a progress value or a frame number. The
- * geometry is final at the first paint, and `chartMotion` - the only motion
- * decision in the file - answers `geometryAnimated: false` under every policy.
- * Motion on these charts is a colour transition on hover and nothing else.
+ * Geometry is always computed from the final confirmed dataset. A later range
+ * change may crossfade the previous SVG presentation over its final geometry, but
+ * the summary and table receive the final values immediately. Reduced motion
+ * collapses that transition to zero duration.
  *
  * Every chart also emits a text summary and, where it makes sense, real rows.
  * An SVG polyline is not readable by a screen reader, and "readable without
@@ -19,7 +17,11 @@
  */
 
 import { transitionFor } from '../../../theme/tokens'
-import type { MotionPolicy } from '../../motion'
+import {
+  transitionFor as motionTransitionFor,
+  type MotionPolicy,
+  type MotionTransition,
+} from '../../motion'
 
 /* -------------------------------------------------------------------------- */
 /* Trend                                                                      */
@@ -283,28 +285,20 @@ export function breakdownRows(
 /* -------------------------------------------------------------------------- */
 
 export interface ChartMotion {
-  /**
-   * Always false. The plotted geometry is final at the first paint, so the
-   * chart is readable before, during and without any animation.
-   */
-  readonly geometryAnimated: false
-  /** The only transition a chart has: colour, on hover and focus. */
-  readonly transition: string
+  /** Successful dataset changes crossfade only when motion is allowed. */
+  readonly geometryAnimated: boolean
+  readonly geometryTransition: MotionTransition
+  readonly colourTransition: string
 }
 
 /**
- * The chart's motion budget, which is deliberately almost nothing.
- *
- * The policy is an argument so the call site reads like every other motion
- * decision in the system, and so the property being asserted is visible: the
- * answer does not depend on it. A chart that faded or grew into place would be
- * unreadable for the length of its own entrance, and under reduced motion it
- * would have to be readable anyway - at which point the animated version was
- * never necessary.
+ * The chart's motion budget: crossfade only between confirmed geometries.
+ * It never invents data and never delays the text/table representation.
  */
-export function chartMotion(_policy: MotionPolicy): ChartMotion {
+export function chartMotion(policy: MotionPolicy): ChartMotion {
   return {
-    geometryAnimated: false,
-    transition: transitionFor('stroke', 'fast'),
+    geometryAnimated: policy.layoutProjection,
+    geometryTransition: motionTransitionFor('layout', policy),
+    colourTransition: transitionFor('stroke', 'fast'),
   }
 }
