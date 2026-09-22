@@ -21,8 +21,8 @@ Regenerate it rather than editing it.
 
 - Legacy UI files on disk: **125**
 - Ledger rows: **125**
-- Exported v2 components: **111**
-- Exported components demonstrated in the gallery: **111**
+- Exported v2 components: **115**
+- Exported components demonstrated in the gallery: **115**
 
 | Disposition | Rows |
 | --- | ---: |
@@ -32,7 +32,7 @@ Regenerate it rather than editing it.
 | replace-with-adapter | 11 |
 | retain-behavior | 5 |
 
-Gallery entries: 117.
+Gallery entries: 121.
 
 ## Findings
 

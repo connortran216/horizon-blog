@@ -13,6 +13,12 @@ export type { HoverLiftProps } from './HoverLift'
 export { LayoutTransition } from './LayoutTransition'
 export type { LayoutTransitionProps } from './LayoutTransition'
 
+export { InteractionTrace } from './InteractionTrace'
+export type { InteractionTraceProps } from './InteractionTrace'
+
+export { MarginalNote } from './MarginalNote'
+export type { MarginalNoteProps } from './MarginalNote'
+
 export { PointerLight } from './PointerLight'
 export type { PointerLightProps } from './PointerLight'
 
@@ -28,8 +34,14 @@ export type { SignalTargetProps } from './SignalTarget'
 export { Stagger } from './Stagger'
 export type { StaggerProps } from './Stagger'
 
+export { StateHandoff } from './StateHandoff'
+export type { StateHandoffProps } from './StateHandoff'
+
 export { SynapseField } from './SynapseField'
 export type { SynapseFieldProps } from './SynapseField'
+
+export { TimelineEntry } from './TimelineEntry'
+export type { TimelineEntryProps } from './TimelineEntry'
 
 export { Typeset } from './Typeset'
 export type { TypesetProps } from './Typeset'

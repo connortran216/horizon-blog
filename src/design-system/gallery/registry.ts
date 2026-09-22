@@ -269,10 +269,20 @@ export const galleryRegistry = [
     states: [{ name: 'ready', kind: 'ready' }, { name: 'disabled' }],
   },
   {
+    name: 'InteractionTrace',
+    area: 'motion',
+    states: [{ name: 'interactive', kind: 'ready' }, { name: 'confirmed' }],
+  },
+  {
     name: 'LayoutTransition',
     area: 'motion',
     states: [{ name: 'reorderable', kind: 'ready' }],
     note: 'Driven by a gallery harness that shuffles its children on demand.',
+  },
+  {
+    name: 'MarginalNote',
+    area: 'motion',
+    states: [{ name: 'in view', kind: 'ready' }],
   },
   {
     name: 'PointerLight',
@@ -302,6 +312,12 @@ export const galleryRegistry = [
     states: [{ name: 'on mount', kind: 'ready' }],
   },
   {
+    name: 'StateHandoff',
+    area: 'motion',
+    states: [{ name: 'explicit state', kind: 'ready' }],
+    note: 'The content swaps immediately; only the acknowledgement trace animates.',
+  },
+  {
     name: 'SynapseField',
     area: 'motion',
     states: [
@@ -311,6 +327,11 @@ export const galleryRegistry = [
       { name: 'with copy' },
     ],
     note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on it so the writing can be reviewed; hover to stir the field.',
+  },
+  {
+    name: 'TimelineEntry',
+    area: 'motion',
+    states: [{ name: 'screen and print', kind: 'ready' }],
   },
   {
     name: 'Typeset',

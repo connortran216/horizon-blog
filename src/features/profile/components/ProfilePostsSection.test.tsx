@@ -122,4 +122,10 @@ describe('ProfilePostsSection', () => {
   it('names the loading state rather than showing a bare spinner', () => {
     expect(render({ postsLoading: true })).toContain('your blogs')
   })
+
+  it('keeps each collection inside a panel-local editorial tray', () => {
+    expect(markup).toContain('data-profile-tray="published"')
+    expect(markup).toContain('data-profile-tray="scheduled"')
+    expect(markup).toContain('data-profile-tray="drafts"')
+  })
 })

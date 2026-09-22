@@ -121,17 +121,15 @@ describe('trend summary', () => {
 })
 
 /**
- * `horizon-blog-dsv2.6.3`: charts are readable before any animation runs.
- *
- * The property is that the geometry does not depend on a motion state, which is
- * visible in the signature - `trendGeometry` takes no policy - and confirmed
- * here. What a browser paints on the first frame is a render question and sits
- * with the B6 gallery.
+ * The confirmed geometry remains independent from motion policy. Policy only
+ * controls whether the browser interpolates between two confirmed shapes.
  */
 describe('chart motion', () => {
-  it('never animates the plotted geometry, under either policy', () => {
-    expect(chartMotion(fullMotionPolicy).geometryAnimated).toBe(false)
+  it('interpolates confirmed geometry only when motion is allowed', () => {
+    expect(chartMotion(fullMotionPolicy).geometryAnimated).toBe(true)
     expect(chartMotion(reducedMotionPolicy).geometryAnimated).toBe(false)
+    expect(chartMotion(fullMotionPolicy).geometryTransition.duration).toBeGreaterThan(0)
+    expect(chartMotion(reducedMotionPolicy).geometryTransition.duration).toBe(0)
   })
 
   it('produces identical geometry regardless of the motion preference', () => {

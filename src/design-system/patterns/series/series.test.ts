@@ -16,6 +16,7 @@ import {
   seriesIsDistinctFromPostCard,
   seriesNavTargets,
   seriesPresentation,
+  seriesSpineSegments,
   seriesTotalMinutes,
   type SeriesReadingContext,
   type SeriesSummary,
@@ -50,6 +51,22 @@ describe('book identity', () => {
     expect(seriesIdentityLabel(4)).toBe('Series · 4 blogs')
     expect(seriesIdentityLabel(1)).toBe('Series · 1 blog')
     expect(seriesIdentityLabel(0)).toBe('Series · 0 blogs')
+  })
+})
+
+describe('book-spine trace', () => {
+  it('connects every segment up to the active part and stops there', () => {
+    expect([0, 1, 2, 3].map((index) => seriesSpineSegments(index, 4, 2))).toEqual([
+      { above: false, below: true },
+      { above: true, below: true },
+      { above: true, below: false },
+      { above: false, below: false },
+    ])
+  })
+
+  it('draws no active trace for an absent or invalid target', () => {
+    expect(seriesSpineSegments(1, 4, null)).toEqual({ above: false, below: false })
+    expect(seriesSpineSegments(1, 4, 9)).toEqual({ above: false, below: false })
   })
 })
 
