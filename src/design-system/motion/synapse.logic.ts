@@ -534,6 +534,50 @@ export function synapseScene(policy: MotionPolicy): SynapseScene {
 /* Colour                                                                     */
 /* -------------------------------------------------------------------------- */
 
+export type FieldTheme = 'light' | 'dark'
+
+export interface FieldInk {
+  /** Which colour roles paint the field, as Chakra colour variable names. */
+  readonly node: string
+  readonly particle: string
+  readonly halo: string
+  /** Multipliers on the alphas tuned for the dark theme. */
+  readonly linkGain: number
+  readonly nodeGain: number
+  /** The least opaque a node's core may be. */
+  readonly coreFloor: number
+}
+
+/**
+ * On the dark canvas the field is light: cobalt nodes, lime signals, a lime
+ * glow. On the light canvas the same lime is invisible - 60% lime on white is
+ * white - and cobalt at dark-tuned alphas washes out to nothing. So in light
+ * the field is ink instead: cobalt throughout, the signal a shade deeper, the
+ * glow cobalt too, and every alpha lifted. Same network, same motion; only
+ * what "light" means changes with the canvas.
+ */
+export function fieldInk(theme: FieldTheme): FieldInk {
+  if (theme === 'dark') {
+    return {
+      node: '--chakra-colors-action-primary',
+      particle: '--chakra-colors-accent-lime',
+      halo: '--chakra-colors-ambient-accentGlow',
+      linkGain: 1,
+      nodeGain: 1,
+      coreFloor: 0.25,
+    }
+  }
+
+  return {
+    node: '--chakra-colors-action-primary',
+    particle: '--chakra-colors-action-hover',
+    halo: '--chakra-colors-action-primary',
+    linkGain: 1.9,
+    nodeGain: 1.5,
+    coreFloor: 0.55,
+  }
+}
+
 export type RgbChannels = readonly [number, number, number]
 
 /**

@@ -53,6 +53,7 @@ import {
   easeInOut,
   exciteNear,
   fieldAwake,
+  fieldInk,
   fieldOpacity,
   linkNodes,
   nearestNodeTo,
@@ -118,7 +119,17 @@ interface Palette {
   node: RgbChannels
   particle: RgbChannels
   halo: RgbChannels
+  linkGain: number
+  nodeGain: number
+  coreFloor: number
 }
+
+/**
+ * Put this attribute on the element that is the copy when the children are
+ * wider than it - a column inside a content frame. The veil follows that box
+ * instead of the whole children wrapper.
+ */
+export const COPY_MARKER = 'data-field-copy'
 
 const frameScheduler = {
   request: (callback: () => void) => window.requestAnimationFrame(callback),
@@ -128,22 +139,26 @@ const frameScheduler = {
 const fallbackPalette: Palette = {
   node: [49, 88, 212],
   particle: [49, 88, 212],
-  halo: [197, 236, 131],
+  halo: [49, 88, 212],
+  linkGain: 1,
+  nodeGain: 1,
+  coreFloor: 0.25,
 }
 
-/** The system's colour variables the canvas paints with, per theme. */
+/** The system's colour variables the canvas paints with, per theme - see `fieldInk`. */
 function readPalette(colorMode: 'light' | 'dark'): Palette {
+  const ink = fieldInk(colorMode)
   const root = getComputedStyle(document.documentElement)
   const read = (name: string, fallback: RgbChannels) =>
     parseColorChannels(root.getPropertyValue(name)) ?? fallback
 
   return {
-    node: read('--chakra-colors-action-primary', fallbackPalette.node),
-    particle:
-      colorMode === 'dark'
-        ? read('--chakra-colors-accent-lime', fallbackPalette.halo)
-        : read('--chakra-colors-action-primary', fallbackPalette.particle),
-    halo: read('--chakra-colors-ambient-accentGlow', fallbackPalette.halo),
+    node: read(ink.node, fallbackPalette.node),
+    particle: read(ink.particle, fallbackPalette.particle),
+    halo: read(ink.halo, fallbackPalette.halo),
+    linkGain: ink.linkGain,
+    nodeGain: ink.nodeGain,
+    coreFloor: ink.coreFloor,
   }
 }
 
@@ -259,11 +274,15 @@ export function SynapseField({
      * children, which is also the whole veil switched off.
      */
     const copyRect = (): PixelRect | null => {
-      const copy = copyRef.current
+      const wrapper = copyRef.current
 
-      if (copy === null) {
+      if (wrapper === null) {
         return null
       }
+
+      // The copy itself when a child marks it - a hero's column inside a
+      // full-width frame - otherwise everything the field was given.
+      const copy = wrapper.querySelector<HTMLElement>(`[${COPY_MARKER}]`) ?? wrapper
 
       const plateBox = plate.getBoundingClientRect()
       const box = copy.getBoundingClientRect()
@@ -397,7 +416,7 @@ export function SynapseField({
         const b = nodes[link.j]
         const excitement = Math.max(a.excitation, b.excitation)
         const visible = Math.min(visibleAt(a), visibleAt(b))
-        const alpha = (0.06 + 0.22 * link.w + 0.35 * excitement) * visible
+        const alpha = (0.06 + 0.22 * link.w + 0.35 * excitement) * visible * palette.linkGain
 
         if (alpha < 0.01) continue
 
@@ -491,7 +510,7 @@ export function SynapseField({
       for (const node of nodes) {
         const visible = visibleAt(node)
         const radius = node.radius * (1 + node.excitation * 0.9)
-        const alpha = (node.base * 0.55 + node.excitation * 0.45) * visible
+        const alpha = (node.base * 0.55 + node.excitation * 0.45) * visible * palette.nodeGain
         const x = node.x * width
         const y = node.y * height
 
@@ -516,7 +535,10 @@ export function SynapseField({
           context.fill()
         }
 
-        context.fillStyle = rgba(palette.node, Math.min(1, alpha + 0.25))
+        context.fillStyle = rgba(
+          palette.node,
+          Math.min(1, Math.max(alpha, palette.coreFloor * visible)),
+        )
         context.beginPath()
         context.arc(x, y, radius, 0, Math.PI * 2)
         context.fill()

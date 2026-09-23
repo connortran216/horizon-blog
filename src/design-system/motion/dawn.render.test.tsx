@@ -131,6 +131,16 @@ describe('ActionLink icon travel', () => {
 })
 
 describe('SynapseField as the page', () => {
+  it('lets a child mark itself as the copy the veil follows', () => {
+    const markup = render(
+      <SynapseField variant="canvas">
+        <div data-field-copy="">copy</div>
+      </SynapseField>,
+    )
+
+    expect(markup).toContain('data-field-copy=""')
+  })
+
   it('renders no Surface box and the landmark it is asked for', () => {
     const markup = render(
       <SynapseField variant="canvas" as="header">
