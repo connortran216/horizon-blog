@@ -123,3 +123,37 @@ describe('isPlainRouterClick', () => {
     expect(isPlainRouterClick({ ...plainClick(), defaultPrevented: true })).toBe(false)
   })
 })
+
+describe('a skipped transition', () => {
+  it('leaves no unhandled rejection behind on ready or updateCallbackDone', async () => {
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => unhandled.push(reason)
+
+    process.on('unhandledRejection', onUnhandled)
+
+    try {
+      const skipped = new Error('Transition was aborted because of invalid state')
+      const document = {
+        startViewTransition: (update: () => void) => {
+          update()
+
+          return {
+            finished: Promise.reject(skipped),
+            ready: Promise.reject(skipped),
+            updateCallbackDone: Promise.reject(skipped),
+          }
+        },
+      }
+
+      const result = startViewTransition({ document, policy: fullMotionPolicy, update: () => {} })
+
+      await expect(result.finished).resolves.toBeUndefined()
+      // Give the microtask queue a turn to surface anything unobserved.
+      await new Promise((resolve) => setTimeout(resolve, 0))
+
+      expect(unhandled).toEqual([])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
+  })
+})

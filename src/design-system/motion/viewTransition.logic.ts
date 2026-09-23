@@ -13,6 +13,14 @@ import type { MotionPolicy } from './policy.logic'
 
 export interface ViewTransitionLike {
   readonly finished: Promise<unknown>
+  /**
+   * The browser's other two promises. Both reject when a transition is
+   * skipped or aborted - "invalid state", another transition starting, the
+   * tab going hidden - and an unobserved rejection is a console error on
+   * every such skip. Optional, because a test double need not model them.
+   */
+  readonly ready?: Promise<unknown>
+  readonly updateCallbackDone?: Promise<unknown>
 }
 
 export interface ViewTransitionDocumentLike {
@@ -58,6 +66,12 @@ export function startViewTransition({
 
   try {
     const transition = document.startViewTransition(runOnce)
+
+    // A skipped transition rejects all three promises. `finished` is folded
+    // into the result below; the other two are observed here so a skip is
+    // never an unhandled rejection in the console.
+    void Promise.resolve(transition.ready).catch(() => undefined)
+    void Promise.resolve(transition.updateCallbackDone).catch(() => undefined)
 
     return {
       animated: true,
