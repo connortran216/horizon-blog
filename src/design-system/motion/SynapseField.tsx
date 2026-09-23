@@ -16,8 +16,15 @@
  * frames from a hidden tab, so the loop rests there; it never starts under
  * reduced motion - one still frame is
  * drawn and every anchor is hit at once. Copy never waits on the field for
- * longer than `fallbackMs`. `Surface` at `feature` depth owns the
- * border, radius, shadow and clipping; children render above the canvas.
+ * longer than `fallbackMs`.
+ *
+ * Two shells. As a `surface` the field is a feature plate: `Surface` owns the
+ * border, radius, shadow and clipping. As a `canvas` it is the page itself:
+ * no box, the field runs edge to edge on the page canvas, dissolves along
+ * its bottom edge, fades as the reader scrolls it away (opacity only) and
+ * sleeps once it has left the viewport. A scroll stirs it the way a pointer
+ * does. Either way the children render above the canvas, and the field is
+ * faint in a hand's width around their box.
  */
 
 import {
@@ -30,9 +37,10 @@ import {
 } from 'react'
 import { Box, useColorMode, type BoxProps } from '@chakra-ui/react'
 
+import { space } from '../../theme/tokens'
 import { Surface } from '../components/surface'
 import { createDisposerBag, scheduleFrame } from './lifecycle.logic'
-import type { Disposer } from './policy.logic'
+import { durationSeconds, type Disposer } from './policy.logic'
 import {
   DEFAULT_VEIL,
   SYNAPSE,
@@ -44,15 +52,19 @@ import {
   decayExcitation,
   easeInOut,
   exciteNear,
+  fieldAwake,
+  fieldOpacity,
   linkNodes,
   nearestNodeTo,
   parseColorChannels,
   rgba,
   signalRate,
   stepNodes,
+  stirredUntil,
   synapseScene,
   synapseTiming,
-  veilAt,
+  veilNear,
+  type PixelRect,
   type RgbChannels,
   type SynapseLink,
   type SynapseNode,
@@ -65,11 +77,19 @@ import { useMotionPolicy } from './useMotionPolicy'
 export interface SynapseFieldProps extends Omit<BoxProps, 'as'> {
   /** Copy laid over the field. Anchors inside it are written by the field. */
   children?: ReactNode
+  /**
+   * `surface`: a feature plate with its own border, radius and shadow.
+   * `canvas`: no box - the field is the page for the height it is given,
+   * dissolving along its bottom edge and fading as it scrolls away.
+   */
+  variant?: 'surface' | 'canvas'
+  /** The landmark the canvas variant renders as. */
+  as?: 'header' | 'section' | 'div'
   /** How many nodes. Forty reads as a network; twenty as a few thoughts. */
   density?: number
   /** Fresh signals per second at rest. */
   signalRate?: number
-  /** Where the field fades under the copy. `NO_VEIL` for a bare field. */
+  /** How faint the field is around the copy's box. `NO_VEIL` for a bare field. */
   veil?: Veil
   /** Same seed, same field. Change it for a different arrangement. */
   seed?: number
@@ -129,6 +149,8 @@ function readPalette(colorMode: 'light' | 'dark'): Palette {
 
 export function SynapseField({
   children,
+  variant = 'surface',
+  as = 'div',
   density = 40,
   signalRate: baseRate = 1.1,
   veil = DEFAULT_VEIL,
@@ -139,10 +161,13 @@ export function SynapseField({
   const { colorMode } = useColorMode()
   const scene = synapseScene(policy)
   const timing = synapseTiming(policy)
+  const stirMs = Math.round(durationSeconds('reveal', policy) * 1000)
 
   const plateRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const copyRef = useRef<HTMLDivElement>(null)
   const pointerRef = useRef<UnitPoint | null>(null)
+  const stirUntilRef = useRef(0)
   const anchorsRef = useRef<AnchorEntry[]>([])
   const paletteRef = useRef<Palette>(fallbackPalette)
   const reducedRef = useRef(policy.reduced)
@@ -228,6 +253,29 @@ export function SynapseField({
     bag.add(() => observer.disconnect())
     resize()
 
+    /*
+     * The copy's box in the plate's pixel space, for the veil. Read once per
+     * frame from the wrapper the children render in; null when there are no
+     * children, which is also the whole veil switched off.
+     */
+    const copyRect = (): PixelRect | null => {
+      const copy = copyRef.current
+
+      if (copy === null) {
+        return null
+      }
+
+      const plateBox = plate.getBoundingClientRect()
+      const box = copy.getBoundingClientRect()
+
+      return {
+        left: box.left - plateBox.left,
+        top: box.top - plateBox.top,
+        width: box.width,
+        height: box.height,
+      }
+    }
+
     const anchorPoint = (entry: AnchorEntry): UnitPoint | null => {
       if (width <= 0 || height <= 0) {
         return null
@@ -291,6 +339,10 @@ export function SynapseField({
       const running = scene.isRunning
       const pointer = pointerRef.current
       const palette = paletteRef.current
+      const copy = copyRect()
+      const stirred = pointer !== null || performance.now() < stirUntilRef.current
+      const visibleAt = (point: UnitPoint) =>
+        veilNear({ x: point.x * width, y: point.y * height }, copy, veil)
 
       if (running) {
         time += dt
@@ -317,7 +369,7 @@ export function SynapseField({
           }
         } else if (anchors.length > 0) {
           // Reading it back: now and then a signal lands on a word.
-          hitClock += dt * anchorHitRate(pointer !== null)
+          hitClock += dt * anchorHitRate(stirred)
 
           if (hitClock >= 1) {
             hitClock -= 1
@@ -328,7 +380,7 @@ export function SynapseField({
           }
         }
 
-        spawnClock += dt * signalRate(baseRate, pointer !== null)
+        spawnClock += dt * signalRate(baseRate, stirred)
 
         while (spawnClock >= 1) {
           spawnClock -= 1
@@ -344,7 +396,7 @@ export function SynapseField({
         const a = nodes[link.i]
         const b = nodes[link.j]
         const excitement = Math.max(a.excitation, b.excitation)
-        const visible = Math.min(veilAt(a.x, veil), veilAt(b.x, veil))
+        const visible = Math.min(visibleAt(a), visibleAt(b))
         const alpha = (0.06 + 0.22 * link.w + 0.35 * excitement) * visible
 
         if (alpha < 0.01) continue
@@ -386,7 +438,7 @@ export function SynapseField({
         const a = nodes[particle.from]
         const b = nodes[particle.to]
         const point = bezierPoint(a, { x: link.cx, y: link.cy }, b, easeInOut(particle.t))
-        const fade = Math.sin(particle.t * Math.PI) * veilAt(point.x, veil)
+        const fade = Math.sin(particle.t * Math.PI) * visibleAt(point)
 
         paintSpark(context, point, width, height, palette, fade)
       }
@@ -437,7 +489,7 @@ export function SynapseField({
 
       // Nodes: a soft body, a brighter core, and a warm bloom when excited.
       for (const node of nodes) {
-        const visible = veilAt(node.x, veil)
+        const visible = visibleAt(node)
         const radius = node.radius * (1 + node.excitation * 0.9)
         const alpha = (node.base * 0.55 + node.excitation * 0.45) * visible
         const x = node.x * width
@@ -475,6 +527,9 @@ export function SynapseField({
       }
     }
 
+    let awake = true
+    let looping = false
+
     const tick = () => {
       const now = performance.now()
       const dt = Math.min(0.05, (now - last) / 1000)
@@ -486,18 +541,51 @@ export function SynapseField({
        * One frame at a time, each scheduling the next. The browser itself
        * withholds animation frames from a hidden tab, so the loop rests there
        * without a visibility listener of its own, and `dt` is capped so the
-       * first frame after a long rest is a step, never a leap.
+       * first frame after a long rest is a step, never a leap. Once the field
+       * has scrolled out of the viewport the loop stops scheduling itself and
+       * the intersection observer wakes it again.
        */
-      if (scene.isRunning) {
+      if (scene.isRunning && awake) {
+        bag.add(scheduleFrame(frameScheduler, tick))
+      } else {
+        looping = false
+      }
+    }
+
+    const wake = () => {
+      if (scene.isRunning && awake && !looping) {
+        looping = true
+        last = performance.now()
         bag.add(scheduleFrame(frameScheduler, tick))
       }
     }
 
     // The first frame is drawn at once - under reduced motion it is the only one.
     draw(0)
+    wake()
 
-    if (scene.isRunning) {
-      bag.add(scheduleFrame(frameScheduler, tick))
+    if (variant === 'canvas' && typeof IntersectionObserver !== 'undefined') {
+      const thresholds = Array.from({ length: 11 }, (_unused, index) => index / 10)
+      const seen = new IntersectionObserver(
+        (entries) => {
+          const ratio = entries[entries.length - 1]?.intersectionRatio ?? 1
+
+          canvas.style.opacity = String(fieldOpacity(ratio))
+          awake = fieldAwake(ratio)
+          wake()
+        },
+        { threshold: thresholds },
+      )
+
+      seen.observe(plate)
+      bag.add(() => seen.disconnect())
+
+      const onScroll = () => {
+        stirUntilRef.current = stirredUntil(performance.now(), stirMs)
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true })
+      bag.add(() => window.removeEventListener('scroll', onScroll))
     }
 
     return () => bag.dispose()
@@ -507,6 +595,8 @@ export function SynapseField({
     baseRate,
     veil,
     scene.isRunning,
+    variant,
+    stirMs,
     timing.entryDelay,
     timing.entryGap,
     timing.anchorFlightMin,
@@ -528,6 +618,63 @@ export function SynapseField({
     }
   }
 
+  const canvasLayer = (
+    <Box
+      as="canvas"
+      ref={canvasRef}
+      aria-hidden="true"
+      position="absolute"
+      inset={0}
+      width="100%"
+      height="100%"
+      display="block"
+      pointerEvents="none"
+      sx={
+        variant === 'canvas'
+          ? {
+              /* The field dissolves into the page along its bottom edge. */
+              maskImage: `linear-gradient(to bottom, black calc(100% - ${space[24]}), transparent)`,
+              WebkitMaskImage: `linear-gradient(to bottom, black calc(100% - ${space[24]}), transparent)`,
+            }
+          : undefined
+      }
+    />
+  )
+
+  const copyLayer =
+    children === undefined ? null : (
+      <Box ref={copyRef} position="relative" zIndex={1} width="100%">
+        {children}
+      </Box>
+    )
+
+  const pointerProps = {
+    onPointerMove: follow,
+    onPointerLeave: () => {
+      pointerRef.current = null
+    },
+  }
+
+  if (variant === 'canvas') {
+    return (
+      <SynapseContext.Provider value={signals}>
+        <Box
+          ref={plateRef}
+          as={as}
+          position="relative"
+          overflow="hidden"
+          display="flex"
+          alignItems="center"
+          {...pointerProps}
+          {...rest}
+        >
+          {canvasLayer}
+          {copyLayer}
+        </Box>
+      </SynapseContext.Provider>
+    )
+  }
+
   return (
     <SynapseContext.Provider value={signals}>
       <Surface
@@ -535,28 +682,11 @@ export function SynapseField({
         depth="feature"
         padded={false}
         position="relative"
-        onPointerMove={follow}
-        onPointerLeave={() => {
-          pointerRef.current = null
-        }}
+        {...pointerProps}
         {...rest}
       >
-        <Box
-          as="canvas"
-          ref={canvasRef}
-          aria-hidden="true"
-          position="absolute"
-          inset={0}
-          width="100%"
-          height="100%"
-          display="block"
-          pointerEvents="none"
-        />
-        {children === undefined ? null : (
-          <Box position="relative" zIndex={1} width="100%">
-            {children}
-          </Box>
-        )}
+        {canvasLayer}
+        {copyLayer}
       </Surface>
     </SynapseContext.Provider>
   )

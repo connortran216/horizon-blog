@@ -11,7 +11,10 @@ import {
   createRng,
   curveControl,
   decayExcitation,
+  distanceToRect,
   exciteNear,
+  fieldAwake,
+  fieldOpacity,
   linkNodes,
   nearestNodeTo,
   parseColorChannels,
@@ -19,9 +22,10 @@ import {
   sentenceWrittenAt,
   signalRate,
   stepNodes,
+  stirredUntil,
   synapseScene,
   synapseTiming,
-  veilAt,
+  veilNear,
 } from './synapse.logic'
 
 const ASPECT = 2
@@ -126,17 +130,45 @@ describe('excitation', () => {
   })
 })
 
-describe('veilAt', () => {
-  it('is faint under the copy and full on the right', () => {
-    expect(veilAt(0.1, DEFAULT_VEIL)).toBe(DEFAULT_VEIL.floor)
-    expect(veilAt(0.9, DEFAULT_VEIL)).toBe(1)
-    expect(veilAt(0.48, DEFAULT_VEIL)).toBeGreaterThan(DEFAULT_VEIL.floor)
-    expect(veilAt(0.48, DEFAULT_VEIL)).toBeLessThan(1)
+describe('the veil around the copy', () => {
+  const copy = { left: 100, top: 100, width: 400, height: 200 }
+
+  it('measures distance to the copy box, zero inside it', () => {
+    expect(distanceToRect({ x: 200, y: 150 }, copy)).toBe(0)
+    expect(distanceToRect({ x: 50, y: 150 }, copy)).toBe(50)
+    expect(distanceToRect({ x: 500, y: 400 }, copy)).toBe(100)
+    expect(distanceToRect({ x: 40, y: 20 }, copy)).toBeCloseTo(100)
   })
 
-  it('is uniform with no veil', () => {
-    expect(veilAt(0.1, NO_VEIL)).toBe(1)
-    expect(veilAt(0.9, NO_VEIL)).toBe(1)
+  it('is faint under the words and back to full a feather away', () => {
+    expect(veilNear({ x: 200, y: 150 }, copy, DEFAULT_VEIL)).toBe(DEFAULT_VEIL.floor)
+    expect(veilNear({ x: 200, y: 340 }, copy, DEFAULT_VEIL)).toBeGreaterThan(DEFAULT_VEIL.floor)
+    expect(veilNear({ x: 200, y: 340 }, copy, DEFAULT_VEIL)).toBeLessThan(1)
+    expect(veilNear({ x: 200, y: 500 }, copy, DEFAULT_VEIL)).toBe(1)
+  })
+
+  it('is uniform with no copy or no veil', () => {
+    expect(veilNear({ x: 200, y: 150 }, null, DEFAULT_VEIL)).toBe(1)
+    expect(veilNear({ x: 200, y: 150 }, copy, NO_VEIL)).toBe(1)
+  })
+})
+
+describe('scrolling the field away', () => {
+  it('is fully present while most of it shows and gone when none does', () => {
+    expect(fieldOpacity(1)).toBe(1)
+    expect(fieldOpacity(0.7)).toBe(1)
+    expect(fieldOpacity(0.35)).toBeGreaterThan(0)
+    expect(fieldOpacity(0.35)).toBeLessThan(1)
+    expect(fieldOpacity(0)).toBe(0)
+  })
+
+  it('sleeps only once it has left the viewport', () => {
+    expect(fieldAwake(0.01)).toBe(true)
+    expect(fieldAwake(0)).toBe(false)
+  })
+
+  it('treats a scroll as a touch for one pulse', () => {
+    expect(stirredUntil(1000, 480)).toBe(1480)
   })
 })
 

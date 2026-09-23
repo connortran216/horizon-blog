@@ -82,6 +82,16 @@ function FieldCopy() {
 }
 
 function SynapseFieldEntry({ state }: { readonly state: string }) {
+  if (state === 'as the page') {
+    return (
+      <Box bg="bg.page" mx={`-${space[6]}`}>
+        <SynapseField key={state} variant="canvas" minH="360px" density={56}>
+          <FieldCopy />
+        </SynapseField>
+      </Box>
+    )
+  }
+
   if (state === 'with copy') {
     return (
       <SynapseField key={state} maxW="720px" minH="320px" display="flex" alignItems="center">

@@ -117,4 +117,29 @@ describe('ActionLink icon travel', () => {
     expect(markup).toContain('data-icon-travel="end"')
     expect(markup).not.toContain('data-icon-travel="start"')
   })
+
+  it('lets an in-page link send its arrow down instead', () => {
+    const markup = render(
+      <ActionLink href="#writing" iconTravel="down" iconEnd={<svg aria-hidden="true" />}>
+        Latest writing
+      </ActionLink>,
+    )
+
+    expect(markup).toContain('data-icon-travel="down"')
+    expect(markup).toContain('href="#writing"')
+  })
+})
+
+describe('SynapseField as the page', () => {
+  it('renders no Surface box and the landmark it is asked for', () => {
+    const markup = render(
+      <SynapseField variant="canvas" as="header">
+        <p>copy</p>
+      </SynapseField>,
+    )
+
+    expect(markup).toContain('<header')
+    expect(markup).toContain('<canvas')
+    expect(markup).toContain('copy')
+  })
 })

@@ -325,8 +325,9 @@ export const galleryRegistry = [
       { name: 'sparse' },
       { name: 'dense' },
       { name: 'with copy' },
+      { name: 'as the page' },
     ],
-    note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on it so the writing can be reviewed; hover to stir the field.',
+    note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on a plate; `as the page` is the canvas variant - no box, dissolving bottom edge. Hover or scroll to stir the field.',
   },
   {
     name: 'TimelineEntry',

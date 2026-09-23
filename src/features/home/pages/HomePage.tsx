@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { FiArrowRight } from 'react-icons/fi'
+import { FiArrowDown, FiArrowRight } from 'react-icons/fi'
 import { useLocation } from 'react-router-dom'
 
 import {
@@ -24,6 +24,7 @@ import {
   Grid,
   Heading,
   RetryAction,
+  Reveal,
   Section,
   SignalTarget,
   Skeleton,
@@ -37,6 +38,7 @@ import {
   synapseTiming,
   useMotionPolicy,
 } from '../../../design-system'
+import { layout } from '../../../theme/tokens'
 import { BlogPostSummary, getBlogService } from '../../../core'
 import { useAuth } from '../../../context/AuthContext'
 import { can } from '../../../core/authorization/authorization'
@@ -50,6 +52,10 @@ const HERO_HEADLINE = 'Human stories, blogs, and thoughtful writing for curious 
 const HERO_EMPHASIS = 'curious readers.'
 /** The eyebrow plus every word of the headline: what the field has to write. */
 const HERO_ANCHOR_COUNT = 1 + HERO_HEADLINE.trim().split(/\s+/u).length
+/** A full-width field has room for more thoughts than a plate. */
+const HERO_DENSITY = 56
+/** Where "Latest writing" lands: the run of Signature, Series and recent blogs. */
+const LATEST_ANCHOR_ID = 'home-writing'
 const LATEST_EYEBROW = 'Recent blogs'
 const LATEST_HEADING = 'Keep reading beyond the latest post'
 
@@ -125,25 +131,31 @@ const HomePage = () => {
       : 'Create an account'
 
   return (
-    <ContentContainer>
-      <Section as="header">
-        {/*
-          The hero is one synapse field with the copy laid on it. The network
-          writes the copy: the eyebrow and every word of the headline are
-          anchors it sends a signal to, in order, and each appears when its
-          signal lands; the two words the page most wants read get the rule.
-          The lede, the calls to action and the sign-off come in a beat apart
-          once the sentence is nearly written. The field is weather, not
-          content: hidden from assistive technology, never carrying text of its
-          own, faint under the copy and full on the right.
-        */}
-        <SynapseField minH={{ base: '600px', lg: '560px' }} display="flex" alignItems="center">
-          <Stack
-            gap={6}
-            maxW={{ base: 'none', lg: '58%' }}
-            px={{ base: 6, md: 10, lg: 12 }}
-            py={{ base: 10, md: 12 }}
-          >
+    <>
+      {/*
+        The hero is the page itself for the first screen: the synapse field
+        runs edge to edge under a transparent header, the copy sits in the
+        content frame on top of it, and the field dissolves along its bottom
+        edge and fades as the reader scrolls it away. The network writes the
+        copy: the eyebrow and every word of the headline are anchors it sends
+        a signal to, in order, and each appears when its signal lands; the two
+        words the page most wants read get the rule. The lede, the calls to
+        action and the sign-off come in a beat apart once the sentence is
+        nearly written. The field is weather, not content: hidden from
+        assistive technology, never carrying text of its own, faint in a
+        hand's width around the copy and full everywhere else.
+      */}
+      <SynapseField
+        variant="canvas"
+        as="header"
+        density={HERO_DENSITY}
+        minH={{
+          base: `calc(100svh - ${layout.header.mobile})`,
+          sm: `calc(100svh - ${layout.header.desktop})`,
+        }}
+      >
+        <ContentContainer py={{ base: 10, md: 12 }}>
+          <Stack gap={6} maxW={{ base: 'none', lg: '58%' }}>
             <SignalTarget>
               <Eyebrow as="p">Horizon blog</Eyebrow>
             </SignalTarget>
@@ -180,107 +192,133 @@ const HomePage = () => {
               <Text recipe="metadata" textTransform="uppercase" letterSpacing="wider">
                 Read with focus. Publish with intent. Keep the blog human.
               </Text>
+
+              {/*
+                The quiet invitation to keep going. A real in-page link to the
+                writing below, so it works without any script; the arrow moves
+                the way the page will.
+              */}
+              <ActionLink
+                href={`#${LATEST_ANCHOR_ID}`}
+                standalone
+                underline="hover"
+                color="text.secondary"
+                iconTravel="down"
+                iconEnd={<FiArrowDown aria-hidden="true" />}
+              >
+                Latest writing
+              </ActionLink>
             </Stagger>
           </Stack>
-        </SynapseField>
-      </Section>
+        </ContentContainer>
+      </SynapseField>
 
-      <Section>
-        {/*
+      <ContentContainer
+        id={LATEST_ANCHOR_ID}
+        as="div"
+        sx={{ scrollMarginTop: layout.header.desktop }}
+      >
+        <Section>
+          {/*
           One run, so an absent section contributes no air. The Series shelf
           renders nothing at all when there is no Series to show, and a Section
           wrapped around it would still have reserved its own padding.
         */}
-        <Stack gap={12}>
-          {isLoading ? (
-            <Stack gap={8}>
-              <Skeleton
-                shape={{ shape: 'media', aspectRatio: '16 / 10' }}
-                label="the latest writing"
-              />
-              <Grid columns={3} gap={8}>
-                {[0, 1, 2].map((index) => (
-                  <Skeleton
-                    key={`home-skeleton-${index}`}
-                    shape={{ shape: 'media', aspectRatio: '16 / 9' }}
-                  />
-                ))}
-              </Grid>
-            </Stack>
-          ) : loadError ? (
-            <ErrorState failedAction="load the latest writing" detail={loadError} align="start">
-              <RetryAction
-                failedAction="load the latest writing"
-                onRetry={() => setReloadVersion((value) => value + 1)}
-              />
-            </ErrorState>
-          ) : signaturePost ? (
-            /* The pattern draws its own "Signature" eyebrow; a second one here
+          <Stack gap={12}>
+            {isLoading ? (
+              <Stack gap={8}>
+                <Skeleton
+                  shape={{ shape: 'media', aspectRatio: '16 / 10' }}
+                  label="the latest writing"
+                />
+                <Grid columns={3} gap={8}>
+                  {[0, 1, 2].map((index) => (
+                    <Skeleton
+                      key={`home-skeleton-${index}`}
+                      shape={{ shape: 'media', aspectRatio: '16 / 9' }}
+                    />
+                  ))}
+                </Grid>
+              </Stack>
+            ) : loadError ? (
+              <ErrorState failedAction="load the latest writing" detail={loadError} align="start">
+                <RetryAction
+                  failedAction="load the latest writing"
+                  onRetry={() => setReloadVersion((value) => value + 1)}
+                />
+              </ErrorState>
+            ) : signaturePost ? (
+              /* The pattern draws its own "Signature" eyebrow; a second one here
                would be the duplicated hierarchy label this release removes. */
-            <HeroArchivePreview post={signaturePost} />
-          ) : (
-            <EmptyState
-              subject="published blogs"
-              nextAction={
-                canWrite
-                  ? 'Publish the first blog and set the tone from the very beginning.'
-                  : 'New writing appears here as it is published.'
-              }
-              align="start"
-            >
-              <ActionLink
-                standalone
-                to={canWrite ? '/blog-editor' : user ? '/blog' : '/register'}
-                underline="hover"
-                color="action.primary"
-                fontWeight="semibold"
+              <HeroArchivePreview post={signaturePost} />
+            ) : (
+              <EmptyState
+                subject="published blogs"
+                nextAction={
+                  canWrite
+                    ? 'Publish the first blog and set the tone from the very beginning.'
+                    : 'New writing appears here as it is published.'
+                }
+                align="start"
               >
-                {canWrite ? 'Start writing' : user ? 'Explore the blog' : 'Join Horizon'}
-              </ActionLink>
-            </EmptyState>
-          )}
-
-          <SeriesShelf />
-
-          {!isLoading && !loadError && latestPosts.length > 0 ? (
-            <Stack as="section" gap={6} aria-labelledby="home-latest-heading">
-              <Stack
-                direction="row"
-                gap={4}
-                collapseAt="sm"
-                justifyContent="space-between"
-                alignItems="flex-end"
-                flexWrap="wrap"
-              >
-                <Stack gap={2} minW={0}>
-                  <Eyebrow as="p">{LATEST_EYEBROW}</Eyebrow>
-                  <Heading id="home-latest-heading" as="h2" recipe="sectionTitle">
-                    {LATEST_HEADING}
-                  </Heading>
-                </Stack>
                 <ActionLink
                   standalone
-                  to="/blog"
+                  to={canWrite ? '/blog-editor' : user ? '/blog' : '/register'}
                   underline="hover"
                   color="action.primary"
                   fontWeight="semibold"
                 >
-                  See all blogs
+                  {canWrite ? 'Start writing' : user ? 'Explore the blog' : 'Join Horizon'}
                 </ActionLink>
-              </Stack>
+              </EmptyState>
+            )}
 
-              <Grid columns={3} gap={8}>
-                <Stagger>
-                  {latestPosts.map((post) => (
-                    <StoryCard key={post.id} post={post} sectionLabels={latestLabels} />
-                  ))}
-                </Stagger>
-              </Grid>
-            </Stack>
-          ) : null}
-        </Stack>
-      </Section>
-    </ContentContainer>
+            <Reveal duration="reveal">
+              <SeriesShelf />
+            </Reveal>
+
+            {!isLoading && !loadError && latestPosts.length > 0 ? (
+              <Stack as="section" gap={6} aria-labelledby="home-latest-heading">
+                <Reveal duration="reveal">
+                  <Stack
+                    direction="row"
+                    gap={4}
+                    collapseAt="sm"
+                    justifyContent="space-between"
+                    alignItems="flex-end"
+                    flexWrap="wrap"
+                  >
+                    <Stack gap={2} minW={0}>
+                      <Eyebrow as="p">{LATEST_EYEBROW}</Eyebrow>
+                      <Heading id="home-latest-heading" as="h2" recipe="sectionTitle">
+                        {LATEST_HEADING}
+                      </Heading>
+                    </Stack>
+                    <ActionLink
+                      standalone
+                      to="/blog"
+                      underline="hover"
+                      color="action.primary"
+                      fontWeight="semibold"
+                    >
+                      See all blogs
+                    </ActionLink>
+                  </Stack>
+                </Reveal>
+
+                <Grid columns={3} gap={8}>
+                  <Stagger>
+                    {latestPosts.map((post) => (
+                      <StoryCard key={post.id} post={post} sectionLabels={latestLabels} />
+                    ))}
+                  </Stagger>
+                </Grid>
+              </Stack>
+            ) : null}
+          </Stack>
+        </Section>
+      </ContentContainer>
+    </>
   )
 }
 
