@@ -10,6 +10,7 @@ import { useRef, useState } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import {
+  COPY_MARKER,
   Eyebrow,
   Heading,
   HoverLift,
@@ -68,7 +69,7 @@ const fieldDensity: Record<string, number> = { bare: 40, sparse: 18, dense: 64 }
 /** The hero's own composition, small: an eyebrow and a headline the field writes. */
 function FieldCopy() {
   return (
-    <Box p={space[8]} maxW="60%">
+    <Box p={space[8]} maxW="60%" {...{ [COPY_MARKER]: '' }}>
       <SignalTarget>
         <Eyebrow as="p">Horizon blog</Eyebrow>
       </SignalTarget>

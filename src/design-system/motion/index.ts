@@ -37,7 +37,7 @@ export type { StaggerProps } from './Stagger'
 export { StateHandoff } from './StateHandoff'
 export type { StateHandoffProps } from './StateHandoff'
 
-export { SynapseField } from './SynapseField'
+export { COPY_MARKER, SynapseField } from './SynapseField'
 export type { SynapseFieldProps } from './SynapseField'
 
 export { TimelineEntry } from './TimelineEntry'
@@ -121,6 +121,7 @@ export {
   easeInOut,
   exciteNear,
   fieldAwake,
+  fieldInk,
   fieldOpacity,
   linkNodes,
   nearestNodeTo,
@@ -137,6 +138,8 @@ export {
 } from './synapse.logic'
 export type {
   ChooseLinkOptions,
+  FieldInk,
+  FieldTheme,
   PixelPoint,
   PixelRect,
   RgbChannels,

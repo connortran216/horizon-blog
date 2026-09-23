@@ -14,6 +14,7 @@ import {
   distanceToRect,
   exciteNear,
   fieldAwake,
+  fieldInk,
   fieldOpacity,
   linkNodes,
   nearestNodeTo,
@@ -254,5 +255,25 @@ describe('colour', () => {
   it('paints at its own alpha, clamped', () => {
     expect(rgba([1, 2, 3], 0.5)).toBe('rgb(1 2 3 / 0.5)')
     expect(rgba([1, 2, 3], 4)).toBe('rgb(1 2 3 / 1)')
+  })
+})
+
+describe('fieldInk', () => {
+  it('is light on the dark canvas: lime signals, no gain', () => {
+    const ink = fieldInk('dark')
+
+    expect(ink.particle).toContain('accent-lime')
+    expect(ink.halo).toContain('ambient-accentGlow')
+    expect(ink.linkGain).toBe(1)
+  })
+
+  it('is ink on the light canvas: cobalt throughout, lifted alphas', () => {
+    const ink = fieldInk('light')
+
+    expect(ink.particle).toContain('action-hover')
+    expect(ink.halo).toContain('action-primary')
+    expect(ink.linkGain).toBeGreaterThan(1)
+    expect(ink.nodeGain).toBeGreaterThan(1)
+    expect(ink.coreFloor).toBeGreaterThan(fieldInk('dark').coreFloor)
   })
 })

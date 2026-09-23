@@ -17,6 +17,7 @@ import { useLocation } from 'react-router-dom'
 
 import {
   ActionLink,
+  COPY_MARKER,
   ContentContainer,
   EmptyState,
   ErrorState,
@@ -155,7 +156,7 @@ const HomePage = () => {
         }}
       >
         <ContentContainer py={{ base: 10, md: 12 }}>
-          <Stack gap={6} maxW={{ base: 'none', lg: '58%' }}>
+          <Stack gap={6} maxW={{ base: 'none', lg: '58%' }} {...{ [COPY_MARKER]: '' }}>
             <SignalTarget>
               <Eyebrow as="p">Horizon blog</Eyebrow>
             </SignalTarget>
