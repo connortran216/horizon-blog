@@ -278,23 +278,47 @@ export function bezierPoint(a: UnitPoint, control: UnitPoint, b: UnitPoint, u: n
 }
 
 /* -------------------------------------------------------------------------- */
-/* The veil over the copy                                                     */
+/* The veil around the copy                                                   */
 /* -------------------------------------------------------------------------- */
 
 export interface Veil {
-  /** Unit x where the fade begins (fully veiled left of here). */
-  readonly from: number
-  /** Unit x where the field is fully visible. */
-  readonly to: number
-  /** How much survives under the copy, 0..1. */
+  /** How much of the field survives directly under the copy, 0..1. */
   readonly floor: number
+  /** How far outside the copy's box the field takes to come back, in px. */
+  readonly featherPx: number
 }
 
-/** The copy sits on the left; the field is faint there and full on the right. */
-export const DEFAULT_VEIL: Veil = { from: 0.34, to: 0.62, floor: 0.08 }
+/**
+ * The field is faint under the words and comes back over a hand's width
+ * around them, wherever the words happen to be. Measured against the copy's
+ * own box rather than a fixed share of the plate, so it holds when the copy
+ * wraps differently, sits in a content frame narrower than the field, or
+ * moves on a phone. The feather is the `space[24]` step.
+ */
+export const DEFAULT_VEIL: Veil = { floor: 0.08, featherPx: 96 }
 
 /** No veil at all, for a field with nothing laid over it. */
-export const NO_VEIL: Veil = { from: 0, to: 0, floor: 1 }
+export const NO_VEIL: Veil = { floor: 1, featherPx: 0 }
+
+export interface PixelRect {
+  readonly left: number
+  readonly top: number
+  readonly width: number
+  readonly height: number
+}
+
+export interface PixelPoint {
+  readonly x: number
+  readonly y: number
+}
+
+/** Zero inside the box, otherwise the straight-line distance to its edge. */
+export function distanceToRect(point: PixelPoint, rect: PixelRect): number {
+  const dx = Math.max(rect.left - point.x, 0, point.x - (rect.left + rect.width))
+  const dy = Math.max(rect.top - point.y, 0, point.y - (rect.top + rect.height))
+
+  return Math.hypot(dx, dy)
+}
 
 export function smoothstep(t: number): number {
   const c = Math.min(1, Math.max(0, t))
@@ -302,12 +326,40 @@ export function smoothstep(t: number): number {
   return c * c * (3 - 2 * c)
 }
 
-export function veilAt(x: number, veil: Veil): number {
-  if (veil.to <= veil.from) {
-    return veil.floor
+/** How visible the field is at a point, given the copy's box. 1 with no copy. */
+export function veilNear(point: PixelPoint, copy: PixelRect | null, veil: Veil): number {
+  if (copy === null || veil.floor >= 1) {
+    return 1
   }
 
-  return veil.floor + (1 - veil.floor) * smoothstep((x - veil.from) / (veil.to - veil.from))
+  if (veil.featherPx <= 0) {
+    return distanceToRect(point, copy) > 0 ? 1 : veil.floor
+  }
+
+  return veil.floor + (1 - veil.floor) * smoothstep(distanceToRect(point, copy) / veil.featherPx)
+}
+
+/* -------------------------------------------------------------------------- */
+/* Scroll                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The field's opacity from how much of it is in the viewport. It is fully
+ * present while most of it shows and fades as the reader scrolls it away, so
+ * the content below arrives on a quiet canvas. Opacity only - no transform.
+ */
+export function fieldOpacity(intersectionRatio: number): number {
+  return smoothstep(intersectionRatio / 0.7)
+}
+
+/** Whether the loop should run at all for this much of the field in view. */
+export function fieldAwake(intersectionRatio: number): boolean {
+  return intersectionRatio > 0
+}
+
+/** A scroll counts as a touch for this long: the field stirs, then settles. */
+export function stirredUntil(nowMs: number, stirMs: number): number {
+  return nowMs + stirMs
 }
 
 export function easeInOut(t: number): number {

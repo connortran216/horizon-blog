@@ -38,7 +38,7 @@ import {
   Stack,
   ThemeToggle,
 } from '../../design-system'
-import { componentTokens, layout, space } from '../../theme/tokens'
+import { componentTokens, layout, space, transitionFor } from '../../theme/tokens'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogService, toPublicPostPath } from '../../core'
 import BrandLogo from '../../components/ui/BrandLogo'
@@ -46,7 +46,7 @@ import '../../features/editor/editor.window'
 import UserMenu from './UserMenu'
 import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
-import { shouldCloseOnKey } from './navbar.logic'
+import { headerSurface, isAtTop, shouldCloseOnKey } from './navbar.logic'
 
 const Navbar = () => {
   const { isOpen, onToggle, onClose } = useDisclosure()
@@ -55,6 +55,34 @@ const Navbar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const isEditorPage = location.pathname === '/blog-editor'
+  const [atTop, setAtTop] = useState(true)
+  const surface = headerSurface({ overField: location.pathname === '/', atTop })
+
+  /*
+   * One passive scroll listener, coalesced to a frame. The bar only needs to
+   * know whether the page is at the top; it re-renders when that flips, not
+   * on every scroll event.
+   */
+  useEffect(() => {
+    let frame = 0
+    const read = () => {
+      frame = 0
+      setAtTop(isAtTop(window.scrollY))
+    }
+    const onScroll = () => {
+      if (frame === 0) {
+        frame = window.requestAnimationFrame(read)
+      }
+    }
+
+    read()
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (frame !== 0) window.cancelAnimationFrame(frame)
+    }
+  }, [])
   const toast = useToast()
   const [editorState, setEditorState] = useState<{
     title: string
@@ -182,9 +210,10 @@ const Navbar = () => {
        * over the header it skips past.
        */
       zIndex="sticky"
-      bg={componentTokens.header.bg}
+      bg={surface.floating ? componentTokens.header.bg : 'transparent'}
       borderBottom="1px solid"
-      borderColor={componentTokens.header.border}
+      borderColor={surface.floating ? componentTokens.header.border : 'transparent'}
+      transition={`${transitionFor('background-color', 'navigation')}, ${transitionFor('border-color', 'navigation')}`}
     >
       <ContentContainer
         /*

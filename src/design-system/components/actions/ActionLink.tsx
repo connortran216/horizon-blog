@@ -53,6 +53,12 @@ interface ActionLinkBase extends Omit<
    */
   weight?: LinkWeight
   /**
+   * Which way the trailing icon travels on hover. `forward` for a link that
+   * goes somewhere else; `down` for one that scrolls the page - an arrow
+   * pointing down should move down.
+   */
+  iconTravel?: 'forward' | 'down'
+  /**
    * Marks a text-weight link as a section's or a card's action rather than a
    * link a reader meets mid-sentence - "View CV", "Forgot password?", the
    * lone link in an empty state. Standalone text links get the same 44px
@@ -129,6 +135,7 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
     standalone = false,
     iconStart,
     iconEnd,
+    iconTravel = 'forward',
     newTabLabel = 'opens in a new tab',
     children,
     ...rest
@@ -175,7 +182,12 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
       ) : null}
       {children}
       {iconEnd ? (
-        <Box as="span" display="inline-flex" data-icon-travel="end" aria-hidden="true">
+        <Box
+          as="span"
+          display="inline-flex"
+          data-icon-travel={iconTravel === 'down' ? 'down' : 'end'}
+          aria-hidden="true"
+        >
           {iconEnd}
         </Box>
       ) : null}
@@ -195,6 +207,7 @@ export const ActionLink = forwardRef<HTMLAnchorElement, ActionLinkProps>(functio
     '& [data-icon-travel]': { transition: transitionFor('transform', 'fast') },
     '&:hover [data-icon-travel="end"]': { transform: `translateX(${transform.iconTravel})` },
     '&:hover [data-icon-travel="start"]': { transform: `translateX(-${transform.iconTravel})` },
+    '&:hover [data-icon-travel="down"]': { transform: `translateY(${transform.iconTravel})` },
     [`@media ${reducedMotionQuery}`]: {
       '&:hover [data-icon-travel]': { transform: 'none' },
     },

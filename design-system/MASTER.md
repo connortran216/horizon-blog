@@ -363,10 +363,12 @@ Rules:
 Home's expressive motion is one language, _Dawn_: light arriving. The primitives live in
 `src/design-system/motion/` and the contract in `DESIGN.md`'s Motion section.
 
-- `SynapseField`: the hero's artwork and shell - a living network of wandering nodes, short curved
-  links and travelling signals, painted on a canvas from the system's colour variables; it writes
-  the copy laid on it, stirs under the pointer, rests in a hidden tab, is one still frame under
-  reduced motion, and never keeps the copy waiting past a fallback
+- `SynapseField`: the hero's artwork and, as the `canvas` variant, Home's first screen - a living
+  network of wandering nodes, short curved links and travelling signals, painted on a canvas from
+  the system's colour variables, edge to edge under a transparent header; it writes the copy laid
+  on it, is faint around the copy's box, stirs under the pointer and on scroll, fades as it scrolls
+  away and sleeps out of view, rests in a hidden tab, is one still frame under reduced motion, and
+  never keeps the copy waiting past a fallback
 - `Typeset`: the display headline sets word by word; on a field each word appears when the field's
   signal lands and glows for a pulse; `emphasis` names the run of words that gets a drawn hairline
 - `SignalTarget`: any other block the field should write - the eyebrow

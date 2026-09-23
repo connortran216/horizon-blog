@@ -18,7 +18,7 @@ It should introduce Horizon as a personal blog, establish tone quickly, and move
 
 ## Layout
 
-- one premium hero shell near the top: the synapse field, with the message on it
+- the first screen is the synapse field itself, edge to edge, with the message on it
 - the Signature below it is the real blog preview; the hero itself carries no post
 - place the compact Series shelf after the unchanged hero and before Recent Blogs
 - hide the entire Series shelf when the discovery request is empty or unavailable
@@ -42,10 +42,12 @@ It should introduce Horizon as a personal blog, establish tone quickly, and move
 
 ## Motion
 
-Home speaks the *Dawn* language (`MASTER.md` > Motion > Dawn):
+Home speaks the _Dawn_ language (`MASTER.md` > Motion > Dawn):
 
-- the hero is one `SynapseField` with the copy laid on it; the field is faint under the copy and
-  full to the right
+- the hero is the first screen: a full-bleed `SynapseField` under a transparent header, the copy in
+  the content frame on it; the field is faint around the copy and dissolves along its bottom edge
+- scrolling fades the field away and reveals the runs below as they enter; "Latest writing ↓" is a
+  real in-page link to them
 - the field writes the copy: the eyebrow (`SignalTarget`) and each headline word (`Typeset`) appear
   as a signal lands on them, "curious readers." carries the drawn rule, and the lede and calls to
   action follow a beat apart (`Stagger`)
