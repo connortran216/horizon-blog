@@ -25,7 +25,7 @@ import { Fragment, useRef } from 'react'
 import { Box, VisuallyHidden } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
-import type { DurationToken } from '../../theme/tokens'
+import { componentTokens, type DurationToken } from '../../theme/tokens'
 import { durationSeconds, transitionFor, type MotionPolicy } from './policy.logic'
 import { synapseTiming } from './synapse.logic'
 import { useSynapseSignals } from './synapseContext'
@@ -58,6 +58,7 @@ export interface TypesetProps {
 }
 
 const MotionBox = motion(Box)
+const litGlow = { blur: componentTokens.signal.haloBlur } as const
 const lineBox = { display: 'inline-block', clipPath: typesetClip, position: 'relative' } as const
 const wordStyle = { display: 'inline-block' } as const
 
@@ -142,7 +143,9 @@ function Word({ word, policy, duration, delay, revealed, ruled, ruleDelay }: Wor
             'color var(--chakra-transition-duration-fast), text-shadow var(--chakra-transition-duration-fast)',
           '&[data-lit="true"]': {
             color: 'action.primary',
-            textShadow: '0 0 18px var(--chakra-colors-ambient-accentGlow)',
+            // The glow is the field's ink: cobalt on the light canvas, lime on the dark.
+            textShadow: `0 0 ${litGlow.blur} var(--chakra-colors-ambient-glow)`,
+            _dark: { textShadow: `0 0 ${litGlow.blur} var(--chakra-colors-ambient-accentGlow)` },
           },
         }}
       >

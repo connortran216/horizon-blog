@@ -47,7 +47,11 @@ It should feel like a clean index of blogs, with strong search and a clear path 
 
 ## Motion
 
-- subtle hover and entry transitions only
+- the title is typeset on the display face and written by a `SignalRoute` along the header rule;
+  "technology." carries the drawn rule
+- result cards reveal row by row, two ticks between neighbours, and draw their cover seam on hover
+  or focus
+- results run three to a row; a full page is the featured story plus nine cards
 - no bouncing cards
 - fallback cover motion may exist, but should remain ambient
 

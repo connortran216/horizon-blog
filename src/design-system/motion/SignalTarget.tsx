@@ -11,6 +11,7 @@ import { useRef, type ReactNode } from 'react'
 import { Box } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
+import { componentTokens } from '../../theme/tokens'
 import { transitionFor } from './policy.logic'
 import { synapseTiming } from './synapse.logic'
 import { typesetVariants } from './typeset.logic'
@@ -25,6 +26,7 @@ export interface SignalTargetProps {
 }
 
 const MotionBox = motion(Box)
+const litGlow = { blur: componentTokens.signal.haloBlur } as const
 
 export function SignalTarget({ children, as = 'div', className }: SignalTargetProps) {
   const policy = useMotionPolicy()
@@ -48,7 +50,9 @@ export function SignalTarget({ children, as = 'div', className }: SignalTargetPr
           'color var(--chakra-transition-duration-fast), text-shadow var(--chakra-transition-duration-fast)',
         '&[data-lit="true"]': {
           color: 'action.primary',
-          textShadow: '0 0 18px var(--chakra-colors-ambient-accentGlow)',
+          // The glow is the field's ink: cobalt on the light canvas, lime on the dark.
+          textShadow: `0 0 ${litGlow.blur} var(--chakra-colors-ambient-glow)`,
+          _dark: { textShadow: `0 0 ${litGlow.blur} var(--chakra-colors-ambient-accentGlow)` },
         },
       }}
     >

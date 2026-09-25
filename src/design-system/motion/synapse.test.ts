@@ -16,6 +16,7 @@ import {
   fieldAwake,
   fieldInk,
   fieldOpacity,
+  gatherTowards,
   linkNodes,
   nearestNodeTo,
   parseColorChannels,
@@ -128,6 +129,45 @@ describe('excitation', () => {
 
     decayExcitation(nodes, 2)
     expect(target.excitation).toBe(0)
+  })
+
+  it('lights a wider, softer neighbourhood for a focus', () => {
+    const nodes = createNodes(10, createRng(2))
+    const target = nodes[0]
+
+    exciteNear(nodes, { x: target.x, y: target.y }, ASPECT, SYNAPSE.focusStrength, 0.3)
+    expect(target.excitation).toBeCloseTo(SYNAPSE.focusStrength)
+  })
+})
+
+describe('gatherTowards', () => {
+  const node = (x: number, y: number) => ({ ...createNodes(1, createRng(3))[0], x, y })
+  const focus = { x: 0.5, y: 0.5 }
+
+  it('draws a node within reach closer to the focus', () => {
+    const nodes = [node(0.7, 0.5)]
+    const before = Math.abs(nodes[0].x - focus.x)
+
+    gatherTowards(nodes, focus, 0.5, 1)
+    expect(Math.abs(nodes[0].x - focus.x)).toBeLessThan(before)
+    expect(nodes[0].y).toBeCloseTo(0.5)
+  })
+
+  it('leaves a node beyond reach, and one already gathered, where it is', () => {
+    const far = node(0.95, 0.95)
+    const close = node(0.52, 0.5)
+    const nodes = [far, close]
+
+    gatherTowards(nodes, focus, 0.5, 1)
+    expect(far.x).toBe(0.95)
+    expect(close.x).toBe(0.52)
+  })
+
+  it('never overshoots the focus on a long frame', () => {
+    const nodes = [node(0.6, 0.5)]
+
+    gatherTowards(nodes, focus, 100, 1)
+    expect(nodes[0].x).toBeGreaterThanOrEqual(focus.x)
   })
 })
 

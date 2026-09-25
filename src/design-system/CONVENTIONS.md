@@ -124,7 +124,7 @@ Every interactive component:
 - Every timer, observer and animation frame is cleaned up on unmount. A test should be able to prove
   it, which means the subscription belongs in a pure helper or an explicit effect, not inline in JSX.
 - Continuous animation is reserved for loading, and for the two sanctioned artworks
-  (`SynapseField` on Home, the About scene). Both stop under reduced motion - `synapseScene` is the
+  (`SynapseField` on Home and on About). Both stop under reduced motion - `synapseScene` is the
   shape of that decision. Decoration never gates content: an anchor the field has not written by
   `fallbackMs` appears on its own.
 - A canvas is allowed only for artwork the DOM cannot carry at sixty frames a second, and it paints

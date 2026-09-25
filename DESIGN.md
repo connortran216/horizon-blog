@@ -82,7 +82,7 @@ Find users and manage access with visible current state, consequences, and confi
 - Series: book-like identity, overview, ordered parts, and reading context.
 - Reader: article identity, stable prose, contextual navigation, feedback, and conversation.
 - Workspace: task state and primary action before decoration.
-- Desktop header: compact 72px floating surface capped to the content frame. Over Home's first screen, at the top of the page, it has no surface of its own - only its items over the field - and becomes the floating surface again on the first scroll.
+- Desktop header: compact 72px floating surface capped to the content frame. Over Home's first screen and About's hero band, at the top of the page, it has no surface of its own - only its items over the field - and becomes the floating surface again on the first scroll.
 - Mobile header: 64px with detached menu panel; opening navigation never expands the header.
 
 ## Design principles
@@ -124,14 +124,22 @@ Action tokens communicate interaction. Accent tokens communicate atmosphere or r
 - Fast 120ms; normal 200ms; navigation/layout 260–300ms; prominent entry 320ms; editorial reveal up to 480ms. One typesetting tick is 40ms.
 - Ease `cubic-bezier(0.22, 1, 0.36, 1)`; lift at most 2px; reveal distance 14px; a typeset word rises half a line.
 - Approved behaviors include sliding nav indication, directional icon travel, filter reordering, theme feedback, reaction pop, copy confirmation, reading progress, active TOC, Series connectors, and desktop Signature pointer light.
-- Ambient movement is limited to suitable Home/About artwork and stops under reduced motion; Home's field answers the pointer by stirring, About's scene by pausing. Continuous animation is otherwise reserved for loading.
+- Ambient movement is limited to the synapse field on Home and About and stops under reduced motion; the field answers the pointer by stirring, and on About it leans towards the editorial thread the reader chooses. Continuous animation is otherwise reserved for loading.
 
-The Home motion language is *Dawn*: light arriving. Its four behaviors are the only expressive motion on the page, and each answers a rule above. The hero's opening is one choreography: the field sends a signal to the eyebrow and to each word of the headline in turn, and each appears as its signal lands; the rule draws under the last two words; the lede and the calls to action come in a beat apart as the sentence finishes. Every beat is a duration token or a multiple of one.
+The Home motion language is _Dawn_: light arriving. Its four behaviors are the only expressive motion on the page, and each answers a rule above. The hero's opening is one choreography: the field sends a signal to the eyebrow and to each word of the headline in turn, and each appears as its signal lands; the rule draws under the last two words; the lede and the calls to action come in a beat apart as the sentence finishes. Every beat is a duration token or a multiple of one.
 
 - **Synapse field.** Home's artwork and the first screen itself: a living network, edge to edge under a transparent header, the copy in the content frame on top of it. Soft nodes wander the plate on slow curving paths, hairline links form between near neighbours and dissolve as they drift apart, and signals - small warm particles - travel a link, light the node they reach and sometimes carry on. The field is faint in a hand's width around the copy's box and full everywhere else, and it writes the copy. The pointer stirs it, and so does a scroll: nearby nodes light, more signals leave from there. It dissolves along its bottom edge, fades as the reader scrolls it away - opacity only - and sleeps once it has left the viewport, so the writing below arrives on a quiet canvas and reveals as it enters. It is a canvas painted with the system's own colour variables - light on the dark canvas (cobalt nodes, lime signals), ink on the light one (cobalt throughout, a shade deeper for the signal, every alpha lifted), because 60% lime on white is white; the browser rests it in a hidden tab, under reduced motion it is one still frame with every word simply present, and the copy never waits on it for more than a moment - decoration is not allowed to keep content off the page. Nothing on it is text.
 - **Typeset.** The display headline sets one word at a time, each rising through its own baseline behind a clip at the line box - on a field, when its signal lands; elsewhere, a tick apart. Words, never letters; assistive technology hears the sentence once, whole. A word that has just been hit glows for one pulse in the action colour. A named run of words gets a hairline in the action colour that draws itself beneath the phrase: a horizon under the words the page most wants read.
 - **Pointer light.** The approved Signature light, as a horizon glare: a horizontal band at the pointer's height and a pool beneath it, in `ambient.*` colour, blended as light. Fine pointers only; never under reduced motion.
 - **Theme sweep.** Changing theme opens the new theme from a horizon across the middle of the viewport, upward and downward, as a view transition scoped by `data-theme-sweep` so navigation's cover morph keeps its own crossfade. Without view transitions or under reduced motion the theme simply changes.
+
+The other public pages carry the same language at an inner page's volume - _Dawn, carried_: the light travels from Home along the lines those pages already have.
+
+- **Signal route.** A hairline that draws itself, its leading tip a signal in the field's own ink, and the copy beside it written as the tip reaches it: the Blog title above its header rule, a word at a time; About's figures under the band's rule; Contact's channel marks down the column divider, so on Contact only decoration waits. A route whose line is not drawn at this width, or any route under reduced motion, has its copy simply present.
+- **Card seam.** A card's cover and its copy meet on a hairline that draws itself in the action colour, a signal at its tip, while the card is hovered or holds focus. It reserves its footprint at rest.
+- **Nav track.** The approved sliding nav indication: one bar for the site navigation that travels to the current page on navigation, a signal on its leading end.
+- **Page titles.** Every public page title is on the display face and typeset, with one drawn rule under the phrase the page most wants read.
+- **About band.** The About hero is a full-bleed synapse field with no box, under a header that has no bar at the top of the page, as on Home. The field writes the headline; the editorial track's three threads are three places on it and the network gathers towards the current one, while that thread's rule in the track beneath draws with a signal at its tip.
 
 ### Imagery and iconography
 
@@ -219,13 +227,10 @@ Loading policy: PageLoading for blocked routes, PanelLoading for blocked regions
   naming the v2 component that replaces it. Migration debt should be visible while someone is
   editing the code, not only in the inventory table. Warning once keeps the console readable.
   Owner: B6.
-- **About's ambient artwork.** The About hero carries an ambient scene: two glow pools that follow
-  the pointer at different rates and a slow pass of light across them. It is sanctioned by the
-  Motion section above — "Ambient movement is limited to suitable Home/About artwork, pauses on
-  interaction, and stops under reduced motion" — and it meets all three conditions. The Avoid
-  list's "random glow" is a different thing: glow scattered with no purpose and no owner. This
-  scene has one purpose (it is what the editorial track's selection drives) and one owner (the
-  `ambient.*` roles). Do not reopen this as a contradiction between the two sections.
+- **About's artwork.** The About hero's artwork is the synapse field, the same one Home uses, in
+  place of the earlier glow-pool scene: one ambient language across the two sanctioned pages
+  instead of two. The editorial track drives it through the field's `focus`. Owner: Dawn, carried
+  (`specs/023-dawn-carried`).
 - **Ambient token group.** `ambient.glow`, `ambient.accentGlow` and `ambient.sweep` are derived
   roles: each is an approved `action.primary` or `accent.lime` value at alpha, so atmosphere can
   never introduce a pigment the baseline did not sign off. They are paired with a new primitive
@@ -243,4 +248,3 @@ Loading policy: PageLoading for blocked routes, PanelLoading for blocked regions
 - [ ] Validate derived disabled, overlay, code, and media colors as rendered before stabilizing
       them. Their contrast is currently verified arithmetically only. Owner: B6 accessibility
       matrix; affects contrast and token API.
-

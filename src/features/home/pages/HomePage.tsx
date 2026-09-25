@@ -47,7 +47,11 @@ import HeroArchivePreview from '../components/HeroArchivePreview'
 import StoryCard from '../components/StoryCard'
 import SeriesShelf from '../../series/components/SeriesShelf'
 
-const POST_LIMIT = 9
+/*
+ * Ten: the Signature, then three full rows of three under "Keep reading". Nine
+ * left the last row one card short.
+ */
+const POST_LIMIT = 10
 const HERO_HEADLINE = 'Human stories, blogs, and thoughtful writing for curious readers.'
 /** The words the page most wants read; they get the drawn rule. */
 const HERO_EMPHASIS = 'curious readers.'

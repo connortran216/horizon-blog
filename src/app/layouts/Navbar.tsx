@@ -34,6 +34,7 @@ import {
   ContentContainer,
   IconButton,
   NavItem,
+  NavTrack,
   Reveal,
   Stack,
   ThemeToggle,
@@ -46,7 +47,7 @@ import '../../features/editor/editor.window'
 import UserMenu from './UserMenu'
 import { SITE_LINKS } from './nav-links'
 import { can } from '../../core/authorization/authorization'
-import { headerSurface, isAtTop, shouldCloseOnKey } from './navbar.logic'
+import { headerSurface, isAtTop, opensOnField, shouldCloseOnKey } from './navbar.logic'
 
 const Navbar = () => {
   const { isOpen, onToggle, onClose } = useDisclosure()
@@ -56,7 +57,7 @@ const Navbar = () => {
   const location = useLocation()
   const isEditorPage = location.pathname === '/blog-editor'
   const [atTop, setAtTop] = useState(true)
-  const surface = headerSurface({ overField: location.pathname === '/', atTop })
+  const surface = headerSurface({ overField: opensOnField(location.pathname), atTop })
 
   /*
    * One passive scroll listener, coalesced to a frame. The bar only needs to
@@ -284,7 +285,12 @@ const Navbar = () => {
                 <BrandLogo variant="full" display={{ base: 'none', sm: 'block' }} />
               </Box>
 
-              <Flex
+              {/*
+                One travelling indicator for the set: the current-page bar
+                slides to the new item on navigation, a signal on its leading
+                end. The items keep `aria-current`; the track only draws.
+              */}
+              <NavTrack
                 as="nav"
                 aria-label="Site"
                 gap={space[1]}
@@ -295,7 +301,7 @@ const Navbar = () => {
                     {link.name}
                   </NavItem>
                 ))}
-              </Flex>
+              </NavTrack>
             </Flex>
           </Reveal>
 

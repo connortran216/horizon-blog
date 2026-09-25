@@ -10,6 +10,7 @@ import {
   loadingAnnouncement,
   meetsTouchTarget,
   type ButtonTone,
+  iconButtonDisplay,
 } from './control.logic'
 
 /**
@@ -189,5 +190,20 @@ describe('loadingAnnouncement', () => {
 
   it('falls back to a generic announcement rather than to silence', () => {
     expect(loadingAnnouncement(undefined, true).announcement).toBe('Working')
+  })
+})
+
+describe('iconButtonDisplay', () => {
+  it('keeps the icon centred where a responsive value only hides the button', () => {
+    expect(iconButtonDisplay({ sm: 'none' })).toEqual({ base: 'inline-flex', sm: 'none' })
+  })
+
+  it('leaves a value that names every width alone', () => {
+    expect(iconButtonDisplay({ base: 'none', md: 'inline-flex' })).toEqual({
+      base: 'none',
+      md: 'inline-flex',
+    })
+    expect(iconButtonDisplay('none')).toBe('none')
+    expect(iconButtonDisplay(undefined)).toBeUndefined()
   })
 })

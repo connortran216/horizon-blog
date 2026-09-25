@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom'
 import { componentTokens, fontWeights, radii, space } from '../../../theme/tokens'
 import { controlSizing } from '../actions/control.logic'
 import { navItemElement, navItemState } from './navigation.logic'
+import { useInNavTrack } from './NavTrack'
 
 interface NavItemBase extends Omit<BoxProps, 'as' | 'children' | 'onClick'> {
   children: ReactNode
@@ -52,13 +53,15 @@ export type NavItemProps = NavItemBase &
  * Hover only tints the background, which means nothing on its own. The current
  * item is marked by `aria-current` and by a 2px bar that is always in the DOM at
  * a fixed size and only changes opacity, so navigating never moves the items
- * beside it.
+ * beside it. Inside a `NavTrack` the track draws that bar for the whole set -
+ * one bar that travels - and the item draws none of its own.
  */
 export const NavItem = forwardRef<HTMLElement, NavItemProps>(function NavItem(
   { to, href, isCurrent = false, isDisabled = false, icon, children, onClick, ...rest },
   ref,
 ) {
   const element = navItemElement({ to, href })
+  const inTrack = useInNavTrack()
   const sizing = controlSizing('md')
   const restState = navItemState({ isDisabled })
   const currentState = navItemState({ isCurrent: true, isDisabled })
@@ -104,19 +107,21 @@ export const NavItem = forwardRef<HTMLElement, NavItemProps>(function NavItem(
         </Box>
       )}
       {children}
-      <Box
-        data-nav-indicator=""
-        aria-hidden="true"
-        position="absolute"
-        left={space[3]}
-        right={space[3]}
-        bottom="0"
-        height="2px"
-        borderRadius={radii.tag}
-        bg={restState.indicatorColor}
-        opacity={restState.indicatorOpacity}
-        transition={restState.transition}
-      />
+      {inTrack ? null : (
+        <Box
+          data-nav-indicator=""
+          aria-hidden="true"
+          position="absolute"
+          left={space[3]}
+          right={space[3]}
+          bottom="0"
+          height="2px"
+          borderRadius={radii.tag}
+          bg={restState.indicatorColor}
+          opacity={restState.indicatorOpacity}
+          transition={restState.transition}
+        />
+      )}
     </>
   )
 

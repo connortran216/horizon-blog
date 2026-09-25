@@ -2,17 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import {
   AUTO_ADVANCE_MS,
-  POINTER_CENTRE,
+  THREAD_FOCUS,
   USER_PAUSE_MS,
-  ambientScene,
   clampThreadIndex,
   nextThreadIndex,
-  pointerPositionIn,
   threadDetailId,
+  threadFocus,
   threadOrdinal,
   threadState,
   trackAdvances,
-  type AmbientSceneInput,
 } from './aboutHero.logic'
 
 describe('trackAdvances', () => {
@@ -127,110 +125,30 @@ describe('threadDetailId', () => {
   })
 })
 
-describe('pointerPositionIn', () => {
-  const box = { left: 100, top: 50, width: 400, height: 200 }
+describe('threadFocus', () => {
+  it('gives each of the three threads its own place beside the copy', () => {
+    const places = [0, 1, 2].map((index) => threadFocus(index, 3))
 
-  it('answers the centre at the centre', () => {
-    expect(pointerPositionIn(box, 300, 150)).toEqual({ x: 0, y: 0 })
-  })
-
-  it('answers the corners at the corners', () => {
-    expect(pointerPositionIn(box, 100, 50)).toEqual({ x: -1, y: -1 })
-    expect(pointerPositionIn(box, 500, 250)).toEqual({ x: 1, y: 1 })
-  })
-
-  it('clamps a position reported outside the box', () => {
-    expect(pointerPositionIn(box, -900, 900)).toEqual({ x: -1, y: 1 })
-  })
-
-  it('answers the centre for a box that has not been laid out', () => {
-    expect(pointerPositionIn({ left: 0, top: 0, width: 0, height: 0 }, 40, 40)).toEqual(
-      POINTER_CENTRE,
-    )
-  })
-})
-
-describe('ambientScene', () => {
-  const moving: AmbientSceneInput = {
-    threadIndex: 0,
-    threadCount: 3,
-    allowsAmbient: true,
-    allowsPointerFollowing: true,
-    isHeld: false,
-  }
-
-  it('follows the pointer at two rates, which is what reads as depth', () => {
-    const scene = ambientScene(moving)
-
-    expect(scene.isStill).toBe(false)
-    expect(scene.travel.glowPx).toBeGreaterThan(scene.travel.washPx)
-    expect(scene.travel.washPx).toBeGreaterThan(0)
-  })
-
-  it('runs the pass of light when nothing is being touched', () => {
-    expect(ambientScene(moving).sweep.isRunning).toBe(true)
-  })
-
-  it('pauses the pass of light while the reader holds the track', () => {
-    expect(ambientScene({ ...moving, isHeld: true }).sweep.isRunning).toBe(false)
-  })
-
-  it('keeps answering the pointer while the track is held', () => {
-    const held = ambientScene({ ...moving, isHeld: true })
-
-    expect(held.travel.glowPx).toBe(ambientScene(moving).travel.glowPx)
-    expect(held.isStill).toBe(false)
-  })
-
-  it('gives each thread a visibly different scene', () => {
-    const scenes = [0, 1, 2].map((threadIndex) => ambientScene({ ...moving, threadIndex }))
-    const signatures = scenes.map(
-      (scene) => `${scene.glow.opacity}/${scene.accentGlow.opacity}/${scene.glow.scale}`,
-    )
-
-    expect(new Set(signatures).size).toBe(scenes.length)
-  })
-
-  it('stays inside the profile table for an index past its end', () => {
-    expect(ambientScene({ ...moving, threadIndex: 9 }).glow.opacity).toBeGreaterThan(0)
-  })
-
-  it('produces no movement at all under reduced motion', () => {
-    const still = ambientScene({
-      ...moving,
-      allowsAmbient: false,
-      allowsPointerFollowing: false,
-    })
-
-    expect(still.isStill).toBe(true)
-    expect(still.travel).toEqual({ glowPx: 0, washPx: 0 })
-    expect(still.glow.scale).toBe(1)
-    expect(still.accentGlow.scale).toBe(1)
-    expect(still.sweep.isRunning).toBe(false)
-    expect(still.sweep.opacity).toBe(0)
-  })
-
-  it('draws the same still picture for every thread under reduced motion', () => {
-    const scenes = [0, 1, 2].map((threadIndex) =>
-      ambientScene({
-        ...moving,
-        threadIndex,
-        allowsAmbient: false,
-        allowsPointerFollowing: false,
-      }),
-    )
-
-    for (const scene of scenes) {
-      expect(scene).toEqual(scenes[0])
+    expect(new Set(places.map((place) => `${place?.x}:${place?.y}`)).size).toBe(3)
+    for (const place of places) {
+      expect(place?.x).toBeGreaterThan(0.6)
     }
   })
 
-  it('stops the pointer response on its own, without stopping the scene', () => {
-    const scene = ambientScene({ ...moving, allowsPointerFollowing: false })
+  it('reads down the plate in track order', () => {
+    const [build, write, shape] = [0, 1, 2].map((index) => threadFocus(index, 3)!)
 
-    expect(scene.travel).toEqual({ glowPx: 0, washPx: 0 })
-    expect(scene.sweep.isRunning).toBe(true)
-    expect(scene.isStill).toBe(false)
+    expect(build.y).toBeLessThan(write.y)
+    expect(write.y).toBeLessThan(shape.y)
+  })
+
+  it('clamps a stale index and reuses places on a longer track', () => {
+    expect(threadFocus(9, 3)).toEqual(THREAD_FOCUS[2])
+    expect(threadFocus(3, 4)).toEqual(THREAD_FOCUS[0])
+  })
+
+  it('has no focus on an empty track', () => {
+    expect(threadFocus(0, 0)).toBeNull()
   })
 })
 

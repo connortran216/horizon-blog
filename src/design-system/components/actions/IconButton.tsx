@@ -6,6 +6,8 @@ import {
   buttonVariant,
   controlSizing,
   controlState,
+  iconButtonDisplay,
+  type DisplayValue,
   type ButtonTone,
   type ControlSize,
 } from './control.logic'
@@ -92,6 +94,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
          control that can be pressed, and its appearance belongs to the theme. */
       {...(state.isActivatable ? {} : { _hover: {} })}
       {...rest}
+      display={iconButtonDisplay(rest.display as DisplayValue) as ChakraButtonProps['display']}
     >
       {isLoading ? (
         <Spinner size="sm" aria-hidden="true" />

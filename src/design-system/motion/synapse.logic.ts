@@ -60,6 +60,14 @@ export const SYNAPSE = {
   maxHops: 3,
   /** Chance a landed signal carries on along another link. */
   chainChance: 0.55,
+  /** How far a focus reaches to draw nodes in, unit distance. */
+  gatherReach: 0.24,
+  /** Inside this unit distance a gathered node is left alone - a cluster, not a point. */
+  gatherRest: 0.08,
+  /** How strongly a focus draws its reach in, per second at the focus. */
+  gatherRate: 0.55,
+  /** How brightly a focus keeps its neighbourhood lit, 0..1. */
+  focusStrength: 0.32,
 } as const
 
 export interface SynapseNode {
@@ -177,17 +185,53 @@ export interface UnitPoint {
   readonly y: number
 }
 
-/** Nodes near a point light up in proportion to how near. The pointer's job. */
-export function exciteNear(nodes: SynapseNode[], point: UnitPoint, aspect: number): void {
+/**
+ * Nodes near a point light up in proportion to how near. The pointer's job,
+ * and - more softly and further out - a focus's.
+ */
+export function exciteNear(
+  nodes: SynapseNode[],
+  point: UnitPoint,
+  aspect: number,
+  strength: number = SYNAPSE.pointerStrength,
+  reach: number = SYNAPSE.pointerReach,
+): void {
   for (const node of nodes) {
     const distance = Math.hypot(node.x - point.x, (node.y - point.y) / aspect)
 
-    if (distance < SYNAPSE.pointerReach) {
-      node.excitation = Math.max(
-        node.excitation,
-        (1 - distance / SYNAPSE.pointerReach) * SYNAPSE.pointerStrength,
-      )
+    if (distance < reach) {
+      node.excitation = Math.max(node.excitation, (1 - distance / reach) * strength)
     }
+  }
+}
+
+/**
+ * A focus draws the network towards it. Nodes within reach drift in, faster
+ * the nearer they already are, and stop a little short so the result is a
+ * cluster the repulsion keeps open rather than a knot. Nodes beyond reach go
+ * on wandering, so moving the focus reads as the network leaning somewhere
+ * new, not as the whole plate being dragged. Mutates in place, like
+ * `stepNodes`.
+ */
+export function gatherTowards(
+  nodes: SynapseNode[],
+  focus: UnitPoint,
+  dt: number,
+  aspect: number,
+): void {
+  for (const node of nodes) {
+    const dx = focus.x - node.x
+    const dy = (focus.y - node.y) / aspect
+    const distance = Math.hypot(dx, dy)
+
+    if (distance >= SYNAPSE.gatherReach || distance <= SYNAPSE.gatherRest) {
+      continue
+    }
+
+    const pull = Math.min(1, SYNAPSE.gatherRate * (1 - distance / SYNAPSE.gatherReach) * dt)
+
+    node.x = clampUnit(node.x + dx * pull)
+    node.y = clampUnit(node.y + dy * aspect * pull)
   }
 }
 
@@ -377,7 +421,7 @@ export interface ChooseLinkOptions {
   readonly near?: { readonly point: UnitPoint; readonly aspect: number; readonly reach: number }
 }
 
-export interface SignalRoute {
+export interface LinkRoute {
   readonly from: number
   readonly to: number
 }
@@ -392,7 +436,7 @@ export function chooseLink(
   nodes: readonly SynapseNode[],
   rng: Rng,
   { from, near }: ChooseLinkOptions = {},
-): SignalRoute | null {
+): LinkRoute | null {
   if (links.length === 0) {
     return null
   }

@@ -14,9 +14,9 @@
 
 import { forwardRef, type ChangeEvent, type ReactNode } from 'react'
 import { Box, type BoxProps } from '@chakra-ui/react'
-import { FiX } from 'react-icons/fi'
+import { FiSearch, FiX } from 'react-icons/fi'
 
-import { space } from '../../../theme/tokens'
+import { space, transitionFor } from '../../../theme/tokens'
 import { Button, IconButton } from '../../components/actions'
 import { ErrorState, RetryAction, Skeleton } from '../../components/feedback'
 import { Field, Input, Select } from '../../components/forms'
@@ -103,14 +103,44 @@ export const FilterBar = forwardRef<HTMLElement, FilterBarProps>(function Filter
     >
       <Box display="flex" flexWrap="wrap" gap={space[3]} alignItems="flex-end">
         <Box flex="1 1 260px" minW={0}>
-          <Field label={searchLabel} labelHidden>
-            <Input
-              type="search"
-              placeholder={searchPlaceholder}
-              value={state.query}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => onQueryChange(event.target.value)}
-            />
-          </Field>
+          {/*
+            The field says what it is before anything is typed: a search glyph
+            at its start, decorative - the label names the control - and in
+            the action colour while the field holds focus.
+          */}
+          <Box
+            position="relative"
+            sx={{
+              '&:focus-within [data-search-glyph]': { color: 'action.primary' },
+            }}
+          >
+            <Box
+              data-search-glyph=""
+              aria-hidden="true"
+              position="absolute"
+              insetInlineStart={space[4]}
+              top="50%"
+              transform="translateY(-50%)"
+              display="flex"
+              color="text.muted"
+              pointerEvents="none"
+              zIndex={1}
+              transition={transitionFor('color', 'fast')}
+            >
+              <FiSearch />
+            </Box>
+            <Field label={searchLabel} labelHidden>
+              <Input
+                type="search"
+                placeholder={searchPlaceholder}
+                value={state.query}
+                ps={space[12]}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  onQueryChange(event.target.value)
+                }
+              />
+            </Field>
+          </Box>
         </Box>
 
         {sortOptions && sortOptions.length > 0 ? (

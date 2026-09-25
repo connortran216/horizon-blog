@@ -103,6 +103,25 @@ export const componentTokens = {
     ambientBloom: blur.bloom,
   },
 
+  /*
+   * A signal carried along a line - `SignalRoute` / `SignalLine`, the inner
+   * pages' share of Home's Dawn language. The rail is a hairline in either the
+   * quiet divider role or the action colour; the tip borrows the field's own
+   * ink: a shade-deeper cobalt on the light canvas, lime on the dark one, each
+   * in the ambient glow of its theme. No new pigment.
+   */
+  signal: {
+    rail: color('border.subtle'),
+    railActive: color('action.primary'),
+    spark: color('action.hover'),
+    sparkDark: color('accent.lime'),
+    halo: color('ambient.glow'),
+    haloDark: color('ambient.accentGlow'),
+    sparkSize: space[1],
+    haloBlur: blur.bloom,
+    transition: 'reveal',
+  },
+
   /** Long-form reading. Prose stays calm; only progress and TOC move. */
   reader: {
     measure: layout.prose,

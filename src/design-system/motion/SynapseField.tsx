@@ -53,6 +53,7 @@ import {
   easeInOut,
   exciteNear,
   fieldAwake,
+  gatherTowards,
   fieldInk,
   fieldOpacity,
   linkNodes,
@@ -94,6 +95,12 @@ export interface SynapseFieldProps extends Omit<BoxProps, 'as'> {
   veil?: Veil
   /** Same seed, same field. Change it for a different arrangement. */
   seed?: number
+  /**
+   * A place on the plate, in unit coordinates, the network leans towards:
+   * nodes near it gather, its neighbourhood stays softly lit, and fresh
+   * signals prefer it. Moving it stirs the field. `null` for none.
+   */
+  focus?: UnitPoint | null
 }
 
 interface Particle {
@@ -170,6 +177,7 @@ export function SynapseField({
   signalRate: baseRate = 1.1,
   veil = DEFAULT_VEIL,
   seed = 7,
+  focus = null,
   ...rest
 }: SynapseFieldProps) {
   const policy = useMotionPolicy()
@@ -186,6 +194,7 @@ export function SynapseField({
   const anchorsRef = useRef<AnchorEntry[]>([])
   const paletteRef = useRef<Palette>(fallbackPalette)
   const reducedRef = useRef(policy.reduced)
+  const focusRef = useRef<UnitPoint | null>(focus)
 
   reducedRef.current = policy.reduced
 
@@ -222,6 +231,19 @@ export function SynapseField({
   useEffect(() => {
     paletteRef.current = readPalette(colorMode)
   }, [colorMode])
+
+  /*
+   * The loop reads the focus from a ref, so moving it never restarts the
+   * field. A move is also a touch: the field stirs as it leans somewhere new.
+   */
+  const focusX = focus?.x
+  const focusY = focus?.y
+
+  useEffect(() => {
+    focusRef.current =
+      focusX === undefined || focusY === undefined ? null : { x: focusX, y: focusY }
+    stirUntilRef.current = stirredUntil(performance.now(), stirMs)
+  }, [focusX, focusY, stirMs])
 
   useEffect(() => {
     const plate = plateRef.current
@@ -330,10 +352,14 @@ export function SynapseField({
       })
     }
 
+    // Where fresh signals leave from: the pointer when there is one, else the focus.
+    const attention = (): UnitPoint | null => pointerRef.current ?? focusRef.current
+
     const spawn = (links: SynapseLink[], aspect: number, from?: number) => {
+      const point = attention()
       const route = chooseLink(links, nodes, rng, {
         from,
-        near: pointerRef.current ? { point: pointerRef.current, aspect, reach: 0.22 } : undefined,
+        near: point ? { point, aspect, reach: 0.22 } : undefined,
       })
 
       if (route === null) {
@@ -369,6 +395,13 @@ export function SynapseField({
 
         if (pointer) {
           exciteNear(nodes, pointer, aspect)
+        }
+
+        const leaning = focusRef.current
+
+        if (leaning) {
+          gatherTowards(nodes, leaning, dt, aspect)
+          exciteNear(nodes, leaning, aspect, SYNAPSE.focusStrength, SYNAPSE.gatherReach * 0.6)
         }
       }
 
@@ -701,6 +734,7 @@ export function SynapseField({
     <SynapseContext.Provider value={signals}>
       <Surface
         ref={plateRef}
+        as={as}
         depth="feature"
         padded={false}
         position="relative"
