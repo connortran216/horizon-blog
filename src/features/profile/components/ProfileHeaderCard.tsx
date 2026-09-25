@@ -46,6 +46,8 @@ interface ProfileHeaderCardProps {
   /** Why the last avatar upload failed. Shown under the portrait, as written. */
   avatarUploadError?: string
   articleCount: number
+  /** Drafts with a publication time. Omitted, the header states two counts. */
+  scheduledCount?: number
   draftCount: number
   onOpenProfileEditor: () => void
   onOpenAvatarPreview: () => void
@@ -60,6 +62,7 @@ const ProfileHeaderCard = ({
   isUploadingAvatar,
   avatarUploadError,
   articleCount,
+  scheduledCount,
   draftCount,
   onOpenProfileEditor,
   onOpenAvatarPreview,
@@ -73,6 +76,15 @@ const ProfileHeaderCard = ({
       value: String(articleCount),
       detail: 'Blogs currently live on the site.',
     },
+    ...(scheduledCount === undefined
+      ? []
+      : [
+          {
+            label: 'Scheduled',
+            value: String(scheduledCount),
+            detail: 'Drafts with a publication time set.',
+          },
+        ]),
     {
       label: 'Drafts',
       value: String(draftCount),

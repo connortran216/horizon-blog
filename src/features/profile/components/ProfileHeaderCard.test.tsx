@@ -133,6 +133,22 @@ describe('the author workspace header', () => {
     expect(viewButton).toContain('disabled=""')
   })
 
+  it('states the scheduled count between blogs and drafts when it is known', () => {
+    const withSchedule = render({ scheduledCount: 1 })
+    const blogs = withSchedule.indexOf('>Blogs<')
+    const scheduled = withSchedule.indexOf('>Scheduled<')
+    const drafts = withSchedule.indexOf('>Drafts<')
+
+    expect(scheduled).toBeGreaterThan(blogs)
+    expect(drafts).toBeGreaterThan(scheduled)
+    expect(render()).not.toContain('>Scheduled<')
+  })
+
+  it('opens as an unboxed masthead whose rule writes the counts', () => {
+    expect(markup).toContain('data-signal-line=""')
+    expect(markup.match(/<h1/g)).toHaveLength(1)
+  })
+
   it('names the profile while it is still loading rather than showing a bare spinner', () => {
     expect(render({ profileLoading: true })).toContain('the profile')
   })

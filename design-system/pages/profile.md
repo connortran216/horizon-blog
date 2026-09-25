@@ -20,13 +20,15 @@ It should feel like an editorial author page with management affordances, not a 
 
 ## Layout
 
-- one dominant profile header shell with an editorial split at desktop widths
-- a quieter identity rail holds the square portrait editor, full-size action,
-  name, inline edit action, and contact metadata
-- the writing region holds the workspace eyebrow, biography, the single
-  dominant `Write a blog` action, and unboxed Blogs/Drafts facts
-- the split collapses to one logical reading order on smaller viewports
-- owned writing section below
+- an unboxed author masthead on the page canvas: the square portrait editor and
+  full-size action on the left; the eyebrow, the display-face name with the
+  inline edit action, the biography and one line of contact metadata on the right
+- the single dominant `Write a blog` action sits beside the eyebrow at desktop
+  and follows the metadata on a phone (named grid areas, one markup order)
+- one rule runs under the masthead and writes the Blogs / Scheduled / Drafts
+  counts as typography (`SignalRoute`); on a phone they become a compact list
+- owned writing section below, also unboxed: heading, tabs, then a three-column
+  card grid from `lg`
 - keep management UI integrated into the editorial tone
 
 ## Hierarchy
@@ -52,7 +54,8 @@ It should feel like an editorial author page with management affordances, not a 
 
 ## Motion
 
-- subtle only
+- subtle only: the name typesets and the masthead rule writes the counts once,
+  on arrival; nothing ambient
 - avatar interaction may use local overlay feedback
 - no large decorative motion around management surfaces
 
@@ -63,7 +66,8 @@ It should feel like an editorial author page with management affordances, not a 
 - upload progress and persistent upload failure remain announced in the page
 - the public/default `ProfileHeader` and compact `AvatarEditor` presentations
   are unaffected by the workspace option
-- poppers and menus must not introduce horizontal scrolling
+- poppers and menus must not introduce horizontal scrolling; with no surface to
+  clip them, the card and schedule menus use the `fixed` popper strategy
 - draft/live distinctions must not rely on color alone
 - scheduled rows use text labels for `Scheduled`, `Publishing`, and `Needs attention`
 - schedule actions remain keyboard-accessible through a labeled Manage menu

@@ -24,8 +24,8 @@ import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
 import { ProfileBlogPost } from '../profile.types'
 import { ownerPostLabel, toOwnerPostSummary } from '../profile.presentation'
 
-/** Two columns from `xl`, matching the grid the legacy page laid out by hand. */
-const COVER_SIZES = '(min-width: 1280px) 50vw, 100vw'
+/** Three columns from `lg`, the same rhythm as the Blog archive. */
+const COVER_SIZES = '(min-width: 1024px) 33vw, 100vw'
 
 interface ProfileBlogGridProps {
   blogs: ProfileBlogPost[]
@@ -55,7 +55,12 @@ const ProfileBlogCard = ({ blog, profileUsername, onEdit, onDelete }: ProfileBlo
       <PostCard post={post} label={ownerPostLabel(blog.status)} coverSizes={COVER_SIZES} />
 
       <Box position="absolute" insetBlockStart={space[2]} insetInlineEnd={space[2]} zIndex={2}>
-        <Menu isLazy lazyBehavior="unmount" placement="bottom-end">
+        {/*
+          `fixed`: a closed menu's popper still sits in the layout, and on an
+          unboxed page nothing clips it - absolute, it widened the document at
+          375px. Fixed poppers never count towards the page's scroll width.
+        */}
+        <Menu isLazy lazyBehavior="unmount" placement="bottom-end" strategy="fixed">
           <MenuButton
             as={IconButton}
             icon={<FiMoreVertical />}
@@ -92,7 +97,7 @@ const ProfileBlogGrid = ({
 
   return (
     <Stack ref={regionRef} gap={6}>
-      <Grid as="ul" columns={2} gap={6} collapseAt="xl">
+      <Grid as="ul" columns={3} gap={6} collapseAt="lg">
         {blogs.map((blog) => (
           <Box as="li" key={blog.id} listStyleType="none" display="flex">
             <Box flex="1" minW={0}>
