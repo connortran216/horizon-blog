@@ -152,3 +152,14 @@ describe('cells', () => {
     expect(tableCellStyle(false).borderColor).toBe(componentTokens.workspace.tableBorder)
   })
 })
+
+describe('an unframed table', () => {
+  it('drops the box but keeps the overflow contract', () => {
+    const style = tableScrollStyle(false)
+
+    expect(style.borderWidth).toBe('0')
+    expect(style.borderRadius).toBe('0')
+    expect(style.overflowX).toBe('auto')
+    expect(style.maxWidth).toBe('100%')
+  })
+})

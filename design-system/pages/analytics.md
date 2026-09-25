@@ -18,10 +18,16 @@ Analytics is an owner-only writing feedback surface. It should help an author un
 
 ## Layout
 
-- Use a calm protected-page shell with one action-token halo behind the page header.
-- Keep metric cards compact and readable.
+A reading report, not a dashboard - nothing on the page is boxed.
+
+- The header is the display-face title (typeset), one sentence, and "Fresh through" stated as a
+  readable UTC time; the date range sits directly under it as a line of controls.
+- The summary figures stand on one rule (`MetricGrid` is a `SignalRoute`): Views, Readers and
+  Completion lead on the display face in the action colour, the rest follow at page-title size.
+- Trend, reading progress, reactions, sources and notes each open on a hairline
+  (`ReportSection`) with their own heading; tables are unframed (`DataTable framed={false}`),
+  only the rules between rows.
 - Keep chart and funnel primitives feature-owned under `src/features/author-analytics/components`.
-- Prefer one card surface per component; avoid nested dashboard chrome.
 
 ## Hierarchy
 
@@ -42,8 +48,11 @@ Analytics is an owner-only writing feedback surface. It should help an author un
 
 ## Motion
 
-- Keep analytics surfaces mostly static.
-- Do not add animated charts unless reduced-motion behavior is defined.
+- Mostly static. Two arrivals, once each: the summary rule writes the figures as it draws, and the
+  trend line draws itself left to right the first time it is seen, a signal riding its edge at the
+  line's own height (transform only).
+- Reduced motion: the rule is drawn, the figures are present, the trend is drawn - no travel.
+- A later range change crossfades the trend rather than redrawing it.
 
 ## Accessibility Notes
 
@@ -57,3 +66,6 @@ Analytics is an owner-only writing feedback surface. It should help an author un
 - Prefer "blogs", "writing", "readers", "completion", and "fresh through".
 - Do not imply exact unique-reader precision when the backend marks the number approximate.
 - Do not expose backend system names in user-facing copy except when explaining freshness cautiously.
+- Insight evidence names metrics as an author reads them ("Completion", "Active read") and states
+  values in their own unit ("62%", "5m 44s"), never the raw key.
+- On a blog's diagnostics, descriptions speak of that blog ("Current hearts on this blog").

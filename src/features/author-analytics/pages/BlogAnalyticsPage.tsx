@@ -21,7 +21,10 @@ import {
   Section,
   Stack,
   Text,
+  Typeset,
 } from '../../../design-system'
+import { fontFamilies } from '../../../theme/tokens'
+import { FiArrowLeft } from 'react-icons/fi'
 import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
 import { AnalyticsDateRange } from '../author-analytics.types'
@@ -52,30 +55,39 @@ const BlogAnalyticsPage = () => {
 
   return (
     <ContentContainer>
-      <Section as="header">
-        <Stack gap={4} maxW="3xl">
-          <ActionLink
-            standalone
-            to={`/analytics?${serializeAnalyticsRange(range).toString()}`}
-            underline="hover"
-          >
-            Back to analytics
-          </ActionLink>
-          <Eyebrow as="p">Blog diagnostics</Eyebrow>
-          <Heading as="h1" recipe="pageTitle">
-            {analytics.data?.post.title ?? 'Blog analytics'}
-          </Heading>
-          <Text recipe="body" color="text.secondary">
-            Diagnose reader progress, reactions, links, and source quality for this blog.
-          </Text>
-        </Stack>
-      </Section>
+      <Section>
+        <Stack gap={12}>
+          <Stack as="header" gap={4} maxW="4xl">
+            <ActionLink
+              standalone
+              to={`/analytics?${serializeAnalyticsRange(range).toString()}`}
+              underline="hover"
+              iconStart={<FiArrowLeft aria-hidden="true" />}
+            >
+              Back to analytics
+            </ActionLink>
+            <Eyebrow as="p">Blog diagnostics</Eyebrow>
+            {/*
+              A blog title can run long, so it takes the page-title size on the
+              display face rather than the full display ramp.
+            */}
+            <Heading as="h1" recipe="pageTitle" fontFamily={fontFamilies.display}>
+              {analytics.data ? (
+                <Typeset key={analytics.data.post.id}>{analytics.data.post.title}</Typeset>
+              ) : (
+                'Blog analytics'
+              )}
+            </Heading>
+            <Text recipe="prose" color="text.secondary">
+              How far readers get, what they react to, which links they follow and where they come
+              from.
+            </Text>
+          </Stack>
 
-      <Section density="compact">
-        <Stack gap={8}>
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
           <AnalyticsSummaryMetrics
+            scope="blog"
             summary={analytics.data?.summary ?? null}
             isLoading={analytics.isLoading}
             deniedAction={access.deniedAction}

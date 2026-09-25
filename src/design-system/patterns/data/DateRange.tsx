@@ -65,17 +65,13 @@ export function DateRange({
   // outage. Reporting it here is cheaper than explaining an empty dashboard.
   const isInverted = value.from !== '' && value.to !== '' && value.from > value.to
 
+  /*
+   * No box: the range is a line of controls under the page title, the way a
+   * report states the period it covers. The presets keep their own pill
+   * boundaries, which a control needs; the group needs none.
+   */
   return (
-    <Stack
-      as="section"
-      gap={4}
-      padding={space[4]}
-      borderWidth="1px"
-      borderStyle="solid"
-      borderColor={componentTokens.card.border}
-      borderRadius={radii.card}
-      bg={componentTokens.card.bg}
-    >
+    <Stack as="section" gap={4} aria-label="Date range controls">
       <Flex role="radiogroup" aria-label="Date range" gap={space[2]} flexWrap="wrap" align="center">
         {presets.map((preset) => {
           const isActive = preset.key === activePreset

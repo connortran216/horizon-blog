@@ -10,7 +10,16 @@
 
 import { useSearchParams } from 'react-router-dom'
 
-import { ContentContainer, Eyebrow, Heading, Section, Stack, Text } from '../../../design-system'
+import {
+  ContentContainer,
+  Eyebrow,
+  Heading,
+  Section,
+  Stack,
+  Text,
+  Typeset,
+} from '../../../design-system'
+import { formatFreshThrough } from '../author-analytics.format'
 import PaginationControls from '../../../components/PaginationControls'
 import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
@@ -69,26 +78,30 @@ const AnalyticsOverviewPage = () => {
 
   return (
     <ContentContainer>
-      <Section as="header">
-        <Stack direction="row" gap={6} collapseAt="md" justifyContent="space-between">
-          <Stack gap={4} maxW="3xl">
+      {/*
+        A reading report, not a dashboard: the title on the display face, the
+        period it covers stated under it, then the figures on one rule, the
+        trend, the notes and the comparison - each opened on a hairline rather
+        than boxed.
+      */}
+      <Section>
+        <Stack gap={12}>
+          <Stack as="header" gap={6} maxW="4xl">
             <Eyebrow as="p">Owner analytics</Eyebrow>
-            <Heading as="h1" recipe="pageTitle">
-              Understand how your writing is read.
+            <Heading as="h1" recipe="display">
+              <Typeset emphasis="read.">Understand how your writing is read.</Typeset>
             </Heading>
-            <Text recipe="body" color="text.secondary">
-              Track reach, engagement, completion, and freshness without turning your writing
-              workspace into a heavy dashboard.
+            <Text recipe="prose" color="text.secondary">
+              Reach, completion, reactions and freshness for your writing - a report you can read,
+              not a dashboard to watch.
+            </Text>
+            <Text recipe="metadata" color="text.muted">
+              {freshThrough
+                ? `Fresh through ${formatFreshThrough(freshThrough)}`
+                : 'Checking how fresh these numbers are'}
             </Text>
           </Stack>
-          <Text recipe="metadata" color="text.muted">
-            {freshThrough ? `Fresh through ${freshThrough}` : 'Freshness loading'}
-          </Text>
-        </Stack>
-      </Section>
 
-      <Section density="compact">
-        <Stack gap={8}>
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
           <AnalyticsSummaryMetrics

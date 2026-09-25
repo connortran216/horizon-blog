@@ -32,6 +32,8 @@ export interface AnalyticsSummaryMetricsProps extends DataPanelStateInput {
   summary: AnalyticsSummary | null
   onRetry?: () => void
   deniedDetail?: string
+  /** Whose numbers these are: every published blog, or the one being diagnosed. */
+  scope?: 'all' | 'blog'
 }
 
 export function AnalyticsSummaryMetrics({
@@ -41,6 +43,7 @@ export function AnalyticsSummaryMetrics({
   failedAction,
   onRetry,
   deniedDetail,
+  scope = 'all',
 }: AnalyticsSummaryMetricsProps) {
   const status = dataPanelState({
     isLoading,
@@ -77,9 +80,9 @@ export function AnalyticsSummaryMetrics({
   if (status === 'loading' || summary === null) {
     return (
       <MetricGrid columns={3}>
-        <Metric label="Views" value={0} isLoading />
-        <Metric label="Unique readers" value={0} isLoading />
-        <Metric label="Completion" value={0} isLoading />
+        <Metric label="Views" value={0} isLoading emphasis="lead" />
+        <Metric label="Unique readers" value={0} isLoading emphasis="lead" />
+        <Metric label="Completion" value={0} isLoading emphasis="lead" />
         <Metric label="Active read" value={0} isLoading />
         <Metric label="Hearts received" value={0} isLoading />
         <Metric label="Active hearts" value={0} isLoading />
@@ -89,18 +92,26 @@ export function AnalyticsSummaryMetrics({
 
   return (
     <MetricGrid columns={3}>
-      <Metric label="Views" value={summary.views} detail="Total blog opens" />
+      {/* The three figures the report opens with, on the display face. */}
+      <Metric
+        label="Views"
+        value={summary.views}
+        detail={scope === 'blog' ? 'Times this blog was opened' : 'Total blog opens'}
+        emphasis="lead"
+      />
       <Metric
         label="Unique readers"
         value={summary.estimatedUniqueReaders}
         isApproximate={summary.uniqueReadersApproximate}
-        detail="Backend HyperLogLog estimate"
+        detail="An estimate, not an exact count"
+        emphasis="lead"
       />
       <Metric
         label="Completion"
         value={summary.completionRate}
         kind="percent"
         detail="Readers reaching the end"
+        emphasis="lead"
       />
       <Metric
         label="Active read"
@@ -116,7 +127,9 @@ export function AnalyticsSummaryMetrics({
       <Metric
         label="Active hearts"
         value={summary.activeHeartCount ?? 0}
-        detail="Current hearts across published blogs"
+        detail={
+          scope === 'blog' ? 'Current hearts on this blog' : 'Current hearts across published blogs'
+        }
       />
     </MetricGrid>
   )

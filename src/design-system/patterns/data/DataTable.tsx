@@ -70,6 +70,18 @@ export interface DataTableProps<Row> extends DataPanelStateInput {
   /** What the table would have listed: "posts with analytics". */
   emptySubject?: string
   emptyNextAction?: string
+  /**
+   * `true` (the default) boxes the table, for management surfaces. `false`
+   * leaves only the rules between rows, for a table inside a written report.
+   */
+  framed?: boolean
+}
+
+/** A cell's style, with the numeric-figures rule in `sx` where Chakra reads it as CSS. */
+const cellProps = (isNumeric: boolean) => {
+  const { fontVariantNumeric, ...cell } = tableCellStyle(isNumeric)
+
+  return { ...cell, sx: { fontVariantNumeric } }
 }
 
 export function DataTable<Row>({
@@ -88,6 +100,7 @@ export function DataTable<Row>({
   deniedDetail,
   emptySubject = 'rows',
   emptyNextAction = 'Widen the range, or check back later.',
+  framed = true,
   isLoading,
   deniedAction,
   failedAction,
@@ -95,7 +108,12 @@ export function DataTable<Row>({
   const adaptation = tableAdaptation({ columnCount: columns.length, stackThreshold })
   const overflow = rowOverflow({ shown: rows.length, total: totalRows ?? rows.length })
   const status = dataPanelState({ isLoading, deniedAction, failedAction, rowCount: rows.length })
-  const scroll = tableScrollStyle()
+  /*
+   * `WebkitOverflowScrolling` and `fontVariantNumeric` are not Chakra style
+   * props; spread as props they reached the DOM as attributes React rejects.
+   * They travel in `sx`, where Chakra treats them as CSS.
+   */
+  const { WebkitOverflowScrolling, ...scroll } = tableScrollStyle(framed)
 
   /*
    * Below the `columns` breakpoint the stacking layout turns every table
@@ -163,6 +181,7 @@ export function DataTable<Row>({
         <>
           <Box
             {...scroll}
+            sx={{ WebkitOverflowScrolling }}
             borderStyle="solid"
             // The scroller is focusable so a keyboard user can reach the
             // columns that are off-screen. Without this the only way to scroll
@@ -179,7 +198,7 @@ export function DataTable<Row>({
             >
               <VisuallyHidden as="caption">{caption}</VisuallyHidden>
 
-              <Box as="thead" bg={componentTokens.workspace.tableHeaderBg}>
+              <Box as="thead" bg={framed ? componentTokens.workspace.tableHeaderBg : 'transparent'}>
                 <Box as="tr">
                   {columns.map((column) => {
                     const sort = sortHeader({
@@ -188,7 +207,7 @@ export function DataTable<Row>({
                       activeKey: sortKey,
                       order: sortOrder,
                     })
-                    const cell = tableCellStyle(column.isNumeric === true)
+                    const cell = cellProps(column.isNumeric === true)
 
                     return (
                       <Box
@@ -260,7 +279,7 @@ export function DataTable<Row>({
                         // Read back by the `::before` rule in the stacked
                         // layout. Harmless everywhere else.
                         data-column={adaptation.needsCellLabels ? column.label : undefined}
-                        {...tableCellStyle(column.isNumeric === true)}
+                        {...cellProps(column.isNumeric === true)}
                       >
                         {column.render(row)}
                       </Box>
