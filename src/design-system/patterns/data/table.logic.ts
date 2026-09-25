@@ -33,13 +33,18 @@ export interface TableScrollStyle {
   readonly borderColor: string
 }
 
-export function tableScrollStyle(): TableScrollStyle {
+/**
+ * `framed` is the bordered, rounded table of a management surface. Unframed is
+ * the table of a written report: no box around it, only the rules between its
+ * rows. The overflow contract is the same either way.
+ */
+export function tableScrollStyle(framed = true): TableScrollStyle {
   return {
     overflowX: 'auto',
     maxWidth: '100%',
     WebkitOverflowScrolling: 'touch',
-    borderRadius: radii.card,
-    borderWidth: '1px',
+    borderRadius: framed ? radii.card : '0',
+    borderWidth: framed ? '1px' : '0',
     borderColor: componentTokens.workspace.tableBorder,
   }
 }

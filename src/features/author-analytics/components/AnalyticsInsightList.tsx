@@ -9,7 +9,7 @@
 
 import { InsightList, type DataPanelStateInput, type Insight } from '../../../design-system'
 import { AnalyticsInsight } from '../author-analytics.types'
-import { formatEvidenceValue } from '../author-analytics.visualization'
+import { formatEvidenceMetric, formatEvidenceMetricValue } from '../author-analytics.format'
 
 interface AnalyticsInsightListProps extends DataPanelStateInput {
   insights: AnalyticsInsight[]
@@ -21,10 +21,11 @@ const toInsight = (insight: AnalyticsInsight): Insight => ({
   code: insight.code,
   message: insight.message,
   sampleSize: insight.sample_size,
+  // "Completion 62%, against a 51% baseline" - never `completion_rate` or bare seconds.
   evidence: insight.evidence.map((item) => ({
-    metric: item.metric,
-    value: formatEvidenceValue(item.value),
-    baseline: formatEvidenceValue(item.baseline),
+    metric: formatEvidenceMetric(item.metric),
+    value: formatEvidenceMetricValue(item.metric, item.value),
+    baseline: formatEvidenceMetricValue(item.metric, item.baseline),
   })),
 })
 

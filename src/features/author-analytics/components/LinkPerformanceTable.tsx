@@ -24,6 +24,7 @@ const LinkPerformanceTable = ({
   failedAction,
 }: LinkPerformanceTableProps) => (
   <DataTable<AnalyticsLinkMetric>
+    framed={false}
     caption="Link performance"
     title="Link performance"
     detail="Links readers clicked from this blog."

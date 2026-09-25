@@ -8,6 +8,7 @@ import {
   trendGeometry,
   trendSummary,
   type TrendPoint,
+  pointAlong,
 } from './chart.logic'
 
 const bounds = { width: 320, height: 120 }
@@ -249,5 +250,24 @@ describe('breakdown rows', () => {
 
   it('does not fold when the list is already short enough', () => {
     expect(breakdownRows(items, { maxRows: 5 }).hiddenCount).toBe(0)
+  })
+})
+
+describe('pointAlong', () => {
+  const line = '0,100 100,0 200,50'
+
+  it('starts at the first point and ends at the last', () => {
+    expect(pointAlong(line, 0)).toEqual({ x: 0, y: 100 })
+    expect(pointAlong(line, 1)).toEqual({ x: 200, y: 50 })
+  })
+
+  it('interpolates inside the segment that spans the fraction', () => {
+    expect(pointAlong(line, 0.25)).toEqual({ x: 50, y: 50 })
+    expect(pointAlong(line, 0.75)).toEqual({ x: 150, y: 25 })
+  })
+
+  it('clamps a stray fraction and has no point without a line', () => {
+    expect(pointAlong(line, 2)).toEqual({ x: 200, y: 50 })
+    expect(pointAlong(null, 0.5)).toBeNull()
   })
 })

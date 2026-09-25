@@ -302,3 +302,52 @@ export function chartMotion(policy: MotionPolicy): ChartMotion {
     colourTransition: transitionFor('stroke', 'fast'),
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Drawing the line                                                           */
+/* -------------------------------------------------------------------------- */
+
+export interface ChartPoint {
+  readonly x: number
+  readonly y: number
+}
+
+/**
+ * Where the line is at a fraction of its width, in the chart's own units - the
+ * point the drawing signal sits on while the trend draws itself left to right.
+ * The polyline's x only ever increases, so the answer is a straight
+ * interpolation inside the segment that spans that x. `null` with no line.
+ */
+export function pointAlong(polyline: string | null, fraction: number): ChartPoint | null {
+  if (polyline === null || polyline.trim() === '') {
+    return null
+  }
+
+  const points = polyline
+    .trim()
+    .split(/\s+/u)
+    .map((pair) => {
+      const [x, y] = pair.split(',').map(Number)
+
+      return { x, y }
+    })
+
+  const first = points[0]
+  const last = points[points.length - 1]
+  const clamped = Math.min(1, Math.max(0, fraction))
+  const targetX = first.x + (last.x - first.x) * clamped
+
+  for (let index = 1; index < points.length; index += 1) {
+    const a = points[index - 1]
+    const b = points[index]
+
+    if (targetX <= b.x) {
+      const span = b.x - a.x
+      const t = span === 0 ? 0 : (targetX - a.x) / span
+
+      return { x: targetX, y: a.y + (b.y - a.y) * t }
+    }
+  }
+
+  return { x: last.x, y: last.y }
+}

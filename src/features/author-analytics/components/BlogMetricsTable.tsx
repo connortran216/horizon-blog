@@ -157,6 +157,7 @@ const BlogMetricsTable = ({
 
   return (
     <DataTable<BlogMetricRow>
+      framed={false}
       caption="Blog comparison"
       title="Blog comparison"
       detail="Compare blogs by reach, completion, active reading, and reactions."

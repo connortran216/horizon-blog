@@ -12,8 +12,12 @@
  * silent in every screen reader.
  *
  * On a phone the metrics stack rather than shrinking. A 36px figure squeezed
- * into a quarter of a 375px screen is a number nobody can read, and four of
- * them is worse than four stacked cards.
+ * into a quarter of a 375px screen is a number nobody can read.
+ *
+ * A metric is typography, not a card: no surface of its own. `lead` sets the
+ * figure on the display face for the few numbers a report opens with. Inside a
+ * `MetricGrid` the figure is written by the grid's rule as the rule reaches it;
+ * anywhere else it is simply present.
  */
 
 import { Box, Flex, VisuallyHidden } from '@chakra-ui/react'
@@ -21,10 +25,10 @@ import type { ReactElement } from 'react'
 
 import { space } from '../../../theme/tokens'
 import { Grid, Stack } from '../../components/layout'
-import { Surface } from '../../components/surface'
 import { Chip } from '../../components/status'
 import { Skeleton } from '../../components/feedback'
 import { Text } from '../../components/typography'
+import { SignalLine, SignalRoute, SignalTarget } from '../../motion'
 import { metricValue, type MetricKind } from './metric.logic'
 
 export interface MetricProps {
@@ -42,6 +46,8 @@ export interface MetricProps {
   icon?: ReactElement
   isLoading?: boolean
   locale?: string
+  /** `lead` sets the figure on the display face: the numbers a report opens with. */
+  emphasis?: 'lead' | 'standard'
 }
 
 export function Metric({
@@ -54,11 +60,12 @@ export function Metric({
   icon,
   isLoading = false,
   locale,
+  emphasis = 'standard',
 }: MetricProps) {
   const resolved = metricValue({ value, kind, isApproximate, locale })
 
   return (
-    <Surface as="article" depth="flat" height="100%">
+    <Box as="article" height="100%" minW="0">
       <Stack gap={2}>
         <Flex align="flex-start" justify="space-between" gap={space[2]}>
           <Text recipe="metadata" as="h3" color="text.secondary">
@@ -74,25 +81,30 @@ export function Metric({
         {isLoading ? (
           // Sized off the type ramp the real figure will use, so nothing moves
           // when the number lands.
-          <Skeleton shape={{ shape: 'text', textStyle: 'pageTitle' }} label={`the ${label}`} />
+          <Skeleton
+            shape={{ shape: 'text', textStyle: emphasis === 'lead' ? 'display' : 'pageTitle' }}
+            label={`the ${label}`}
+          />
         ) : (
           <Flex align="baseline" gap={space[2]} flexWrap="wrap">
-            <Text
-              recipe="pageTitle"
-              as="p"
-              color="text.primary"
-              sx={{ fontVariantNumeric: 'tabular-nums' }}
-            >
-              {resolved.display}
-              {/*
-               * The tilde is a glyph, not a word. Without this the number is
-               * read out as an exact figure, which is the whole failure the
-               * approximate label exists to prevent.
-               */}
-              {resolved.spokenSuffix === null ? null : (
-                <VisuallyHidden> {resolved.spokenSuffix}</VisuallyHidden>
-              )}
-            </Text>
+            <SignalTarget>
+              <Text
+                recipe={emphasis === 'lead' ? 'display' : 'pageTitle'}
+                as="p"
+                color={emphasis === 'lead' ? 'action.primary' : 'text.primary'}
+                sx={{ fontVariantNumeric: 'tabular-nums' }}
+              >
+                {resolved.display}
+                {/*
+                 * The tilde is a glyph, not a word. Without this the number is
+                 * read out as an exact figure, which is the whole failure the
+                 * approximate label exists to prevent.
+                 */}
+                {resolved.spokenSuffix === null ? null : (
+                  <VisuallyHidden> {resolved.spokenSuffix}</VisuallyHidden>
+                )}
+              </Text>
+            </SignalTarget>
             {resolved.marker === null ? null : <Chip>{resolved.marker}</Chip>}
           </Flex>
         )}
@@ -105,7 +117,7 @@ export function Metric({
           </Text>
         )}
       </Stack>
-    </Surface>
+    </Box>
   )
 }
 
@@ -128,10 +140,18 @@ export function MetricGrid({ children, columns = 4 }: MetricGridProps) {
    * the metrics are already reachable by heading navigation; wrapping them in a
    * list would need an `li` around each `article` and would announce "list, 4
    * items" before four headings that say the same thing.
+   *
+   * The row opens on one rule, a `SignalRoute`: it draws itself as the row
+   * comes into view and writes each figure as it passes over it - the same
+   * carried signal the public pages use. Under reduced motion the rule is
+   * drawn and every figure is present.
    */
   return (
-    <Grid columns={columns} gap={4}>
-      {children}
-    </Grid>
+    <SignalRoute pace="position">
+      <SignalLine tone="action" mb={space[6]} />
+      <Grid columns={columns} gap={8}>
+        {children}
+      </Grid>
+    </SignalRoute>
   )
 }

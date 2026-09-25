@@ -21,10 +21,10 @@ import { Box, Flex } from '@chakra-ui/react'
 
 import { componentTokens, radii, space } from '../../../theme/tokens'
 import { Stack } from '../../components/layout'
-import { Surface } from '../../components/surface'
 import { Heading, Text } from '../../components/typography'
 import { EmptyState, PanelLoading, PermissionState, ErrorState } from '../../components/feedback'
 import { funnelRows, type FunnelStage } from './chart.logic'
+import { ReportSection } from './ReportSection'
 import {
   dataPanelState,
   formatPercent,
@@ -62,80 +62,78 @@ export function Funnel({
   })
 
   return (
-    <Surface as="section" depth="flat">
-      <Stack gap={4}>
-        <Heading recipe="cardTitle" as="h3">
-          {title}
-        </Heading>
-        <Text recipe="metadata">{detail}</Text>
+    <ReportSection>
+      <Heading recipe="cardTitle" as="h3">
+        {title}
+      </Heading>
+      <Text recipe="metadata">{detail}</Text>
 
-        {status === 'denied' ? (
-          <PermissionState
-            deniedAction={deniedAction ?? 'view this breakdown'}
-            detail={deniedDetail}
-          />
-        ) : status === 'error' ? (
-          <ErrorState failedAction={failedAction ?? 'load the reading progress'} />
-        ) : status === 'loading' ? (
-          <PanelLoading task="the reading progress" />
-        ) : status === 'empty' ? (
-          <EmptyState
-            subject="reading sessions in this range"
-            nextAction="Come back once this post has been opened, or widen the date range."
-          />
-        ) : (
-          <Stack as="ol" gap={4}>
-            {rows.map((row) => (
-              <Box as="li" key={row.label}>
-                <Flex justify="space-between" gap={space[2]} flexWrap="wrap">
-                  <Text recipe="metadata" as="span" color="text.secondary">
-                    {row.label}
-                  </Text>
-                  <Text recipe="metadata" as="span" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                    {metricValue({ value: row.sessions }).display} sessions ·{' '}
-                    {formatPercent(row.rate)}
-                  </Text>
-                </Flex>
+      {status === 'denied' ? (
+        <PermissionState
+          deniedAction={deniedAction ?? 'view this breakdown'}
+          detail={deniedDetail}
+        />
+      ) : status === 'error' ? (
+        <ErrorState failedAction={failedAction ?? 'load the reading progress'} />
+      ) : status === 'loading' ? (
+        <PanelLoading task="the reading progress" />
+      ) : status === 'empty' ? (
+        <EmptyState
+          subject="reading sessions in this range"
+          nextAction="Come back once this post has been opened, or widen the date range."
+        />
+      ) : (
+        <Stack as="ol" gap={4}>
+          {rows.map((row) => (
+            <Box as="li" key={row.label}>
+              <Flex justify="space-between" gap={space[2]} flexWrap="wrap">
+                <Text recipe="metadata" as="span" color="text.secondary">
+                  {row.label}
+                </Text>
+                <Text recipe="metadata" as="span" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {metricValue({ value: row.sessions }).display} sessions ·{' '}
+                  {formatPercent(row.rate)}
+                </Text>
+              </Flex>
 
+              <Box
+                height={space[2]}
+                marginBlock={space[2]}
+                borderRadius={radii.tag}
+                bg={componentTokens.reader.progressTrack}
+                overflow="hidden"
+                // The bar is decoration. The numbers above it are the
+                // content, and they are already in the accessible tree.
+                aria-hidden="true"
+              >
                 <Box
-                  height={space[2]}
-                  marginBlock={space[2]}
+                  height="100%"
+                  width={`${row.widthPercent}%`}
+                  // A stage with readers but a tiny share still gets a
+                  // visible sliver, so "a few" does not render as "none".
+                  minWidth={row.sessions > 0 ? space[1] : undefined}
                   borderRadius={radii.tag}
-                  bg={componentTokens.reader.progressTrack}
-                  overflow="hidden"
-                  // The bar is decoration. The numbers above it are the
-                  // content, and they are already in the accessible tree.
-                  aria-hidden="true"
-                >
-                  <Box
-                    height="100%"
-                    width={`${row.widthPercent}%`}
-                    // A stage with readers but a tiny share still gets a
-                    // visible sliver, so "a few" does not render as "none".
-                    minWidth={row.sessions > 0 ? space[1] : undefined}
-                    borderRadius={radii.tag}
-                    bg={componentTokens.reader.progressIndicator}
-                  />
-                </Box>
-
-                {row.droppedFromPrevious === null ? null : (
-                  <Text recipe="metadata">
-                    {row.droppedFromPrevious > 0
-                      ? `${metricValue({ value: row.droppedFromPrevious }).display} stopped before this point.`
-                      : 'Nobody stopped before this point.'}
-                  </Text>
-                )}
+                  bg={componentTokens.reader.progressIndicator}
+                />
               </Box>
-            ))}
-          </Stack>
-        )}
 
-        {caveat === undefined ? null : (
-          <Text recipe="metadata" color="text.secondary">
-            {caveat}
-          </Text>
-        )}
-      </Stack>
-    </Surface>
+              {row.droppedFromPrevious === null ? null : (
+                <Text recipe="metadata">
+                  {row.droppedFromPrevious > 0
+                    ? `${metricValue({ value: row.droppedFromPrevious }).display} stopped before this point.`
+                    : 'Nobody stopped before this point.'}
+                </Text>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      )}
+
+      {caveat === undefined ? null : (
+        <Text recipe="metadata" color="text.secondary">
+          {caveat}
+        </Text>
+      )}
+    </ReportSection>
   )
 }

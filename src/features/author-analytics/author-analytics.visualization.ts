@@ -1,3 +1,4 @@
+import { formatAnalyticsPercent } from './author-analytics.format'
 import {
   AnalyticsDateRange,
   AnalyticsFunnelStage,
@@ -176,12 +177,5 @@ const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): numbe
   return blog.views
 }
 
-export const formatEvidenceValue = (value: number): string => {
-  if (value >= 0 && value <= 1) {
-    const percent = value * 100
-    const fractionDigits = Number.isInteger(percent) ? 0 : 1
-    return `${percent.toFixed(fractionDigits)}%`
-  }
-
-  return String(value)
-}
+export const formatEvidenceValue = (value: number): string =>
+  value >= 0 && value <= 1 ? formatAnalyticsPercent(value) : String(value)
