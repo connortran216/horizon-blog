@@ -97,7 +97,7 @@ const Profile = () => {
   return (
     <ContentContainer>
       <Section>
-        <Stack gap={8}>
+        <Stack gap={16}>
           <ProfileHeaderCard
             profile={profile}
             profileName={profileName}
@@ -106,6 +106,7 @@ const Profile = () => {
             isUploadingAvatar={isUploadingAvatar}
             avatarUploadError={avatarUploadError}
             articleCount={publishedPagination.total}
+            scheduledCount={scheduledPagination.total}
             draftCount={draftPagination.total}
             onOpenProfileEditor={handleOpenProfileEditor}
             onOpenAvatarPreview={onOpenAvatarPreview}

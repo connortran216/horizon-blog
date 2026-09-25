@@ -1,7 +1,7 @@
 /**
- * The author's three collections - published, scheduled, drafts - on one panel.
+ * The author's three collections - published, scheduled, drafts - under the masthead.
  *
- * Composed from `Surface`, `Stack`, the typography recipes, `EmptyState` and
+ * Composed from `Stack`, the typography recipes, `EmptyState` and
  * `PanelLoading`. The one thing it still reaches to Chakra for is `Tabs`: the
  * design system has no tab primitive, and a hand-built one here would be a
  * `div` with a click handler pretending to be a tablist. Chakra's is a real
@@ -14,7 +14,7 @@
  */
 
 import { useState } from 'react'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
+import { Box, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
 import {
@@ -24,7 +24,6 @@ import {
   PanelLoading,
   Stack,
   StatusBadge,
-  Surface,
 } from '../../../design-system'
 import { componentTokens, radii, space } from '../../../theme/tokens'
 import { transitionFor, useMotionPolicy } from '../../../design-system/motion'
@@ -120,7 +119,12 @@ const ProfilePostsSection = ({
   const totalBlogs = publishedPagination.total + scheduledPagination.total + draftPagination.total
 
   return (
-    <Surface as="section" depth="raised">
+    /*
+     * No surface: the section sits on the page under the masthead, and the
+     * cards inside it are the only boxes - a box of boxes is what made the
+     * workspace read as a dashboard.
+     */
+    <Box as="section">
       <Stack gap={6}>
         <Stack
           direction="row"
@@ -219,7 +223,7 @@ const ProfilePostsSection = ({
           </Tabs>
         )}
       </Stack>
-    </Surface>
+    </Box>
   )
 }
 

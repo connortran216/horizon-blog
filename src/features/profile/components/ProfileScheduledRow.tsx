@@ -137,7 +137,7 @@ const ProfileScheduledRow = ({
             <Button tone="secondary" onClick={() => onEdit(blog.id)}>
               Edit
             </Button>
-            <Menu placement="bottom-end" isLazy>
+            <Menu placement="bottom-end" isLazy strategy="fixed">
               <MenuButton
                 as={Button}
                 tone="primary"
