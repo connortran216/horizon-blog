@@ -191,3 +191,21 @@ export function loadingAnnouncement(label: string | undefined, isLoading: boolea
 
   return { announcement: label ?? 'Working', role: 'status' } as const
 }
+
+/** A `display` value as a caller may pass it: one value, or one per breakpoint. */
+export type DisplayValue = string | Partial<Record<string, string>> | undefined
+
+/**
+ * The display an icon button renders with. Its icon is centred by the button
+ * being a flex box, so a caller that only hides it at some width -
+ * `{ sm: 'none' }` for a menu trigger - must not also take the flex away at
+ * every other width. A responsive value with no base gets the flex base back;
+ * a value that says what it wants at every width is left alone.
+ */
+export function iconButtonDisplay(display: DisplayValue): DisplayValue {
+  if (display === undefined || typeof display === 'string') {
+    return display
+  }
+
+  return 'base' in display ? display : { base: 'inline-flex', ...display }
+}

@@ -380,6 +380,19 @@ Home's expressive motion is one language, _Dawn_: light arriving. The primitives
 
 Anything new on Home should be another sentence in this language or nothing at all.
 
+#### Dawn, carried (Blog, About, Contact)
+
+The inner pages speak Dawn at a lower volume, along the lines they already have:
+
+- `SignalRoute` + `SignalLine`: a hairline that draws itself with a signal at its tip and writes
+  the `Typeset` words and `SignalTarget`s inside the route as the tip reaches them; `order` pace
+  for a headline, `position` pace for rows beside a divider; no travel under reduced motion or
+  when the line is not laid out
+- `SignalLine` on a `data-signal-host`: the card cover seam that draws on hover and focus
+- `NavTrack`: one travelling current-page bar for the site navigation, a signal on its leading end
+- `SynapseField focus`: About's editorial track leans the field towards the current thread
+- every public page title: `display` recipe, `Typeset`, one drawn emphasis rule
+
 ## Surface Model
 
 Use these surface roles consistently.

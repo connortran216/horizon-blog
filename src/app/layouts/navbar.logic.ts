@@ -26,13 +26,21 @@ export interface HeaderSurface {
 }
 
 /**
- * Over the Home field the header has no box of its own: the field runs under
+ * Over a field (Home's first screen, About's hero) the header has no box of its own: the field runs under
  * it and the bar is only its items. The moment the reader scrolls, or on any
  * other route, it is the compact floating surface again - readers who scroll
  * back up get the field back, not a bar sitting on it.
  */
 export function headerSurface({ overField, atTop }: HeaderSurfaceInput): HeaderSurface {
   return { floating: !(overField && atTop) }
+}
+
+/** Routes whose first screen is a synapse field: Home, and About's hero. */
+const FIELD_ROUTES = new Set(['/', '/about'])
+
+/** Whether a route opens on a synapse field, so the header starts without its box. */
+export function opensOnField(pathname: string): boolean {
+  return FIELD_ROUTES.has(pathname.replace(/\/+$/u, '') || '/')
 }
 
 /** Scroll positions this close to the top still count as the top. */

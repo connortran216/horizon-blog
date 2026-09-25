@@ -1,59 +1,62 @@
 /**
  * The About hero - migrated onto Horizon Design System v2 (release M2).
  *
- * `Surface` at `feature` depth is the single visual owner of the shell: one
- * border, one radius and the one shadow the token source defines.
+ * It speaks Home's Dawn language as a first screen of its own. The field runs
+ * edge to edge under a header with no bar at the top of the page, the copy
+ * sits in the content frame on its left, and the field writes the headline:
+ * the eyebrow and each word appear as a signal lands on them, and "quieter
+ * interface." gets the drawn rule. The lede and calls to action follow a beat
+ * apart as the sentence finishes. There is no box around any of it; the field
+ * dissolves along its bottom edge into the editorial track beneath.
  *
- * Behind the copy sits an ambient scene - two glow pools that follow the
- * pointer at different rates and a slow pass of light across them.
- * `DESIGN.md`'s Motion section sanctions ambient movement on suitable Home and
- * About artwork provided it pauses on interaction and stops under reduced
- * motion. Both conditions are decided by `ambientScene` in
- * `aboutHero.logic.ts`, where they are tested; this file only draws the answer.
- * Every colour it draws comes from the `ambient.*` roles and the blur from the
- * `blur` scale, so the scene is atmosphere the token source owns rather than
- * glow a component invented.
+ * The editorial track is three real controls, and it drives the field: each
+ * thread is a place on the field (`threadFocus` in `aboutHero.logic.ts`), and
+ * the network gathers towards the current thread's place, keeps it softly lit
+ * and sends its fresh signals from there. The track advances on its own and
+ * holds when the reader chooses a thread; under reduced motion it does not
+ * advance, and the field is one still frame with every word present.
  *
- * The editorial track is three real controls. Each is a native `button` with
- * `aria-pressed`, and pressing one changes both the emphasised thread and the
- * scene behind it. The button sits inside the `h3` rather than around it: a
- * button may not contain a heading or a paragraph, so the heading wraps the
- * control, the control's accessible name is the thread title alone, and the
- * sentence underneath stays a sibling `p` linked with `aria-describedby`.
+ * Each thread is a native `button` with `aria-pressed`. The button sits inside
+ * the `h3` rather than around it: a button may not contain a heading or a
+ * paragraph, so the heading wraps the control, the control's accessible name is
+ * the thread title alone, and the sentence underneath stays a sibling `p`
+ * linked with `aria-describedby`.
  */
 
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Box } from '@chakra-ui/react'
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { FiArrowRight } from 'react-icons/fi'
 
-import { componentTokens, radii, space, transitionFor } from '../../../theme/tokens'
+import { radii, space, transitionFor } from '../../../theme/tokens'
 import {
   ActionLink,
+  COPY_MARKER,
+  ContentContainer,
   Divider,
   Eyebrow,
   Grid,
   Heading,
   SectionLabel,
+  SignalLine,
+  SignalTarget,
   Stack,
-  Surface,
+  Stagger,
+  SynapseField,
   Text,
+  Typeset,
   createDisposerBag,
-  durationSeconds,
   scheduleTimer,
-  standardEase,
+  sentenceWrittenAt,
+  synapseTiming,
   useMotionPolicy,
 } from '../../../design-system'
 import {
   AUTO_ADVANCE_MS,
-  POINTER_CENTRE,
-  POINTER_SPRING,
   USER_PAUSE_MS,
-  ambientScene,
   clampThreadIndex,
   nextThreadIndex,
-  pointerPositionIn,
   threadDetailId,
+  threadFocus,
   threadOrdinal,
   threadState,
   trackAdvances,
@@ -63,6 +66,20 @@ import { AboutFocusThread } from '../about.types'
 interface AboutHeroProps {
   focusThreads: AboutFocusThread[]
 }
+
+export const ABOUT_HEADLINE = 'A personal blog shaped by engineering and a quieter interface.'
+export const ABOUT_EMPHASIS = 'quieter interface.'
+
+/** The eyebrow plus every word of the headline: the anchors the field writes. */
+const ABOUT_ANCHOR_COUNT = 1 + ABOUT_HEADLINE.trim().split(/\s+/u).length
+
+/** Home's first screen carries 56; About's band is shorter and a little quieter. */
+const FIELD_DENSITY = 44
+
+/** The band is a first screen's worth of height at desktop, short of the full viewport. */
+const FIELD_MIN_HEIGHT = '72svh'
+
+const ABOUT_TITLE_ID = 'about-title'
 
 /*
  * Injected rather than called inline. `CONVENTIONS.md` requires every timer to
@@ -74,13 +91,6 @@ const timerScheduler = {
   clear: (handle: number) => window.clearTimeout(handle),
 }
 
-/** Full-bleed decoration inside the hero. Never in the accessibility tree. */
-const layerStyle = {
-  position: 'absolute',
-  inset: 0,
-  pointerEvents: 'none',
-} as const
-
 const AboutHero = ({ focusThreads }: AboutHeroProps) => {
   const policy = useMotionPolicy()
   const [activeIndex, setActiveIndex] = useState(0)
@@ -88,35 +98,9 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
 
   const count = focusThreads.length
   const currentIndex = clampThreadIndex(activeIndex, count)
-
-  const scene = ambientScene({
-    threadIndex: currentIndex,
-    threadCount: count,
-    allowsAmbient: policy.ambient,
-    allowsPointerFollowing: policy.pointerFollowing,
-    isHeld,
-  })
-
-  /*
-   * The pointer lives in motion values rather than in state: it changes on
-   * every mouse move, and a re-render per move would put the whole track
-   * through React for a decoration. The spring is what turns a jittery cursor
-   * into a drift.
-   */
-  const pointerX = useMotionValue(POINTER_CENTRE.x)
-  const pointerY = useMotionValue(POINTER_CENTRE.y)
-  const smoothX = useSpring(pointerX, POINTER_SPRING)
-  const smoothY = useSpring(pointerY, POINTER_SPRING)
-
-  // Two travel rates, which is what reads as depth. Both are zero when the
-  // policy forbids pointer following, so the transforms resolve to no movement
-  // rather than being conditionally mounted.
-  const glowX = useTransform(smoothX, [-1, 1], [-scene.travel.glowPx, scene.travel.glowPx])
-  const glowY = useTransform(smoothY, [-1, 1], [scene.travel.glowPx, -scene.travel.glowPx])
-  const washX = useTransform(smoothX, [-1, 1], [-scene.travel.washPx, scene.travel.washPx])
-  const washY = useTransform(smoothY, [-1, 1], [scene.travel.washPx, -scene.travel.washPx])
-
-  const layerTransition = { duration: durationSeconds('reveal', policy), ease: standardEase }
+  const focus = threadFocus(currentIndex, count)
+  // The lede and the calls to action come in as the sentence finishes, as on Home.
+  const afterHeadline = sentenceWrittenAt(ABOUT_ANCHOR_COUNT, synapseTiming(policy)) * 0.7
 
   useEffect(() => {
     if (!isHeld) {
@@ -152,9 +136,9 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
   }, [count, currentIndex, isHeld, policy.ambient])
 
   /**
-   * Selecting a thread also holds the track. `DESIGN.md` requires ambient
-   * movement to pause on interaction; there is no hold to arrange when the
-   * track is not moving in the first place.
+   * Selecting a thread also holds the track, so the field stays where the
+   * reader sent it. There is no hold to arrange when the track is not moving
+   * in the first place.
    */
   const selectThread = (index: number) => {
     setActiveIndex(index)
@@ -164,161 +148,110 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
     }
   }
 
-  const handlePointerMove = (event: ReactMouseEvent<HTMLElement>) => {
-    if (!policy.pointerFollowing) {
-      return
-    }
-
-    const position = pointerPositionIn(
-      event.currentTarget.getBoundingClientRect(),
-      event.clientX,
-      event.clientY,
-    )
-
-    pointerX.set(position.x)
-    pointerY.set(position.y)
-  }
-
-  const handlePointerLeave = () => {
-    pointerX.set(POINTER_CENTRE.x)
-    pointerY.set(POINTER_CENTRE.y)
-  }
-
   return (
-    <Surface
-      as="section"
-      depth="feature"
-      position="relative"
-      p={{ base: space[6], sm: space[8] }}
-      onMouseMove={handlePointerMove}
-      onMouseLeave={handlePointerLeave}
-    >
-      {/* The far layer: the primary pool, travelling furthest. */}
-      <motion.div aria-hidden="true" style={{ ...layerStyle, x: glowX, y: glowY }}>
-        <motion.div
-          animate={{ opacity: scene.glow.opacity, scale: scene.glow.scale }}
-          transition={layerTransition}
-          style={{ position: 'absolute', top: '-28%', left: '-14%', width: '58%', height: '88%' }}
-        >
-          <Box
-            position="absolute"
-            inset={0}
-            borderRadius={radii.tag}
-            bg={componentTokens.feature.ambientGlow}
-            filter={`blur(${componentTokens.feature.ambientBlur})`}
-          />
-        </motion.div>
-      </motion.div>
+    <>
+      {/*
+        The first screen, unboxed. The field runs edge to edge under a header
+        that has no bar of its own at the top of the page, the copy sits in the
+        content frame on its left, and the network gathers on the right around
+        whichever thread is current - a constellation beside the sentence
+        rather than a plate behind it. It dissolves along its bottom edge into
+        the editorial track.
+      */}
+      <SynapseField
+        variant="canvas"
+        as="section"
+        aria-labelledby={ABOUT_TITLE_ID}
+        density={FIELD_DENSITY}
+        focus={focus}
+        seed={11}
+        minH={{ lg: FIELD_MIN_HEIGHT }}
+      >
+        <ContentContainer py={{ base: 12, md: 16 }}>
+          <Stack gap={6} maxW={{ base: 'none', lg: '64%' }} {...{ [COPY_MARKER]: '' }}>
+            <SignalTarget>
+              <Eyebrow as="p">About Horizon</Eyebrow>
+            </SignalTarget>
 
-      {/* The near layer: the accent pool and the pass of light, travelling less. */}
-      <motion.div aria-hidden="true" style={{ ...layerStyle, x: washX, y: washY }}>
-        <motion.div
-          animate={{ opacity: scene.accentGlow.opacity, scale: scene.accentGlow.scale }}
-          transition={layerTransition}
-          style={{ position: 'absolute', top: '-12%', right: '-8%', width: '44%', height: '70%' }}
-        >
-          <Box
-            position="absolute"
-            inset={0}
-            borderRadius={radii.tag}
-            bg={componentTokens.feature.ambientAccentGlow}
-            filter={`blur(${componentTokens.feature.ambientBlur})`}
-          />
-        </motion.div>
+            <Heading recipe="display" as="h1" id={ABOUT_TITLE_ID}>
+              <Typeset emphasis={ABOUT_EMPHASIS}>{ABOUT_HEADLINE}</Typeset>
+            </Heading>
 
-        {scene.sweep.isRunning ? (
-          <motion.div
-            animate={{ x: ['-120%', '128%'], opacity: [0, scene.sweep.opacity, 0] }}
-            transition={{
-              duration: scene.sweep.travelSeconds,
-              repeatDelay: scene.sweep.restSeconds,
-              repeat: Infinity,
-              ease: standardEase,
-            }}
-            style={{
-              position: 'absolute',
-              top: '-14%',
-              left: '14%',
-              width: '58%',
-              height: '86%',
-              skewX: -14,
-            }}
-          >
-            <Box
-              position="absolute"
-              inset={0}
-              bg={componentTokens.feature.ambientSweep}
-              filter={`blur(${componentTokens.feature.ambientBloom})`}
-            />
-          </motion.div>
-        ) : null}
-      </motion.div>
+            <Stagger trigger="mount" initialDelay={afterHeadline} maxDelay={afterHeadline + 0.6}>
+              <Text recipe="prose" maxW="prose">
+                Horizon is where personal writing, backend experience, and interface craft meet. It
+                is both a publishing space and a deliberate product surface for ideas that come from
+                real work.
+              </Text>
 
-      <Stack position="relative" gap={8}>
-        <Stack gap={6} maxW="prose">
-          <Eyebrow as="p">About Horizon</Eyebrow>
+              <Text recipe="body" maxW="prose">
+                The ambition is simple: make the writing worth returning to, then build an interface
+                precise enough to hold it without noise.
+              </Text>
 
-          <Heading recipe="display" as="h1">
-            A personal blog shaped by engineering and a quieter interface.
-          </Heading>
-
-          <Text recipe="prose">
-            Horizon is where personal writing, backend experience, and interface craft meet. It is
-            both a publishing space and a deliberate product surface for ideas that come from real
-            work.
-          </Text>
-
-          <Text recipe="body">
-            The ambition is simple: make the writing worth returning to, then build an interface
-            precise enough to hold it without noise.
-          </Text>
-
-          <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
-            <ActionLink
-              standalone
-              to="/blog"
-              underline="hover"
-              iconEnd={<FiArrowRight aria-hidden="true" />}
-              color="action.primary"
-              fontWeight="semibold"
-            >
-              Read the blog
-            </ActionLink>
-            <ActionLink
-              standalone
-              to="/contact"
-              underline="hover"
-              color="action.primary"
-              fontWeight="semibold"
-            >
-              Get in touch
-            </ActionLink>
+              <Stack
+                direction="row"
+                collapseAt="sm"
+                gap={6}
+                alignItems={{ base: 'flex-start', sm: 'center' }}
+                flexWrap="wrap"
+              >
+                <ActionLink
+                  to="/blog"
+                  weight="primary"
+                  iconEnd={<FiArrowRight aria-hidden="true" />}
+                >
+                  Read the blog
+                </ActionLink>
+                <ActionLink to="/contact" underline="hover" standalone color="text.secondary">
+                  Get in touch
+                </ActionLink>
+              </Stack>
+            </Stagger>
           </Stack>
-        </Stack>
+        </ContentContainer>
+      </SynapseField>
 
-        <Divider />
-
-        <Stack gap={4}>
+      {/*
+        The editorial track: the band's horizon. Each thread stands on a quiet
+        rule, and the current thread's rule draws over it in the action colour,
+        a signal at its tip - the same moment the field leans to that thread's
+        place. No box: three columns of writing under three lines.
+      */}
+      <ContentContainer>
+        <Stack as="section" gap={6} aria-label="Editorial track" pb={{ base: 4, md: 8 }}>
           {/*
             The only name this group of three has. As a kicker it left the three
-            cards as h3s directly under the page's h1, with nothing between -
+            threads as h3s directly under the page's h1, with nothing between -
             measured as the h1 -> h3 skip on /about. Same words, same size, now
             in the outline.
           */}
           <SectionLabel>Editorial track</SectionLabel>
 
-          <Grid as="ul" columns={3} gap={6} collapseAt="lg">
+          <Grid as="ul" columns={3} gap={8} collapseAt="lg">
             {focusThreads.map((thread, index) => {
               const state = threadState(index, currentIndex)
               const detailId = threadDetailId(index)
 
               return (
-                <Box as="li" key={thread.label}>
-                  <Stack gap={3}>
-                    <Stack
-                      direction="row"
-                      collapseAt={undefined}
-                      gap={3}
+                <Box as="li" key={thread.label} listStyleType="none">
+                  <Stack gap={4}>
+                    <Box position="relative">
+                      <Divider aria-hidden="true" />
+                      <SignalLine
+                        tone="action"
+                        drawn={state.isActive}
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        height="2px"
+                      />
+                    </Box>
+
+                    {/* A plain flex row: ordinal and label stay on one line at every width. */}
+                    <Box
+                      display="flex"
+                      gap={space[3]}
                       alignItems="baseline"
                       textStyle="meta"
                       color={state.labelColor}
@@ -330,7 +263,7 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
                       <Box as="span" textTransform="uppercase">
                         {thread.label}
                       </Box>
-                    </Stack>
+                    </Box>
 
                     <Heading
                       recipe="cardTitle"
@@ -371,28 +304,14 @@ const AboutHero = ({ focusThreads }: AboutHeroProps) => {
                     <Text recipe="body" id={detailId}>
                       {thread.description}
                     </Text>
-
-                    {/*
-                     * Decoration, not state. Every thread's label, title and
-                     * description is readable at every moment, so the rule and
-                     * the colour step are emphasis the eye can follow; the
-                     * control's own `aria-pressed` is what carries the
-                     * selection. Colour only - never width or weight - so
-                     * nothing beside it moves when the track advances.
-                     */}
-                    <Divider
-                      {...(state.isActive ? { borderColor: 'action.primary' } : {})}
-                      aria-hidden="true"
-                      transition={transitionFor('border-color')}
-                    />
                   </Stack>
                 </Box>
               )
             })}
           </Grid>
         </Stack>
-      </Stack>
-    </Surface>
+      </ContentContainer>
+    </>
   )
 }
 

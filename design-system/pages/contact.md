@@ -53,8 +53,10 @@ The rail is a Contact feature composition, not a new global design-system compon
 
 ## Motion
 
-- quiet
-- use existing control feedback only
+- quiet: the title is typeset with the drawn rule under "conversations."
+- the column divider is a vertical `SignalLine` in a route; its signal lights each channel's mark
+  as it passes - only the marks wait, never a word, address or action
+- below the grid breakpoint the divider is not drawn and the marks are simply present
 - respect reduced-motion preferences
 
 ## Accessibility Notes

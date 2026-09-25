@@ -31,6 +31,9 @@ import {
   ResponsiveImage,
   Reveal,
   Section,
+  SignalLine,
+  SignalRoute,
+  SignalTarget,
   Stack,
   Stagger,
   Surface,
@@ -114,68 +117,71 @@ const focusThreads: AboutFocusThread[] = [
 const founderTags = ['Backend systems', 'Product infrastructure', 'Writing in public']
 
 const AboutPage = () => (
-  <ContentContainer>
-    <Section density="comfortable">
-      <AboutHero focusThreads={focusThreads} />
-    </Section>
+  <>
+    {/* Full-bleed: the hero's field is the first screen, not a card in the frame. */}
+    <AboutHero focusThreads={focusThreads} />
 
-    <Section density="compact" aria-labelledby="about-signals">
-      <Stack gap={6}>
-        <Stack gap={2}>
+    <ContentContainer>
+      <Section density="compact" aria-labelledby="about-signals">
+        <Stack gap={6}>
+          <Stack gap={2}>
+            {/*
+             * The legacy page had no heading here, only a kicker and a paragraph,
+             * which left four cards hanging under nothing in the document
+             * outline. The kicker's own word becomes the heading.
+             */}
+            <Heading recipe="sectionTitle" as="h2" id="about-signals">
+              Signals
+            </Heading>
+            <Text recipe="body" maxW="prose">
+              Enough context to understand the background behind the writing without turning the
+              page into a resume.
+            </Text>
+          </Stack>
+
           {/*
-           * The legacy page had no heading here, only a kicker and a paragraph,
-           * which left four cards hanging under nothing in the document
-           * outline. The kicker's own word becomes the heading.
-           */}
-          <Heading recipe="sectionTitle" as="h2" id="about-signals">
-            Signals
-          </Heading>
-          <Text recipe="body" maxW="prose">
-            Enough context to understand the background behind the writing without turning the page
-            into a resume.
-          </Text>
-        </Stack>
-
-        {/*
           A band of figures, not four cards.
 
           Each fact was a bordered, filled, rounded, shadowed box with an icon,
           and four of them in a row gave the page a flat grid where nothing led.
-          A 2px rule is the only ornament now: it separates one figure from the
-          next and costs none of the four devices a card spends to say the same
-          thing. The icons are gone with them - a compass beside "Working lane"
-          told a reader nothing the words did not.
+          One line runs over the band now, the page's own horizon: it draws
+          itself as the band scrolls into view, its tip a signal, and each
+          figure is written as the tip passes over it. Below the grid
+          breakpoint the band is a column, the line still leads it, and the
+          figures follow in order.
         */}
-        <Grid columns={4} gap={6}>
-          <Stagger>
-            {stats.map((stat) => (
-              <Stack key={stat.label} as="article" gap={3}>
-                <Box height="2px" bg="action.primary" borderRadius="2px" aria-hidden="true" />
-                <Heading recipe="sectionTitle" as="h3">
-                  {stat.value}
-                </Heading>
-                <Eyebrow as="p">{stat.label}</Eyebrow>
-                <Text recipe="body" color="text.secondary">
-                  {stat.description}
-                </Text>
-              </Stack>
-            ))}
-          </Stagger>
-        </Grid>
-      </Stack>
-    </Section>
+          <SignalRoute pace="position">
+            <SignalLine tone="action" mb={6} />
+            <Grid columns={4} gap={6}>
+              {stats.map((stat) => (
+                <Stack key={stat.label} as="article" gap={3}>
+                  <SignalTarget>
+                    <Heading recipe="sectionTitle" as="h3">
+                      {stat.value}
+                    </Heading>
+                  </SignalTarget>
+                  <Eyebrow as="p">{stat.label}</Eyebrow>
+                  <Text recipe="body" color="text.secondary">
+                    {stat.description}
+                  </Text>
+                </Stack>
+              ))}
+            </Grid>
+          </SignalRoute>
+        </Stack>
+      </Section>
 
-    <Section density="compact" aria-labelledby="about-approach">
-      <Reveal>
-        <Stack gap={6}>
-          <Stack gap={2}>
-            <Eyebrow as="p">Approach</Eyebrow>
-            <Heading recipe="sectionTitle" as="h2" id="about-approach">
-              Why Horizon stays open
-            </Heading>
-          </Stack>
+      <Section density="compact" aria-labelledby="about-approach">
+        <Reveal>
+          <Stack gap={6}>
+            <Stack gap={2}>
+              <Eyebrow as="p">Approach</Eyebrow>
+              <Heading recipe="sectionTitle" as="h2" id="about-approach">
+                Why Horizon stays open
+              </Heading>
+            </Stack>
 
-          {/*
+            {/*
             Narrative on the left at prose measure, principles hanging in the
             margin on the right.
 
@@ -186,67 +192,62 @@ const AboutPage = () => (
             a pull-quote inside the text rather than the heading of a card
             nobody read.
           */}
-          <Grid columns={2} gap={6} collapseAt="lg">
-            <Box maxW="prose">
-              <Stack gap={6}>
-                <Text recipe="prose">
-                  Horizon is a place to stay curious, follow ideas that keep pulling at me, and
-                  write down the things that have helped me a lot. Some of them come from backend
-                  systems, some from writing, and some from those small moments where a confusing
-                  piece of work suddenly becomes a little clearer.
-                </Text>
+            <Grid columns={2} gap={6} collapseAt="lg">
+              <Box maxW="prose">
+                <Stack gap={6}>
+                  <Text recipe="prose">
+                    Horizon is a place to stay curious, follow ideas that keep pulling at me, and
+                    write down the things that have helped me a lot. Some of them come from backend
+                    systems, some from writing, and some from those small moments where a confusing
+                    piece of work suddenly becomes a little clearer.
+                  </Text>
 
-                {/*
+                  {/*
                   The one accent moment on the page. `accent.lime` is the rarest
                   role in the system, so it is spent once, here, on the sentence
                   the whole page is built around.
                 */}
-                <Box
-                  as="blockquote"
-                  borderInlineStart="2px solid"
-                  borderColor="accent.lime"
-                  paddingInlineStart={space[6]}
-                >
-                  {/*
+                  <Box
+                    as="blockquote"
+                    borderInlineStart="2px solid"
+                    borderColor="accent.lime"
+                    paddingInlineStart={space[6]}
+                  >
+                    {/*
                     Deliberately not a `Heading`: it is the same size as one and
                     means the opposite - a sentence being quoted, not a section
                     being named. A heading here would put it in the outline
                     twice over, under a section it does not head.
                   */}
-                  <Box as="p" textStyle="sectionTitle" fontWeight="medium" margin={0}>
-                    The more I learn, the more I realize how much I still do not know.
+                    <Box as="p" textStyle="sectionTitle" fontWeight="medium" margin={0}>
+                      The more I learn, the more I realize how much I still do not know.
+                    </Box>
                   </Box>
-                </Box>
 
-                <Text recipe="prose">
-                  Knowledge feels endless. The more we learn, the more aware we become of how much
-                  is still missing, and Horizon should feel open enough to keep making room for
-                  that. I do not want this page to sound final. I want it to feel like an honest
-                  record of things I am still learning, revisiting, and understanding more slowly
-                  over time.
-                </Text>
-                <Stack direction="row" collapseAt={undefined} gap={3} flexWrap="wrap">
-                  {principles.map((principle) => (
-                    <Chip key={principle.title}>{principle.title}</Chip>
-                  ))}
+                  <Text recipe="prose">
+                    Knowledge feels endless. The more we learn, the more aware we become of how much
+                    is still missing, and Horizon should feel open enough to keep making room for
+                    that. I do not want this page to sound final. I want it to feel like an honest
+                    record of things I am still learning, revisiting, and understanding more slowly
+                    over time.
+                  </Text>
                 </Stack>
-              </Stack>
-            </Box>
+              </Box>
 
-            {/*
+              {/*
               Marginalia, not cards. Each principle keeps its icon and its
               title on one row and its sentence beneath, but the box around it
               is gone: three short notes beside an argument are a margin, and a
               margin does not need a border to be read as one. They still
               arrive one after another rather than as a block.
             */}
-            <Stack gap={6}>
-              <Stagger>
-                {principles.map((principle) => (
-                  <MarginalNote key={principle.title}>
-                    <Box as="article">
-                      <Stack gap={4}>
-                        {/*
+              <Stack gap={6}>
+                <Stagger>
+                  {principles.map((principle) => (
+                    <MarginalNote key={principle.title}>
+                      <Box as="article">
+                        <Stack gap={4}>
+                          {/*
                         The icon belongs beside the title, not above it. Stacked,
                         it cost a 48px row plus a gap before the card said what
                         it was about - the heading is what a reader scans for,
@@ -254,133 +255,134 @@ const AboutPage = () => (
                         own right. `minWidth: 0` so a long title wraps inside the
                         row instead of pushing the icon out of the card.
                       */}
-                        <Flex align="center" gap={space[4]}>
-                          <Flex
-                            align="center"
-                            justify="center"
-                            boxSize={space[12]}
-                            borderRadius={radii.control}
-                            bg={componentTokens.control.quietHoverBg}
-                            color={componentTokens.control.solidBg}
-                            flexShrink={0}
-                            aria-hidden="true"
-                          >
-                            <Box as={principle.icon} boxSize={space[4]} />
+                          <Flex align="center" gap={space[4]}>
+                            <Flex
+                              align="center"
+                              justify="center"
+                              boxSize={space[12]}
+                              borderRadius={radii.control}
+                              bg={componentTokens.control.quietHoverBg}
+                              color={componentTokens.control.solidBg}
+                              flexShrink={0}
+                              aria-hidden="true"
+                            >
+                              <Box as={principle.icon} boxSize={space[4]} />
+                            </Flex>
+                            <Heading recipe="cardTitle" as="h3" minW={0}>
+                              {principle.title}
+                            </Heading>
                           </Flex>
-                          <Heading recipe="cardTitle" as="h3" minW={0}>
-                            {principle.title}
-                          </Heading>
-                        </Flex>
-                        <Text recipe="body">{principle.description}</Text>
-                      </Stack>
-                    </Box>
-                  </MarginalNote>
-                ))}
-              </Stagger>
-            </Stack>
-          </Grid>
-        </Stack>
-      </Reveal>
-    </Section>
+                          <Text recipe="body">{principle.description}</Text>
+                        </Stack>
+                      </Box>
+                    </MarginalNote>
+                  ))}
+                </Stagger>
+              </Stack>
+            </Grid>
+          </Stack>
+        </Reveal>
+      </Section>
 
-    <Section density="compact" aria-labelledby="about-founder">
-      <Reveal>
-        <Surface as="article" depth="feature" p={{ base: space[6], sm: space[8] }}>
-          <Grid columns={2} gap={8} collapseAt="lg">
-            {/*
-             * A real media frame rather than a bare `img`: the portrait is a
-             * remote object on a MinIO bucket, and the legacy page had no
-             * loading, absent or failed state for it at all - a broken URL left
-             * a collapsed box and no alt anyone could act on.
-             */}
-            {/*
+      <Section density="compact" aria-labelledby="about-founder">
+        <Reveal>
+          <Surface as="article" depth="feature" p={{ base: space[6], sm: space[8] }}>
+            <Grid columns={2} gap={8} collapseAt="lg">
+              {/*
+               * A real media frame rather than a bare `img`: the portrait is a
+               * remote object on a MinIO bucket, and the legacy page had no
+               * loading, absent or failed state for it at all - a broken URL left
+               * a collapsed box and no alt anyone could act on.
+               */}
+              {/*
               Square rather than 4/5. The portrait sets the card's height, and
               at 4/5 it stood 609px against 438px of text beside it - 204px of
               empty card under the writing. A square frame is 487px in the same
               column, which puts the two within 49px of each other. The image
               still fills its frame and crops rather than distorting.
             */}
-            <ResponsiveImage
-              aspectRatio="1 / 1"
-              src={PORTRAIT_SRC}
-              alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
-              task="the founder portrait"
-              loading="lazy"
-            />
+              <ResponsiveImage
+                aspectRatio="1 / 1"
+                src={PORTRAIT_SRC}
+                alt="Portrait of Tran Tuan Canh, founder of Horizon Blog"
+                task="the founder portrait"
+                loading="lazy"
+              />
 
-            <Stack gap={6} justifyContent="center">
-              <Stack gap={3}>
-                <Eyebrow as="p">Founder note</Eyebrow>
-                <Heading recipe="sectionTitle" as="h2" id="about-founder">
-                  Tran Tuan Canh
-                </Heading>
-                <Text
-                  recipe="metadata"
-                  as="p"
-                  color="action.primary"
-                  fontWeight="semibold"
-                  letterSpacing="wider"
-                  textTransform="uppercase"
-                >
-                  Founder and Engineer
+              <Stack gap={6} justifyContent="center">
+                <Stack gap={3}>
+                  <Eyebrow as="p">Founder note</Eyebrow>
+                  <Heading recipe="sectionTitle" as="h2" id="about-founder">
+                    Tran Tuan Canh
+                  </Heading>
+                  <Text
+                    recipe="metadata"
+                    as="p"
+                    color="action.primary"
+                    fontWeight="semibold"
+                    letterSpacing="wider"
+                    textTransform="uppercase"
+                  >
+                    Founder and Engineer
+                  </Text>
+                </Stack>
+
+                <Text recipe="body">
+                  I built Horizon as a place to think in public, write with more intent, and keep
+                  the product surface honest. If a page cannot support the writing or the person
+                  behind it, it is not done yet.
                 </Text>
-              </Stack>
+                <Text recipe="body">
+                  Most of my day-to-day work lives in backend systems, APIs, event flows, and
+                  product infrastructure. The dedicated CV page pulls that professional side into
+                  the same editorial world as the writing.
+                </Text>
 
-              <Text recipe="body">
-                I built Horizon as a place to think in public, write with more intent, and keep the
-                product surface honest. If a page cannot support the writing or the person behind
-                it, it is not done yet.
-              </Text>
-              <Text recipe="body">
-                Most of my day-to-day work lives in backend systems, APIs, event flows, and product
-                infrastructure. The dedicated CV page pulls that professional side into the same
-                editorial world as the writing.
-              </Text>
+                <Stack direction="row" collapseAt={undefined} gap={3} flexWrap="wrap">
+                  {founderTags.map((tag) => (
+                    <Chip key={tag}>{tag}</Chip>
+                  ))}
+                </Stack>
 
-              <Stack direction="row" collapseAt={undefined} gap={3} flexWrap="wrap">
-                {founderTags.map((tag) => (
-                  <Chip key={tag}>{tag}</Chip>
-                ))}
+                <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
+                  <ActionLink
+                    standalone
+                    to="/cv"
+                    underline="hover"
+                    iconEnd={<FiArrowRight aria-hidden="true" />}
+                    color="action.primary"
+                    fontWeight="semibold"
+                  >
+                    View CV
+                  </ActionLink>
+                  <ActionLink
+                    standalone
+                    href="https://github.com/connortran216"
+                    underline="hover"
+                    iconStart={<FaGithub aria-hidden="true" />}
+                    color="action.primary"
+                    fontWeight="semibold"
+                  >
+                    GitHub
+                  </ActionLink>
+                  <ActionLink
+                    standalone
+                    href="https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/"
+                    underline="hover"
+                    iconStart={<FaLinkedin aria-hidden="true" />}
+                    color="action.primary"
+                    fontWeight="semibold"
+                  >
+                    LinkedIn
+                  </ActionLink>
+                </Stack>
               </Stack>
-
-              <Stack direction="row" collapseAt={undefined} gap={6} flexWrap="wrap">
-                <ActionLink
-                  standalone
-                  to="/cv"
-                  underline="hover"
-                  iconEnd={<FiArrowRight aria-hidden="true" />}
-                  color="action.primary"
-                  fontWeight="semibold"
-                >
-                  View CV
-                </ActionLink>
-                <ActionLink
-                  standalone
-                  href="https://github.com/connortran216"
-                  underline="hover"
-                  iconStart={<FaGithub aria-hidden="true" />}
-                  color="action.primary"
-                  fontWeight="semibold"
-                >
-                  GitHub
-                </ActionLink>
-                <ActionLink
-                  standalone
-                  href="https://www.linkedin.com/in/c%E1%BA%A3nh-tr%E1%BA%A7n-tu%E1%BA%A5n-b57564162/"
-                  underline="hover"
-                  iconStart={<FaLinkedin aria-hidden="true" />}
-                  color="action.primary"
-                  fontWeight="semibold"
-                >
-                  LinkedIn
-                </ActionLink>
-              </Stack>
-            </Stack>
-          </Grid>
-        </Surface>
-      </Reveal>
-    </Section>
-  </ContentContainer>
+            </Grid>
+          </Surface>
+        </Reveal>
+      </Section>
+    </ContentContainer>
+  </>
 )
 
 export default AboutPage

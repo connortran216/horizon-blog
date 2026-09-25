@@ -11,6 +11,7 @@ import {
   Chip,
   IconButton,
   NavItem,
+  NavTrack,
   RailControl,
   StatusBadge,
   ThemeToggle,
@@ -250,11 +251,24 @@ function StatusBadgeEntry({ state }: { readonly state: string }) {
   return <StatusBadge tone={tone}>Sample status</StatusBadge>
 }
 
+/** Three routes inside the gallery's own router, so choosing one is a real navigation. */
+function NavTrackEntry() {
+  return (
+    <NavTrack as="nav" aria-label="Gallery sample" gap={space[1]}>
+      <NavItem to="/gallery">Home</NavItem>
+      <NavItem to="/gallery/blog">Blog</NavItem>
+      <NavItem to="/gallery/series">Series</NavItem>
+      <NavItem to="/gallery/about">About</NavItem>
+    </NavTrack>
+  )
+}
+
 export const controlEntries = {
   Button: ButtonEntry,
   IconButton: IconButtonEntry,
   ActionLink: ActionLinkEntry,
   NavItem: NavItemEntry,
+  NavTrack: NavTrackEntry,
   ThemeToggle: ThemeToggleEntry,
   RailControl: RailControlEntry,
   Chip: ChipEntry,

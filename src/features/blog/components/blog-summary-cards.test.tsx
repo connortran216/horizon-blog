@@ -116,7 +116,8 @@ describe('blog summary cards', () => {
     // The cover reserves 16/9 in every media state and owns no corners.
     expect(markup).toContain('aspect-ratio:16/9;border-radius:0px;overflow:hidden')
 
-    const cardClass = /<article class="(css-[a-z0-9]+)"/.exec(markup)?.[1]
+    // The card also carries `data-signal-host` for its cover seam; order is not the point.
+    const cardClass = /<article[^>]*\sclass="(css-[a-z0-9]+)"/.exec(markup)?.[1]
     expect(cardClass).toBeDefined()
 
     const cardRule = new RegExp(`\\.${cardClass}\\{[^}]*\\}`).exec(markup)?.[0] ?? ''

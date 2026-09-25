@@ -22,6 +22,7 @@ import {
   InteractionTrace,
   idleCopyState,
   SectionLabel,
+  SignalTarget,
   Stack,
   Text,
 } from '../../../design-system'
@@ -65,7 +66,14 @@ interface ContactDetailRowProps {
 
 const ContactDetailRow = ({ icon, label, children }: ContactDetailRowProps) => (
   <Flex gap={space[8]} alignItems="center">
-    <ContactIcon icon={icon} />
+    {/*
+      The channel's mark is what the column divider's signal lights as it
+      passes. Decoration only, so it is the one thing on the rail that may wait
+      for it - the label and the channel beside it never do.
+    */}
+    <SignalTarget>
+      <ContactIcon icon={icon} />
+    </SignalTarget>
     <Stack gap={2} minW={0} flex="1">
       <Eyebrow as="p">{label}</Eyebrow>
       {children}

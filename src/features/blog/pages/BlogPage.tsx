@@ -26,6 +26,7 @@ import {
   LayoutTransition,
   Pagination,
   RetryAction,
+  Reveal,
   Section,
   Skeleton,
   Stack,
@@ -44,7 +45,12 @@ import FeaturedStory from '../components/FeaturedStory'
 import { useBlogArchive } from '../useBlogArchive'
 import SeriesShelf from '../../series/components/SeriesShelf'
 
-const PAGE_SIZE = 9
+/*
+ * Ten: the featured story, then three full rows of three. Nine left the last
+ * row one card short.
+ */
+const PAGE_SIZE = 10
+const GRID_COLUMNS = 3
 const RESULTS_EYEBROW = 'Latest blogs'
 
 const BlogPage = () => {
@@ -99,6 +105,7 @@ const BlogPage = () => {
     ease: standardEase,
   }
   const reflowScale = motionPolicy.translation ? 0.97 : 1
+  const columnBeat = durationSeconds('tick', motionPolicy) * 2
 
   return (
     <ContentContainer>
@@ -131,7 +138,7 @@ const BlogPage = () => {
 
           <Box ref={resultsRef} minW={0}>
             {loading ? (
-              <Grid columns={2} gap={8}>
+              <Grid columns={GRID_COLUMNS} gap={8}>
                 {Array.from({ length: PAGE_SIZE }, (_unused, index) => (
                   <Skeleton
                     key={`blog-skeleton-${index}`}
@@ -184,9 +191,9 @@ const BlogPage = () => {
                   </AnimatePresence>
 
                   {remainingPosts.length > 0 ? (
-                    <Grid columns={2} gap={8}>
+                    <Grid columns={GRID_COLUMNS} gap={8}>
                       <AnimatePresence mode="popLayout" initial={false}>
-                        {remainingPosts.map((post) => (
+                        {remainingPosts.map((post, index) => (
                           <LayoutTransition
                             key={post.id}
                             layoutGroupId={`blog-result-${post.id}`}
@@ -198,7 +205,18 @@ const BlogPage = () => {
                             transition={reflowTransition}
                             style={{ height: '100%' }}
                           >
-                            <EditorialCard post={post} sectionLabels={sectionLabels} />
+                            {/*
+                              Each row arrives left to right as it scrolls into
+                              view - two ticks between neighbours - rather than
+                              the whole archive landing at once.
+                            */}
+                            <Reveal
+                              duration="reveal"
+                              delay={(index % GRID_COLUMNS) * columnBeat}
+                              style={{ height: '100%' }}
+                            >
+                              <EditorialCard post={post} sectionLabels={sectionLabels} />
+                            </Reveal>
                           </LayoutTransition>
                         ))}
                       </AnimatePresence>

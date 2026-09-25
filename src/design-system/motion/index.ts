@@ -28,6 +28,12 @@ export type { PressFeedbackProps } from './PressFeedback'
 export { Reveal } from './Reveal'
 export type { RevealProps } from './Reveal'
 
+export { SIGNAL_HOST, SignalLine } from './SignalLine'
+export type { SignalLineProps } from './SignalLine'
+
+export { SignalRoute } from './SignalRoute'
+export type { SignalRouteProps } from './SignalRoute'
+
 export { SignalTarget } from './SignalTarget'
 export type { SignalTargetProps } from './SignalTarget'
 
@@ -123,6 +129,7 @@ export {
   fieldAwake,
   fieldInk,
   fieldOpacity,
+  gatherTowards,
   linkNodes,
   nearestNodeTo,
   parseColorChannels,
@@ -140,11 +147,11 @@ export type {
   ChooseLinkOptions,
   FieldInk,
   FieldTheme,
+  LinkRoute,
   PixelPoint,
   PixelRect,
   RgbChannels,
   Rng,
-  SignalRoute,
   SynapseLink,
   SynapseNode,
   SynapseScene,
@@ -168,6 +175,25 @@ export type {
   PointerLightState,
   PointerLightStateInput,
 } from './pointerLight.logic'
+
+export {
+  carrierTransform,
+  projectOnRail,
+  railLength,
+  railTransform,
+  reachedAt,
+  routeStops,
+  routeTravels,
+  signalLineFrame,
+  signalRouteTiming,
+} from './signalRoute.logic'
+export type {
+  AxisBox,
+  SignalLineFrame,
+  SignalOrientation,
+  SignalPace,
+  SignalRouteTiming,
+} from './signalRoute.logic'
 
 export { runThemeSweep, themeSweepKeyframes } from './themeSweep.logic'
 export type { RunThemeSweepInput, SweepDocumentLike, SweepRootLike } from './themeSweep.logic'

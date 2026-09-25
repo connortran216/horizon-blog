@@ -33,6 +33,7 @@ import { ResponsiveImage, type MediaFit } from '../../components/media'
 import { Chip } from '../../components/status'
 import { Surface, type SurfaceProps } from '../../components/surface'
 import { Eyebrow, Heading, Text } from '../../components/typography'
+import { SIGNAL_HOST, SignalLine } from '../../motion'
 import { PostMetadata } from './PostMetadata'
 import { excerptOrNull, visibleTags, type PostSummary } from './content.logic'
 import { resolveHierarchyLabel } from './hierarchy.logic'
@@ -114,6 +115,7 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
       display="flex"
       flexDirection="column"
       height="100%"
+      {...{ [SIGNAL_HOST]: '' }}
       {...rest}
     >
       <ResponsiveImage
@@ -131,6 +133,14 @@ export const PostCard = forwardRef<HTMLElement, PostCardProps>(function PostCard
         frameProps={{ flexShrink: 0 }}
         viewTransitionName={coverTransitionName}
       />
+
+      {/*
+        A horizon under the picture: the seam between cover and copy draws
+        itself in the action colour, a signal at its tip, while the card is
+        hovered or holds focus. It reserves its hairline at rest, so the card
+        never changes size.
+      */}
+      <SignalLine tone="action" />
 
       <Stack gap={4} flex="1" padding={bleeds ? componentTokens.card.padding : undefined}>
         {resolvedLabel ? <Eyebrow as="p">{resolvedLabel}</Eyebrow> : null}

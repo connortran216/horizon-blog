@@ -161,6 +161,12 @@ export const galleryRegistry = [
     ],
   },
   {
+    name: 'NavTrack',
+    area: 'navigation',
+    states: [{ name: 'travelling indicator', kind: 'ready' }],
+    note: 'One indicator for a set of NavItems. Choose an item: the bar travels to it with a signal on its leading end. Items keep aria-current.',
+  },
+  {
     name: 'ThemeToggle',
     area: 'navigation',
     states: [{ name: 'ready', kind: 'ready' }],
@@ -301,6 +307,22 @@ export const galleryRegistry = [
     states: [{ name: 'on mount', kind: 'ready' }, { name: 'in view' }],
   },
   {
+    name: 'SignalLine',
+    area: 'motion',
+    states: [{ name: 'on a card', kind: 'ready' }, { name: 'quiet' }, { name: 'vertical' }],
+    note: 'Standalone, it draws while its `data-signal-host` ancestor is hovered or holds focus. Inside a SignalRoute it is the route rail - see SignalRoute.',
+  },
+  {
+    name: 'SignalRoute',
+    area: 'motion',
+    states: [
+      { name: 'writes a headline', kind: 'ready' },
+      { name: 'down a divider' },
+      { name: 'over a band' },
+    ],
+    note: 'A line that writes the copy beside it: the rail draws, its tip is a signal, and each Typeset word or SignalTarget inside is written as the tip reaches it. `order` pace for a headline, `position` for rows beside a divider. Replay to watch it again.',
+  },
+  {
     name: 'SignalTarget',
     area: 'motion',
     states: [{ name: 'in a field', kind: 'ready' }, { name: 'outside a field' }],
@@ -326,8 +348,9 @@ export const galleryRegistry = [
       { name: 'dense' },
       { name: 'with copy' },
       { name: 'as the page' },
+      { name: 'leaning' },
     ],
-    note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on a plate; `as the page` is the canvas variant - no box, dissolving bottom edge. Hover or scroll to stir the field.',
+    note: 'Home hero artwork and shell. `with copy` lays a SignalTarget and a Typeset on a plate; `as the page` is the canvas variant - no box, dissolving bottom edge; `leaning` moves a focus the network gathers towards, as the About editorial track does. Hover or scroll to stir the field.',
   },
   {
     name: 'TimelineEntry',

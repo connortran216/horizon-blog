@@ -21,6 +21,9 @@ import {
   PointerLight,
   PressFeedback,
   Reveal,
+  SIGNAL_HOST,
+  SignalLine,
+  SignalRoute,
   SignalTarget,
   Stagger,
   StateHandoff,
@@ -101,6 +104,10 @@ function SynapseFieldEntry({ state }: { readonly state: string }) {
     )
   }
 
+  if (state === 'leaning') {
+    return <LeaningFieldEntry />
+  }
+
   return (
     <SynapseField
       key={state}
@@ -109,6 +116,130 @@ function SynapseFieldEntry({ state }: { readonly state: string }) {
       density={fieldDensity[state] ?? 40}
       veil={NO_VEIL}
     />
+  )
+}
+
+/** Three places on the plate, the way About's editorial track uses them. */
+const leaningPlaces = [
+  { label: 'Lean high', point: { x: 0.8, y: 0.26 } },
+  { label: 'Lean out', point: { x: 0.9, y: 0.5 } },
+  { label: 'Lean low', point: { x: 0.78, y: 0.74 } },
+] as const
+
+function LeaningFieldEntry() {
+  const [place, setPlace] = useState(0)
+
+  return (
+    <Box display="flex" flexDirection="column" gap={space[3]}>
+      <Box display="flex" gap={space[2]}>
+        {leaningPlaces.map((item, index) => (
+          <HarnessButton key={item.label} onClick={() => setPlace(index)}>
+            {item.label}
+          </HarnessButton>
+        ))}
+      </Box>
+      <SynapseField
+        maxW="720px"
+        minH="300px"
+        density={30}
+        veil={NO_VEIL}
+        focus={leaningPlaces[place].point}
+      />
+    </Box>
+  )
+}
+
+/** Replays a route: a fresh key is a fresh travel. */
+function SignalRouteEntry({ state }: { readonly state: string }) {
+  const [nonce, setNonce] = useState(0)
+  const replay = (
+    <HarnessButton onClick={() => setNonce((current) => current + 1)}>Replay</HarnessButton>
+  )
+
+  if (state === 'down a divider') {
+    return (
+      <Box display="flex" flexDirection="column" gap={space[3]}>
+        {replay}
+        <SignalRoute
+          key={nonce}
+          orientation="vertical"
+          trigger="mount"
+          position="relative"
+          pl={space[8]}
+          maxW="420px"
+        >
+          <SignalLine position="absolute" insetBlock={0} left={0} />
+          <Box display="flex" flexDirection="column" gap={space[8]}>
+            {['Email', 'Phone', 'Location'].map((label) => (
+              <Box key={label} display="flex" gap={space[4]} alignItems="center">
+                <SignalTarget>
+                  <Box boxSize={space[8]} borderRadius="full" bg="bg.subtle" />
+                </SignalTarget>
+                <Text recipe="body">{label}</Text>
+              </Box>
+            ))}
+          </Box>
+        </SignalRoute>
+      </Box>
+    )
+  }
+
+  if (state === 'over a band') {
+    return (
+      <Box display="flex" flexDirection="column" gap={space[3]}>
+        {replay}
+        <SignalRoute key={nonce} trigger="mount" maxW="720px">
+          <SignalLine tone="action" mb={space[6]} />
+          <Box display="grid" gridTemplateColumns="repeat(4, minmax(0, 1fr))" gap={space[6]}>
+            {['5+ years', 'Python', 'Systems', 'Writing'].map((value) => (
+              <SignalTarget key={value}>
+                <Heading as="h3" recipe="sectionTitle">
+                  {value}
+                </Heading>
+              </SignalTarget>
+            ))}
+          </Box>
+        </SignalRoute>
+      </Box>
+    )
+  }
+
+  return (
+    <Box display="flex" flexDirection="column" gap={space[3]}>
+      {replay}
+      <SignalRoute key={nonce} pace="order" trigger="mount" maxW="720px">
+        <SignalTarget>
+          <Eyebrow as="p">Horizon blog</Eyebrow>
+        </SignalTarget>
+        <Heading as="h2" recipe="display">
+          <Typeset emphasis="technology.">
+            Thoughtful blogs about life, work, and technology.
+          </Typeset>
+        </Heading>
+        <SignalLine mt={space[6]} />
+      </SignalRoute>
+    </Box>
+  )
+}
+
+function SignalLineEntry({ state }: { readonly state: string }) {
+  if (state === 'vertical') {
+    return (
+      <Box {...{ [SIGNAL_HOST]: '' }} display="flex" gap={space[4]} height="160px" maxW="420px">
+        <SignalLine orientation="vertical" tone="action" />
+        <Text recipe="body">Hover this block: the line draws down its edge.</Text>
+      </Box>
+    )
+  }
+
+  return (
+    <Surface depth="raised" isInteractive maxW="360px" padded={false} {...{ [SIGNAL_HOST]: '' }}>
+      <Box aspectRatio="16 / 9" bg="bg.subtle" />
+      <SignalLine tone={state === 'quiet' ? 'quiet' : 'action'} />
+      <Box p={space[6]}>
+        <Text recipe="body">Hover or focus the card: its cover seam draws.</Text>
+      </Box>
+    </Surface>
   )
 }
 
@@ -368,6 +499,8 @@ export const motionEntries = {
   PointerLight: PointerLightEntry,
   PressFeedback: PressFeedbackEntry,
   Reveal: RevealEntry,
+  SignalLine: SignalLineEntry,
+  SignalRoute: SignalRouteEntry,
   SignalTarget: SignalTargetEntry,
   Stagger: StaggerEntry,
   StateHandoff: StateHandoffEntry,
