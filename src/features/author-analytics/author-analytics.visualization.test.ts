@@ -1,16 +1,72 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildReaderJourney,
   buildTrendPolyline,
   createAnalyticsRangePreset,
   formatInsightEvidence,
   getAnalyticsErrorCopy,
+  getContextualEvidenceSections,
+  getReachDepthPosition,
   normalizeFunnelStages,
   sortBlogMetrics,
 } from './author-analytics.visualization'
-import { AnalyticsInsight, BlogMetricRow } from './author-analytics.types'
+import { AnalyticsInsight, AnalyticsSummary, BlogMetricRow } from './author-analytics.types'
 
 describe('author analytics visualization helpers', () => {
+  it('builds a reader journey while keeping action events distinct from readers', () => {
+    const summary: AnalyticsSummary = {
+      views: 120,
+      estimatedUniqueReaders: 84,
+      uniqueReadersApproximate: true,
+      completionRate: 0.375,
+      avgActiveReadSeconds: 72,
+      heartsReceived: 6,
+      shares: 3,
+      linkClicks: 9,
+    }
+
+    expect(buildReaderJourney(summary)).toEqual([
+      { id: 'views', label: 'Views', value: 120, approximate: false },
+      { id: 'readers', label: 'Readers', value: 84, approximate: true },
+      { id: 'completed', label: 'Completed', value: 45, approximate: true },
+      { id: 'actions', label: 'Actions', value: 18, approximate: false },
+    ])
+  })
+
+  it('positions reach and completion inside bounded plot gutters', () => {
+    const blog: BlogMetricRow = {
+      postId: 1,
+      title: 'A',
+      views: 50,
+      estimatedUniqueReaders: 20,
+      uniqueReadersApproximate: true,
+      heartsReceived: 2,
+      activeHeartCount: 2,
+      shares: 1,
+      linkClicks: 3,
+      completionRate: 0.75,
+      avgActiveReadSeconds: 100,
+    }
+
+    expect(getReachDepthPosition(blog, 100)).toEqual({ xPercent: 50, yPercent: 29 })
+    expect(getReachDepthPosition({ ...blog, views: 0, completionRate: 2 }, 0)).toEqual({
+      xPercent: 8,
+      yPercent: 8,
+    })
+  })
+
+  it('removes signals from the evidence rail when the active diagnostic already owns them', () => {
+    expect(getContextualEvidenceSections('retention')).toEqual([
+      'sources',
+      'links',
+      'reactions',
+      'insight',
+    ])
+    expect(getContextualEvidenceSections('sources')).toEqual(['links', 'reactions', 'insight'])
+    expect(getContextualEvidenceSections('actions')).toEqual(['sources', 'insight'])
+  })
+
   it('builds a bounded SVG polyline from trend values', () => {
     expect(
       buildTrendPolyline(

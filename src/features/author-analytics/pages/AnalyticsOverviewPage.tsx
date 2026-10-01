@@ -1,99 +1,81 @@
-/**
- * Author analytics overview - migrated onto Horizon Design System v2.
- *
- * The summary row, the trend, the insights and the blog table each carry
- * their own loading, denied, error and empty state rather than one gate for
- * the whole page: the trend can be ready while the paginated table below it
- * is still loading its own page, and both remain independently true when one
- * of the two requests is denied and the other is not.
- */
-
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import PaginationControls from '../../../components/PaginationControls'
 import {
   ContentContainer,
-  Eyebrow,
+  EmptyState,
+  ErrorState,
   Heading,
+  PanelLoading,
+  PermissionState,
+  RetryAction,
   Section,
   Stack,
   Text,
-  Typeset,
 } from '../../../design-system'
 import { formatFreshThrough } from '../author-analytics.format'
-import PaginationControls from '../../../components/PaginationControls'
 import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
-import {
-  AnalyticsDateRange,
-  AnalyticsPostSort,
-  AnalyticsSortOrder,
-} from '../author-analytics.types'
+import { AnalyticsDateRange, BlogMetricRow } from '../author-analytics.types'
+import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
+import ReachDepthMap from '../components/ReachDepthMap'
+import ReaderJourney from '../components/ReaderJourney'
+import SelectedBlogEvidence from '../components/SelectedBlogEvidence'
 import { useAnalyticsOverview } from '../useAnalyticsOverview'
 import { useBlogMetrics } from '../useBlogMetrics'
-import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
-import AnalyticsInsightList from '../components/AnalyticsInsightList'
-import AnalyticsTrendChart from '../components/AnalyticsTrendChart'
-import { AnalyticsSummaryMetrics } from '../components/AnalyticsSummaryMetrics'
-import BlogMetricsTable from '../components/BlogMetricsTable'
 
 const PAGE_SIZE = 10
+const EMPTY_BLOGS: BlogMetricRow[] = []
 
 const AnalyticsOverviewPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const range = parseAnalyticsRange(searchParams)
   const page = Math.max(1, Number(searchParams.get('page')) || 1)
-  const sort = parseSort(searchParams.get('sort'))
-  const order = parseOrder(searchParams.get('order'))
   const overview = useAnalyticsOverview({ range })
-  const metrics = useBlogMetrics({ range, sort, order, page, limit: PAGE_SIZE })
+  const metrics = useBlogMetrics({ range, sort: 'views', order: 'desc', page, limit: PAGE_SIZE })
+  const blogs = metrics.data?.posts ?? EMPTY_BLOGS
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (blogs.length === 0) {
+      setSelectedPostId(null)
+      return
+    }
+
+    if (!blogs.some((blog) => blog.postId === selectedPostId)) {
+      setSelectedPostId(blogs[0].postId)
+    }
+  }, [blogs, selectedPostId])
 
   const updateRange = (nextRange: AnalyticsDateRange) => {
     const next = serializeAnalyticsRange(nextRange)
-    next.set('sort', sort)
-    next.set('order', order)
-    next.set('page', '1')
-    setSearchParams(next)
-  }
-
-  const updateSort = (nextSort: AnalyticsPostSort, nextOrder: AnalyticsSortOrder) => {
-    const next = serializeAnalyticsRange(range)
-    next.set('sort', nextSort)
-    next.set('order', nextOrder)
     next.set('page', '1')
     setSearchParams(next)
   }
 
   const updatePage = (nextPage: number) => {
     const next = serializeAnalyticsRange(range)
-    next.set('sort', sort)
-    next.set('order', order)
     next.set('page', String(nextPage))
     setSearchParams(next)
   }
 
-  const overviewAccess = analyticsPanelAccess(overview.error, 'view your analytics')
-  const metricsAccess = analyticsPanelAccess(metrics.error, 'view your blog comparison')
+  const selectedBlog = blogs.find((blog) => blog.postId === selectedPostId) ?? blogs[0]
   const totalPages = metrics.data ? Math.ceil(metrics.data.total / metrics.data.limit) : 1
   const freshThrough = overview.dataFreshThrough ?? metrics.dataFreshThrough
+  const overviewAccess = analyticsPanelAccess(overview.error, 'view your analytics')
+  const metricsAccess = analyticsPanelAccess(metrics.error, 'view your blog signals')
 
   return (
     <ContentContainer>
-      {/*
-        A reading report, not a dashboard: the title on the display face, the
-        period it covers stated under it, then the figures on one rule, the
-        trend, the notes and the comparison - each opened on a hairline rather
-        than boxed.
-      */}
       <Section>
         <Stack gap={12}>
-          <Stack as="header" gap={6} maxW="4xl">
-            <Eyebrow as="p">Owner analytics</Eyebrow>
-            <Heading as="h1" recipe="display">
-              <Typeset emphasis="read.">Understand how your writing is read.</Typeset>
+          <Stack as="header" gap={3} maxW="4xl">
+            <Heading as="h1" recipe="pageTitle">
+              Analytics
             </Heading>
             <Text recipe="prose" color="text.secondary">
-              Reach, completion, reactions and freshness for your writing - a report you can read,
-              not a dashboard to watch.
+              See what earns attention—and what keeps it.
             </Text>
             <Text recipe="metadata" color="text.muted">
               {freshThrough
@@ -104,77 +86,53 @@ const AnalyticsOverviewPage = () => {
 
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
-          <AnalyticsSummaryMetrics
-            summary={overview.data?.summary ?? null}
-            isLoading={overview.isLoading}
-            deniedAction={overviewAccess.deniedAction}
-            failedAction={overviewAccess.failedAction}
-            onRetry={overview.refresh}
-          />
-
-          <AnalyticsTrendChart
-            title="Views trend"
-            points={overview.data?.trend ?? []}
-            dataFreshThrough={overview.data?.dataFreshThrough}
-            rangeEnd={range.to}
-            isLoading={overview.isLoading}
-            deniedAction={overviewAccess.deniedAction}
-            failedAction={overviewAccess.failedAction}
-          />
-
-          <AnalyticsInsightList
-            title="Overview insights"
-            insights={overview.data?.insights ?? []}
-            isLoading={overview.isLoading}
-            deniedAction={overviewAccess.deniedAction}
-            failedAction={overviewAccess.failedAction}
-          />
-        </Stack>
-      </Section>
-
-      <Section density="compact">
-        <Stack gap={4}>
-          <BlogMetricsTable
-            blogs={metrics.data?.posts ?? []}
-            range={range}
-            sort={sort}
-            order={order}
-            onSortChange={updateSort}
-            isLoading={metrics.isLoading}
-            deniedAction={metricsAccess.deniedAction}
-            failedAction={metricsAccess.failedAction}
-          />
-          {metrics.data && metrics.data.posts.length > 0 ? (
-            <PaginationControls
-              currentPage={page}
-              totalPages={Math.max(1, totalPages)}
-              totalCount={metrics.data.total}
-              pageSize={metrics.data.limit}
-              onPageChange={updatePage}
-              showOnlyWhenMultiple
-            />
+          {overview.isLoading ? (
+            <PanelLoading task="the reader journey" />
+          ) : overviewAccess.deniedAction ? (
+            <PermissionState deniedAction={overviewAccess.deniedAction} />
+          ) : overviewAccess.failedAction ? (
+            <ErrorState failedAction={overviewAccess.failedAction}>
+              <RetryAction failedAction={overviewAccess.failedAction} onRetry={overview.refresh} />
+            </ErrorState>
+          ) : overview.data ? (
+            <ReaderJourney summary={overview.data.summary} />
           ) : null}
+
+          {metrics.isLoading ? (
+            <PanelLoading task="your blog signals" />
+          ) : metricsAccess.deniedAction ? (
+            <PermissionState deniedAction={metricsAccess.deniedAction} />
+          ) : metricsAccess.failedAction ? (
+            <ErrorState failedAction={metricsAccess.failedAction}>
+              <RetryAction failedAction={metricsAccess.failedAction} onRetry={metrics.refresh} />
+            </ErrorState>
+          ) : blogs.length > 0 && selectedBlog ? (
+            <Stack gap={6}>
+              <ReachDepthMap
+                blogs={blogs}
+                selectedPostId={selectedBlog.postId}
+                onSelect={setSelectedPostId}
+              />
+              <SelectedBlogEvidence blog={selectedBlog} range={range} />
+              <PaginationControls
+                currentPage={page}
+                totalPages={Math.max(1, totalPages)}
+                totalCount={metrics.data?.total ?? 0}
+                pageSize={metrics.data?.limit ?? PAGE_SIZE}
+                onPageChange={updatePage}
+                showOnlyWhenMultiple
+              />
+            </Stack>
+          ) : (
+            <EmptyState
+              subject="blog analytics for this range"
+              nextAction="Widen the date range, or come back once this writing has had some readers."
+            />
+          )}
         </Stack>
       </Section>
     </ContentContainer>
   )
 }
-
-const parseSort = (value: string | null): AnalyticsPostSort => {
-  if (
-    value === 'unique_readers' ||
-    value === 'hearts_received' ||
-    value === 'shares' ||
-    value === 'completion_rate' ||
-    value === 'avg_active_read_seconds' ||
-    value === 'link_clicks'
-  ) {
-    return value
-  }
-
-  return 'views'
-}
-
-const parseOrder = (value: string | null): AnalyticsSortOrder => (value === 'asc' ? 'asc' : 'desc')
 
 export default AnalyticsOverviewPage
