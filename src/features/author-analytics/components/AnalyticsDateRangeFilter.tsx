@@ -1,12 +1,6 @@
 /**
  * The analytics date-range control - three presets plus a custom pair, composed
  * from the design system's `DateRange` pattern.
- *
- * The preset a caller is on is derived from the range itself wherever possible,
- * so a range restored from the URL on first load still highlights the right
- * radio. `custom` is the one preset that cannot be derived - two different
- * custom spans exist for every derivable preset - so it is remembered locally
- * once a reader has explicitly chosen it or edited a date field by hand.
  */
 
 import { useState } from 'react'

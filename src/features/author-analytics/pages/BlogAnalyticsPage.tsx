@@ -1,41 +1,30 @@
-/**
- * Single-blog analytics diagnostics - migrated onto Horizon Design System v2.
- *
- * One request backs the whole page, so every panel shares its loading, denied
- * and error state - unlike the overview page, where the summary and the table
- * are two independent requests. Each panel still receives its own props
- * rather than one page-level branch, so the zero-sample state (a real post
- * with no activity yet) keeps rendering each pattern's own honest "no data"
- * copy instead of a single blanket message that would talk about the whole
- * page when only the numbers are the story.
- */
-
+import { FiArrowLeft } from 'react-icons/fi'
 import { useParams, useSearchParams } from 'react-router-dom'
 
 import {
   ActionLink,
   ContentContainer,
-  Eyebrow,
-  Grid,
+  ErrorState,
   Heading,
+  PanelLoading,
+  PermissionState,
+  RetryAction,
   Section,
   Stack,
   Text,
-  Typeset,
 } from '../../../design-system'
-import { fontFamilies } from '../../../theme/tokens'
-import { FiArrowLeft } from 'react-icons/fi'
+import {
+  formatAnalyticsInteger,
+  formatAnalyticsPercent,
+  formatApproximateReaders,
+  formatFreshThrough,
+} from '../author-analytics.format'
 import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
 import { AnalyticsDateRange } from '../author-analytics.types'
-import { useBlogAnalytics } from '../useBlogAnalytics'
 import AnalyticsDateRangeFilter from '../components/AnalyticsDateRangeFilter'
-import AnalyticsInsightList from '../components/AnalyticsInsightList'
-import AnalyticsReactionTrend from '../components/AnalyticsReactionTrend'
-import { AnalyticsSummaryMetrics } from '../components/AnalyticsSummaryMetrics'
-import LinkPerformanceTable from '../components/LinkPerformanceTable'
-import ReaderProgressFunnel from '../components/ReaderProgressFunnel'
-import TrafficSourceBreakdown from '../components/TrafficSourceBreakdown'
+import BlogDiagnosticWorkspace from '../components/BlogDiagnosticWorkspace'
+import { useBlogAnalytics } from '../useBlogAnalytics'
 
 const BlogAnalyticsPage = () => {
   const { id } = useParams<{ id: string }>()
@@ -51,6 +40,12 @@ const BlogAnalyticsPage = () => {
     setSearchParams(serializeAnalyticsRange(nextRange))
   }
 
+  const readers = analytics.data
+    ? formatApproximateReaders(
+        analytics.data.summary.estimatedUniqueReaders,
+        analytics.data.summary.uniqueReadersApproximate,
+      )
+    : null
   const access = analyticsPanelAccess(analytics.error, 'view analytics for this blog')
 
   return (
@@ -64,74 +59,55 @@ const BlogAnalyticsPage = () => {
               underline="hover"
               iconStart={<FiArrowLeft aria-hidden="true" />}
             >
-              Back to analytics
+              Analytics
             </ActionLink>
-            <Eyebrow as="p">Blog diagnostics</Eyebrow>
-            {/*
-              A blog title can run long, so it takes the page-title size on the
-              display face rather than the full display ramp.
-            */}
-            <Heading as="h1" recipe="pageTitle" fontFamily={fontFamilies.display}>
-              {analytics.data ? (
-                <Typeset key={analytics.data.post.id}>{analytics.data.post.title}</Typeset>
-              ) : (
-                'Blog analytics'
-              )}
+            <Heading as="h1" recipe="pageTitle">
+              {analytics.data?.post.title || 'Blog analytics'}
             </Heading>
-            <Text recipe="prose" color="text.secondary">
-              How far readers get, what they react to, which links they follow and where they come
-              from.
+            {analytics.data && readers ? (
+              <Stack direction="row" gap={2} flexWrap="wrap" collapseAt={undefined}>
+                <Text recipe="metadata">
+                  {formatAnalyticsInteger(analytics.data.summary.views)} views
+                </Text>
+                <Text recipe="metadata" aria-hidden="true">
+                  ·
+                </Text>
+                <Text recipe="metadata">{readers.value} readers</Text>
+                <Text recipe="metadata" aria-hidden="true">
+                  ·
+                </Text>
+                <Text recipe="metadata">
+                  {formatAnalyticsPercent(analytics.data.summary.completionRate)} completion
+                </Text>
+              </Stack>
+            ) : null}
+            <Text recipe="metadata" color="text.muted">
+              {analytics.dataFreshThrough
+                ? `Fresh through ${formatFreshThrough(analytics.dataFreshThrough)}`
+                : 'Checking how fresh these numbers are'}
             </Text>
           </Stack>
 
           <AnalyticsDateRangeFilter range={range} onRangeChange={updateRange} />
 
-          <AnalyticsSummaryMetrics
-            scope="blog"
-            summary={analytics.data?.summary ?? null}
-            isLoading={analytics.isLoading}
-            deniedAction={access.deniedAction}
-            failedAction={access.failedAction}
-            onRetry={analytics.refresh}
-          />
-
-          <Grid columns={2} gap={8} collapseAt="xl">
-            <ReaderProgressFunnel
-              stages={analytics.data?.progressFunnel ?? []}
-              isLoading={analytics.isLoading}
-              deniedAction={access.deniedAction}
-              failedAction={access.failedAction}
-            />
-            <AnalyticsReactionTrend
-              points={analytics.data?.reactionTrend ?? []}
-              isLoading={analytics.isLoading}
-              deniedAction={access.deniedAction}
-              failedAction={access.failedAction}
-            />
-          </Grid>
-
-          <Grid columns={2} gap={8} collapseAt="xl">
-            <LinkPerformanceTable
-              links={analytics.data?.topLinks ?? []}
-              isLoading={analytics.isLoading}
-              deniedAction={access.deniedAction}
-              failedAction={access.failedAction}
-            />
-            <TrafficSourceBreakdown
-              sources={analytics.data?.trafficSources ?? []}
-              isLoading={analytics.isLoading}
-              deniedAction={access.deniedAction}
-              failedAction={access.failedAction}
-            />
-          </Grid>
-
-          <AnalyticsInsightList
-            title="Blog insights"
-            insights={analytics.data?.insights ?? []}
-            isLoading={analytics.isLoading}
-            deniedAction={access.deniedAction}
-            failedAction={access.failedAction}
-          />
+          {analytics.isLoading ? (
+            <PanelLoading task="this blog's analytics" />
+          ) : access.deniedAction ? (
+            <PermissionState deniedAction={access.deniedAction} />
+          ) : access.failedAction ? (
+            <ErrorState failedAction={access.failedAction}>
+              <RetryAction failedAction={access.failedAction} onRetry={analytics.refresh} />
+            </ErrorState>
+          ) : analytics.data ? (
+            <Stack gap={6}>
+              <BlogDiagnosticWorkspace analytics={analytics.data} />
+              {analytics.isEmpty ? (
+                <Text recipe="metadata" color="text.muted">
+                  No measurable activity in this range yet.
+                </Text>
+              ) : null}
+            </Stack>
+          ) : null}
         </Stack>
       </Section>
     </ContentContainer>

@@ -4,6 +4,7 @@ import {
   AnalyticsFunnelStage,
   AnalyticsInsight,
   AnalyticsPostSort,
+  AnalyticsSummary,
   AnalyticsSortOrder,
   BlogMetricRow,
 } from './author-analytics.types'
@@ -33,6 +34,24 @@ export interface FormattedInsightEvidence {
   evidenceLabels: string[]
 }
 
+export type AnalyticsJourneyStageId = 'views' | 'readers' | 'completed' | 'actions'
+
+export interface AnalyticsJourneyStage {
+  id: AnalyticsJourneyStageId
+  label: string
+  value: number
+  approximate: boolean
+}
+
+export type BlogDiagnosticQuestion = 'retention' | 'sources' | 'actions'
+
+export type AnalyticsEvidenceSection = 'sources' | 'links' | 'reactions' | 'insight'
+
+export interface ReachDepthPosition {
+  xPercent: number
+  yPercent: number
+}
+
 const presetDays: Record<AnalyticsRangePreset, number> = {
   '7d': 7,
   '30d': 30,
@@ -45,6 +64,59 @@ const addUtcDays = (date: Date, days: number) => {
   const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
   next.setUTCDate(next.getUTCDate() + days)
   return next
+}
+
+export const buildReaderJourney = (summary: AnalyticsSummary): AnalyticsJourneyStage[] => [
+  {
+    id: 'views',
+    label: 'Views',
+    value: Math.max(0, summary.views),
+    approximate: false,
+  },
+  {
+    id: 'readers',
+    label: 'Readers',
+    value: Math.max(0, summary.estimatedUniqueReaders),
+    approximate: summary.uniqueReadersApproximate,
+  },
+  {
+    id: 'completed',
+    label: 'Completed',
+    value: Math.round(Math.max(0, summary.views) * clamp(summary.completionRate, 0, 1)),
+    approximate: true,
+  },
+  {
+    id: 'actions',
+    label: 'Actions',
+    value:
+      Math.max(0, summary.heartsReceived) +
+      Math.max(0, summary.shares) +
+      Math.max(0, summary.linkClicks),
+    approximate: false,
+  },
+]
+
+export const getReachDepthPosition = (
+  blog: BlogMetricRow,
+  maxViews: number,
+): ReachDepthPosition => {
+  const gutter = 8
+  const span = 100 - gutter * 2
+  const reachRatio = maxViews > 0 ? clamp(blog.views / maxViews, 0, 1) : 0
+  const completionRatio = clamp(blog.completionRate, 0, 1)
+
+  return {
+    xPercent: roundCoordinate(gutter + reachRatio * span),
+    yPercent: roundCoordinate(100 - gutter - completionRatio * span),
+  }
+}
+
+export const getContextualEvidenceSections = (
+  question: BlogDiagnosticQuestion,
+): AnalyticsEvidenceSection[] => {
+  if (question === 'sources') return ['links', 'reactions', 'insight']
+  if (question === 'actions') return ['sources', 'insight']
+  return ['sources', 'links', 'reactions', 'insight']
 }
 
 export const createAnalyticsRangePreset = (
@@ -166,6 +238,8 @@ export const formatStageLabel = (stage: string) => {
 }
 
 const roundCoordinate = (value: number) => Number(value.toFixed(2))
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): number => {
   if (sort === 'unique_readers') return blog.estimatedUniqueReaders

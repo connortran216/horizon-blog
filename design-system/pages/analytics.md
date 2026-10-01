@@ -1,8 +1,8 @@
-# Analytics Page
+# Analytics Pages
 
 ## Intent
 
-Analytics is an owner-only writing feedback surface. It should help an author understand reach, completion, reactions, links, sources, and data freshness without making Horizon feel like a dashboard product.
+Analytics is an owner-only writing feedback surface. It helps an author understand reach, reading depth, sources, and reader actions without making Horizon feel like a dashboard product.
 
 ## Covered Routes
 
@@ -12,60 +12,86 @@ Analytics is an owner-only writing feedback surface. It should help an author un
 ## Primary Actions
 
 - Change the inclusive UTC analytics range.
-- Sort blog metrics.
-- Open a blog diagnostics view.
+- Select a blog on the reach × reading-depth map.
+- Follow the selected blog title to its diagnostic route.
+- Switch the detail page's active diagnostic question.
 - Return from blog diagnostics to the overview.
 
-## Layout
+## Overview Hierarchy
 
-A reading report, not a dashboard - nothing on the page is boxed.
+1. Compact route header, readable freshness, and the v2 `DateRange` controls.
+2. One aggregate reader journey: views, readers, estimated completion, and action events.
+3. One reach × completion map for the current page of blogs.
+4. One contextual evidence strip for the selected blog.
+5. Pagination when the backend result spans multiple pages.
 
-- The header is the display-face title (typeset), one sentence, and "Fresh through" stated as a
-  readable UTC time; the date range sits directly under it as a line of controls.
-- The summary figures stand on one rule (`MetricGrid` is a `SignalRoute`): Views, Readers and
-  Completion lead on the display face in the action colour, the rest follow at page-title size.
-- Trend, reading progress, reactions, sources and notes each open on a hairline
-  (`ReportSection`) with their own heading; tables are unframed (`DataTable framed={false}`),
-  only the rules between rows.
-- Keep chart and funnel primitives feature-owned under `src/features/author-analytics/components`.
+Rules:
 
-## Hierarchy
+- Use the v2 report shell: `ContentContainer`, `Section`, `Stack`, typography recipes, and feedback states.
+- Do not reintroduce a KPI-card grid, generic trend panel, or comparison table.
+- Actions are event totals, not unique readers and not a strict funnel stage.
+- The selected title is the diagnostics action; do not repeat an `Open` or `Details` button per blog.
+- Fetch blog points in stable `views desc` order. Sorting is intentionally absent from this visual comparison.
 
-- Header explains what the analytics route is for.
-- Date range control follows the header.
-- Primary metrics appear before trend and blog lists.
-- Blog diagnostics prioritize summary metrics, progress funnel, reactions, links, and sources.
+## Detail Hierarchy
+
+1. Back link, blog title, compact summary, freshness, and date range.
+2. Three question tabs:
+   - `Do they keep reading?`
+   - `Where do they come from?`
+   - `What do they act on?`
+3. One main diagnostic panel for the active question.
+4. One narrow contextual evidence rail.
+
+The rail must not repeat the primary signal already visible in the active panel:
+
+- Retention: sources, clicked link, reactions, insight.
+- Sources: clicked link, reactions, insight.
+- Actions: source signal, insight.
 
 ## Core Components
 
-- `AnalyticsDateRangeFilter`: range presets and custom UTC dates.
-- `AnalyticsMetricCard`: compact metric with optional approximate label.
-- `AnalyticsTrendChart`: dependency-free SVG line chart.
-- `ReaderProgressFunnel`: accessible progress bars for reader drop-off.
-- `AnalyticsReactionTrend`: hearts added/removed summary.
-- `LinkPerformanceTable`: clicked links in the selected range.
-- `TrafficSourceBreakdown`: source category and host quality.
+- `AnalyticsDateRangeFilter`: adapter over the v2 date-range pattern with presets and custom UTC dates.
+- `AnalyticsInfoTooltip`: keyboard-focusable definitions for metrics and diagrams.
+- `ReaderJourney`: aggregate reach-to-reading path with actions identified as events.
+- `ReachDepthMap`: accessible blog selection by views and completion.
+- `SelectedBlogEvidence`: selected summary and direct title link.
+- `BlogDiagnosticWorkspace`: question tabs, active diagnostic, and contextual evidence rail.
+
+## Visual Rules
+
+- Treat the page as an editorial report: whitespace and hairline dividers, not nested cards.
+- Use semantic tokens and v2 typography recipes; do not restore legacy aliases.
+- Use `action.*` for active points, lines, bars, tabs, and focus emphasis.
+- Keep plots dependency-free and feature-owned.
+- Label the selected state textually; color, size, and position are supporting encodings.
+
+## Content Rules
+
+- Keep visible explanations short; put definitions in tooltips.
+- Preserve backend insight `message`, `sample_size`, and `evidence`.
+- Do not invent recommendations, causal explanations, or precision.
+- Label approximate readers and derived completion estimates.
+- Format evidence and freshness in author-readable units, never raw backend keys or timestamps.
+
+## Accessibility
+
+- Every map point is a focusable button with title, views, and completion in its accessible name.
+- Question tabs use native tab semantics and visible focus.
+- Tooltips work on hover and keyboard focus.
+- Diagram meaning is repeated through text and values.
+- Loading, empty, error, unauthorized, not-found, and unavailable states use the v2 feedback patterns.
+
+## Responsive Behavior
+
+- The report header and date controls stack naturally on narrow screens.
+- The journey becomes a vertical sequence.
+- The map retains bounded height and selected evidence appears below it.
+- Detail tabs scroll horizontally when needed.
+- The evidence rail stacks below the main diagnostic before desktop width.
 
 ## Motion
 
-- Mostly static. Two arrivals, once each: the summary rule writes the figures as it draws, and the
-  trend line draws itself left to right the first time it is seen, a signal riding its edge at the
-  line's own height (transform only).
-- Reduced motion: the rule is drawn, the figures are present, the trend is drawn - no travel.
-- A later range change crossfades the trend rather than redrawing it.
-
-## Accessibility Notes
-
-- Approximate unique-reader counts must be labeled.
-- Charts need accessible labels and must not be the only source of metric meaning.
-- Sorting controls must remain keyboard reachable and have visible active state.
-- Empty, error, unauthorized, not-found, and unavailable states should explain what the author can do next.
-
-## Content Notes
-
-- Prefer "blogs", "writing", "readers", "completion", and "fresh through".
-- Do not imply exact unique-reader precision when the backend marks the number approximate.
-- Do not expose backend system names in user-facing copy except when explaining freshness cautiously.
-- Insight evidence names metrics as an author reads them ("Completion", "Active read") and states
-  values in their own unit ("62%", "5m 44s"), never the raw key.
-- On a blog's diagnostics, descriptions speak of that blog ("Current hearts on this blog").
+- Keep analytics mostly static.
+- Small hover/focus transitions are allowed; do not animate data paths or point positions.
+- Reduced motion keeps all values and selected states present without travel.
