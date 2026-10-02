@@ -13,12 +13,7 @@ import {
   Stack,
   Text,
 } from '../../../design-system'
-import {
-  formatAnalyticsInteger,
-  formatAnalyticsPercent,
-  formatApproximateReaders,
-  formatFreshThrough,
-} from '../author-analytics.format'
+import { formatFreshThrough } from '../author-analytics.format'
 import { analyticsPanelAccess } from '../author-analytics.hook-state'
 import { parseAnalyticsRange, serializeAnalyticsRange } from '../author-analytics.range'
 import { AnalyticsDateRange } from '../author-analytics.types'
@@ -40,19 +35,13 @@ const BlogAnalyticsPage = () => {
     setSearchParams(serializeAnalyticsRange(nextRange))
   }
 
-  const readers = analytics.data
-    ? formatApproximateReaders(
-        analytics.data.summary.estimatedUniqueReaders,
-        analytics.data.summary.uniqueReadersApproximate,
-      )
-    : null
   const access = analyticsPanelAccess(analytics.error, 'view analytics for this blog')
 
   return (
     <ContentContainer>
       <Section>
-        <Stack gap={12}>
-          <Stack as="header" gap={4} maxW="4xl">
+        <Stack gap={8}>
+          <Stack as="header" gap={3} maxW="4xl">
             <ActionLink
               standalone
               to={`/analytics?${serializeAnalyticsRange(range).toString()}`}
@@ -64,23 +53,6 @@ const BlogAnalyticsPage = () => {
             <Heading as="h1" recipe="pageTitle">
               {analytics.data?.post.title || 'Blog analytics'}
             </Heading>
-            {analytics.data && readers ? (
-              <Stack direction="row" gap={2} flexWrap="wrap" collapseAt={undefined}>
-                <Text recipe="metadata">
-                  {formatAnalyticsInteger(analytics.data.summary.views)} views
-                </Text>
-                <Text recipe="metadata" aria-hidden="true">
-                  ·
-                </Text>
-                <Text recipe="metadata">{readers.value} readers</Text>
-                <Text recipe="metadata" aria-hidden="true">
-                  ·
-                </Text>
-                <Text recipe="metadata">
-                  {formatAnalyticsPercent(analytics.data.summary.completionRate)} completion
-                </Text>
-              </Stack>
-            ) : null}
             <Text recipe="metadata" color="text.muted">
               {analytics.dataFreshThrough
                 ? `Fresh through ${formatFreshThrough(analytics.dataFreshThrough)}`

@@ -1,8 +1,9 @@
-import { Box, Flex, HStack, Stack, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Heading, HStack, Icon, Stack, Text } from '@chakra-ui/react'
+import { FiArrowDown, FiArrowRight } from 'react-icons/fi'
 
 import { formatAnalyticsInteger, formatAnalyticsPercent } from '../author-analytics.format'
 import { AnalyticsSummary } from '../author-analytics.types'
-import { buildReaderJourney } from '../author-analytics.visualization'
+import { AnalyticsJourneyStage, buildReaderJourney } from '../author-analytics.visualization'
 import AnalyticsInfoTooltip from './AnalyticsInfoTooltip'
 
 interface ReaderJourneyProps {
@@ -27,60 +28,131 @@ const ReaderJourney = ({ summary }: ReaderJourneyProps) => {
       borderTop="1px solid"
       borderBottom="1px solid"
       borderColor="border.subtle"
-      py={{ base: 6, md: 8 }}
+      py={{ base: 5, md: 6 }}
     >
-      <HStack spacing={2} mb={5}>
-        <Text id="reader-journey-title" fontWeight="semibold" color="text.primary">
+      <HStack spacing={2} mb={{ base: 5, md: 4 }}>
+        <Heading
+          as="h2"
+          id="reader-journey-title"
+          color="text.primary"
+          fontSize="md"
+          lineHeight="short"
+        >
           Reader journey
-        </Text>
+        </Heading>
         <AnalyticsInfoTooltip
           ariaLabel="About the reader journey"
           label="A directional view of reach, reading, and response. Actions are related events rather than a strict funnel step."
         />
       </HStack>
 
-      <Stack direction={{ base: 'column', md: 'row' }} spacing={{ base: 3, md: 0 }} align="stretch">
+      <Stack display={{ base: 'flex', md: 'none' }} spacing={0}>
         {stages.map((stage, index) => (
-          <Flex key={stage.id} flex="1" align="center" minW={0}>
-            <Box
-              w="full"
-              px={{ base: 0, md: 4 }}
-              borderLeft={{ base: '2px solid', md: index === 0 ? 'none' : '1px solid' }}
-              borderColor={{ base: 'action.primary', md: 'border.subtle' }}
-              pl={{ base: 4, md: 4 }}
-            >
-              <HStack spacing={1}>
-                <Text fontSize="sm" color="text.muted">
-                  {stage.label}
-                </Text>
-                <AnalyticsInfoTooltip
-                  ariaLabel={`About ${stage.label}`}
-                  label={definitions[stage.id]}
-                />
-              </HStack>
-              <Text
-                color="text.primary"
-                fontSize={{ base: '2xl', lg: '3xl' }}
-                fontWeight="semibold"
-              >
-                {stage.approximate ? '~' : ''}
-                {formatAnalyticsInteger(stage.value)}
-              </Text>
-              <Text color="text.muted" fontSize="xs" mt={1}>
-                {stage.id === 'completed'
-                  ? `${formatAnalyticsPercent(summary.completionRate)} completion`
-                  : stage.id === 'actions'
-                    ? 'event total'
-                    : stage.id === 'readers' && stage.approximate
-                      ? 'estimated'
-                      : '\u00a0'}
-              </Text>
+          <Grid key={stage.id} templateColumns="28px minmax(0, 1fr)" columnGap={4}>
+            <Flex direction="column" align="center" aria-hidden="true">
+              <JourneyNode filled={index < 2} prominent={index === 0} />
+              {index < stages.length - 1 ? (
+                <Flex direction="column" align="center" flex="1" minH="44px">
+                  <Box w="1px" flex="1" bg="action.primary" />
+                  <Icon as={FiArrowDown} boxSize={4} color="action.primary" />
+                </Flex>
+              ) : null}
+            </Flex>
+            <Box pb={index < stages.length - 1 ? 4 : 0}>
+              <JourneyStageContent stage={stage} summary={summary} />
             </Box>
-          </Flex>
+          </Grid>
         ))}
       </Stack>
+
+      <Box display={{ base: 'none', md: 'block' }} overflowX="auto" pb={1}>
+        <Grid templateColumns="repeat(4, minmax(160px, 1fr))" minW="720px">
+          {stages.map((stage, index) => (
+            <Box key={stage.id} minW={0}>
+              <JourneyStageLabel stage={stage} />
+              <HStack spacing={0} mt={3} aria-hidden="true">
+                <JourneyNode filled={index < 2} prominent={index === 0} />
+                {index < stages.length - 1 ? (
+                  <Flex flex="1" align="center" pr={2}>
+                    <Box h="1px" flex="1" bg="action.primary" />
+                    <Icon as={FiArrowRight} boxSize={4} color="action.primary" ml={-1} />
+                  </Flex>
+                ) : null}
+              </HStack>
+              <JourneyStageValue stage={stage} summary={summary} />
+            </Box>
+          ))}
+        </Grid>
+      </Box>
     </Box>
   )
+}
+
+const JourneyNode = ({ filled, prominent }: { filled: boolean; prominent: boolean }) => (
+  <Box
+    flex="0 0 auto"
+    w={prominent ? '28px' : '22px'}
+    h={prominent ? '28px' : '22px'}
+    borderRadius="full"
+    border="3px solid"
+    borderColor="action.primary"
+    bg={filled ? 'action.primary' : 'bg.page'}
+    boxShadow={filled ? '0 0 0 5px var(--chakra-colors-action-subtle)' : 'none'}
+  />
+)
+
+const JourneyStageContent = ({
+  stage,
+  summary,
+}: {
+  stage: AnalyticsJourneyStage
+  summary: AnalyticsSummary
+}) => (
+  <Box minW={0}>
+    <JourneyStageLabel stage={stage} />
+    <JourneyStageValue stage={stage} summary={summary} />
+  </Box>
+)
+
+const JourneyStageLabel = ({ stage }: { stage: AnalyticsJourneyStage }) => (
+  <HStack spacing={1} minH="32px">
+    <Heading as="h3" color="text.secondary" fontSize="sm" fontWeight="semibold">
+      {stage.label}
+    </Heading>
+    <AnalyticsInfoTooltip ariaLabel={`About ${stage.label}`} label={definitions[stage.id]} />
+  </HStack>
+)
+
+const JourneyStageValue = ({
+  stage,
+  summary,
+}: {
+  stage: AnalyticsJourneyStage
+  summary: AnalyticsSummary
+}) => (
+  <Box mt={{ base: 1, md: 2 }}>
+    <Text
+      color="text.primary"
+      fontSize={{ base: '2xl', lg: '3xl' }}
+      fontWeight="semibold"
+      lineHeight="short"
+      sx={{ fontVariantNumeric: 'tabular-nums' }}
+    >
+      {stage.approximate ? '~' : ''}
+      {formatAnalyticsInteger(stage.value)}
+    </Text>
+    <Text color="text.muted" fontSize="xs" mt={1} minH="18px">
+      {getJourneyDetail(stage, summary)}
+    </Text>
+  </Box>
+)
+
+const getJourneyDetail = (stage: AnalyticsJourneyStage, summary: AnalyticsSummary) => {
+  if (stage.id === 'completed')
+    return `${formatAnalyticsPercent(summary.completionRate)} completion`
+  if (stage.id === 'actions') return 'event total'
+  if (stage.id === 'readers' && stage.approximate) return 'estimated'
+  return '\u00a0'
 }
 
 export default ReaderJourney

@@ -28,6 +28,14 @@
 - [x] T012 Run focused tests and resolve regressions.
 - [x] T013 Run type check, scoped lint, production build, and record verification evidence.
 
+## Phase 6: Approved-demo fidelity follow-up
+
+- [x] T014 Restore the connected reader-journey route and compact overview rhythm.
+- [x] T015 Add deterministic, collision-conscious reach/depth labels with focused helper coverage.
+- [x] T016 Restore the three retention metrics and plot the progress curve by session count.
+- [x] T017 Restore semantic analytics section headings without changing visual scale.
+- [x] T018 Run focused/full validation and rendered design QA against the approved demo.
+
 ## Dependencies
 
 ```mermaid

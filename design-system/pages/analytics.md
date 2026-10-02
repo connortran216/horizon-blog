@@ -30,6 +30,8 @@ Rules:
 - Use the v2 report shell: `ContentContainer`, `Section`, `Stack`, typography recipes, and feedback states.
 - Do not reintroduce a KPI-card grid, generic trend panel, or comparison table.
 - Actions are event totals, not unique readers and not a strict funnel stage.
+- The journey is a connected route on desktop and a connected vertical sequence on narrow screens; the directional relationship must not collapse into four unrelated KPI columns.
+- The reach × completion map labels the selected blog plus a small collision-checked set of reach/depth outliers on wider screens. Narrow screens show only the selected label. Full titles remain available from each point's tooltip and accessible name.
 - The selected title is the diagnostics action; do not repeat an `Open` or `Details` button per blog.
 - Fetch blog points in stable `views desc` order. Sorting is intentionally absent from this visual comparison.
 
@@ -49,6 +51,8 @@ The rail must not repeat the primary signal already visible in the active panel:
 - Sources: clicked link, reactions, insight.
 - Actions: source signal, insight.
 
+Retention foregrounds three reading signals before the curve: estimated readers, completion, and active reading time. The curve plots remaining session counts at each reading-depth marker; percentages remain supporting context rather than the plotted value.
+
 ## Core Components
 
 - `AnalyticsDateRangeFilter`: adapter over the v2 date-range pattern with presets and custom UTC dates.
@@ -65,6 +69,7 @@ The rail must not repeat the primary signal already visible in the active panel:
 - Use `action.*` for active points, lines, bars, tabs, and focus emphasis.
 - Keep plots dependency-free and feature-owned.
 - Label the selected state textually; color, size, and position are supporting encodings.
+- Use semantic `h2` section titles and `h3` journey-stage titles while preserving the compact report typography.
 
 ## Content Rules
 

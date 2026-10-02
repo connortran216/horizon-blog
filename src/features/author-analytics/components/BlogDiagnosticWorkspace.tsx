@@ -2,6 +2,7 @@ import {
   Box,
   Divider,
   Grid,
+  Heading,
   HStack,
   Link,
   SimpleGrid,
@@ -20,6 +21,7 @@ import {
   formatAnalyticsDuration,
   formatAnalyticsInteger,
   formatAnalyticsPercent,
+  formatApproximateReaders,
 } from '../author-analytics.format'
 import { BlogAnalyticsDetail } from '../author-analytics.types'
 import {
@@ -108,11 +110,28 @@ const BlogDiagnosticWorkspace = ({ analytics }: BlogDiagnosticWorkspaceProps) =>
 
 const RetentionDiagnostic = ({ analytics }: BlogDiagnosticWorkspaceProps) => {
   const stages = normalizeFunnelStages(analytics.progressFunnel)
+  const readers = formatApproximateReaders(
+    analytics.summary.estimatedUniqueReaders,
+    analytics.summary.uniqueReadersApproximate,
+  )
+  const chart = { width: 680, height: 280, left: 52, right: 20, top: 30, bottom: 52 }
+  const innerWidth = chart.width - chart.left - chart.right
+  const innerHeight = chart.height - chart.top - chart.bottom
+  const maxSessions = Math.max(1, ...stages.map((stage) => stage.sessions))
+  const chartMax = Math.max(4, Math.ceil(maxSessions / 4) * 4)
   const points = stages.map((stage, index) => {
-    const x = stages.length <= 1 ? 320 : 40 + (index / (stages.length - 1)) * 560
-    const y = 200 - Math.max(0, Math.min(1, stage.rate)) * 160
+    const x =
+      stages.length <= 1
+        ? chart.left + innerWidth / 2
+        : chart.left + (index / (stages.length - 1)) * innerWidth
+    const y = chart.top + innerHeight - (Math.max(0, stage.sessions) / chartMax) * innerHeight
     return { ...stage, x, y }
   })
+  const yTicks = Array.from({ length: 5 }, (_, index) => Math.round((chartMax / 4) * index))
+  const linePoints = points.map((point) => `${point.x},${point.y}`).join(' ')
+  const areaPoints = points.length
+    ? `${linePoints} ${points[points.length - 1].x},${chart.top + innerHeight} ${points[0].x},${chart.top + innerHeight}`
+    : ''
 
   return (
     <DiagnosticSection
@@ -123,10 +142,31 @@ const RetentionDiagnostic = ({ analytics }: BlogDiagnosticWorkspaceProps) => {
         <EmptySignal>No reading-progress signal in this range.</EmptySignal>
       ) : (
         <>
-          <Box overflow="hidden" borderBottom="1px solid" borderColor="border.subtle" pb={3}>
+          <SimpleGrid columns={{ base: 2, md: 3 }} spacing={{ base: 5, md: 8 }} mb={7}>
+            <SignalValue
+              label="Readers"
+              value={readers.value}
+              tooltip="Estimated distinct readers for this blog in the selected range."
+              prominent
+            />
+            <SignalValue
+              label="Completed"
+              value={formatAnalyticsPercent(analytics.summary.completionRate)}
+              tooltip="The share of opened reading sessions that reached the end."
+              prominent
+            />
+            <SignalValue
+              label="Active read time"
+              value={formatAnalyticsDuration(analytics.summary.avgActiveReadSeconds)}
+              tooltip="Average active reading time among measured sessions."
+              prominent
+            />
+          </SimpleGrid>
+
+          <Box overflowX="auto" borderBottom="1px solid" borderColor="border.subtle" pb={2}>
             <Box
               as="svg"
-              viewBox="0 0 640 220"
+              viewBox={`0 0 ${chart.width} ${chart.height}`}
               role="img"
               aria-label={points
                 .map(
@@ -135,24 +175,65 @@ const RetentionDiagnostic = ({ analytics }: BlogDiagnosticWorkspaceProps) => {
                 )
                 .join('; ')}
               w="full"
-              minH={{ base: '210px', md: '260px' }}
+              minW={{ base: '620px', md: 'auto' }}
             >
-              {[40, 80, 120, 160, 200].map((y) => (
+              <defs>
+                <linearGradient id="analytics-retention-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor="var(--chakra-colors-action-primary)"
+                    stopOpacity="0.2"
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--chakra-colors-action-primary)"
+                    stopOpacity="0.02"
+                  />
+                </linearGradient>
+              </defs>
+              {yTicks.map((tick) => {
+                const y = chart.top + innerHeight - (tick / chartMax) * innerHeight
+                return (
+                  <g key={tick}>
+                    <line
+                      x1={chart.left}
+                      x2={chart.width - chart.right}
+                      y1={y}
+                      y2={y}
+                      stroke="var(--chakra-colors-border-subtle)"
+                      strokeWidth="1"
+                      strokeDasharray="3 4"
+                    />
+                    <text
+                      x={chart.left - 14}
+                      y={y + 5}
+                      textAnchor="end"
+                      fill="var(--chakra-colors-text-muted)"
+                      fontSize="13"
+                    >
+                      {tick}
+                    </text>
+                  </g>
+                )
+              })}
+              {points.map((point) => (
                 <line
-                  key={y}
-                  x1="40"
-                  x2="600"
-                  y1={y}
-                  y2={y}
+                  key={`${point.label}-grid`}
+                  x1={point.x}
+                  x2={point.x}
+                  y1={chart.top}
+                  y2={chart.top + innerHeight}
                   stroke="var(--chakra-colors-border-subtle)"
                   strokeWidth="1"
+                  strokeDasharray="3 4"
                 />
               ))}
+              <polygon points={areaPoints} fill="url(#analytics-retention-fill)" />
               <polyline
-                points={points.map((point) => `${point.x},${point.y}`).join(' ')}
+                points={linePoints}
                 fill="none"
                 stroke="var(--chakra-colors-action-primary)"
-                strokeWidth="4"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -171,31 +252,24 @@ const RetentionDiagnostic = ({ analytics }: BlogDiagnosticWorkspaceProps) => {
                     y={Math.max(20, point.y - 18)}
                     textAnchor="middle"
                     fill="var(--chakra-colors-text-primary)"
-                    fontSize="15"
+                    fontSize="14"
                     fontWeight="600"
                   >
-                    {formatAnalyticsPercent(point.rate)}
+                    {formatAnalyticsInteger(point.sessions)}
+                  </text>
+                  <text
+                    x={point.x}
+                    y={chart.height - 16}
+                    textAnchor="middle"
+                    fill="var(--chakra-colors-text-muted)"
+                    fontSize="13"
+                  >
+                    {point.label}
                   </text>
                 </g>
               ))}
             </Box>
           </Box>
-          <SimpleGrid
-            columns={{ base: 2, md: Math.min(5, Math.max(1, stages.length)) }}
-            spacing={4}
-            pt={4}
-          >
-            {stages.map((stage) => (
-              <Box key={stage.label}>
-                <Text color="text.muted" fontSize="xs">
-                  {stage.label}
-                </Text>
-                <Text color="text.primary" fontWeight="medium" mt={1}>
-                  {formatAnalyticsInteger(stage.sessions)}
-                </Text>
-              </Box>
-            ))}
-          </SimpleGrid>
         </>
       )}
     </DiagnosticSection>
@@ -353,9 +427,9 @@ const AnalyticsEvidenceRail = ({
       pl={{ xl: 7 }}
     >
       <HStack spacing={2} mb={2}>
-        <Text color="text.primary" fontWeight="semibold">
+        <Heading as="h2" color="text.primary" fontSize="md" lineHeight="short">
           Context
-        </Text>
+        </Heading>
         <AnalyticsInfoTooltip
           ariaLabel="About contextual evidence"
           label="Supporting signals only. Evidence already shown in the active diagnostic is intentionally omitted here."
@@ -425,24 +499,48 @@ const DiagnosticSection = ({
   title: string
   tooltip: string
   children: React.ReactNode
-}) => (
-  <Box as="section" aria-label={title}>
-    <HStack spacing={2} mb={5}>
-      <Text color="text.primary" fontSize="lg" fontWeight="semibold">
-        {title}
-      </Text>
-      <AnalyticsInfoTooltip ariaLabel={`About ${title}`} label={tooltip} />
-    </HStack>
-    {children}
-  </Box>
-)
+}) => {
+  const headingId = `diagnostic-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
-const SignalValue = ({ label, value }: { label: string; value: string }) => (
+  return (
+    <Box as="section" aria-labelledby={headingId}>
+      <HStack spacing={2} mb={5}>
+        <Heading as="h2" id={headingId} color="text.primary" fontSize="lg" lineHeight="short">
+          {title}
+        </Heading>
+        <AnalyticsInfoTooltip ariaLabel={`About ${title}`} label={tooltip} />
+      </HStack>
+      {children}
+    </Box>
+  )
+}
+
+const SignalValue = ({
+  label,
+  value,
+  tooltip,
+  prominent = false,
+}: {
+  label: string
+  value: string
+  tooltip?: string
+  prominent?: boolean
+}) => (
   <Box>
-    <Text color="text.muted" fontSize="xs">
-      {label}
-    </Text>
-    <Text color="text.primary" fontWeight="semibold" mt={1}>
+    <HStack spacing={1}>
+      <Text color="text.muted" fontSize={prominent ? 'sm' : 'xs'}>
+        {label}
+      </Text>
+      {tooltip ? <AnalyticsInfoTooltip ariaLabel={`About ${label}`} label={tooltip} /> : null}
+    </HStack>
+    <Text
+      color="text.primary"
+      fontSize={prominent ? { base: '2xl', md: '3xl' } : undefined}
+      fontWeight="semibold"
+      lineHeight={prominent ? 'short' : undefined}
+      mt={prominent ? 2 : 1}
+      sx={{ fontVariantNumeric: 'tabular-nums' }}
+    >
       {value}
     </Text>
   </Box>

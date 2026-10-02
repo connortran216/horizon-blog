@@ -69,7 +69,7 @@ const AnalyticsOverviewPage = () => {
   return (
     <ContentContainer>
       <Section>
-        <Stack gap={12}>
+        <Stack gap={8}>
           <Stack as="header" gap={3} maxW="4xl">
             <Heading as="h1" recipe="pageTitle">
               Analytics
@@ -107,7 +107,7 @@ const AnalyticsOverviewPage = () => {
               <RetryAction failedAction={metricsAccess.failedAction} onRetry={metrics.refresh} />
             </ErrorState>
           ) : blogs.length > 0 && selectedBlog ? (
-            <Stack gap={6}>
+            <Stack gap={4}>
               <ReachDepthMap
                 blogs={blogs}
                 selectedPostId={selectedBlog.postId}
