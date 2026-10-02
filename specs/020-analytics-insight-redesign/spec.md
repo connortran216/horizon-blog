@@ -46,6 +46,10 @@ As an author, I can switch among retention, source, and action questions while k
 - **FR-014**: The interface MUST use existing Horizon semantic tokens, remain legible in light and dark mode, and add no production dependency.
 - **FR-015**: Question tabs, map points, links, range controls, pagination, and tooltips MUST be keyboard operable with visible focus.
 - **FR-016**: At small widths, diagrams MUST remain understandable without horizontal page scrolling; map points MUST have a readable selected summary below the plot.
+- **FR-017**: The overview journey MUST read as a connected directional sequence on desktop and a connected vertical sequence on narrow screens; values MUST remain readable when motion is reduced.
+- **FR-018**: The reach × completion map MUST label the selected blog plus a small deterministic set of high-signal blogs. Other titles MUST remain available through the point tooltip and accessible name.
+- **FR-019**: The retention diagnostic MUST foreground estimated readers, completion, and active reading time, and its curve MUST plot remaining session counts rather than percentages.
+- **FR-020**: Analytics section titles MUST use semantic heading elements without changing the existing visual hierarchy.
 
 ## Success Criteria
 
@@ -55,6 +59,7 @@ As an author, I can switch among retention, source, and action questions while k
 - **SC-004**: All analytics definitions used only as helper copy are reachable through focusable tooltips.
 - **SC-005**: Focused tests cover journey derivation, map positioning, contextual evidence selection, and existing range/error behavior.
 - **SC-006**: Type check, focused tests, lint, and production build pass, or any repository-wide pre-existing blocker is recorded precisely.
+- **SC-007**: Rendered desktop and mobile checks match the approved analytics demo's information hierarchy while preserving production range controls, tabs, and contextual evidence behavior.
 
 ## Edge Cases
 

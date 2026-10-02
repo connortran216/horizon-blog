@@ -24,8 +24,8 @@
 ### Overview
 
 1. Compact header and date-range control.
-2. Reader journey: `Views → Readers → Completed` with `Actions` as a related event signal, not a strict unique-reader funnel stage.
-3. Reach × reading-depth map with keyboard-selectable points.
+2. Reader journey: one connected `Views → Readers → Completed → Actions` route, with Actions identified as a related event signal rather than a strict unique-reader funnel stage.
+3. Reach × reading-depth map with keyboard-selectable points and selective labels for the selected, highest-reach, and highest-depth blogs.
 4. Selected-blog evidence strip with one title hyperlink and concise values.
 5. Pagination for the existing metrics endpoint.
 
@@ -33,7 +33,7 @@
 
 1. Back link, blog title, freshness, and date range.
 2. Question tabs controlling one main diagnostic:
-   - retention curve/progress,
+   - count-based retention curve plus three primary reading metrics,
    - source quality,
    - actions.
 3. Narrow contextual evidence rail that excludes evidence already promoted by the active tab.
@@ -53,15 +53,14 @@
 
 - **Derived values imply false precision**: Label estimated completion and approximate readers explicitly.
 - **Scatter plot is inaccessible**: Every point is a button with a complete accessible label and selection is repeated textually below.
-- **Dense labels collide**: Label only the selected point in-plot; expose all titles through focus/tooltip.
+- **Dense labels collide**: Label only the selected point plus deterministic reach/depth outliers; expose all titles through focus/tooltip.
 - **Small data sets distort position**: Clamp plot positions and handle equal/zero maxima deterministically.
 - **Responsive diagrams collapse**: Use bounded plot aspect ratios and stack diagnostic/rail below desktop width.
 - **Information duplicates across tabs**: Centralize rail section selection in a tested helper.
 
 ## Verification Sequence
 
-1. Add failing helper tests for journey, plot positions, and contextual rail sections.
-2. Implement helpers and feature components.
-3. Replace overview and detail composition while preserving data hooks and state handling.
-4. Update analytics design-system documentation.
-5. Run focused tests, type check, lint, build, and targeted rendered inspection.
+1. Add failing helper tests for selective plot labels and count-based retention coordinates.
+2. Refine feature components without changing data hooks or API contracts.
+3. Update analytics design-system documentation and semantic headings.
+4. Run focused tests, type check, lint, build, and targeted rendered inspection against the approved demo.

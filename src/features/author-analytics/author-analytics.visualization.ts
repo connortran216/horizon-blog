@@ -52,6 +52,10 @@ export interface ReachDepthPosition {
   yPercent: number
 }
 
+const reachDepthLabelLimit = 4
+const reachDepthCollisionX = 16
+const reachDepthCollisionY = 12
+
 const presetDays: Record<AnalyticsRangePreset, number> = {
   '7d': 7,
   '30d': 30,
@@ -109,6 +113,51 @@ export const getReachDepthPosition = (
     xPercent: roundCoordinate(gutter + reachRatio * span),
     yPercent: roundCoordinate(100 - gutter - completionRatio * span),
   }
+}
+
+export const getReachDepthLabelPostIds = (
+  blogs: BlogMetricRow[],
+  selectedPostId: number,
+): number[] => {
+  if (blogs.length === 0) return []
+
+  const maxViews = Math.max(0, ...blogs.map((blog) => blog.views))
+  const selected = blogs.find((blog) => blog.postId === selectedPostId)
+  const highestReach = [...blogs].sort((left, right) => right.views - left.views)[0]
+  const highestDepth = [...blogs].sort(
+    (left, right) => right.completionRate - left.completionRate || right.views - left.views,
+  )[0]
+  const remaining = [...blogs].sort((left, right) => {
+    const leftScore = (maxViews > 0 ? left.views / maxViews : 0) + clamp(left.completionRate, 0, 1)
+    const rightScore =
+      (maxViews > 0 ? right.views / maxViews : 0) + clamp(right.completionRate, 0, 1)
+    return rightScore - leftScore || right.views - left.views || left.postId - right.postId
+  })
+  const candidates = uniqueBlogs([selected, highestReach, highestDepth, ...remaining])
+  const labeled: BlogMetricRow[] = []
+
+  for (const candidate of candidates) {
+    if (labeled.length >= reachDepthLabelLimit) break
+
+    const position = getReachDepthPosition(candidate, maxViews)
+    const collides = labeled.some((blog) => {
+      const labeledPosition = getReachDepthPosition(blog, maxViews)
+      return (
+        Math.abs(position.xPercent - labeledPosition.xPercent) < reachDepthCollisionX &&
+        Math.abs(position.yPercent - labeledPosition.yPercent) < reachDepthCollisionY
+      )
+    })
+
+    if (!collides) labeled.push(candidate)
+  }
+
+  return labeled.map((blog) => blog.postId)
+}
+
+export const formatReachDepthLabel = (title: string, maxLength = 18): string => {
+  const normalized = title.trim().replace(/\s+/g, ' ')
+  if (normalized.length <= maxLength) return normalized
+  return `${normalized.slice(0, maxLength).trimEnd()}…`
 }
 
 export const getContextualEvidenceSections = (
@@ -240,6 +289,16 @@ export const formatStageLabel = (stage: string) => {
 const roundCoordinate = (value: number) => Number(value.toFixed(2))
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+const uniqueBlogs = (blogs: Array<BlogMetricRow | undefined>): BlogMetricRow[] => {
+  const seen = new Set<number>()
+
+  return blogs.filter((blog): blog is BlogMetricRow => {
+    if (!blog || seen.has(blog.postId)) return false
+    seen.add(blog.postId)
+    return true
+  })
+}
 
 const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): number => {
   if (sort === 'unique_readers') return blog.estimatedUniqueReaders

@@ -7,6 +7,7 @@ import {
   formatInsightEvidence,
   getAnalyticsErrorCopy,
   getContextualEvidenceSections,
+  getReachDepthLabelPostIds,
   getReachDepthPosition,
   normalizeFunnelStages,
   sortBlogMetrics,
@@ -54,6 +55,33 @@ describe('author analytics visualization helpers', () => {
       xPercent: 8,
       yPercent: 8,
     })
+  })
+
+  it('labels the selected blog and spatially distinct reach/depth signals without crowding', () => {
+    const blog = (postId: number, views: number, completionRate: number): BlogMetricRow => ({
+      postId,
+      title: `Blog ${postId}`,
+      views,
+      estimatedUniqueReaders: Math.max(1, Math.round(views * 0.7)),
+      uniqueReadersApproximate: true,
+      heartsReceived: 0,
+      activeHeartCount: 0,
+      shares: 0,
+      linkClicks: 0,
+      completionRate,
+      avgActiveReadSeconds: 0,
+    })
+    const blogs = [
+      blog(1, 100, 0.2),
+      blog(2, 96, 0.22),
+      blog(3, 45, 0.92),
+      blog(4, 25, 0.55),
+      blog(5, 8, 0.12),
+    ]
+
+    expect(getReachDepthLabelPostIds(blogs, 4)).toEqual([4, 1, 3, 5])
+    expect(getReachDepthLabelPostIds(blogs, 2)).toEqual([2, 3, 4, 5])
+    expect(getReachDepthLabelPostIds([], 2)).toEqual([])
   })
 
   it('removes signals from the evidence rail when the active diagnostic already owns them', () => {
