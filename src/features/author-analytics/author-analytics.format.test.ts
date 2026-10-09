@@ -8,6 +8,7 @@ import {
   formatEvidenceMetric,
   formatEvidenceMetricValue,
   formatFreshThrough,
+  formatAnalyticsRangeLabel,
 } from './author-analytics.format'
 
 describe('author analytics format helpers', () => {
@@ -57,5 +58,14 @@ describe('author analytics format helpers', () => {
   it('states freshness as a readable UTC time', () => {
     expect(formatFreshThrough('2026-09-25T04:09:19.573Z')).toBe('Sep 25, 2026, 04:09 UTC')
     expect(formatFreshThrough('not a date')).toBe('not a date')
+  })
+
+  it('states the report range the way the approved mockup does', () => {
+    expect(formatAnalyticsRangeLabel('2026-09-09', '2026-10-08')).toBe('Sep 9 \u2013 Oct 8, 2026')
+    expect(formatAnalyticsRangeLabel('2025-12-28', '2026-01-03')).toBe(
+      'Dec 28, 2025 \u2013 Jan 3, 2026',
+    )
+    expect(formatAnalyticsRangeLabel('2026-10-08', '2026-10-08')).toBe('Oct 8, 2026')
+    expect(formatAnalyticsRangeLabel('soon', '2026-10-08')).toBe('soon \u2013 2026-10-08')
   })
 })

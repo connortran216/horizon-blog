@@ -20,6 +20,7 @@ interface UseBlogMetricsOptions {
   order?: AnalyticsSortOrder
   page?: number
   limit?: number
+  all?: boolean
   enabled?: boolean
   service?: AuthorAnalyticsService
 }
@@ -30,6 +31,7 @@ export const useBlogMetrics = ({
   order = 'desc',
   page = 1,
   limit = 10,
+  all = false,
   enabled = true,
   service,
 }: UseBlogMetricsOptions) => {
@@ -46,11 +48,14 @@ export const useBlogMetrics = ({
     }
 
     let isCancelled = false
+    const controller = new AbortController()
     setIsLoading(true)
     setError(null)
 
-    analyticsService
-      .getPostMetrics({ range, sort, order, page, limit })
+    const request = all
+      ? analyticsService.getAllPostMetrics(range, controller.signal)
+      : analyticsService.getPostMetrics({ range, sort, order, page, limit })
+    request
       .then((nextData) => {
         if (!isCancelled) setData(nextData)
       })
@@ -66,8 +71,20 @@ export const useBlogMetrics = ({
 
     return () => {
       isCancelled = true
+      controller.abort()
     }
-  }, [analyticsService, enabled, limit, order, page, range.from, range.to, requestVersion, sort])
+  }, [
+    analyticsService,
+    all,
+    enabled,
+    limit,
+    order,
+    page,
+    range.from,
+    range.to,
+    requestVersion,
+    sort,
+  ])
 
   const refresh = useCallback(() => {
     setRequestVersion((version) => version + 1)

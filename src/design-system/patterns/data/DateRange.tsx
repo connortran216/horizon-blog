@@ -116,7 +116,7 @@ export function DateRange({
 
       {showsCustom ? (
         <Flex gap={space[4]} flexWrap="wrap">
-          <Box flex="1" minW={space[24]}>
+          <Box flex="1" minW={{ base: 'full', sm: space[24] }}>
             <Field label={`From (${timeZoneLabel})`} isDisabled={isDisabled}>
               <Input
                 type="date"
@@ -126,7 +126,7 @@ export function DateRange({
               />
             </Field>
           </Box>
-          <Box flex="1" minW={space[24]}>
+          <Box flex="1" minW={{ base: 'full', sm: space[24] }}>
             <Field
               label={`To (${timeZoneLabel})`}
               isDisabled={isDisabled}

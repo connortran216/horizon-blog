@@ -64,6 +64,53 @@ export class AuthorAnalyticsService {
     }
   }
 
+  /** Collect the paginated contract once so title search covers every blog. */
+  async getAllPostMetrics(
+    range: AnalyticsDateRange,
+    signal?: AbortSignal,
+  ): Promise<BlogMetricsPage> {
+    const posts = new Map<number, BlogMetricRow>()
+    let first: BlogMetricsPage | undefined
+    let freshThrough: string | undefined
+    for (let page = 1; ; page += 1) {
+      signal?.throwIfAborted()
+      const result = await this.getPostMetrics({
+        range,
+        page,
+        limit: 100,
+        sort: 'views',
+        order: 'desc',
+      })
+      signal?.throwIfAborted()
+      first ??= result
+      if (
+        !Number.isInteger(result.limit) ||
+        result.limit < 1 ||
+        !Number.isInteger(result.total) ||
+        result.total < 0 ||
+        result.total !== first.total ||
+        result.limit !== first.limit ||
+        result.page !== page
+      ) {
+        throw new ApiError('Blog analytics changed while loading. Please retry.', 409)
+      }
+      if (!freshThrough || result.dataFreshThrough < freshThrough)
+        freshThrough = result.dataFreshThrough
+      for (const blog of result.posts) posts.set(blog.postId, blog)
+      if (page * result.limit >= result.total) {
+        if (posts.size !== result.total)
+          throw new ApiError('Incomplete blog analytics. Please retry.', 409)
+        return {
+          ...first,
+          posts: [...posts.values()],
+          dataFreshThrough: freshThrough ?? first.dataFreshThrough,
+        }
+      }
+      if (result.posts.length === 0)
+        throw new ApiError('Incomplete blog analytics. Please retry.', 409)
+    }
+  }
+
   async getPostDetail(postId: number, range: AnalyticsDateRange): Promise<BlogAnalyticsDetail> {
     const response = this.unwrapResult(
       await this.repository.getPostDetail(postId, range),

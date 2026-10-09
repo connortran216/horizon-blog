@@ -94,3 +94,29 @@ final result: passed
 - Type check, repository lint, and production build passed.
 
 final result: passed
+
+---
+
+# Analytics Monitoring Report QA (spec 024)
+
+- Visual truth: `specs/024-analytics-monitoring-report/approved-mockup.png`.
+- Implementation under review: `AnalyticsOverviewPage` and `BlogAnalyticsPage` composed from `AnalyticsReportSection`, `AnalyticsReportSummary`, `AnalyticsDailyViews`, `BlogPerformanceReport`, `BlogReadingReport`, `ReadingRetentionChart` and `AnalyticsDateRangeFilter`, rendered with labelled fixtures in Storybook `Author/Analytics monitoring`.
+- Evidence: `specs/024-analytics-monitoring-report/evidence/`. `date-mobile.png`, `overview-light.png`, `overview-mobile-light.png` and `detail-light.png` show the final date wording and the stacked custom-date inputs at 375 px; the `*-dark.png` captures predate the date-format change and otherwise match.
+
+## Fidelity findings
+
+- Date disclosure reads "Sep 9 – Oct 8, 2026 · UTC" as in the mockup; the chart subtitle uses the same wording.
+- The mockup's "low sample" badges are stated as "Based on N opens": the spec asks for the actual view denominator rather than a significance threshold.
+- The mockup's "View all" is the existing paginated table: the spec keeps pagination and deep links.
+- Views are counts without a meter; completion is a 0–100% track with its denominator; retention says "did not reach"; source bars are labelled as share of attributed views and source quality columns are omitted.
+
+## Interaction and technical checks
+
+- Custom date inputs stack to full width at 375 px (observed); above the `sm` breakpoint they share the row with a `space[24]` minimum, through tokens only.
+- Storybook rendered desktop and 375 px without console errors.
+- Analytics-focused tests: 9 files, 34 tests passed.
+- Full suite: 189 files, 1,935 tests passed.
+- Type check, repository lint, Prettier check and production build passed.
+- The legacy map/journey/tab analytics components and their helpers were removed; no route, story or test referenced them.
+
+final result: passed
