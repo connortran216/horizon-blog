@@ -297,33 +297,41 @@ Analytics components live in:
 
 - `src/features/author-analytics/components`
 
-They stay feature-owned because they understand analytics-specific concepts such as approximate readers, completion, active read seconds, sample size, and backend evidence.
+They stay feature-owned because they understand analytics-specific concepts such as approximate readers, completion, active read seconds, sample size, and backend evidence. The route-level contract is `design-system/pages/analytics.md`.
 
-### ReaderJourney
-
-Rules:
-
-- show views, estimated readers, derived completion, and action events as one calm sequence
-- label estimates and keep actions distinct from unique-reader funnel stages
-- keep definitions in the shared focusable tooltip instead of persistent helper paragraphs
-
-### ReachDepthMap And SelectedBlogEvidence
+### AnalyticsReportSection And AnalyticsReportSummary
 
 Rules:
 
-- horizontal position is views; vertical position is completion; point size may indicate estimated readers
-- every point remains a focusable button with a complete accessible name
-- the selected blog is repeated in a textual evidence strip below the map
-- the blog title is the direct diagnostics link; do not render one repeated action button per point
+- a report is a numbered sequence of semantic sections, each with a heading, a one-line detail and optional controls
+- the summary is one inline metadata line, not a KPI-card grid
+- estimated readers stay visibly approximate
 
-### BlogDiagnosticWorkspace
+### AnalyticsDailyViews
 
 Rules:
 
-- organize detail analytics around retention, source, and action questions
-- show only one main diagnostic at a time
-- contextual evidence must omit the signal already promoted by the active question
-- keep chart and bar meaning available through nearby values and accessible labels
+- plot real daily view counts on a numeric axis that scales to the observed data
+- missing dates remain gaps, never invented zero measurements
+- exact values are available in an accessible data disclosure below the chart
+
+### BlogPerformanceReport
+
+Rules:
+
+- views are right-aligned counts with no progress track or implied maximum
+- completion is a 0-100% session ratio with its opens denominator stated next to it
+- title search and sort run over every page of the metrics API before local pagination
+- the blog title is the direct link to its detail report and carries range, search, sort and page
+
+### BlogReadingReport And ReadingRetentionChart
+
+Rules:
+
+- retention, traffic sources and reader actions are all visible in one reading flow, without tabs
+- retention plots session counts; the early observation needs real opened and 25% stages and says "did not reach" without inferring why
+- traffic bars encode the share of attributed views, and source quality metrics are omitted until their semantics are verified
+- backend insight messages, sample sizes and evidence are preserved in the supplementary disclosure
 
 ### AnalyticsInsightList
 
@@ -334,13 +342,13 @@ Rules:
 - evidence labels must include metric, value, and baseline when provided
 - empty insight state should be calm and should not imply a problem
 
-### AnalyticsInfoTooltip And Date Range
+### AnalyticsDateRangeFilter
 
 Rules:
 
-- tooltips must open on hover and keyboard focus and use concise definitions
-- the compact date control retains presets, custom dates, and the UTC contract
-- date and tooltip triggers need visible focus and must not depend on icon meaning alone
+- the compact trigger states the inclusive range as "Sep 9 – Oct 8, 2026 · UTC" and opens a keyboard-accessible popover
+- the popover retains presets, custom dates, and the UTC contract from the v2 `DateRange` pattern
+- the trigger needs visible focus and must not depend on the icon alone
 
 ## Form and Auth Components
 

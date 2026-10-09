@@ -1,3 +1,6 @@
+import { Popover, PopoverTrigger, PopoverContent, PopoverBody } from '@chakra-ui/react'
+import { FiCalendar } from 'react-icons/fi'
+import { Button } from '../../../design-system'
 /**
  * The analytics date-range control - three presets plus a custom pair, composed
  * from the design system's `DateRange` pattern.
@@ -6,6 +9,7 @@
 import { useState } from 'react'
 
 import { DateRange, type DateRangeValue } from '../../../design-system'
+import { formatAnalyticsRangeLabel } from '../author-analytics.format'
 import { AnalyticsDateRange } from '../author-analytics.types'
 import { AnalyticsRangePreset, createAnalyticsRangePreset } from '../author-analytics.visualization'
 
@@ -13,6 +17,7 @@ interface AnalyticsDateRangeFilterProps {
   range: AnalyticsDateRange
   onRangeChange: (range: AnalyticsDateRange) => void
   isDisabled?: boolean
+  compact?: boolean
 }
 
 const presets: Array<{ key: AnalyticsRangePreset | 'custom'; label: string }> = [
@@ -38,6 +43,7 @@ const AnalyticsDateRangeFilter = ({
   range,
   onRangeChange,
   isDisabled = false,
+  compact = false,
 }: AnalyticsDateRangeFilterProps) => {
   const [customChosen, setCustomChosen] = useState(false)
   const activePreset = customChosen ? 'custom' : derivePreset(range)
@@ -57,7 +63,7 @@ const AnalyticsDateRangeFilter = ({
     onRangeChange({ from: value.from, to: value.to, timezone: 'UTC' })
   }
 
-  return (
+  const control = (
     <DateRange
       presets={presets}
       activePreset={activePreset}
@@ -67,6 +73,23 @@ const AnalyticsDateRangeFilter = ({
       timeZoneLabel="UTC"
       isDisabled={isDisabled}
     />
+  )
+  if (!compact) return control
+  return (
+    <Popover placement="bottom-end">
+      <PopoverTrigger>
+        <Button
+          tone="secondary"
+          iconStart={<FiCalendar aria-hidden="true" />}
+          isDisabled={isDisabled}
+        >
+          {formatAnalyticsRangeLabel(range.from, range.to)} · UTC
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent w={{ base: 'calc(100vw - 32px)', md: '480px' }} bg="bg.elevated">
+        <PopoverBody p={4}>{control}</PopoverBody>
+      </PopoverContent>
+    </Popover>
   )
 }
 

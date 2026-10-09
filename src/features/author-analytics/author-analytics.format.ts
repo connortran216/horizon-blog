@@ -99,3 +99,35 @@ export const formatFreshThrough = (iso: string): string => {
 
   return Number.isNaN(date.getTime()) ? iso : `${freshFormatter.format(date)} UTC`
 }
+
+const rangeDay = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+})
+const rangeDayYear = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+const parseUtcDay = (day: string): Date | null => {
+  const date = new Date(`${day}T00:00:00Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+/**
+ * "Sep 9 - Oct 8, 2026" (with an en dash) for an inclusive UTC date range, the way the approved
+ * report states it. The year is written once when both ends share it, a single
+ * day is written once, and an unreadable range is passed through unchanged.
+ */
+export const formatAnalyticsRangeLabel = (from: string, to: string): string => {
+  const start = parseUtcDay(from)
+  const end = parseUtcDay(to)
+  if (!start || !end) return `${from} \u2013 ${to}`
+  if (from === to) return rangeDayYear.format(start)
+  if (start.getUTCFullYear() === end.getUTCFullYear())
+    return `${rangeDay.format(start)} \u2013 ${rangeDayYear.format(end)}`
+  return `${rangeDayYear.format(start)} \u2013 ${rangeDayYear.format(end)}`
+}

@@ -1,26 +1,12 @@
-import { formatAnalyticsPercent } from './author-analytics.format'
 import {
   AnalyticsDateRange,
   AnalyticsFunnelStage,
-  AnalyticsInsight,
   AnalyticsPostSort,
-  AnalyticsSummary,
   AnalyticsSortOrder,
   BlogMetricRow,
 } from './author-analytics.types'
-import { AnalyticsLoadErrorState } from './author-analytics.hook-state'
 
 export type AnalyticsRangePreset = '7d' | '30d' | '90d'
-
-interface TrendPointInput {
-  date: string
-  value: number
-}
-
-interface TrendBounds {
-  width: number
-  height: number
-}
 
 export interface NormalizedFunnelStage {
   label: string
@@ -28,33 +14,6 @@ export interface NormalizedFunnelStage {
   rate: number
   widthPercent: number
 }
-
-export interface FormattedInsightEvidence {
-  sampleLabel: string
-  evidenceLabels: string[]
-}
-
-export type AnalyticsJourneyStageId = 'views' | 'readers' | 'completed' | 'actions'
-
-export interface AnalyticsJourneyStage {
-  id: AnalyticsJourneyStageId
-  label: string
-  value: number
-  approximate: boolean
-}
-
-export type BlogDiagnosticQuestion = 'retention' | 'sources' | 'actions'
-
-export type AnalyticsEvidenceSection = 'sources' | 'links' | 'reactions' | 'insight'
-
-export interface ReachDepthPosition {
-  xPercent: number
-  yPercent: number
-}
-
-const reachDepthLabelLimit = 4
-const reachDepthCollisionX = 16
-const reachDepthCollisionY = 12
 
 const presetDays: Record<AnalyticsRangePreset, number> = {
   '7d': 7,
@@ -68,104 +27,6 @@ const addUtcDays = (date: Date, days: number) => {
   const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
   next.setUTCDate(next.getUTCDate() + days)
   return next
-}
-
-export const buildReaderJourney = (summary: AnalyticsSummary): AnalyticsJourneyStage[] => [
-  {
-    id: 'views',
-    label: 'Views',
-    value: Math.max(0, summary.views),
-    approximate: false,
-  },
-  {
-    id: 'readers',
-    label: 'Readers',
-    value: Math.max(0, summary.estimatedUniqueReaders),
-    approximate: summary.uniqueReadersApproximate,
-  },
-  {
-    id: 'completed',
-    label: 'Completed',
-    value: Math.round(Math.max(0, summary.views) * clamp(summary.completionRate, 0, 1)),
-    approximate: true,
-  },
-  {
-    id: 'actions',
-    label: 'Actions',
-    value:
-      Math.max(0, summary.heartsReceived) +
-      Math.max(0, summary.shares) +
-      Math.max(0, summary.linkClicks),
-    approximate: false,
-  },
-]
-
-export const getReachDepthPosition = (
-  blog: BlogMetricRow,
-  maxViews: number,
-): ReachDepthPosition => {
-  const gutter = 8
-  const span = 100 - gutter * 2
-  const reachRatio = maxViews > 0 ? clamp(blog.views / maxViews, 0, 1) : 0
-  const completionRatio = clamp(blog.completionRate, 0, 1)
-
-  return {
-    xPercent: roundCoordinate(gutter + reachRatio * span),
-    yPercent: roundCoordinate(100 - gutter - completionRatio * span),
-  }
-}
-
-export const getReachDepthLabelPostIds = (
-  blogs: BlogMetricRow[],
-  selectedPostId: number,
-): number[] => {
-  if (blogs.length === 0) return []
-
-  const maxViews = Math.max(0, ...blogs.map((blog) => blog.views))
-  const selected = blogs.find((blog) => blog.postId === selectedPostId)
-  const highestReach = [...blogs].sort((left, right) => right.views - left.views)[0]
-  const highestDepth = [...blogs].sort(
-    (left, right) => right.completionRate - left.completionRate || right.views - left.views,
-  )[0]
-  const remaining = [...blogs].sort((left, right) => {
-    const leftScore = (maxViews > 0 ? left.views / maxViews : 0) + clamp(left.completionRate, 0, 1)
-    const rightScore =
-      (maxViews > 0 ? right.views / maxViews : 0) + clamp(right.completionRate, 0, 1)
-    return rightScore - leftScore || right.views - left.views || left.postId - right.postId
-  })
-  const candidates = uniqueBlogs([selected, highestReach, highestDepth, ...remaining])
-  const labeled: BlogMetricRow[] = []
-
-  for (const candidate of candidates) {
-    if (labeled.length >= reachDepthLabelLimit) break
-
-    const position = getReachDepthPosition(candidate, maxViews)
-    const collides = labeled.some((blog) => {
-      const labeledPosition = getReachDepthPosition(blog, maxViews)
-      return (
-        Math.abs(position.xPercent - labeledPosition.xPercent) < reachDepthCollisionX &&
-        Math.abs(position.yPercent - labeledPosition.yPercent) < reachDepthCollisionY
-      )
-    })
-
-    if (!collides) labeled.push(candidate)
-  }
-
-  return labeled.map((blog) => blog.postId)
-}
-
-export const formatReachDepthLabel = (title: string, maxLength = 18): string => {
-  const normalized = title.trim().replace(/\s+/g, ' ')
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength).trimEnd()}…`
-}
-
-export const getContextualEvidenceSections = (
-  question: BlogDiagnosticQuestion,
-): AnalyticsEvidenceSection[] => {
-  if (question === 'sources') return ['links', 'reactions', 'insight']
-  if (question === 'actions') return ['sources', 'insight']
-  return ['sources', 'links', 'reactions', 'insight']
 }
 
 export const createAnalyticsRangePreset = (
@@ -182,27 +43,6 @@ export const createAnalyticsRangePreset = (
   }
 }
 
-export const buildTrendPolyline = (points: TrendPointInput[], bounds: TrendBounds): string => {
-  if (points.length === 0) return ''
-
-  const values = points.map((point) => Math.max(0, point.value))
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-
-  if (points.length === 1 || min === max) {
-    return `0,${bounds.height / 2} ${bounds.width},${bounds.height / 2}`
-  }
-
-  return points
-    .map((point, index) => {
-      const x = (index / (points.length - 1)) * bounds.width
-      const normalizedValue = (Math.max(0, point.value) - min) / (max - min)
-      const y = bounds.height - normalizedValue * bounds.height
-      return `${roundCoordinate(x)},${roundCoordinate(y)}`
-    })
-    .join(' ')
-}
-
 export const normalizeFunnelStages = (stages: AnalyticsFunnelStage[]): NormalizedFunnelStage[] => {
   const maxSessions = Math.max(1, ...stages.map((stage) => stage.sessions))
 
@@ -212,44 +52,6 @@ export const normalizeFunnelStages = (stages: AnalyticsFunnelStage[]): Normalize
     rate: stage.rate,
     widthPercent: Math.round((stage.sessions / maxSessions) * 100),
   }))
-}
-
-export const getAnalyticsErrorCopy = (
-  error: AnalyticsLoadErrorState,
-): { title: string; description: string } => {
-  if (error.kind === 'unauthorized') {
-    return {
-      title: 'Your session needs attention',
-      description: 'Sign in again to view analytics for your writing.',
-    }
-  }
-
-  if (error.kind === 'forbidden') {
-    return {
-      title: 'Analytics access is not available',
-      description:
-        'You are still signed in, but this account does not currently have author analytics permission.',
-    }
-  }
-
-  if (error.kind === 'not_found') {
-    return {
-      title: 'Analytics not found',
-      description: 'This blog may not belong to your account or may not have analytics yet.',
-    }
-  }
-
-  if (error.kind === 'service_unavailable') {
-    return {
-      title: 'Analytics is catching up',
-      description: 'Analytics data is temporarily unavailable. Your blogs are still safe.',
-    }
-  }
-
-  return {
-    title: 'Analytics could not load',
-    description: error.message || 'Try refreshing this page in a moment.',
-  }
 }
 
 export const sortBlogMetrics = (
@@ -268,36 +70,12 @@ export const sortBlogMetrics = (
   })
 }
 
-export const formatInsightEvidence = (insight: AnalyticsInsight): FormattedInsightEvidence => ({
-  sampleLabel: `Sample size: ${insight.sample_size}`,
-  evidenceLabels: insight.evidence.map(
-    (evidence) =>
-      `${evidence.metric}: ${formatEvidenceValue(evidence.value)} vs ${formatEvidenceValue(
-        evidence.baseline,
-      )} baseline`,
-  ),
-})
-
 export const formatStageLabel = (stage: string) => {
   if (stage === '25' || stage === '50' || stage === '75') return `${stage}% read`
   return stage
     .split('_')
     .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
     .join(' ')
-}
-
-const roundCoordinate = (value: number) => Number(value.toFixed(2))
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
-
-const uniqueBlogs = (blogs: Array<BlogMetricRow | undefined>): BlogMetricRow[] => {
-  const seen = new Set<number>()
-
-  return blogs.filter((blog): blog is BlogMetricRow => {
-    if (!blog || seen.has(blog.postId)) return false
-    seen.add(blog.postId)
-    return true
-  })
 }
 
 const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): number => {
@@ -309,6 +87,3 @@ const getBlogMetricValue = (blog: BlogMetricRow, sort: AnalyticsPostSort): numbe
   if (sort === 'link_clicks') return blog.linkClicks
   return blog.views
 }
-
-export const formatEvidenceValue = (value: number): string =>
-  value >= 0 && value <= 1 ? formatAnalyticsPercent(value) : String(value)
