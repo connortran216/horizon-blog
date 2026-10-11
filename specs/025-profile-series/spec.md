@@ -45,6 +45,8 @@ PR 2 (separate spec update): `/profile/:username/series/:id` owner page, unboxed
   the Blogs section. The masthead count is omitted until the list has loaded.
 - **FR-003** A spine states its part count, live count and not-yet-live count in text, and lists its
   parts (position, title, state) to assistive technology in order.
+- **FR-003a** A spine never widens its track: past twelve parts it is drawn as one segmented bar
+  (a Series has no part limit).
 - **FR-004** An empty Series reads "No parts yet" and says it is not shown to readers.
 - **FR-005** The composer requires a non-blank title (max 160 characters) and accepts an optional
   description (max 1000), matching the backend contract. A disabled submit explains why; a create

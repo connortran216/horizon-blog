@@ -25,6 +25,7 @@ import type { HeadingElement } from '../../components/layout'
 import { Heading, Text } from '../../components/typography'
 import { transitionFor, useMotionPolicy } from '../../motion'
 import {
+  spineIsDense,
   spineLitExtent,
   spineMarks,
   spineTally,
@@ -58,6 +59,7 @@ function Mark({ mark }: { readonly mark: SpineMark }) {
       placeItems="center"
       flex="none"
       boxSize={tokens.markSize}
+      data-spine-mark=""
       borderRadius="full"
       borderWidth={filled ? 0 : '2px'}
       borderStyle={mark.state === 'draft' ? 'dashed' : 'solid'}
@@ -72,6 +74,59 @@ function Mark({ mark }: { readonly mark: SpineMark }) {
         <Box aria-hidden="true" boxSize={space[1]} borderRadius="full" bg={tokens.markScheduled} />
       ) : null}
       <VisuallyHidden>{mark.spoken}</VisuallyHidden>
+    </Box>
+  )
+}
+
+const segmentColor = {
+  published: tokens.markLive,
+  scheduled: tokens.markScheduled,
+  draft: tokens.markDraft,
+} as const
+
+/*
+ * A Series has no part limit, and a row of fixed-size marks past
+ * `SPINE_MARK_LIMIT` would push the spine past its track - and the page past a
+ * phone's edge. A long Series is drawn as one bar instead, a segment per part
+ * in the same state colours, which always fits. The spoken list is the same.
+ */
+function DenseTrack({
+  title,
+  parts,
+}: {
+  readonly title: string
+  readonly parts: readonly SpinePart[]
+}) {
+  return (
+    <Box minW={0} minH={space[8]} display="flex" alignItems="center">
+      <Box
+        as="ol"
+        aria-label={spineTrackLabel(title)}
+        display="flex"
+        width="100%"
+        minW={0}
+        height={space[1]}
+        margin={0}
+        padding={0}
+        listStyleType="none"
+        borderRadius="full"
+        overflow="hidden"
+        data-spine-dense=""
+      >
+        {spineMarks(parts).map((mark) => (
+          <Box
+            as="li"
+            key={mark.id}
+            flex="1 1 0"
+            minW={0}
+            bg={segmentColor[mark.state]}
+            data-spine-state={mark.state}
+            title={mark.spoken}
+          >
+            <VisuallyHidden>{mark.spoken}</VisuallyHidden>
+          </Box>
+        ))}
+      </Box>
     </Box>
   )
 }
@@ -102,6 +157,10 @@ function Track({ title, parts }: { readonly title: string; readonly parts: reado
         </Text>
       </Box>
     )
+  }
+
+  if (spineIsDense(parts.length)) {
+    return <DenseTrack title={title} parts={parts} />
   }
 
   const extent = spineLitExtent(parts)

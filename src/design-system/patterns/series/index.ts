@@ -35,6 +35,8 @@ export { SeriesComposer } from './SeriesComposer'
 export type { SeriesComposerProps } from './SeriesComposer'
 
 export {
+  SPINE_MARK_LIMIT,
+  spineIsDense,
   spineLitExtent,
   spineLiveRun,
   spineMarks,

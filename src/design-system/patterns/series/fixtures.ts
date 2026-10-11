@@ -173,6 +173,21 @@ export const sampleSpineAllLive: readonly SpinePart[] = sampleSpineParts.map((pa
   state: 'published' as const,
 }))
 
+/** Past `SPINE_MARK_LIMIT`: drawn as one segmented bar. */
+export const sampleSpineLong: readonly SpinePart[] = Array.from(
+  { length: 40 },
+  (_unused, index) => ({
+    id: `long-${index + 1}`,
+    title: `Sample part ${index + 1}`,
+    state:
+      index < 18
+        ? ('published' as const)
+        : index === 18
+          ? ('scheduled' as const)
+          : ('draft' as const),
+  }),
+)
+
 export const sampleSpineWithGap: readonly SpinePart[] = [
   { id: 'gap-1', title: 'Sample part 1: live', state: 'published' },
   { id: 'gap-2', title: 'Sample part 2: a draft in the middle', state: 'draft' },

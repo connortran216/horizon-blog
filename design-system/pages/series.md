@@ -89,6 +89,9 @@ Series discovery and reader components stay feature-owned under `src/features/se
 - The line is lit through the unbroken run of published parts from Part 1, so a
   gap shows where readers stop. It draws once on arrival; under reduced motion
   it is simply drawn.
+- Past twelve parts the marks would not fit a phone, so the spine is drawn as
+  one bar with a segment per part in the same state colours; it never widens
+  the page.
 - The tally ("5 parts · 2 live · 3 not live yet") and a spoken label per mark
   carry the same facts in words.
 - Owner surfaces use the owner's order, drafts included. Public surfaces keep

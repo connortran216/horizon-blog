@@ -9,6 +9,8 @@ import {
   seriesComposerState,
 } from './seriesComposer.logic'
 import {
+  SPINE_MARK_LIMIT,
+  spineIsDense,
   spineLitExtent,
   spineLiveRun,
   spineMarks,
@@ -42,6 +44,13 @@ describe('spineLitExtent', () => {
     expect(spineLitExtent(sampleSpineWithGap)).toBe(0)
     expect(spineLitExtent([{ state: 'published' }])).toBe(0)
     expect(spineLitExtent([])).toBe(0)
+  })
+})
+
+describe('spineIsDense', () => {
+  it('keeps separate marks up to the limit and draws a bar past it', () => {
+    expect(spineIsDense(SPINE_MARK_LIMIT)).toBe(false)
+    expect(spineIsDense(SPINE_MARK_LIMIT + 1)).toBe(true)
   })
 })
 

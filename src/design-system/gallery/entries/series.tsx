@@ -25,6 +25,7 @@ import {
   sampleManagedParts,
   sampleSeriesContext,
   sampleSpineAllLive,
+  sampleSpineLong,
   sampleSpineParts,
   sampleSpineWithGap,
   sampleSeriesContextAtStart,
@@ -135,9 +136,11 @@ function SeriesSpineEntry({ state }: { readonly state: string }) {
       ? sampleSpineAllLive
       : state === 'gap after Part 1'
         ? sampleSpineWithGap
-        : state === 'no parts yet'
-          ? []
-          : sampleSpineParts
+        : state === 'forty parts'
+          ? sampleSpineLong
+          : state === 'no parts yet'
+            ? []
+            : sampleSpineParts
 
   return (
     <SeriesSpine

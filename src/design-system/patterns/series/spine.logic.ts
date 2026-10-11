@@ -41,6 +41,17 @@ const stateWords: Record<SpinePartState, string> = {
   draft: 'draft',
 }
 
+/**
+ * The most parts drawn as separate marks. Twelve 16px marks with room between
+ * them fit the narrowest track (a phone's content width, or the spine's
+ * `spineColumnMin`); past that the spine is drawn as one segmented bar.
+ */
+export const SPINE_MARK_LIMIT = 12
+
+export function spineIsDense(count: number): boolean {
+  return count > SPINE_MARK_LIMIT
+}
+
 /** How many parts, from Part 1, a reader can walk through without a gap. */
 export function spineLiveRun(parts: readonly Pick<SpinePart, 'state'>[]): number {
   let run = 0

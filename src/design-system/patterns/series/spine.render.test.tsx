@@ -37,6 +37,20 @@ describe('SeriesSpine', () => {
     expect(markup).toContain('data-spine-lit')
   })
 
+  it('draws a long Series as one segmented bar, so it stays inside its track', () => {
+    const long = Array.from({ length: 60 }, (_unused, index) => ({
+      id: `long-${index}`,
+      title: `Sample part ${index + 1}`,
+      state: 'published' as const,
+    }))
+    const markup = render(<SeriesSpine title="Sample Series" parts={long} />)
+
+    expect(markup).toContain('data-spine-dense')
+    expect(markup).not.toContain('data-spine-mark')
+    expect(markup.match(/<li /g)).toHaveLength(60)
+    expect(markup).toContain('Part 60, live: Sample part 60')
+  })
+
   it('draws an empty Series as a line still to start, with no list', () => {
     const markup = render(<SeriesSpine title="Sample Series" parts={[]} />)
 

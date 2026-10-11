@@ -633,11 +633,12 @@ export const galleryRegistry = [
   {
     name: 'SeriesSpine',
     area: 'series',
-    note: 'The owner view on the profile. The light covers the unbroken live run from Part 1.',
+    note: 'The owner view on the profile. The light covers the unbroken live run from Part 1; past twelve parts the spine is one segmented bar.',
     states: [
       { name: 'partly live', kind: 'ready' },
       { name: 'all live' },
       { name: 'gap after Part 1' },
+      { name: 'forty parts' },
       { name: 'no parts yet', kind: 'empty' },
     ],
   },
