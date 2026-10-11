@@ -17,6 +17,7 @@ It should feel like an editorial author page with management affordances, not a 
 - write a new blog
 - manage blogs and drafts
 - manage upcoming scheduled publications
+- see, create and reach the management of Series
 
 ## Layout
 
@@ -29,6 +30,10 @@ It should feel like an editorial author page with management affordances, not a 
   counts as typography (`SignalRoute`); on a phone they become a compact list
 - owned writing section below, also unboxed: heading, tabs, then a three-column
   card grid from `lg`
+- a Series section after the writing section, a sibling rather than a fourth tab
+  (the tabs filter blogs by status; a Series groups them): heading, `New Series`,
+  then one `SeriesSpine` per Series between rules. `New Series` opens
+  `SeriesComposer` in place at the head of the list
 - keep management UI integrated into the editorial tone
 
 ## Hierarchy
@@ -36,7 +41,8 @@ It should feel like an editorial author page with management affordances, not a 
 - portrait and profile identity
 - quiet `Edit profile` action immediately after the name
 - biography and permission-gated `Write a blog` action
-- high-level counts expressed as typography and dividers, not KPI cards
+- high-level counts expressed as typography and dividers, not KPI cards; the
+  rule writes a fourth count, `Series`, once the owner's Series have loaded
 - blogs and drafts sections
 - published, scheduled, and unscheduled draft views use independent server-backed counts
 
@@ -49,6 +55,7 @@ It should feel like an editorial author page with management affordances, not a 
 - `ProfileBlogGrid`
 - `ProfileScheduledList`
 - `ProfileScheduledRow`
+- `ProfileSeriesSection`, `SeriesSpine`, `SeriesComposer`
 - `EditProfileModal`
 - `AvatarPreviewModal`
 
@@ -80,3 +87,7 @@ It should feel like an editorial author page with management affordances, not a 
 - scheduled rows show exact local time, timezone, relative time, and last update
 - a just-due publication reads `Publishing`; after five minutes it reads `Needs attention`
 - canceling a schedule returns the blog to Drafts and does not delete it
+- an owner card in a Series shows `Part X of Y` in the owner's order, drafts
+  counted, linking to Series management
+- the Series section, its count and its request exist only with the
+  `content:manage:own` grant; its loading and failure stay inside the section

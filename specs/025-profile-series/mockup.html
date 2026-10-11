@@ -1,0 +1,1505 @@
+<title>Series Spines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bitter:wght@600;700&display=swap"
+/>
+<style>
+  /* Layout: Horizon /profile canvas - unboxed masthead, one SignalRoute rule, then two sibling sections (Blogs, Series). Series rows are "spines": a hairline with one ordinal mark per part. */
+  :root {
+    --canvas: #f5f7fc;
+    --surface: #ffffff;
+    --subtle: #edf1fa;
+    --ink: #17213a;
+    --ink-2: #53617a;
+    --muted: #5d6b82;
+    --line: #dce3ef;
+    --control: #7e8ba5;
+    --action: #3158d4;
+    --action-hover: #2648b6;
+    --link: #294bc4;
+    --on-action: #ffffff;
+    --lime: #ddf89a;
+    --on-lime: #263a12;
+    --ok: #206b43;
+    --warn: #8a5300;
+    --danger: #b42336;
+    --glow: rgb(49 88 212 / 12%);
+    --display: 'Bitter', Georgia, 'Times New Roman', serif;
+    --body:
+      'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --r-control: 12px;
+    --r-card: 20px;
+    --r-feature: 28px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --canvas: #0d1220;
+      --surface: #151d2e;
+      --subtle: #1a2438;
+      --ink: #e9eefa;
+      --ink-2: #a7b4cc;
+      --muted: #8b9ab5;
+      --line: #2b3852;
+      --control: #697b9d;
+      --action: #8aa4ff;
+      --action-hover: #a4b8ff;
+      --link: #a9baff;
+      --on-action: #101a35;
+      --lime: #c5ec83;
+      --on-lime: #1c2c0c;
+      --ok: #80d7a1;
+      --warn: #f1c36c;
+      --danger: #ff929f;
+      --glow: rgb(138 164 255 / 16%);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --canvas: #0d1220;
+    --surface: #151d2e;
+    --subtle: #1a2438;
+    --ink: #e9eefa;
+    --ink-2: #a7b4cc;
+    --muted: #8b9ab5;
+    --line: #2b3852;
+    --control: #697b9d;
+    --action: #8aa4ff;
+    --action-hover: #a4b8ff;
+    --link: #a9baff;
+    --on-action: #101a35;
+    --lime: #c5ec83;
+    --on-lime: #1c2c0c;
+    --ok: #80d7a1;
+    --warn: #f1c36c;
+    --danger: #ff929f;
+    --glow: rgb(138 164 255 / 16%);
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font: 400 15px/1.6 var(--body);
+    padding-inline: 16px;
+    padding-block: 0 64px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin-inline: auto;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    margin: 0;
+  }
+  p {
+    margin: 0;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--action);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* design-review strip (not product UI) */
+  .review {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--canvas);
+    border-bottom: 1px solid var(--line);
+    padding-block: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .review .label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-inline-end: 4px;
+  }
+  .pill {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .pill[aria-pressed='true'] {
+    background: var(--ink);
+    color: var(--canvas);
+    border-color: var(--ink);
+  }
+  .review .spacer {
+    flex: 1;
+  }
+
+  /* nav */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 20px;
+  }
+  .brand {
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    font-size: 13px;
+  }
+  .nav ul {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .nav li[aria-current] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @media (max-width: 640px) {
+    .nav ul {
+      display: none;
+    }
+  }
+
+  /* buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding-inline: 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--action);
+    color: var(--on-action);
+  }
+  .btn-primary:hover {
+    background: var(--action-hover);
+  }
+  .btn-primary[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-quiet {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--ink);
+  }
+  .btn-quiet:hover {
+    border-color: var(--control);
+  }
+  .btn-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    min-height: auto;
+    color: var(--link);
+    font-weight: 600;
+  }
+  .btn-danger {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--danger);
+  }
+  .icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  /* masthead */
+  .mast {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 32px;
+    padding-block: 32px 24px;
+  }
+  .portrait {
+    width: 168px;
+    aspect-ratio: 1;
+    border-radius: var(--r-card);
+    background: linear-gradient(140deg, var(--subtle), var(--line));
+    display: grid;
+    place-items: center;
+    font: 700 56px var(--display);
+    color: var(--muted);
+  }
+  .mast h1 {
+    font: 700 48px/1.1 var(--display);
+    letter-spacing: -0.01em;
+    margin-block: 8px 6px;
+  }
+  .mast .bio {
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .mast-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 720px) {
+    .mast {
+      grid-template-columns: 1fr;
+    }
+    .portrait {
+      width: 112px;
+      font-size: 40px;
+    }
+    .mast h1 {
+      font-size: 36px;
+    }
+  }
+
+  /* SignalRoute rule writing counts */
+  .route {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+  .route::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--action), transparent 60%);
+    transform-origin: left;
+    animation: draw 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .stat b {
+    display: block;
+    font: 700 34px/1 var(--display);
+  }
+  .stat span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stat.new b {
+    color: var(--action);
+  }
+  .stat.new span::after {
+    content: 'new';
+    margin-inline-start: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--lime);
+    color: var(--on-lime);
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+  @media (max-width: 560px) {
+    .route {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 16px;
+    }
+  }
+
+  /* section heads */
+  .section {
+    padding-block: 56px 0;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .head h2 {
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .head .sub {
+    color: var(--ink-2);
+    margin-top: 6px;
+    max-width: 58ch;
+  }
+
+  /* collapsed blogs section stand-in */
+  .ghost-tabs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ghost-tabs span {
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .ghost-tabs span:first-child {
+    color: var(--action);
+    background: var(--subtle);
+  }
+  .ghost-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .ghost-card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--r-card);
+    padding: 16px;
+    display: grid;
+    gap: 8px;
+  }
+  .ghost-card .ph {
+    aspect-ratio: 16/9;
+    border-radius: 14px;
+    background: var(--subtle);
+  }
+  .ghost-card h4 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+  .in-series {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .in-series i {
+    width: 10px;
+    height: 2px;
+    background: var(--action);
+    display: inline-block;
+  }
+  @media (max-width: 860px) {
+    .ghost-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .ghost-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* SPINES - the new pattern */
+  .spines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .spine {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
+    gap: 24px;
+    align-items: center;
+    padding-block: 22px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .spine::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 22px;
+    bottom: 22px;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--action);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .spine:hover::before,
+  .spine:focus-within::before {
+    opacity: 1;
+  }
+  .spine h3 {
+    font: 700 22px/1.25 var(--display);
+  }
+  .spine h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .spine h3 a:hover {
+    color: var(--link);
+  }
+  .spine .desc {
+    color: var(--ink-2);
+    font-size: 14px;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .spine .tally {
+    margin-top: 8px;
+  }
+  .track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    min-width: 0;
+  }
+  .track::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 50%;
+    height: 1px;
+    background: var(--line);
+  }
+  .track .lit {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    height: 2px;
+    margin-top: -0.5px;
+    background: var(--action);
+    border-radius: 2px;
+  }
+  .mark {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--canvas);
+  }
+  .mark.pub {
+    background: var(--action);
+  }
+  .mark.sch {
+    border: 2px solid var(--warn);
+  }
+  .mark.sch::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--warn);
+  }
+  .mark.dra {
+    border: 2px dashed var(--control);
+  }
+  .mark .tip {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: var(--ink);
+    color: var(--canvas);
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .mark:hover .tip,
+  .mark:focus .tip {
+    opacity: 1;
+  }
+  .track.empty {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .track.empty::before {
+    border-top: 1px dashed var(--control);
+    background: none;
+    height: 0;
+  }
+  .track.empty em {
+    position: relative;
+    background: var(--canvas);
+    padding-inline: 8px;
+    font-style: normal;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .spine .acts {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+  .legend span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .legend .mark {
+    width: 12px;
+    height: 12px;
+    background: transparent;
+  }
+  .legend .mark.pub {
+    background: var(--action);
+  }
+  @media (max-width: 860px) {
+    .spine {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .spine::before {
+      display: none;
+    }
+  }
+
+  /* composer - unboxed */
+  .composer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) auto;
+    gap: 24px;
+    align-items: start;
+    padding-block: 22px;
+    border-bottom: 1px solid var(--line);
+    border-top: 2px solid var(--action);
+    background: linear-gradient(180deg, var(--glow), transparent 70%);
+  }
+  .composer .t {
+    font: 700 22px/1.25 var(--display);
+    border: 0;
+    border-bottom: 1px solid var(--control);
+    background: transparent;
+    color: var(--ink);
+    width: 100%;
+    padding: 4px 0;
+  }
+  .composer .t::placeholder {
+    color: var(--muted);
+  }
+  .composer textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    resize: vertical;
+    padding: 4px 0;
+    min-height: 52px;
+  }
+  .composer label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .composer .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .composer .acts {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 860px) {
+    .composer {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Series owner page */
+  .crumb {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--link);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    margin-block: 24px 8px;
+  }
+  .owner-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 48px;
+    padding-block: 16px 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .plate {
+    aspect-ratio: 3/4;
+    border-radius: var(--r-feature);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+    padding: 24px 24px 24px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .plate::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    background: var(--action);
+  }
+  .plate .pt {
+    font: 700 24px/1.2 var(--display);
+  }
+  .plate .pm {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .edit-title {
+    font: 700 44px/1.12 var(--display);
+    letter-spacing: -0.01em;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px dashed transparent;
+    background: transparent;
+    color: var(--ink);
+    padding: 0;
+    margin-block: 8px;
+  }
+  .edit-title:hover,
+  .edit-title:focus {
+    border-bottom-color: var(--control);
+    outline: none;
+  }
+  .edit-desc {
+    width: 100%;
+    font: inherit;
+    color: var(--ink-2);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px dashed transparent;
+    resize: none;
+    padding: 0;
+    min-height: 52px;
+  }
+  .edit-desc:hover,
+  .edit-desc:focus {
+    border-bottom-color: var(--control);
+    outline: none;
+  }
+  .facts {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .facts b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  @media (max-width: 860px) {
+    .owner-head {
+      grid-template-columns: 1fr;
+    }
+    .plate {
+      display: none;
+    }
+    .edit-title {
+      font-size: 34px;
+    }
+  }
+
+  /* parts - PartList connector language, owner controls */
+  .parts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .part {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding-block: 14px;
+    position: relative;
+  }
+  .part .ord {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 700 15px var(--display);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    z-index: 1;
+  }
+  .part.pub .ord {
+    border-color: var(--action);
+    color: var(--action);
+  }
+  .part.sch .ord {
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .part.dra .ord {
+    border-style: dashed;
+    border-color: var(--control);
+    color: var(--muted);
+  }
+  .part::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .part:first-child::before {
+    top: 50%;
+  }
+  .part:last-child::before {
+    bottom: 50%;
+  }
+  .part:only-child::before {
+    display: none;
+  }
+  .part .title {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+  .part .row-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 2px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .badge.pub {
+    color: var(--ok);
+  }
+  .badge.sch {
+    color: var(--warn);
+  }
+  .badge.dra {
+    color: var(--muted);
+    border-style: dashed;
+  }
+  .part .ctrls {
+    display: flex;
+    gap: 4px;
+  }
+  .ib {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-control);
+    border: 1px solid transparent;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--ink-2);
+  }
+  .ib:hover {
+    background: var(--subtle);
+    color: var(--ink);
+  }
+  .ib[disabled] {
+    opacity: 0.3;
+    cursor: default;
+    background: transparent;
+  }
+  .part.moved {
+    animation: settle 0.5s ease;
+  }
+  @keyframes settle {
+    from {
+      background: var(--glow);
+    }
+    to {
+      background: transparent;
+    }
+  }
+  .part .grip {
+    display: none;
+  }
+
+  .savebar {
+    position: sticky;
+    bottom: env(safe-area-inset-bottom, 0px);
+    margin-top: 16px;
+    padding-block: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--line);
+    background: var(--canvas);
+  }
+  .savebar .state {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warn);
+  }
+  .dot.ok {
+    background: var(--ok);
+  }
+
+  /* add-part picker */
+  .adder {
+    margin-top: 24px;
+    padding-left: 56px;
+  }
+  .adder-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--link);
+    font-weight: 600;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+    min-height: 44px;
+  }
+  .adder-row .plus {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px dashed var(--control);
+    display: grid;
+    place-items: center;
+    margin-left: -56px;
+    margin-right: 4px;
+    background: var(--canvas);
+  }
+  .picker {
+    margin-top: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    max-width: 640px;
+    overflow: hidden;
+  }
+  .picker input {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: transparent;
+    padding: 14px 16px;
+    font: inherit;
+    color: var(--ink);
+  }
+  .picker h5 {
+    margin: 0;
+    padding: 12px 16px 4px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .opt {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 16px;
+  }
+  .opt:hover {
+    background: var(--subtle);
+  }
+  .opt .ot {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .opt .om {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .opt.taken .ot {
+    color: var(--ink-2);
+  }
+
+  .danger-zone {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .danger-zone p {
+    color: var(--ink-2);
+    font-size: 14px;
+    max-width: 56ch;
+  }
+  .confirm {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* phone frame for mobile view */
+  .phone .wrap {
+    max-width: 390px;
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    padding: 0 16px 24px;
+    margin-block-start: 24px;
+    background: var(--canvas);
+  }
+  .phone .mast {
+    grid-template-columns: 1fr;
+  }
+  .phone .portrait {
+    width: 96px;
+    font-size: 34px;
+  }
+  .phone .mast h1 {
+    font-size: 32px;
+  }
+  .phone .route {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 16px;
+  }
+  .phone .ghost-grid {
+    grid-template-columns: 1fr;
+  }
+  .phone .spine,
+  .phone .composer {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .phone .spine::before {
+    display: none;
+  }
+  .phone .nav ul {
+    display: none;
+  }
+
+  .note {
+    margin-top: 40px;
+    padding: 16px 20px;
+    border-left: 3px solid var(--lime);
+    background: var(--surface);
+    border-radius: 0 12px 12px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .note b {
+    color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+
+<div class="wrap" id="root">
+  <div class="review" role="toolbar" aria-label="Mockup screens">
+    <span class="label">Mockup</span>
+    <button class="pill" data-screen="profile" aria-pressed="true">1 · Profile</button>
+    <button class="pill" data-screen="compose" aria-pressed="false">2 · New Series</button>
+    <button class="pill" data-screen="owner" aria-pressed="false">3 · Manage one Series</button>
+    <button class="pill" data-screen="mobile" aria-pressed="false">4 · Phone</button>
+    <span class="spacer"></span>
+    <button class="pill" id="theme" aria-pressed="false">Toggle theme</button>
+  </div>
+
+  <div id="stage"></div>
+</div>
+
+<template id="t-nav">
+  <nav class="nav" aria-label="Main">
+    <span class="brand">HORIZON</span>
+    <ul>
+      <li>Home</li>
+      <li>Blog</li>
+      <li>Series</li>
+      <li>About</li>
+      <li aria-current="page">Profile</li>
+    </ul>
+  </nav>
+</template>
+
+<template id="t-profile">
+  <header class="mast">
+    <div class="portrait" aria-hidden="true">C</div>
+    <div>
+      <div class="mast-top">
+        <span class="eyebrow">Author workspace</span>
+        <a class="btn btn-primary" href="#profile"
+          >Write a blog
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6" /></svg
+        ></a>
+      </div>
+      <h1>Connor Tran</h1>
+      <button class="btn btn-link">Edit profile</button>
+      <p class="bio" style="margin-top: 12px">
+        Backend engineer writing about databases, distributed systems and the small decisions that
+        keep services dependable.
+      </p>
+      <p class="meta" style="margin-top: 8px">Sample profile and blogs · blog.example.dev</p>
+    </div>
+  </header>
+  <div class="route" aria-label="Your writing in numbers">
+    <div class="stat"><b class="num">24</b><span>Blogs</span></div>
+    <div class="stat"><b class="num">2</b><span>Scheduled</span></div>
+    <div class="stat"><b class="num">5</b><span>Drafts</span></div>
+    <div class="stat new"><b class="num">3</b><span>Series</span></div>
+  </div>
+
+  <section class="section" aria-labelledby="blogs-h">
+    <div class="head">
+      <div>
+        <p class="eyebrow">Blogs</p>
+        <h2 id="blogs-h">Your blogs and works in progress</h2>
+      </div>
+    </div>
+    <div class="ghost-tabs">
+      <span>Published (24)</span><span>Scheduled (2)</span><span>Drafts (5)</span>
+    </div>
+    <div class="ghost-grid">
+      <div class="ghost-card">
+        <div class="ph"></div>
+        <span class="in-series"><i></i>Part 2 · Database Engineering in Practice</span>
+        <h4>How PostgreSQL Executes Your Query</h4>
+        <span class="meta">Sep 18 · 9 min</span>
+      </div>
+      <div class="ghost-card">
+        <div class="ph"></div>
+        <h4>Notes on Running Watchtower at Home</h4>
+        <span class="meta">Sep 11 · 6 min</span>
+      </div>
+      <div class="ghost-card">
+        <div class="ph"></div>
+        <span class="in-series"><i></i>Part 1 · Kafka Without the Hype</span>
+        <h4>Why Your Consumer Lag Lies</h4>
+        <span class="meta">Aug 30 · 11 min</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="series" aria-labelledby="series-h">
+    <div class="head">
+      <div>
+        <p class="eyebrow">Series</p>
+        <h2 id="series-h">Blogs you have put in order</h2>
+        <p class="sub">
+          A Series gives readers a path through related blogs. Each blog can belong to one Series.
+        </p>
+      </div>
+      <button class="btn btn-quiet" data-go="compose">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" /></svg
+        >New Series
+      </button>
+    </div>
+    <div data-slot="composer"></div>
+    <ul class="spines" data-slot="spines"></ul>
+    <div class="legend" aria-hidden="true">
+      <span><i class="mark pub"></i>Published</span><span><i class="mark sch"></i>Scheduled</span
+      ><span><i class="mark dra"></i>Draft</span><span>Hover a mark for its title</span>
+    </div>
+  </section>
+</template>
+
+<template id="t-owner">
+  <a class="crumb" href="#profile" data-go="profile">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M11 6l-6 6 6 6" /></svg
+    >Your Series</a
+  >
+  <header class="owner-head">
+    <div>
+      <p class="eyebrow">Series · 5 parts</p>
+      <input
+        class="edit-title"
+        id="series-title"
+        aria-label="Series title"
+        value="Database Engineering in Practice"
+        maxlength="160"
+      />
+      <textarea
+        class="edit-desc"
+        id="series-desc"
+        aria-label="Description"
+        maxlength="1000"
+        rows="2"
+      >
+A practical path through the database decisions you make in production: storage layout, query plans, indexes and migrations.</textarea
+      >
+      <div class="facts">
+        <span><b class="num">2</b> live</span><span><b class="num">1</b> scheduled</span
+        ><span><b class="num">2</b> drafts</span
+        ><span>Readers see the 2 live parts as Part 1 and Part 2</span>
+      </div>
+      <div style="display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap">
+        <a class="btn btn-quiet" href="#owner"
+          >View as a reader
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 17 17 7M8 7h9v9" /></svg
+        ></a>
+      </div>
+    </div>
+    <div class="plate" aria-hidden="true">
+      <span class="pm">Series</span><span class="pt">Database Engineering in Practice</span
+      ><span class="pm">Connor Tran · 5 parts</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="order-h" style="padding-top: 32px">
+    <div class="head" style="margin-bottom: 8px">
+      <div>
+        <p class="eyebrow">Reading order</p>
+        <h2 id="order-h">Parts</h2>
+      </div>
+    </div>
+    <ol class="parts" id="parts"></ol>
+    <div class="adder">
+      <button class="adder-row" id="add-toggle" aria-expanded="true">
+        <span class="plus" aria-hidden="true">+</span>Add a blog
+      </button>
+      <div class="picker" id="picker">
+        <input id="pick-q" placeholder="Search your blogs" aria-label="Search your blogs" />
+        <h5>Not in a Series</h5>
+        <div class="opt">
+          <div>
+            <div class="ot">Choosing a Primary Key Type</div>
+            <div class="om">Draft · edited 2 days ago</div>
+          </div>
+          <button class="btn btn-link">Add</button>
+        </div>
+        <div class="opt">
+          <div>
+            <div class="ot">Reading EXPLAIN ANALYZE Line by Line</div>
+            <div class="om">Published Jul 4</div>
+          </div>
+          <button class="btn btn-link">Add</button>
+        </div>
+        <h5>In another Series</h5>
+        <div class="opt taken">
+          <div>
+            <div class="ot">Why Your Consumer Lag Lies</div>
+            <div class="om">Part 1 of 4 in Kafka Without the Hype</div>
+          </div>
+          <button class="btn btn-link">Move here</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="savebar" role="status" aria-live="polite">
+    <span class="state" id="save-state"><i class="dot ok"></i>Saved</span>
+    <div style="display: flex; gap: 8px">
+      <button class="btn btn-quiet" id="discard" hidden>Discard</button
+      ><button class="btn btn-primary" id="save" disabled>Save Series</button>
+    </div>
+  </div>
+
+  <div class="danger-zone">
+    <p>
+      Deleting this Series keeps all 5 blogs. They stay where they are and stop showing “Part X of
+      Y”.
+    </p>
+    <div class="confirm" id="del">
+      <button class="btn btn-danger" id="del-btn">Delete Series</button>
+    </div>
+  </div>
+</template>
+
+<script>
+  const series = [
+    {
+      id: 1,
+      title: 'Database Engineering in Practice',
+      desc: 'A practical path through the database decisions you make in production: storage layout, query plans, indexes and migrations.',
+      parts: [
+        ['pub', 'The Data Layer Is a Design Decision'],
+        ['pub', 'How PostgreSQL Executes Your Query'],
+        ['sch', 'Indexes: When They Help and When They Hurt', 'Publishes Oct 14, 09:00'],
+        ['dra', 'Migrations Without Downtime'],
+        ['dra', 'Partitioning a Table That Already Has Data'],
+      ],
+      updated: 'Updated 3 days ago',
+    },
+    {
+      id: 2,
+      title: 'Kafka Without the Hype',
+      desc: 'What actually happens between a producer and a consumer, written from a year of on-call.',
+      parts: [
+        ['pub', 'Why Your Consumer Lag Lies'],
+        ['pub', 'Rebalances, Explained With One Diagram'],
+        ['pub', 'Exactly-Once Is a Contract, Not a Flag'],
+        ['pub', 'Dead-Letter Topics You Will Actually Read'],
+      ],
+      updated: 'Updated Aug 30',
+    },
+    { id: 3, title: 'Self-Hosting a Blog', desc: '', parts: [], updated: 'Created today' },
+  ]
+  const label = { pub: 'Published', sch: 'Scheduled', dra: 'Draft' }
+  const icon = (d) =>
+    `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${d}</svg>`
+
+  function spineHTML(s) {
+    const n = s.parts.length
+    const live = s.parts.filter((p) => p[0] === 'pub').length
+    let lastLive = -1
+    for (const p of s.parts) {
+      if (p[0] !== 'pub') break
+      lastLive++
+    }
+    const litW = n > 1 && lastLive > 0 ? `calc((100% - 16px) * ${lastLive / (n - 1)})` : '0'
+    const track =
+      n === 0
+        ? `<div class="track empty"><em>No parts yet · add the first blog</em></div>`
+        : `<div class="track" aria-label="${live} of ${n} parts live"><span class="lit" style="width:${litW}"></span>${s.parts.map((p, i) => `<span class="mark ${p[0]}" tabindex="0" aria-label="Part ${i + 1}: ${p[1]}, ${label[p[0]]}"><span class="tip">${i + 1} · ${p[1]}</span></span>`).join('')}</div>`
+    const tally =
+      n === 0
+        ? 'Empty · not shown to readers'
+        : `${n} parts · ${live} live${n - live ? ` · ${n - live} not yet` : ''}`
+    return `<li class="spine">
+    <div style="min-width:0"><h3><a href="#owner" data-go="owner">${s.title}</a></h3>
+      ${s.desc ? `<p class="desc">${s.desc}</p>` : `<p class="desc" style="font-style:italic">No description yet</p>`}
+      <p class="meta tally num">${tally} · ${s.updated}</p></div>
+    ${track}
+    <div class="acts"><a class="btn btn-quiet" href="#owner" data-go="owner">Manage</a></div>
+  </li>`
+  }
+
+  const composerHTML = `<form class="composer" id="composer" aria-label="New Series">
+  <div><label for="new-title">Title</label><input class="t" id="new-title" placeholder="Name the Series" maxlength="160" value="Observability for Small Teams">
+    <p class="hint">Readers see this on /series and above every part.</p></div>
+  <div><label for="new-desc">Description</label><textarea id="new-desc" maxlength="1000" placeholder="One or two sentences telling a reader what the Series covers.">Logs, metrics and alerts that a two-person team can keep up with.</textarea>
+    <p class="hint">Optional · up to 1,000 characters</p></div>
+  <div class="acts"><button class="btn btn-primary" type="submit">Create and add blogs</button><button class="btn btn-quiet" type="button" data-go="profile">Cancel</button></div>
+</form>`
+
+  let parts = series[0].parts.map((p) => [...p])
+  const savedParts = JSON.stringify(parts)
+  function renderParts(movedIdx) {
+    const ol = document.getElementById('parts')
+    if (!ol) return
+    ol.innerHTML = parts
+      .map(
+        (p, i) => `<li class="part ${p[0]} ${i === movedIdx ? 'moved' : ''}">
+    <span class="ord num" aria-hidden="true">${i + 1}</span>
+    <div style="min-width:0"><div class="title">${p[1]}</div>
+      <div class="row-meta"><span class="badge ${p[0]}">${label[p[0]]}</span>${p[2] ? `<span class="meta">${p[2]}</span>` : ''}${p[0] !== 'pub' ? `<span class="meta">Hidden from readers until it is live</span>` : ''}</div></div>
+    <div class="ctrls">
+      <button class="ib" data-mv="${i}:-1" ${i === 0 ? 'disabled' : ''} aria-label="Move “${p[1]}” earlier">${icon('<path d="M12 19V5M6 11l6-6 6 6"/>')}</button>
+      <button class="ib" data-mv="${i}:1" ${i === parts.length - 1 ? 'disabled' : ''} aria-label="Move “${p[1]}” later">${icon('<path d="M12 5v14M6 13l6 6 6-6"/>')}</button>
+      <button class="ib" data-rm="${i}" aria-label="Remove “${p[1]}” from this Series">${icon('<path d="M18 6 6 18M6 6l12 12"/>')}</button>
+    </div></li>`,
+      )
+      .join('')
+    const dirty = JSON.stringify(parts) !== savedParts
+    const st = document.getElementById('save-state')
+    st.innerHTML = dirty
+      ? `<i class="dot"></i>Order changed · not saved yet`
+      : `<i class="dot ok"></i>Saved`
+    document.getElementById('save').disabled = !dirty
+    document.getElementById('discard').hidden = !dirty
+  }
+
+  function show(screen) {
+    document
+      .querySelectorAll('[data-screen]')
+      .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === screen)))
+    const stage = document.getElementById('stage')
+    stage.className = screen === 'mobile' ? 'phone' : ''
+    stage.innerHTML = ''
+    const inner = document.createElement('div')
+    if (screen === 'mobile') {
+      inner.className = 'wrap'
+    }
+    inner.append(document.getElementById('t-nav').content.cloneNode(true))
+    if (screen === 'owner') {
+      inner.append(document.getElementById('t-owner').content.cloneNode(true))
+    } else {
+      inner.append(document.getElementById('t-profile').content.cloneNode(true))
+    }
+    stage.append(inner)
+    if (screen === 'owner') {
+      parts = JSON.parse(savedParts)
+      renderParts()
+    } else {
+      stage.querySelector('[data-slot="spines"]').innerHTML = series.map(spineHTML).join('')
+      if (screen === 'compose') {
+        stage.querySelector('[data-slot="composer"]').innerHTML = composerHTML
+      }
+      if (screen === 'compose') stage.querySelector('#series').scrollIntoView({ block: 'start' })
+    }
+    stage.insertAdjacentHTML('beforeend', notes[screen])
+  }
+
+  const notes = {
+    profile: `<p class="note"><b>Screen 1.</b> Series becomes a sibling section under Blogs, not a fourth tab: tabs filter blogs by status, a Series groups them. The masthead rule writes a fourth count. Each Series is a <b>spine</b>: one mark per part, filled when live, ringed when scheduled, dashed when draft; the lit run covers the unbroken live stretch from Part 1, so a gap shows where readers stop. Blog cards in a Series carry “Part X · Series name”; the “of Y” stays reader-side, where it counts only live parts.</p>`,
+    compose: `<p class="note"><b>Screen 2.</b> “New Series” opens an unboxed composer in place, at the top of the spines. Create takes the author straight to the new Series so the next step, adding blogs, is on screen. The old Create card on /series/manage goes away.</p>`,
+    owner: `<p class="note"><b>Screen 3.</b> /profile/:username/series/:id, same pattern as the owner blog detail. Title and description edit in place. Parts use the PartList ordinal connector. Try the arrows: the save bar names the unsaved order. The picker groups blogs by whether they are free or already in another Series, and offers “Move here” instead of hiding them. Delete confirms inline and says the blogs survive.</p>`,
+    mobile: `<p class="note"><b>Screen 4.</b> At phone width the counts wrap to two columns and each spine stacks: title, track, Manage.</p>`,
+  }
+
+  document.addEventListener('click', (e) => {
+    const s = e.target.closest('[data-screen]')
+    if (s) {
+      show(s.dataset.screen)
+      return
+    }
+    const g = e.target.closest('[data-go]')
+    if (g) {
+      e.preventDefault()
+      show(g.dataset.go)
+      window.scrollTo(0, 0)
+      return
+    }
+    const mv = e.target.closest('[data-mv]')
+    if (mv) {
+      const [i, d] = mv.dataset.mv.split(':').map(Number)
+      const j = i + d
+      ;[parts[i], parts[j]] = [parts[j], parts[i]]
+      renderParts(j)
+      document.querySelector(`[data-mv="${j}:${d}"]`)?.focus()
+      return
+    }
+    const rm = e.target.closest('[data-rm]')
+    if (rm) {
+      parts.splice(Number(rm.dataset.rm), 1)
+      renderParts()
+      return
+    }
+    if (e.target.closest('#discard')) {
+      parts = JSON.parse(savedParts)
+      renderParts()
+      return
+    }
+    if (e.target.closest('#save')) {
+      document.getElementById('save-state').innerHTML =
+        '<i class="dot ok"></i>Series saved a moment ago'
+      document.getElementById('save').disabled = true
+      document.getElementById('discard').hidden = true
+      return
+    }
+    if (e.target.closest('#add-toggle')) {
+      const p = document.getElementById('picker')
+      p.hidden = !p.hidden
+      e.target.closest('#add-toggle').setAttribute('aria-expanded', String(!p.hidden))
+      return
+    }
+    if (e.target.closest('#del-btn')) {
+      document.getElementById('del').innerHTML =
+        '<span class="meta">Delete “Database Engineering in Practice”?</span><button class="btn btn-danger">Delete</button><button class="btn btn-quiet" id="del-cancel">Keep it</button>'
+      return
+    }
+    if (e.target.closest('#del-cancel')) {
+      document.getElementById('del').innerHTML =
+        '<button class="btn btn-danger" id="del-btn">Delete Series</button>'
+      return
+    }
+  })
+  document.addEventListener('submit', (e) => {
+    e.preventDefault()
+    show('owner')
+    window.scrollTo(0, 0)
+  })
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement
+    const dark = r.dataset.theme
+      ? r.dataset.theme === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches
+    r.dataset.theme = dark ? 'light' : 'dark'
+  })
+  show('profile')
+</script>

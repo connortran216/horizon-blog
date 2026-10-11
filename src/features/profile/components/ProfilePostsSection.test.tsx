@@ -23,6 +23,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
 import horizonTheme from '../../../theme/horizon'
+import type { PostSeriesReference } from '../../../design-system'
 import type { ProfileBlogPost } from '../profile.types'
 import ProfilePostsSection from './ProfilePostsSection'
 
@@ -45,7 +46,13 @@ const published: ProfileBlogPost = {
   status: 'published',
 }
 
-function render(options: { publishedBlogs?: ProfileBlogPost[]; postsLoading?: boolean } = {}) {
+function render(
+  options: {
+    publishedBlogs?: ProfileBlogPost[]
+    postsLoading?: boolean
+    seriesByPostId?: ReadonlyMap<string, PostSeriesReference>
+  } = {},
+) {
   return renderToStaticMarkup(
     <ChakraProvider theme={horizonTheme}>
       <MemoryRouter>
@@ -67,6 +74,7 @@ function render(options: { publishedBlogs?: ProfileBlogPost[]; postsLoading?: bo
           onPublishNow={vi.fn()}
           onCancelSchedule={vi.fn()}
           onDelete={vi.fn()}
+          seriesByPostId={options.seriesByPostId}
         />
       </MemoryRouter>
     </ChakraProvider>,
@@ -117,6 +125,28 @@ describe('ProfilePostsSection', () => {
     expect(withPost).toContain('The subtitle the API really returned.')
     expect(withPost).not.toContain('Live on the blog and ready to revisit.')
     expect(withPost).not.toContain('Still being shaped before publication.')
+  })
+
+  it("shows a blog's place in the owner's Series and links it to management", () => {
+    const withSeries = render({
+      publishedBlogs: [published],
+      seriesByPostId: new Map([
+        [
+          '12',
+          {
+            slug: 'sample-series',
+            title: 'Sample Series',
+            position: 2,
+            total: 5,
+            href: '/series/manage',
+          },
+        ],
+      ]),
+    })
+
+    expect(withSeries).toContain('Part 2 of 5')
+    expect(withSeries).toContain('aria-label="Sample Series: Part 2 of 5"')
+    expect(withSeries).toContain('href="/series/manage"')
   })
 
   it('names the loading state rather than showing a bare spinner', () => {

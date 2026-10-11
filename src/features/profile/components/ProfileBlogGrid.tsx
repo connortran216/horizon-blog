@@ -18,7 +18,14 @@ import { Box } from '@chakra-ui/react'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
 import { FiMoreVertical } from 'react-icons/fi'
 
-import { Grid, IconButton, Pagination, PostCard, Stack } from '../../../design-system'
+import {
+  Grid,
+  IconButton,
+  Pagination,
+  PostCard,
+  Stack,
+  type PostSeriesReference,
+} from '../../../design-system'
 import { componentTokens, space } from '../../../theme/tokens'
 import { useResolvedCoverMedia } from '../../media/useResolvedCoverImage'
 import { ProfileBlogPost } from '../profile.types'
@@ -37,18 +44,27 @@ interface ProfileBlogGridProps {
   onEdit: (blogId: string) => void
   onDelete: (blogId: string) => void
   profileUsername: string
+  /** Each blog's place in the owner's Series, by blog id. */
+  seriesByPostId?: ReadonlyMap<string, PostSeriesReference>
 }
 
 interface ProfileBlogCardProps {
   blog: ProfileBlogPost
   profileUsername: string
+  series: PostSeriesReference | null
   onEdit: (blogId: string) => void
   onDelete: (blogId: string) => void
 }
 
-const ProfileBlogCard = ({ blog, profileUsername, onEdit, onDelete }: ProfileBlogCardProps) => {
+const ProfileBlogCard = ({
+  blog,
+  profileUsername,
+  series,
+  onEdit,
+  onDelete,
+}: ProfileBlogCardProps) => {
   const coverMedia = useResolvedCoverMedia(blog.featuredImage)
-  const post = toOwnerPostSummary(blog, coverMedia, profileUsername, COVER_SIZES)
+  const post = toOwnerPostSummary(blog, coverMedia, profileUsername, COVER_SIZES, series)
 
   return (
     <Box position="relative">
@@ -90,6 +106,7 @@ const ProfileBlogGrid = ({
   onEdit,
   onDelete,
   profileUsername,
+  seriesByPostId,
 }: ProfileBlogGridProps) => {
   // The block the pager pages: the grid and the pager together, so changing
   // page puts the top of the tab's cards back on screen and moves focus there.
@@ -104,6 +121,7 @@ const ProfileBlogGrid = ({
               <ProfileBlogCard
                 blog={blog}
                 profileUsername={profileUsername}
+                series={seriesByPostId?.get(blog.id) ?? null}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />

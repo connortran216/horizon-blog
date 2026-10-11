@@ -19,6 +19,7 @@ import type {
   SeriesReadingContext,
   SeriesSummary,
 } from './series.logic'
+import type { SpinePart } from './spine.logic'
 
 const samplePlate = (label: string): string =>
   `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -152,4 +153,43 @@ export const sampleManagedParts: readonly ManagedSeriesPart[] = [
     status: 'scheduled',
   },
   { id: 'sample-part-3', title: 'Sample part 3: an unfinished sample draft', status: 'draft' },
+]
+
+/*
+ * Owner spines. One Series readers can walk two parts into before a scheduled
+ * part stops them, one fully live, one with a published part after a draft -
+ * the case where the light must stop at the gap - and one with no parts yet.
+ */
+export const sampleSpineParts: readonly SpinePart[] = [
+  { id: 'spine-1', title: 'Sample part 1: the opening argument', state: 'published' },
+  { id: 'spine-2', title: 'Sample part 2: the first consequence', state: 'published' },
+  { id: 'spine-3', title: 'Sample part 3: waiting for its date', state: 'scheduled' },
+  { id: 'spine-4', title: 'Sample part 4: still a draft', state: 'draft' },
+  { id: 'spine-5', title: 'Sample part 5: still a draft', state: 'draft' },
+]
+
+export const sampleSpineAllLive: readonly SpinePart[] = sampleSpineParts.map((part) => ({
+  ...part,
+  state: 'published' as const,
+}))
+
+/** Past `SPINE_MARK_LIMIT`: drawn as one segmented bar. */
+export const sampleSpineLong: readonly SpinePart[] = Array.from(
+  { length: 40 },
+  (_unused, index) => ({
+    id: `long-${index + 1}`,
+    title: `Sample part ${index + 1}`,
+    state:
+      index < 18
+        ? ('published' as const)
+        : index === 18
+          ? ('scheduled' as const)
+          : ('draft' as const),
+  }),
+)
+
+export const sampleSpineWithGap: readonly SpinePart[] = [
+  { id: 'gap-1', title: 'Sample part 1: live', state: 'published' },
+  { id: 'gap-2', title: 'Sample part 2: a draft in the middle', state: 'draft' },
+  { id: 'gap-3', title: 'Sample part 3: live, but out of reach', state: 'published' },
 ]

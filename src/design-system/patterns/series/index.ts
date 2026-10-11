@@ -28,6 +28,31 @@ export type { PartListProps } from './PartList'
 export { ManageSeriesItem } from './ManageSeriesItem'
 export type { ManageSeriesItemProps } from './ManageSeriesItem'
 
+export { SeriesSpine } from './SeriesSpine'
+export type { SeriesSpineProps } from './SeriesSpine'
+
+export { SeriesComposer } from './SeriesComposer'
+export type { SeriesComposerProps } from './SeriesComposer'
+
+export {
+  SPINE_MARK_LIMIT,
+  spineIsDense,
+  spineLitExtent,
+  spineLiveRun,
+  spineMarks,
+  spineTally,
+  spineTrackLabel,
+} from './spine.logic'
+export type { SpineMark, SpinePart, SpinePartState } from './spine.logic'
+
+export {
+  SERIES_DESCRIPTION_MAX,
+  SERIES_TITLE_MAX,
+  seriesComposerRequest,
+  seriesComposerState,
+} from './seriesComposer.logic'
+export type { SeriesComposerInput, SeriesComposerState } from './seriesComposer.logic'
+
 export {
   connectorColor,
   manageItemControls,

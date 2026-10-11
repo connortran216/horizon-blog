@@ -49,6 +49,8 @@ interface ProfileHeaderCardProps {
   /** Drafts with a publication time. Omitted, the header states two counts. */
   scheduledCount?: number
   draftCount: number
+  /** The owner's Series. Omitted - no grant, or not loaded - the count is not stated. */
+  seriesCount?: number
   onOpenProfileEditor: () => void
   onOpenAvatarPreview: () => void
   onSelectAvatarFile: (file: File) => void
@@ -64,6 +66,7 @@ const ProfileHeaderCard = ({
   articleCount,
   scheduledCount,
   draftCount,
+  seriesCount,
   onOpenProfileEditor,
   onOpenAvatarPreview,
   onSelectAvatarFile,
@@ -90,6 +93,15 @@ const ProfileHeaderCard = ({
       value: String(draftCount),
       detail: 'Blogs still being refined before publishing.',
     },
+    ...(seriesCount === undefined
+      ? []
+      : [
+          {
+            label: 'Series',
+            value: String(seriesCount),
+            detail: 'Blogs grouped into an order for readers.',
+          },
+        ]),
   ]
 
   return (

@@ -14,11 +14,13 @@
  * surfaces carry their own motion, under one reduced-motion policy.
  */
 
+import { useMemo } from 'react'
 import { useDisclosure } from '@chakra-ui/react'
 import { useParams } from 'react-router-dom'
 
 import { ContentContainer, Section, Stack } from '../design-system'
 import { useAuth } from '../context/AuthContext'
+import { can } from '../core/authorization/authorization'
 import {
   AvatarPreviewModal,
   EditProfileModal,
@@ -27,6 +29,9 @@ import {
 } from '../features/profile/components'
 import { useProfileData } from '../features/profile/useProfileData'
 import { useProfilePosts } from '../features/profile/useProfilePosts'
+import ProfileSeriesSection from '../features/series/components/ProfileSeriesSection'
+import { ownerSeriesByPostId } from '../features/series/ownerSeries.presentation'
+import { useOwnerSeries } from '../features/series/useOwnerSeries'
 
 const Profile = () => {
   const { username } = useParams()
@@ -84,6 +89,21 @@ const Profile = () => {
     user,
   })
 
+  /*
+   * Series are authoring, so they follow the same grant as `Write a blog`.
+   * Without it the request is never made and the section never drawn.
+   */
+  const canManageContent = can(profile?.authorization, 'content:manage:own')
+  const ownerSeries = useOwnerSeries({ enabled: canManageContent })
+  const seriesByPostId = useMemo(
+    () => ownerSeriesByPostId(ownerSeries.series),
+    [ownerSeries.series],
+  )
+  const seriesCount =
+    canManageContent && !ownerSeries.loading && ownerSeries.error === null
+      ? ownerSeries.series.length
+      : undefined
+
   const profileUsername = user?.username || username || ''
 
   const handleOpenProfileEditor = () => {
@@ -108,6 +128,7 @@ const Profile = () => {
             articleCount={publishedPagination.total}
             scheduledCount={scheduledPagination.total}
             draftCount={draftPagination.total}
+            seriesCount={seriesCount}
             onOpenProfileEditor={handleOpenProfileEditor}
             onOpenAvatarPreview={onOpenAvatarPreview}
             onSelectAvatarFile={(file) => {
@@ -137,7 +158,20 @@ const Profile = () => {
             onDelete={(blogId) => {
               void handleDelete(blogId)
             }}
+            seriesByPostId={seriesByPostId}
           />
+
+          {canManageContent ? (
+            <ProfileSeriesSection
+              series={ownerSeries.series}
+              loading={ownerSeries.loading}
+              error={ownerSeries.error}
+              onRetry={() => {
+                void ownerSeries.retry()
+              }}
+              onCreate={ownerSeries.create}
+            />
+          ) : null}
         </Stack>
       </Section>
 

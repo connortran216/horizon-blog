@@ -150,6 +150,27 @@ export const componentTokens = {
     connectorActive: color('action.primary'),
     partRest: color('text.secondary'),
     partCurrent: color('text.primary'),
+    /*
+     * The owner's spine: one mark per part. Live is the action colour the
+     * reader's connector already uses; scheduled borrows the warning role the
+     * schedule rows use for "Scheduled"; a draft is the control border, drawn
+     * dashed. `markGround` is the page canvas, so an unfilled mark punches a
+     * hole in the line instead of sitting on top of it.
+     */
+    markLive: color('action.primary'),
+    markScheduled: color('status.warning'),
+    markDraft: color('border.control'),
+    markGround: color('bg.page'),
+    markSize: space[4],
+    /*
+     * The narrowest a spine column may get before the row wraps. The spine and
+     * the composer wrap on their own width, not the viewport's, so a spine in a
+     * narrow column stacks the way it does on a phone instead of squeezing the
+     * title into a sliver.
+     */
+    spineColumnMin: '16rem',
+    /** The rule a new Series is written under. */
+    composerRule: color('action.primary'),
   },
 
   /** Empty, error, permission, offline and success feedback. */

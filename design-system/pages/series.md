@@ -11,6 +11,7 @@ Series helps readers discover connected blogs and read them in an author-defined
 - `/series`
 - `/series/:slug`
 - Series context inside `/blog/:id`
+- Series section on the owner's `/profile/:username`
 - protected `/series/manage`
 - Series assignment inside `/blog-editor/publish`
 
@@ -50,6 +51,7 @@ Series helps readers discover connected blogs and read them in an author-defined
 - `SeriesPartList`
 - `SeriesContextCard`
 - `SeriesManager`
+- `SeriesSpine` and `SeriesComposer` (owner, on the profile)
 
 Series discovery and reader components stay feature-owned under `src/features/series/`.
 
@@ -79,6 +81,21 @@ Series discovery and reader components stay feature-owned under `src/features/se
 - Home and Blog shelves disappear quietly when their independent Series request fails.
 - Blog-reader Series context failure never blocks the article.
 - `/series` and `/series/:slug` use explicit loading, retry, empty, and not-found states.
+
+## Owner Spine
+
+- On the profile each Series is a spine: one mark per part in reading order.
+  Published is a filled mark, scheduled a ringed mark, draft a dashed mark.
+- The line is lit through the unbroken run of published parts from Part 1, so a
+  gap shows where readers stop. It draws once on arrival; under reduced motion
+  it is simply drawn.
+- Past twelve parts the marks would not fit a phone, so the spine is drawn as
+  one bar with a segment per part in the same state colours; it never widens
+  the page.
+- The tally ("5 parts · 2 live · 3 not live yet") and a spoken label per mark
+  carry the same facts in words.
+- Owner surfaces use the owner's order, drafts included. Public surfaces keep
+  counting live parts only.
 
 ## Reference
 
