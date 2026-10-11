@@ -12,7 +12,7 @@
  * an argument, which keeps every decision here testable without a DOM.
  */
 
-import type { PostSummary, StatusTone } from '../../design-system'
+import type { PostSeriesReference, PostSummary, StatusTone } from '../../design-system'
 import { postCoverFrom } from '../blog/postSummary.presentation'
 import type { ResolvedMediaSource } from '../media/media.api'
 import type { ProfileBlogPost, ScheduleDisplayState } from './profile.types'
@@ -54,6 +54,7 @@ export function toOwnerPostSummary(
   media: ResolvedMediaSource | undefined,
   username: string,
   coverSizes?: string,
+  series: PostSeriesReference | null = null,
 ): PostSummary {
   const excerpt = (blog.subtitle ?? '').trim()
 
@@ -76,7 +77,8 @@ export function toOwnerPostSummary(
       publishedAt: blog.publishedAt ?? null,
       updatedAt: blog.updatedAt,
       readingMinutes: null,
-      series: null,
+      // The owner's own order, drafts counted - see `ownerSeriesByPostId`.
+      series,
     },
   }
 }

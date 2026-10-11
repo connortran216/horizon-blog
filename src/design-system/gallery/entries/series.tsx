@@ -6,13 +6,16 @@ import { useState } from 'react'
 import { Box } from '@chakra-ui/react'
 
 import {
+  Button,
   ManageSeriesItem,
   PartList,
   RailOverlayControls,
   SeriesCard,
   SeriesContext,
+  SeriesComposer,
   SeriesCover,
   SeriesRail,
+  SeriesSpine,
   moveItem,
   removeItemAt,
   type ManagedSeriesPart,
@@ -21,6 +24,9 @@ import { space } from '../../../theme/tokens'
 import {
   sampleManagedParts,
   sampleSeriesContext,
+  sampleSpineAllLive,
+  sampleSpineParts,
+  sampleSpineWithGap,
   sampleSeriesContextAtStart,
 } from '../../patterns/series/fixtures'
 import { useGallery } from '../GalleryContext'
@@ -123,6 +129,51 @@ function ManageSeriesItemEntry({ state }: { readonly state: string }) {
   )
 }
 
+function SeriesSpineEntry({ state }: { readonly state: string }) {
+  const parts =
+    state === 'all live'
+      ? sampleSpineAllLive
+      : state === 'gap after Part 1'
+        ? sampleSpineWithGap
+        : state === 'no parts yet'
+          ? []
+          : sampleSpineParts
+
+  return (
+    <SeriesSpine
+      title="Sample Series on the owner's profile"
+      description="Sample description. One or two sentences on what the sample Series covers."
+      parts={parts}
+      meta="Updated Oct 8"
+      action={
+        <Button tone="secondary" size="md" onClick={noop}>
+          Manage
+        </Button>
+      }
+    />
+  )
+}
+
+function SeriesComposerEntry({ state }: { readonly state: string }) {
+  const [title, setTitle] = useState(state === 'no title yet' ? '' : 'Sample Series')
+  const [description, setDescription] = useState(
+    state === 'no title yet' ? '' : 'Sample description of what the Series covers.',
+  )
+
+  return (
+    <SeriesComposer
+      title={title}
+      description={description}
+      onTitleChange={setTitle}
+      onDescriptionChange={setDescription}
+      onSubmit={noop}
+      onCancel={noop}
+      isSubmitting={state === 'creating'}
+      error={state === 'create failed' ? 'This Series could not be created.' : null}
+    />
+  )
+}
+
 export const seriesEntries = {
   SeriesCover: SeriesCoverEntry,
   SeriesCard: SeriesCardEntry,
@@ -131,4 +182,6 @@ export const seriesEntries = {
   SeriesContext: SeriesContextEntry,
   PartList: PartListEntry,
   ManageSeriesItem: ManageSeriesItemEntry,
+  SeriesSpine: SeriesSpineEntry,
+  SeriesComposer: SeriesComposerEntry,
 } satisfies Record<string, EntryRenderer>

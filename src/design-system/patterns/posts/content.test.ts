@@ -159,6 +159,14 @@ describe('postMetadataItems', () => {
     expect(items[0].srPrefix).toBe('Sample Series')
     expect(items[0].href).toBe('/series/sample')
   })
+
+  it('links the Series position where the caller says, for owner surfaces', () => {
+    const items = postMetadataItems({
+      series: { slug: 'sample', title: 'Sample Series', position: 4, total: 5, href: '/manage' },
+    })
+
+    expect(items[0].href).toBe('/manage')
+  })
 })
 
 describe('excerptOrNull', () => {

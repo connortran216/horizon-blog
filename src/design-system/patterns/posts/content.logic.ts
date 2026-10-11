@@ -32,6 +32,12 @@ export interface PostSeriesReference {
   /** One-based. */
   readonly position: number
   readonly total: number
+  /**
+   * Where the position links. The public Series page when omitted; an owner
+   * surface passes its own management route, because the public page shows
+   * live parts only and would not contain a draft's position.
+   */
+  readonly href?: string
 }
 
 /** Every fact a post surface may show above or below the title. */
@@ -323,7 +329,7 @@ export function postMetadataItems(
     items.push({
       kind: 'series',
       label: seriesPositionLabel(content.series),
-      href: `/series/${content.series.slug}`,
+      href: content.series.href ?? `/series/${content.series.slug}`,
       srPrefix: content.series.title,
     })
   }

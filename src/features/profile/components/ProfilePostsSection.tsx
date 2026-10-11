@@ -18,6 +18,7 @@ import { Box, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 
 import {
+  type PostSeriesReference,
   EmptyState,
   Eyebrow,
   Heading,
@@ -49,6 +50,8 @@ interface ProfilePostsSectionProps {
   onPublishNow: (blogId: string) => void
   onCancelSchedule: (blog: ProfileBlogPost) => void
   onDelete: (blogId: string) => void
+  /** Each blog's place in the owner's Series, by blog id. */
+  seriesByPostId?: ReadonlyMap<string, PostSeriesReference>
 }
 
 /*
@@ -114,6 +117,7 @@ const ProfilePostsSection = ({
   onPublishNow,
   onCancelSchedule,
   onDelete,
+  seriesByPostId,
 }: ProfilePostsSectionProps) => {
   const [activeTab, setActiveTab] = useState(0)
   const totalBlogs = publishedPagination.total + scheduledPagination.total + draftPagination.total
@@ -171,6 +175,7 @@ const ProfilePostsSection = ({
                       onEdit={onEdit}
                       onDelete={onDelete}
                       profileUsername={profileUsername}
+                      seriesByPostId={seriesByPostId}
                     />
                   )}
                 </EditorialTray>
@@ -215,6 +220,7 @@ const ProfilePostsSection = ({
                       onEdit={onEdit}
                       onDelete={onDelete}
                       profileUsername={profileUsername}
+                      seriesByPostId={seriesByPostId}
                     />
                   )}
                 </EditorialTray>

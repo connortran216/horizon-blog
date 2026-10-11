@@ -630,6 +630,27 @@ export const galleryRegistry = [
       { name: 'busy', kind: 'loading' },
     ],
   },
+  {
+    name: 'SeriesSpine',
+    area: 'series',
+    note: 'The owner view on the profile. The light covers the unbroken live run from Part 1.',
+    states: [
+      { name: 'partly live', kind: 'ready' },
+      { name: 'all live' },
+      { name: 'gap after Part 1' },
+      { name: 'no parts yet', kind: 'empty' },
+    ],
+  },
+  {
+    name: 'SeriesComposer',
+    area: 'series',
+    states: [
+      { name: 'filled', kind: 'ready' },
+      { name: 'no title yet', kind: 'empty' },
+      { name: 'creating', kind: 'loading' },
+      { name: 'create failed', kind: 'error' },
+    ],
+  },
 
   /* ---------------------------------------------------------------- reader */
   {
