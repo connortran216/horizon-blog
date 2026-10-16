@@ -533,3 +533,9 @@ Rules:
 - hover overlays that escape their intended bounds
 - menu poppers that create horizontal page scroll
 - decorative motion that continues aggressively on reading surfaces
+
+### State icons
+
+`MorphIcon` provides decorative `copy`, `check`, `menu`, and `close` states using Morphicons 2.0 and a restrained snappy spring. Use it in an existing Button/IconButton slot; the action owns labels, focus, busy/error handling, and announcements. Contact and Reader copy success animate to check; mobile navigation toggles menu/close. Reduced motion snaps to the current endpoint, including during an active transition. IconButton keeps its icon mounted beneath the loading spinner so successful copy can morph without remounting.
+
+Storybook: `Design system/Motion/MorphIcon` includes real Contact/Reader success and failure states, interactive pairs, and a menu harness.
