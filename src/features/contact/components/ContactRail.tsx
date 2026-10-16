@@ -1,14 +1,6 @@
 import { useReducer, type ReactElement } from 'react'
 import { Box, Flex } from '@chakra-ui/react'
-import {
-  FiAlertCircle,
-  FiArrowRight,
-  FiCheck,
-  FiCopy,
-  FiMail,
-  FiMapPin,
-  FiPhone,
-} from 'react-icons/fi'
+import { FiAlertCircle, FiArrowRight, FiMail, FiMapPin, FiPhone } from 'react-icons/fi'
 
 import {
   ActionLink,
@@ -26,6 +18,7 @@ import {
   Stack,
   Text,
 } from '../../../design-system'
+import { MorphIcon } from '../../../design-system/motion'
 import { componentTokens, space } from '../../../theme/tokens'
 import {
   CONTACT_EMAIL,
@@ -91,12 +84,10 @@ export const ContactRail = ({ writeToClipboard = writeToBrowserClipboard }: Cont
   const live = copyLiveRegion(copy.status)
 
   const copyIcon =
-    copy.status === 'copied' ? (
-      <FiCheck />
-    ) : copy.status === 'failed' ? (
+    copy.status === 'failed' ? (
       <FiAlertCircle />
     ) : (
-      <FiCopy />
+      <MorphIcon name={copy.status === 'copied' ? 'check' : 'copy'} />
     )
 
   const copyLabel =

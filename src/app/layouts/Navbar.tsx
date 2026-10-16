@@ -25,7 +25,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Box, Flex, useDisclosure, useToast } from '@chakra-ui/react'
-import { FiMenu, FiX } from 'react-icons/fi'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -39,6 +38,7 @@ import {
   Stack,
   ThemeToggle,
 } from '../../design-system'
+import { MorphIcon } from '../../design-system/motion'
 import { componentTokens, layout, space, transitionFor } from '../../theme/tokens'
 import { useAuth } from '../../context/AuthContext'
 import { getBlogService, toPublicPostPath } from '../../core'
@@ -246,7 +246,7 @@ const Navbar = () => {
                 ref={menuTriggerRef}
                 label={isOpen ? 'Close menu' : 'Open menu'}
                 tone="quiet"
-                icon={isOpen ? <FiX aria-hidden="true" /> : <FiMenu aria-hidden="true" />}
+                icon={<MorphIcon name={isOpen ? 'close' : 'menu'} />}
                 display={{ sm: 'none' }}
                 onClick={onToggle}
                 aria-expanded={isOpen}

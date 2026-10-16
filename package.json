@@ -74,6 +74,7 @@
     "highlight.js": "^11.11.1",
     "marked": "^17.0.1",
     "mermaid": "^11.14.0",
+    "morphicons": "2.0.0",
     "prismjs": "^1.30.0",
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",

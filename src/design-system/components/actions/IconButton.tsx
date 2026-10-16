@@ -96,11 +96,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       {...rest}
       display={iconButtonDisplay(rest.display as DisplayValue) as ChakraButtonProps['display']}
     >
-      {isLoading ? (
-        <Spinner size="sm" aria-hidden="true" />
-      ) : (
-        <span aria-hidden="true">{icon}</span>
-      )}
+      <span aria-hidden="true" style={{ display: 'inline-grid', placeItems: 'center' }}>
+        <span style={{ gridArea: '1 / 1', visibility: isLoading ? 'hidden' : 'visible' }}>
+          {icon}
+        </span>
+        {isLoading ? <Spinner size="sm" style={{ gridArea: '1 / 1' }} /> : null}
+      </span>
       {isLoading ? (
         <VisuallyHidden role="status" aria-live="polite">
           {label}

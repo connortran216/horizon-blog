@@ -15,12 +15,11 @@
 
 import { useEffect, useReducer, useRef, type ReactNode } from 'react'
 import { Box, VisuallyHidden, type BoxProps } from '@chakra-ui/react'
-import { FiCheck, FiCopy } from 'react-icons/fi'
 
 import { componentTokens, radii, space } from '../../../theme/tokens'
 import { Button } from '../../components/actions'
 import { Text } from '../../components/typography'
-import { createDisposerBag, guardAsync } from '../../motion'
+import { createDisposerBag, guardAsync, MorphIcon } from '../../motion'
 import {
   chakraColorVar,
   codeLanguageLabel,
@@ -185,13 +184,7 @@ export function CodeBlock({
             onClick={handleCopy}
             isLoading={copyIsBusy(copy.status)}
             loadingLabel="Copying the code"
-            iconStart={
-              copy.status === 'copied' ? (
-                <FiCheck aria-hidden="true" />
-              ) : (
-                <FiCopy aria-hidden="true" />
-              )
-            }
+            iconStart={<MorphIcon name={copy.status === 'copied' ? 'check' : 'copy'} />}
           >
             {copyLabel(copy.status)}
           </Button>

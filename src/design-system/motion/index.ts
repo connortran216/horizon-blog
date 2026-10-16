@@ -217,3 +217,6 @@ export type {
   ViewTransitionLike,
   ViewTransitionResult,
 } from './viewTransition.logic'
+
+export { MorphIcon } from './MorphIcon'
+export type { MorphIconProps } from './MorphIcon'

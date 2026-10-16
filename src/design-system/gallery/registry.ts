@@ -270,6 +270,11 @@ export const galleryRegistry = [
 
   /* ---------------------------------------------------------------- motion */
   {
+    name: 'MorphIcon',
+    area: 'motion',
+    states: [{ name: 'copy', kind: 'ready' }, { name: 'menu' }],
+  },
+  {
     name: 'HoverLift',
     area: 'motion',
     states: [{ name: 'ready', kind: 'ready' }, { name: 'disabled' }],

@@ -17,6 +17,7 @@ import {
   InteractionTrace,
   LayoutTransition,
   MarginalNote,
+  MorphIcon,
   NO_VEIL,
   PointerLight,
   PressFeedback,
@@ -491,7 +492,19 @@ function UseViewTransitionEntry() {
   )
 }
 
+function MorphIconEntry({ state }: { readonly state: string }) {
+  const [active, setActive] = useState(false)
+  const name = state === 'menu' ? (active ? 'close' : 'menu') : active ? 'check' : 'copy'
+  return (
+    <Box display="flex" alignItems="center" gap={space[4]}>
+      <MorphIcon name={name} size={24} />
+      <HarnessButton onClick={() => setActive((value) => !value)}>Toggle icon state</HarnessButton>
+    </Box>
+  )
+}
+
 export const motionEntries = {
+  MorphIcon: MorphIconEntry,
   HoverLift: HoverLiftEntry,
   InteractionTrace: InteractionTraceEntry,
   LayoutTransition: LayoutTransitionEntry,
