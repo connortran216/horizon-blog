@@ -539,3 +539,7 @@ Rules:
 `MorphIcon` provides decorative `copy`, `check`, `menu`, and `close` states using Morphicons 2.0 and a restrained snappy spring. Use it in an existing Button/IconButton slot; the action owns labels, focus, busy/error handling, and announcements. Contact and Reader copy success animate to check; mobile navigation toggles menu/close. Reduced motion snaps to the current endpoint, including during an active transition. IconButton keeps its icon mounted beneath the loading spinner so successful copy can morph without remounting.
 
 Storybook: `Design system/Motion/MorphIcon` includes real Contact/Reader success and failure states, interactive pairs, and a menu harness.
+
+### Mobile site navigation
+
+The mobile menu is an absolute panel below the sticky header, never an in-flow expansion. Opening it must not change header height or move page content. Use the header surface/border tokens, constrain it to the remaining dynamic viewport, and scroll the panel internally. Preserve Escape focus restoration and close on outside clicks or route changes. Verify actual page coordinates before/after opening at a mobile viewport.
