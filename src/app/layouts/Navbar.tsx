@@ -24,7 +24,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import { Box, Flex, useDisclosure, useToast } from '@chakra-ui/react'
+import { Box, Flex, useDisclosure, useOutsideClick, useToast } from '@chakra-ui/react'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -51,10 +51,15 @@ import { headerSurface, isAtTop, opensOnField, shouldCloseOnKey } from './navbar
 
 const Navbar = () => {
   const { isOpen, onToggle, onClose } = useDisclosure()
+  const headerRef = useRef<HTMLElement>(null)
+  useOutsideClick({ ref: headerRef, handler: onClose, enabled: isOpen })
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  useEffect(() => {
+    onClose()
+  }, [location.pathname, onClose])
   const isEditorPage = location.pathname === '/blog-editor'
   const [atTop, setAtTop] = useState(true)
   const surface = headerSurface({ overField: opensOnField(location.pathname), atTop })
@@ -201,6 +206,7 @@ const Navbar = () => {
   return (
     <Box
       as="header"
+      ref={headerRef}
       className="app-navbar"
       position="sticky"
       top={0}
@@ -331,10 +337,24 @@ const Navbar = () => {
         </Flex>
 
         {isOpen ? (
-          <Box id="site-navigation-mobile" pb={space[4]} display={{ sm: 'none' }}>
+          <Box
+            id="site-navigation-mobile"
+            position="absolute"
+            top="100%"
+            insetInline={0}
+            px={space[4]}
+            py={space[4]}
+            display={{ sm: 'none' }}
+            bg={componentTokens.header.bg}
+            borderBottom="1px solid"
+            borderColor={componentTokens.header.border}
+            maxH={`calc(100dvh - ${layout.header.mobile})`}
+            overflowY="auto"
+            overscrollBehavior="contain"
+          >
             <Stack as="nav" aria-label="Site" gap={1}>
               {SITE_LINKS.map((link) => (
-                <NavItem key={link.path} to={link.path} onClick={onToggle} justifyContent="start">
+                <NavItem key={link.path} to={link.path} onClick={onClose} justifyContent="start">
                   {link.name}
                 </NavItem>
               ))}
