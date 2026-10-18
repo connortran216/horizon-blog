@@ -20,7 +20,7 @@ import { Box, Flex, Grid as ChakraGrid } from '@chakra-ui/react'
 import { FiGlobe, FiMail, FiMapPin } from 'react-icons/fi'
 import type { IconType } from 'react-icons'
 
-import { componentTokens, space } from '../../../theme/tokens'
+import { componentTokens, space, typeScale } from '../../../theme/tokens'
 import { ActionLink } from '../../components/actions'
 import { Grid, Stack } from '../../components/layout'
 import { Surface } from '../../components/surface'
@@ -146,11 +146,11 @@ export function ProfileHeader({
       <SignalRoute as="header" pace="order" trigger="mount" width="100%" maxW="100%" minW="0">
         <ChakraGrid
           templateColumns={{ base: 'minmax(0, 1fr)', md: 'auto minmax(0, 1fr)' }}
-          columnGap={{ base: space[8], lg: space[12] }}
+          columnGap={{ base: space[6], lg: `calc(${space[8]} + ${space[1]})` }}
           rowGap={space[8]}
           alignItems="start"
         >
-          <Box width={{ base: '11rem', lg: '13rem' }} minW="0">
+          <Box width={{ base: '11rem', lg: '11.25rem' }} minW="0">
             {avatarSlot ?? <Avatar name={profile.name} src={profile.avatarUrl} size="lg" />}
           </Box>
 
@@ -162,7 +162,7 @@ export function ProfileHeader({
           */}
           <ChakraGrid
             minW="0"
-            rowGap={space[6]}
+            rowGap={space[4]}
             columnGap={space[4]}
             alignItems="center"
             templateColumns={{ base: 'minmax(0, 1fr)', sm: 'minmax(0, 1fr) auto' }}
@@ -181,16 +181,25 @@ export function ProfileHeader({
               </Flex>
             )}
 
-            <Stack gap={2} minW="0" gridArea="identity">
-              <Heading recipe="display" as="h1" overflowWrap="anywhere">
+            <Flex gap={space[4]} minW="0" gridArea="identity" align="center" flexWrap="wrap">
+              <Heading
+                recipe="display"
+                as="h1"
+                fontSize={{ base: typeScale.display.fontSize[0], lg: '3rem' }}
+                lineHeight={typeScale.pageTitle.lineHeight[1]}
+                overflowWrap="anywhere"
+                minW="0"
+              >
                 <Typeset>{profile.name}</Typeset>
               </Heading>
               {identityAction}
-            </Stack>
+            </Flex>
 
             <Text
               gridArea="bio"
               recipe="prose"
+              fontSize={typeScale.prose.fontSize[0]}
+              lineHeight={typeScale.prose.lineHeight[0]}
               as="p"
               color={state.usesBioPlaceholder ? 'text.muted' : 'text.secondary'}
               maxW="prose"

@@ -15,10 +15,10 @@
 
 import { useRef, type ChangeEvent } from 'react'
 import { Box, Flex, VisuallyHidden } from '@chakra-ui/react'
-import { FiCamera, FiUser } from 'react-icons/fi'
+import { FiCamera, FiMaximize2, FiUser } from 'react-icons/fi'
 
 import { componentTokens, palette, radii, space, transitionFor } from '../../../theme/tokens'
-import { Button } from '../../components/actions'
+import { Button, IconButton } from '../../components/actions'
 import { Stack } from '../../components/layout'
 import { Text } from '../../components/typography'
 import { InlineLoading } from '../../components/feedback'
@@ -119,6 +119,8 @@ export interface AvatarEditorProps extends AvatarEditorStateInput {
   acceptedTypes?: readonly string[]
   /** Receives the chosen file. Validation and upload stay with the caller. */
   onSelectFile?: (file: File) => void
+  /** Open the workspace portrait at full size. */
+  onOpenPreview?: () => void
   /** Re-request a source that failed to render. */
   onReloadImage?: () => void
   /** The caption under the portrait. "Profile image" on the production screen. */
@@ -142,6 +144,7 @@ export function AvatarEditor({
   src,
   acceptedTypes,
   onSelectFile,
+  onOpenPreview,
   onReloadImage,
   caption = 'Profile image',
   presentation = 'standard',
@@ -242,22 +245,47 @@ export function AvatarEditor({
 
           {fileInput}
 
-          <Button
+          <IconButton
+            label={
+              state.status === 'uploading' ? 'Uploading your new profile picture' : 'Change picture'
+            }
+            title="Change picture"
             tone="quiet"
             size="md"
-            iconStart={<Box as={FiCamera} aria-hidden="true" />}
-            isDisabled={!state.canChoose}
+            icon={<FiCamera aria-hidden="true" />}
+            isDisabled={!state.canChoose && state.status !== 'uploading'}
             isLoading={state.status === 'uploading'}
-            loadingLabel="Uploading your new profile picture"
             onClick={() => inputRef.current?.click()}
             position="absolute"
-            insetInlineEnd={space[3]}
-            insetBlockEnd={space[3]}
+            insetInlineStart={space[2]}
+            insetBlockEnd={space[2]}
+            borderRadius={radii.tag}
             bg={componentTokens.overlay.scrim}
             color={palette.white}
-          >
-            Change picture
-          </Button>
+            _hover={{ bg: componentTokens.overlay.scrim, borderColor: 'action.primary' }}
+            borderWidth="1px"
+            borderColor="border.subtle"
+          />
+          {onOpenPreview === undefined ? null : (
+            <IconButton
+              label="View full size"
+              title="View full size"
+              icon={<FiMaximize2 aria-hidden="true" />}
+              tone="quiet"
+              size="md"
+              isDisabled={!src}
+              onClick={onOpenPreview}
+              position="absolute"
+              insetInlineEnd={space[2]}
+              insetBlockEnd={space[2]}
+              borderRadius={radii.tag}
+              bg={componentTokens.overlay.scrim}
+              color={palette.white}
+              _hover={{ bg: componentTokens.overlay.scrim, borderColor: 'action.primary' }}
+              borderWidth="1px"
+              borderColor="border.subtle"
+            />
+          )}
         </Box>
 
         {state.canRetry && onReloadImage !== undefined ? (
