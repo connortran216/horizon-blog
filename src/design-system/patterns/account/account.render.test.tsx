@@ -207,3 +207,44 @@ describe('the editorial profile workspace', () => {
     expect(markup).toContain('Change picture')
   })
 })
+
+describe('workspace portrait controls', () => {
+  it('only offers a preview when the caller can open one', () => {
+    const withoutPreview = render(<AvatarEditor presentation="workspace" name="Sample Author" />)
+    const withPreview = render(
+      <AvatarEditor
+        presentation="workspace"
+        name="Sample Author"
+        src="/avatar.jpg"
+        onOpenPreview={() => {}}
+      />,
+    )
+
+    expect(withoutPreview).not.toContain('aria-label="View full size"')
+    expect(withPreview).toContain('aria-label="View full size"')
+    expect(withPreview).toContain('title="View full size"')
+    expect(withPreview).toContain('aria-label="Change picture"')
+    expect(withPreview).not.toContain('>Change picture<')
+  })
+
+  it('disables choosing a picture while announcing an upload', () => {
+    const markup = render(
+      <AvatarEditor presentation="workspace" name="Sample Author" isUploading />,
+    )
+    const uploadButton = markup.match(
+      /<button[^>]*aria-label="Uploading your new profile picture"[^>]*>/,
+    )?.[0]
+
+    expect(uploadButton).toContain('aria-disabled="true"')
+    expect(uploadButton).toContain('aria-busy="true"')
+    expect(markup).toContain('role="status"')
+    expect(markup).toContain('aria-live="polite"')
+  })
+
+  it('leaves the standard portrait text control intact', () => {
+    const markup = render(<AvatarEditor name="Sample Author" onOpenPreview={() => {}} />)
+
+    expect(markup).toContain('Change picture</button>')
+    expect(markup).not.toContain('aria-label="View full size"')
+  })
+})

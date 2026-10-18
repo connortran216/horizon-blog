@@ -14,21 +14,20 @@
  * menu that existed to work around that. `AvatarEditor` keeps a real, visually
  * hidden `input[type=file]` and a real button, so the control is reachable
  * without the menu. The menu's other item, "View avatar", survives as its own
- * button beside it.
+ * button on the portrait.
  *
  * Who may write is still decided by `can(profile?.authorization, ...)`, exactly
  * where it was decided before. `ProfileHeader` takes the resulting controls as a
  * slot; it is not told the permission and cannot infer one.
  */
 
-import { FiArrowRight, FiEdit3, FiMaximize2 } from 'react-icons/fi'
+import { FiArrowRight, FiEdit3 } from 'react-icons/fi'
 
 import {
   ActionLink,
   AvatarEditor,
   Button,
   ProfileHeader,
-  Stack,
   type ProfileStat,
 } from '../../../design-system'
 import { can } from '../../../core/authorization/authorization'
@@ -119,33 +118,17 @@ const ProfileHeaderCard = ({
       }}
       stats={stats}
       avatarSlot={
-        <Stack gap={2} alignItems="stretch">
-          <AvatarEditor
-            presentation="workspace"
-            name={profileName}
-            src={avatarSrc ?? null}
-            acceptedTypes={ACCEPTED_AVATAR_TYPES}
-            isUploading={isUploadingAvatar}
-            uploadError={avatarUploadError}
-            isDisabled={profileLoading}
-            onSelectFile={onSelectAvatarFile}
-          />
-          {/*
-            The legacy menu's "View avatar". A button rather than a menu item
-            because it is one action, and disabled when there is no picture to
-            open - which is what the menu item did too.
-          */}
-          <Button
-            tone="quiet"
-            size="md"
-            iconStart={<FiMaximize2 aria-hidden="true" />}
-            isDisabled={!avatarSrc}
-            onClick={onOpenAvatarPreview}
-            alignSelf="flex-start"
-          >
-            View full size
-          </Button>
-        </Stack>
+        <AvatarEditor
+          presentation="workspace"
+          name={profileName}
+          src={avatarSrc ?? null}
+          acceptedTypes={ACCEPTED_AVATAR_TYPES}
+          isUploading={isUploadingAvatar}
+          uploadError={avatarUploadError}
+          isDisabled={profileLoading}
+          onSelectFile={onSelectAvatarFile}
+          onOpenPreview={onOpenAvatarPreview}
+        />
       }
       identityAction={
         <Button
@@ -154,7 +137,7 @@ const ProfileHeaderCard = ({
           iconStart={<FiEdit3 aria-hidden="true" />}
           isDisabled={profileLoading}
           onClick={onOpenProfileEditor}
-          alignSelf="flex-start"
+          flexShrink={0}
           data-profile-action="edit"
         >
           Edit profile

@@ -22,8 +22,8 @@ It should feel like an editorial author page with management affordances, not a 
 ## Layout
 
 - an unboxed author masthead on the page canvas: the square portrait editor and
-  full-size action on the left; the eyebrow, the display-face name with the
-  inline edit action, the biography and one line of contact metadata on the right
+  camera and full-size icon controls inside its bottom corners on the left; the eyebrow, the display-face name with the
+  inline edit action on a wrapping row, the biography and one line of contact metadata on the right
 - the single dominant `Write a blog` action sits beside the eyebrow at desktop
   and follows the metadata on a phone (named grid areas, one markup order)
 - one rule runs under the masthead and writes the Blogs / Scheduled / Drafts
